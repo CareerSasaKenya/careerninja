@@ -9,7 +9,7 @@ import { useBranding } from "@/contexts/BrandingContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import MobileNav from "./MobileNav";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 const Navbar = () => {
   const { user } = useAuth();
@@ -36,7 +36,7 @@ const Navbar = () => {
     window.dispatchEvent(closeEvent);
   }, [pathname]);
 
-  const handleSignOut = async () => {
+  const handleSignOut = useCallback(async () => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) {
@@ -49,7 +49,7 @@ const Navbar = () => {
       console.debug('Error during sign out:', error);
       toast.error("Error signing out");
     }
-  };
+  }, [router]);
 
   return (
     <nav className="border-b border-border/50 bg-card/80 sticky top-0 z-40 backdrop-blur-xl">

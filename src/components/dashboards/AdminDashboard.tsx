@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -50,18 +50,7 @@ const AdminDashboard = () => {
   const jobsPerPage = 10;
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    fetchData();
-    
-    // Cleanup timeout on unmount
-    return () => {
-      if (fetchTimeoutRef.current) {
-        clearTimeout(fetchTimeoutRef.current);
-      }
-    };
-  }, [currentPage]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -117,7 +106,18 @@ const AdminDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, jobsPerPage]);
+
+  useEffect(() => {
+    fetchData();
+    
+    // Cleanup timeout on unmount
+    return () => {
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
+    };
+  }, [fetchData]);
 
   const handleDeleteJob = async (jobId: string) => {
     if (!confirm("Are you sure you want to delete this job?")) return;

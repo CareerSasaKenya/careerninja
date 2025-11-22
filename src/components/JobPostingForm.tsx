@@ -184,13 +184,17 @@ const JobPostingForm = ({ jobId, isEdit = false }: { jobId?: string; isEdit?: bo
   // Keep form location fields in sync with selected county/town
   useEffect(() => {
     const countyName = counties?.find(c => String(c.id) === selectedCountyId)?.name || "";
-    setFormData(prev => ({ ...prev, job_location_county: countyName }));
-  }, [selectedCountyId, counties]);
+    if (formData.job_location_county !== countyName) {
+      setFormData(prev => ({ ...prev, job_location_county: countyName }));
+    }
+  }, [selectedCountyId, counties, formData.job_location_county]);
 
   useEffect(() => {
     const townName = towns?.find(t => String(t.id) === selectedTownId)?.name || "";
-    setFormData(prev => ({ ...prev, job_location_city: townName }));
-  }, [selectedTownId, towns]);
+    if (formData.job_location_city !== townName) {
+      setFormData(prev => ({ ...prev, job_location_city: townName }));
+    }
+  }, [selectedTownId, towns, formData.job_location_city]);
 
   const { data: userCompany } = useQuery({
     queryKey: ["user-company", user?.id],
@@ -250,8 +254,9 @@ const JobPostingForm = ({ jobId, isEdit = false }: { jobId?: string; isEdit?: bo
 
   // Populate form with existing job data when loaded
   useEffect(() => {
-    if (existingJob) {
-      setFormData({
+    if (existingJob && !isJobLoading) {
+      // Only update if the form hasn't been modified by the user
+      const newFormData = {
         // Core fields
         title: existingJob.title || "",
         company: existingJob.company || "",
@@ -299,17 +304,30 @@ const JobPostingForm = ({ jobId, isEdit = false }: { jobId?: string; isEdit?: bo
         job_function: existingJob.job_function || "",
         status: existingJob.status || "active",
         additional_info: existingJob.additional_info?.toString() || "",
-      });
+      };
+      
+      // Check if form data is different before updating
+      const isDifferent = Object.keys(newFormData).some(key => 
+        formData[key as keyof typeof formData] !== newFormData[key as keyof typeof newFormData]
+      );
+      
+      if (isDifferent) {
+        setFormData(newFormData);
+      }
       
       // Set county and town IDs if available
       if (existingJob.job_location_county) {
         const county = counties?.find(c => c.name === existingJob.job_location_county);
-        if (county) setSelectedCountyId(String(county.id));
+        if (county && String(county.id) !== selectedCountyId) {
+          setSelectedCountyId(String(county.id));
+        }
       }
       
       if (existingJob.job_location_city) {
         const town = towns?.find(townItem => townItem.name === existingJob.job_location_city);
-        if (town) setSelectedTownId(String(town.id));
+        if (town && String(town.id) !== selectedTownId) {
+          setSelectedTownId(String(town.id));
+        }
       }
       
       // Reset company creation state when loading existing job
@@ -318,7 +336,7 @@ const JobPostingForm = ({ jobId, isEdit = false }: { jobId?: string; isEdit?: bo
         setNewCompanyName("");
       }
     }
-  }, [existingJob, counties, towns]);
+  }, [existingJob, counties, towns, isJobLoading, selectedCountyId, selectedTownId]);
 
   const mutation = useMutation({
     mutationFn: async (data: JobFormData) => {

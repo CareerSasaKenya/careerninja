@@ -53,40 +53,57 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [ADMIN_EMAIL]);
 
   useEffect(() => {
-    try {
-      // Set up auth state listener
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        (event, session) => {
-          setSession(session);
-          setUser(session?.user ?? null);
-          // Ensure admin role whenever auth state changes
-          ensureAdminRole(session?.user ?? null);
-          // Only set loading to false after processing
-          setLoading(false);
-        }
-      );
+    let mounted = true;
+    
+    const initializeAuth = async () => {
+      try {
+        // Set up auth state listener
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          (event, session) => {
+            if (!mounted) return;
+            
+            setSession(session);
+            setUser(session?.user ?? null);
+            // Ensure admin role whenever auth state changes
+            ensureAdminRole(session?.user ?? null);
+            // Only set loading to false after processing
+            setLoading(false);
+          }
+        );
 
-      // Check for existing session
-      supabase.auth.getSession().then(({ data: { session } }) => {
+        // Check for existing session
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+        
         setSession(session);
         setUser(session?.user ?? null);
         // Ensure admin role on initial load
         ensureAdminRole(session?.user ?? null);
         // Only set loading to false after processing
         setLoading(false);
-      });
 
-      return () => {
-        try {
-          subscription.unsubscribe();
-        } catch (error) {
-          console.debug('Error unsubscribing from auth:', error);
+        return () => {
+          mounted = false;
+          try {
+            subscription.unsubscribe();
+          } catch (error) {
+            console.debug('Error unsubscribing from auth:', error);
+          }
+        };
+      } catch (error) {
+        console.debug('Error setting up auth listener:', error);
+        if (mounted) {
+          setLoading(false);
         }
-      };
-    } catch (error) {
-      console.debug('Error setting up auth listener:', error);
-      setLoading(false);
-    }
+      }
+    };
+
+    initializeAuth();
+
+    return () => {
+      mounted = false;
+    };
   }, [ensureAdminRole]);
 
   return (

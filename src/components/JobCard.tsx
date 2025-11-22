@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -126,15 +126,23 @@ const JobCard = ({
   const [postedRel, setPostedRel] = useState<string | null>(null);
   const [isExpired, setIsExpired] = useState(false);
   const [deadlineDisplay, setDeadlineDisplay] = useState<string | null>(null);
+  const prevDatePostedRef = useRef<string | undefined>(undefined);
+  const prevValidThroughRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
-    // Calculate time-based values on client side only
-    setPostedRel(relativeTimeFromNow(datePosted || undefined));
-    
-    const deadline = validThrough ? new Date(validThrough) : null;
-    if (deadline) {
-      setIsExpired(deadline.getTime() < Date.now());
-      setDeadlineDisplay(`Apply by ${deadline.toLocaleDateString()}`);
+    // Only update if the dates have actually changed
+    if (prevDatePostedRef.current !== datePosted || prevValidThroughRef.current !== validThrough) {
+      prevDatePostedRef.current = datePosted;
+      prevValidThroughRef.current = validThrough;
+      
+      // Calculate time-based values on client side only
+      setPostedRel(relativeTimeFromNow(datePosted || undefined));
+      
+      const deadline = validThrough ? new Date(validThrough) : null;
+      if (deadline) {
+        setIsExpired(deadline.getTime() < Date.now());
+        setDeadlineDisplay(`Apply by ${deadline.toLocaleDateString()}`);
+      }
     }
   }, [datePosted, validThrough]);
 
