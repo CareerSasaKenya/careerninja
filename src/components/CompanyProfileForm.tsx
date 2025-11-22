@@ -1,17 +1,15 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { useAuth } from "@/contexts/AuthContext";
+import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useCallback } from "react";
 
 interface Company {
   id: string;
+  user_id: string;
   name: string;
   logo: string | null;
   website: string | null;
@@ -37,13 +35,21 @@ interface Town {
   county_id: number;
 }
 
+interface FormData {
+  name: string;
+  logo: string;
+  website: string;
+  industry: string;
+  location: string;
+  size: string;
+  description: string;
+}
+
 const CompanyProfileForm = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [company, setCompany] = useState<Company | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: "",
     logo: "",
     website: "",
@@ -52,13 +58,15 @@ const CompanyProfileForm = () => {
     size: "",
     description: "",
   });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [industries, setIndustries] = useState<Industry[]>([]);
   const [counties, setCounties] = useState<County[]>([]);
   const [towns, setTowns] = useState<Town[]>([]);
   const [selectedCountyId, setSelectedCountyId] = useState<string>("");
   const [selectedTownId, setSelectedTownId] = useState<string>("");
 
-  const fetchCompany = async () => {
+  const fetchCompany = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from("companies")
@@ -103,7 +111,7 @@ const CompanyProfileForm = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id, counties, towns]);
 
   useEffect(() => {
     if (user) {

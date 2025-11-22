@@ -25,9 +25,15 @@ const BrandingContext = createContext<BrandingContextType | undefined>(undefined
 export const BrandingProvider = ({ children }: { children: ReactNode }) => {
   const [branding, setBranding] = useState<BrandingSettings | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   // Apply favicon whenever branding changes
   useFavicon(branding?.favicon_url);
+
+  // Ensure we're mounted before rendering to avoid hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const hexToHSL = (hex: string) => {
     // Remove # if present
@@ -137,6 +143,15 @@ export const BrandingProvider = ({ children }: { children: ReactNode }) => {
       console.debug('Error setting up branding subscription:', error);
     }
   }, [fetchBranding]);
+
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!mounted) {
+    return (
+      <BrandingContext.Provider value={{ branding: null, loading: true, refreshBranding: fetchBranding }}>
+        {children}
+      </BrandingContext.Provider>
+    );
+  }
 
   return (
     <BrandingContext.Provider value={{ branding, loading, refreshBranding: fetchBranding }}>

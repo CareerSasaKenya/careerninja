@@ -126,24 +126,19 @@ const JobCard = ({
   const [postedRel, setPostedRel] = useState<string | null>(null);
   const [isExpired, setIsExpired] = useState(false);
   const [deadlineDisplay, setDeadlineDisplay] = useState<string | null>(null);
-  const prevDatePostedRef = useRef<string | undefined>(undefined);
-  const prevValidThroughRef = useRef<string | undefined>(undefined);
 
+  // Calculate time-based values as derived state instead of in useEffect
   useEffect(() => {
-    // Only update if the dates have actually changed
-    if (prevDatePostedRef.current !== datePosted || prevValidThroughRef.current !== validThrough) {
-      prevDatePostedRef.current = datePosted;
-      prevValidThroughRef.current = validThrough;
-      
-      // Calculate time-based values on client side only
-      setPostedRel(relativeTimeFromNow(datePosted || undefined));
-      
-      const deadline = validThrough ? new Date(validThrough) : null;
-      if (deadline) {
-        setIsExpired(deadline.getTime() < Date.now());
-        setDeadlineDisplay(`Apply by ${deadline.toLocaleDateString()}`);
-      }
-    }
+    // Calculate time-based values on client side only
+    const newPostedRel = relativeTimeFromNow(datePosted || undefined);
+    const deadline = validThrough ? new Date(validThrough) : null;
+    const newIsExpired = deadline ? deadline.getTime() < Date.now() : false;
+    const newDeadlineDisplay = deadline ? `Apply by ${deadline.toLocaleDateString()}` : null;
+    
+    // Only update state if values have changed to prevent unnecessary renders
+    setPostedRel(prev => prev !== newPostedRel ? newPostedRel : prev);
+    setIsExpired(prev => prev !== newIsExpired ? newIsExpired : prev);
+    setDeadlineDisplay(prev => prev !== newDeadlineDisplay ? newDeadlineDisplay : prev);
   }, [datePosted, validThrough]);
 
   const hasExternalApply = !!(applyEmail || applyLink || applicationUrl);

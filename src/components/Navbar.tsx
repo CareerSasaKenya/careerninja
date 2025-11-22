@@ -19,15 +19,22 @@ const Navbar = () => {
   const [siteName, setSiteName] = useState("CareerSasa");
   const [logoUrl, setLogoUrl] = useState<string | undefined>(undefined);
 
-  // Update site name and logo when branding changes
+  // Update site name and logo when branding changes - move to render phase
+  const newSiteName = branding?.site_name || "CareerSasa";
+  const newLogoUrl = branding?.logo_url || undefined;
+  
   useEffect(() => {
     try {
-      setSiteName(branding?.site_name || "CareerSasa");
-      setLogoUrl(branding?.logo_url || undefined);
+      if (siteName !== newSiteName) {
+        setSiteName(newSiteName);
+      }
+      if (logoUrl !== newLogoUrl) {
+        setLogoUrl(newLogoUrl);
+      }
     } catch (error) {
       console.debug('Error updating branding:', error);
     }
-  }, [branding]);
+  }, [newSiteName, newLogoUrl]);
 
   // Close any open mobile menu when route changes
   useEffect(() => {

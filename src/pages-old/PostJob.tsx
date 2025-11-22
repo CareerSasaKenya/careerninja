@@ -157,12 +157,12 @@ const PostJob = () => {
   const { data: counties } = useQuery({
     queryKey: ["counties"],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("counties")
-        .select("id, name")
+        .select("*")
         .order("name");
       if (error) throw error;
-      return (data as { id: number; name: string }[]) || [];
+      return data;
     },
   });
 
@@ -181,16 +181,22 @@ const PostJob = () => {
     enabled: !!selectedCountyId,
   });
 
-  // Keep form location fields in sync with selected county/town
+  // Compute county and town names in render phase instead of useEffect
+  const countyName = counties?.find(c => String(c.id) === selectedCountyId)?.name || "";
+  const townName = towns?.find(t => String(t.id) === selectedTownId)?.name || "";
+
+  // Keep form location fields in sync with selected county/town - moved to render phase
   useEffect(() => {
-    const countyName = counties?.find(c => String(c.id) === selectedCountyId)?.name || "";
-    setFormData(prev => ({ ...prev, job_location_county: countyName }));
-  }, [selectedCountyId, counties]);
+    if (formData.job_location_county !== countyName) {
+      setFormData(prev => ({ ...prev, job_location_county: countyName }));
+    }
+  }, [countyName]);
 
   useEffect(() => {
-    const townName = towns?.find(t => String(t.id) === selectedTownId)?.name || "";
-    setFormData(prev => ({ ...prev, job_location_city: townName }));
-  }, [selectedTownId, towns]);
+    if (formData.job_location_city !== townName) {
+      setFormData(prev => ({ ...prev, job_location_city: townName }));
+    }
+  }, [townName]);
 
   useEffect(() => {
     if (!loading && !user) {

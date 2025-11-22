@@ -440,7 +440,7 @@ export const useJobThumbnail = (): UseJobThumbnailReturn => {
     } finally {
       setIsGenerating(false);
     }
-  }, []);
+  }, [drawTextContent]); // Added drawTextContent as dependency
 
   return {
     generateThumbnail,

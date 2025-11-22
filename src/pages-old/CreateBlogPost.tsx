@@ -1,58 +1,46 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
-import Navbar from "@/components/Navbar";
 import RichTextEditor from "@/components/RichTextEditor";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useCallback } from "react";
 
-interface BlogPost {
-  id?: string;
+interface BlogPostFormData {
   title: string;
   slug: string;
-  featured_image: string | null;
-  content: string;
   excerpt: string | null;
+  content: string;
+  featured_image: string | null;
   category: string | null;
   tags: string | null;
-  author_id?: string | null;
-  created_at?: string;
 }
 
 const CreateBlogPost = () => {
-  const { id } = useParams<{ id?: string }>();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { toast } = useToast();
   const isEditing = !!id;
-
-  const [formData, setFormData] = useState<BlogPost>({
+  
+  const [formData, setFormData] = useState<BlogPostFormData>({
     title: "",
     slug: "",
-    featured_image: null,
-    content: "",
     excerpt: null,
+    content: "",
+    featured_image: null,
     category: null,
     tags: null,
   });
-
+  
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (isEditing && id) {
-      fetchBlogPost(id);
-    } else {
-      setLoading(false);
-    }
-  }, [isEditing, id]);
-
-  const fetchBlogPost = async (postId: string) => {
+  const fetchBlogPost = useCallback(async (postId: string) => {
     try {
       const { data, error } = await supabase
         .from("blog_posts")
@@ -73,7 +61,15 @@ const CreateBlogPost = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate, toast]);
+
+  useEffect(() => {
+    if (isEditing && id) {
+      fetchBlogPost(id);
+    } else {
+      setLoading(false);
+    }
+  }, [isEditing, id, fetchBlogPost]);
 
   const generateSlug = (title: string) => {
     return title
@@ -107,7 +103,6 @@ const CreateBlogPost = () => {
       const postData = {
         ...formData,
         tags: formData.tags ? formData.tags.split(",").map(tag => tag.trim()).filter(Boolean) : null,
-        author_id: user?.id,
       };
 
       if (isEditing) {

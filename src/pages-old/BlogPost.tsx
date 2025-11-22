@@ -1,39 +1,33 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { Badge } from "@/components/ui/badge";
+import { Link, useParams } from "react-router-dom";
+import { ArrowLeft, Calendar, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Calendar, User } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
-import Navbar from "@/components/Navbar";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useCallback } from "react";
 
-interface BlogPost {
+interface BlogPostData {
   id: string;
   title: string;
-  slug: string;
-  featured_image: string | null;
   content: string;
-  excerpt: string | null;
-  category: string | null;
-  tags: string[] | null;
-  author_id: string | null;
+  excerpt?: string;
+  featured_image?: string;
+  category?: string;
+  tags?: string[];
   created_at: string;
+  slug: string;
 }
 
 const BlogPost = () => {
   const { slug } = useParams<{ slug: string }>();
-  const [post, setPost] = useState<BlogPost | null>(null);
-  const [relatedPosts, setRelatedPosts] = useState<BlogPost[]>([]);
+  const [post, setPost] = useState<BlogPostData | null>(null);
+  const [relatedPosts, setRelatedPosts] = useState<BlogPostData[]>([]);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  useEffect(() => {
-    if (slug) {
-      fetchPost();
-    }
-  }, [slug]);
-
-  const fetchPost = async () => {
+  const fetchPost = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from("blog_posts")
@@ -57,7 +51,13 @@ const BlogPost = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [slug, toast]);
+
+  useEffect(() => {
+    if (slug) {
+      fetchPost();
+    }
+  }, [slug, fetchPost]);
 
   const fetchRelatedPosts = async (category: string, currentPostId: string) => {
     try {

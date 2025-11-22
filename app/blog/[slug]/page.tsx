@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,7 +16,7 @@ export default function BlogPostPage() {
   const [post, setPost] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchPost = async () => {
+  const fetchPost = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from("blog_posts")
@@ -32,7 +32,7 @@ export default function BlogPostPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [slug]);
 
   useEffect(() => {
     if (slug) {

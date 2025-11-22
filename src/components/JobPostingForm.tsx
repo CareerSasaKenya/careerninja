@@ -181,20 +181,22 @@ const JobPostingForm = ({ jobId, isEdit = false }: { jobId?: string; isEdit?: bo
     enabled: !!selectedCountyId,
   });
 
-  // Keep form location fields in sync with selected county/town
+  // Keep form location fields in sync with selected county/town - move to render phase
+  const countyName = counties?.find(c => String(c.id) === selectedCountyId)?.name || "";
+  const townName = towns?.find(t => String(t.id) === selectedTownId)?.name || "";
+  
+  // Update form data only when values change
   useEffect(() => {
-    const countyName = counties?.find(c => String(c.id) === selectedCountyId)?.name || "";
     if (formData.job_location_county !== countyName) {
       setFormData(prev => ({ ...prev, job_location_county: countyName }));
     }
-  }, [selectedCountyId, counties, formData.job_location_county]);
+  }, [countyName]); // Dependency on the computed value, not the state setters
 
   useEffect(() => {
-    const townName = towns?.find(t => String(t.id) === selectedTownId)?.name || "";
     if (formData.job_location_city !== townName) {
       setFormData(prev => ({ ...prev, job_location_city: townName }));
     }
-  }, [selectedTownId, towns, formData.job_location_city]);
+  }, [townName]); // Dependency on the computed value, not the state setters
 
   const { data: userCompany } = useQuery({
     queryKey: ["user-company", user?.id],
