@@ -18,6 +18,10 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
+  // Explicitly set the app directory
+  experimental: {
+    appDir: true,
+  },
 }
 
 export default nextConfig;

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Briefcase, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,6 +15,7 @@ const Navbar = () => {
   const { user } = useAuth();
   const { branding } = useBranding();
   const router = useRouter();
+  const pathname = usePathname();
   const [siteName, setSiteName] = useState("CareerSasa");
   const [logoUrl, setLogoUrl] = useState<string | undefined>(undefined);
 
@@ -27,6 +28,13 @@ const Navbar = () => {
       console.debug('Error updating branding:', error);
     }
   }, [branding]);
+
+  // Close any open mobile menu when route changes
+  useEffect(() => {
+    // This will trigger on route changes to close mobile menu if open
+    const closeEvent = new CustomEvent('close-mobile-menu');
+    window.dispatchEvent(closeEvent);
+  }, [pathname]);
 
   const handleSignOut = async () => {
     try {

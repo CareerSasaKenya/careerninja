@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,13 @@ const MobileNav = () => {
   
   const siteName = branding?.site_name || "CareerSasa";
   const logoUrl = branding?.logo_url || undefined;
+
+  // Listen for close event from Navbar
+  useEffect(() => {
+    const closeMenu = () => setOpen(false);
+    window.addEventListener('close-mobile-menu', closeMenu);
+    return () => window.removeEventListener('close-mobile-menu', closeMenu);
+  }, []);
 
   const handleSignOut = async () => {
     try {

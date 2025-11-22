@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "@/index.css";
 import { Providers } from "./providers";
-import { supabase } from "@/integrations/supabase/client";
+import { NavigationEvents } from "@/components/NavigationEvents";
 
 const inter = Inter({ subsets: ["latin"] });
 
 async function getBranding() {
+  // Use dynamic import to avoid issues with Supabase client on server
+  const { supabase } = await import("@/integrations/supabase/client");
   try {
     const { data } = await supabase
       .from("site_settings")
@@ -55,7 +57,10 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" />
       </head>
       <body className={inter.className} suppressHydrationWarning>
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <NavigationEvents />
+        </Providers>
       </body>
     </html>
   );
