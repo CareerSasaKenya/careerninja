@@ -28,4 +28,7 @@ out/
 *.ntvs*
 *.njsproj
 *.sln
-*.sw?
+
+# Temporary files
+*DESKTOP-*.ts
+*DESKTOP-*.tsx
