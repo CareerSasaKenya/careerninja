@@ -7,44 +7,15 @@ import { Suspense } from "react";
 
 const inter = Inter({ subsets: ["latin"] });
 
-async function getBranding() {
-  // Use dynamic import to avoid issues with Supabase client on server
-  const { supabase } = await import("@/integrations/supabase/client");
-  try {
-    const { data } = await supabase
-      .from("site_settings")
-      .select("*")
-      .single();
-    return data;
-  } catch (error) {
-    console.debug('Error fetching branding:', error);
-    return null;
-  }
-}
-
 export async function generateMetadata(): Promise<Metadata> {
-  try {
-    const branding = await getBranding();
-    
-    return {
-      title: `${branding?.site_name || "CareerSasa"} - Find Your Dream Job`,
-      description: "Discover the latest job opportunities in Kenya. Connect with top employers and advance your career.",
-      keywords: "jobs, careers, Kenya, employment, job search",
-      icons: {
-        icon: branding?.favicon_url || '/favicon.ico',
-      },
-    };
-  } catch (error) {
-    console.debug('Error generating metadata:', error);
-    return {
-      title: "CareerSasa - Find Your Dream Job",
-      description: "Discover the latest job opportunities in Kenya. Connect with top employers and advance your career.",
-      keywords: "jobs, careers, Kenya, employment, job search",
-      icons: {
-        icon: '/favicon.ico',
-      },
-    };
-  }
+  return {
+    title: "CareerSasa - Find Your Dream Job",
+    description: "Discover the latest job opportunities in Kenya. Connect with top employers and advance your career.",
+    keywords: "jobs, careers, Kenya, employment, job search",
+    icons: {
+      icon: '/favicon.ico', // Your favicon file
+    },
+  };
 }
 
 export default function RootLayout({

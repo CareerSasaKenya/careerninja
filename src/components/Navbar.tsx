@@ -17,7 +17,7 @@ const Navbar = () => {
   
   // Use static branding values
   const siteName = "CareerSasa";
-  const logoUrl = undefined;
+  const logoUrl = "/logo.png"; // Change this to your logo filename (e.g., "/logo.svg")
 
   // Close any open mobile menu when route changes
   useEffect(() => {

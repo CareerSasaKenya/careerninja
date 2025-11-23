@@ -16,7 +16,7 @@ const MobileNav = () => {
   
   // Use static branding values
   const siteName = "CareerSasa";
-  const logoUrl = undefined;
+  const logoUrl = "/logo.png"; // Change this to your logo filename (e.g., "/logo.svg")
 
   // Listen for close event from Navbar
   useEffect(() => {
