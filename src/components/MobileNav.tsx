@@ -6,19 +6,17 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Briefcase, LogOut, Menu, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useBranding } from "@/contexts/BrandingContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const MobileNav = () => {
   const { user } = useAuth();
-  const { branding } = useBranding();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   
-  // Directly use branding values
-  const siteName = branding?.site_name || "CareerSasa";
-  const logoUrl = branding?.logo_url || undefined;
+  // Use static branding values
+  const siteName = "CareerSasa";
+  const logoUrl = undefined;
 
   // Listen for close event from Navbar
   useEffect(() => {

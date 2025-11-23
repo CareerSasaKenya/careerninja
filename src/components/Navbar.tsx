@@ -5,7 +5,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Briefcase, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useBranding } from "@/contexts/BrandingContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import MobileNav from "./MobileNav";
@@ -13,13 +12,12 @@ import { useEffect, useCallback } from "react";
 
 const Navbar = () => {
   const { user } = useAuth();
-  const { branding } = useBranding();
   const router = useRouter();
   const pathname = usePathname();
   
-  // Directly use branding values without local state
-  const siteName = branding?.site_name || "CareerSasa";
-  const logoUrl = branding?.logo_url || undefined;
+  // Use static branding values
+  const siteName = "CareerSasa";
+  const logoUrl = undefined;
 
   // Close any open mobile menu when route changes
   useEffect(() => {
