@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "@/index.css";
 import { Providers } from "./providers";
 import { NavigationEvents } from "@/components/NavigationEvents";
+import { Suspense } from "react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -59,7 +60,9 @@ export default function RootLayout({
       <body className={inter.className} suppressHydrationWarning>
         <Providers>
           {children}
-          <NavigationEvents />
+          <Suspense fallback={null}>
+            <NavigationEvents />
+          </Suspense>
         </Providers>
       </body>
     </html>
