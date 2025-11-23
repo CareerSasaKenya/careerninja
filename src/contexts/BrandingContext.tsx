@@ -25,15 +25,9 @@ const BrandingContext = createContext<BrandingContextType | undefined>(undefined
 export const BrandingProvider = ({ children }: { children: ReactNode }) => {
   const [branding, setBranding] = useState<BrandingSettings | null>(null);
   const [loading, setLoading] = useState(true);
-  const [mounted, setMounted] = useState(false);
 
   // Apply favicon whenever branding changes
   useFavicon(branding?.favicon_url);
-
-  // Ensure we're mounted before rendering to avoid hydration mismatch
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const hexToHSL = (hex: string) => {
     // Remove # if present
@@ -79,22 +73,25 @@ export const BrandingProvider = ({ children }: { children: ReactNode }) => {
           return data;
         });
         
-        // Apply CSS variables for colors
-        if (typeof document !== "undefined") {
-          try {
-            const primaryHSL = hexToHSL(data.primary_color);
-            const secondaryHSL = hexToHSL(data.secondary_color);
-            
-            document.documentElement.style.setProperty("--primary", primaryHSL);
-            document.documentElement.style.setProperty("--secondary", secondaryHSL);
-            
-            // Update gradients
-            const gradientPrimary = `linear-gradient(135deg, ${data.primary_color}, ${data.secondary_color})`;
-            document.documentElement.style.setProperty("--gradient-primary", gradientPrimary);
-            document.documentElement.style.setProperty("--gradient-hero", gradientPrimary);
-          } catch (error) {
-            console.debug('Error applying CSS variables:', error);
-          }
+        // Apply CSS variables for colors - only on client side after mount
+        if (typeof window !== "undefined" && typeof document !== "undefined") {
+          // Use requestAnimationFrame to avoid blocking render
+          requestAnimationFrame(() => {
+            try {
+              const primaryHSL = hexToHSL(data.primary_color);
+              const secondaryHSL = hexToHSL(data.secondary_color);
+              
+              document.documentElement.style.setProperty("--primary", primaryHSL);
+              document.documentElement.style.setProperty("--secondary", secondaryHSL);
+              
+              // Update gradients
+              const gradientPrimary = `linear-gradient(135deg, ${data.primary_color}, ${data.secondary_color})`;
+              document.documentElement.style.setProperty("--gradient-primary", gradientPrimary);
+              document.documentElement.style.setProperty("--gradient-hero", gradientPrimary);
+            } catch (error) {
+              console.debug('Error applying CSS variables:', error);
+            }
+          });
         }
       }
     } catch (error) {
@@ -105,53 +102,50 @@ export const BrandingProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    fetchBranding();
+    // Only fetch on client side
+    if (typeof window !== "undefined") {
+      fetchBranding();
+    }
 
-    // Subscribe to changes with better error handling
-    try {
-      const channel = supabase
-        .channel("site_settings_changes")
-        .on(
-          "postgres_changes",
-          {
-            event: "UPDATE",
-            schema: "public",
-            table: "site_settings",
-          },
-          (payload) => {
-            console.log("Branding settings updated:", payload);
-            fetchBranding();
-          }
-        )
-        .subscribe((status) => {
-          console.log("Real-time subscription status:", status);
-          if (status === "SUBSCRIBED") {
-            console.log("Successfully subscribed to branding changes");
-          } else if (status === "CHANNEL_ERROR") {
-            console.error("Error subscribing to branding changes");
-          }
-        });
+    // Subscribe to changes with better error handling - only on client
+    if (typeof window !== "undefined") {
+      try {
+        const channel = supabase
+          .channel("site_settings_changes")
+          .on(
+            "postgres_changes",
+            {
+              event: "UPDATE",
+              schema: "public",
+              table: "site_settings",
+            },
+            (payload) => {
+              console.log("Branding settings updated:", payload);
+              // Debounce the fetch to avoid rapid updates during navigation
+              setTimeout(() => fetchBranding(), 100);
+            }
+          )
+          .subscribe((status) => {
+            console.log("Real-time subscription status:", status);
+            if (status === "SUBSCRIBED") {
+              console.log("Successfully subscribed to branding changes");
+            } else if (status === "CHANNEL_ERROR") {
+              console.error("Error subscribing to branding changes");
+            }
+          });
 
-      return () => {
-        try {
-          supabase.removeChannel(channel);
-        } catch (error) {
-          console.debug('Error removing branding channel:', error);
-        }
-      };
-    } catch (error) {
-      console.debug('Error setting up branding subscription:', error);
+        return () => {
+          try {
+            supabase.removeChannel(channel);
+          } catch (error) {
+            console.debug('Error removing branding channel:', error);
+          }
+        };
+      } catch (error) {
+        console.debug('Error setting up branding subscription:', error);
+      }
     }
   }, [fetchBranding]);
-
-  // Prevent hydration mismatch by not rendering until mounted
-  if (!mounted) {
-    return (
-      <BrandingContext.Provider value={{ branding: null, loading: true, refreshBranding: fetchBranding }}>
-        {children}
-      </BrandingContext.Provider>
-    );
-  }
 
   return (
     <BrandingContext.Provider value={{ branding, loading, refreshBranding: fetchBranding }}>

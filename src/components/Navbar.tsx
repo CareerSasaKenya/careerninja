@@ -9,38 +9,17 @@ import { useBranding } from "@/contexts/BrandingContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import MobileNav from "./MobileNav";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useCallback } from "react";
 
 const Navbar = () => {
   const { user } = useAuth();
   const { branding } = useBranding();
   const router = useRouter();
   const pathname = usePathname();
-  const [siteName, setSiteName] = useState("CareerSasa");
-  const [logoUrl, setLogoUrl] = useState<string | undefined>(undefined);
-
-  // Update site name and logo when branding changes - move to render phase
-  const newSiteName = branding?.site_name || "CareerSasa";
-  const newLogoUrl = branding?.logo_url || undefined;
   
-  // Use refs to track previous values to avoid unnecessary state updates
-  const prevSiteNameRef = useRef<string>(siteName);
-  const prevLogoUrlRef = useRef<string | undefined>(logoUrl);
-  
-  useEffect(() => {
-    try {
-      if (siteName !== newSiteName && prevSiteNameRef.current !== newSiteName) {
-        prevSiteNameRef.current = newSiteName;
-        setSiteName(newSiteName);
-      }
-      if (logoUrl !== newLogoUrl && prevLogoUrlRef.current !== newLogoUrl) {
-        prevLogoUrlRef.current = newLogoUrl;
-        setLogoUrl(newLogoUrl);
-      }
-    } catch (error) {
-      console.debug('Error updating branding:', error);
-    }
-  }, [newSiteName, newLogoUrl, siteName, logoUrl]);
+  // Directly use branding values without local state
+  const siteName = branding?.site_name || "CareerSasa";
+  const logoUrl = branding?.logo_url || undefined;
 
   // Close any open mobile menu when route changes
   useEffect(() => {

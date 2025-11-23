@@ -16,6 +16,7 @@ const MobileNav = () => {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   
+  // Directly use branding values
   const siteName = branding?.site_name || "CareerSasa";
   const logoUrl = branding?.logo_url || undefined;
 
