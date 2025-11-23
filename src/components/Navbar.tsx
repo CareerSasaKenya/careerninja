@@ -44,12 +44,12 @@ const Navbar = () => {
   return (
     <nav className="border-b border-border/50 bg-card/80 sticky top-0 z-40 backdrop-blur-xl">
       <div className="container mx-auto px-4 py-3 md:py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 md:gap-3 group" prefetch={true}>
+        <Link href="/" className="flex items-center gap-3 md:gap-4 group" prefetch={true}>
           {logoUrl ? (
             <img 
               src={logoUrl} 
               alt={siteName}
-              className="h-8 w-8 md:h-10 md:w-10 object-contain transition-all duration-300 group-hover:scale-110"
+              className="h-12 w-12 md:h-16 md:w-16 object-contain transition-all duration-300 group-hover:scale-105"
               onError={(e) => {
                 // Handle image loading errors
                 const target = e.target as HTMLImageElement;

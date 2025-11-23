@@ -63,12 +63,12 @@ const MobileNav = () => {
       <div className="fixed right-4 top-4 w-3/4 max-w-[300px] rounded-xl border border-border bg-background shadow-lg animate-in slide-in-from-right duration-300">
         <div className="p-4">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               {logoUrl ? (
                 <img 
                   src={logoUrl} 
                   alt={siteName}
-                  className="h-6 w-6 object-contain"
+                  className="h-10 w-10 object-contain"
                   onError={(e) => {
                     // Handle image loading errors
                     const target = e.target as HTMLImageElement;
@@ -80,7 +80,7 @@ const MobileNav = () => {
                   <Briefcase className="h-4 w-4 text-primary-foreground" />
                 </div>
               )}
-              <span className="text-base font-bold bg-gradient-primary bg-clip-text text-transparent">
+              <span className="text-lg font-bold bg-gradient-primary bg-clip-text text-transparent">
                 {siteName}
               </span>
             </div>
