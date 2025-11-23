@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -185,18 +185,23 @@ const JobPostingForm = ({ jobId, isEdit = false }: { jobId?: string; isEdit?: bo
   const countyName = counties?.find(c => String(c.id) === selectedCountyId)?.name || "";
   const townName = towns?.find(t => String(t.id) === selectedTownId)?.name || "";
   
-  // Update form data only when values change
+  // Update form data only when values change - using a ref to track previous values
+  const prevCountyNameRef = useRef<string>("");
+  const prevTownNameRef = useRef<string>("");
+  
   useEffect(() => {
-    if (formData.job_location_county !== countyName) {
+    if (formData.job_location_county !== countyName && prevCountyNameRef.current !== countyName) {
+      prevCountyNameRef.current = countyName;
       setFormData(prev => ({ ...prev, job_location_county: countyName }));
     }
-  }, [countyName]); // Dependency on the computed value, not the state setters
+  }, [countyName, formData.job_location_county]);
 
   useEffect(() => {
-    if (formData.job_location_city !== townName) {
+    if (formData.job_location_city !== townName && prevTownNameRef.current !== townName) {
+      prevTownNameRef.current = townName;
       setFormData(prev => ({ ...prev, job_location_city: townName }));
     }
-  }, [townName]); // Dependency on the computed value, not the state setters
+  }, [townName, formData.job_location_city]);
 
   const { data: userCompany } = useQuery({
     queryKey: ["user-company", user?.id],
@@ -338,7 +343,7 @@ const JobPostingForm = ({ jobId, isEdit = false }: { jobId?: string; isEdit?: bo
         setNewCompanyName("");
       }
     }
-  }, [existingJob, counties, towns, isJobLoading, selectedCountyId, selectedTownId]);
+  }, [existingJob, counties, towns, isJobLoading, selectedCountyId, selectedTownId, formData]);
 
   const mutation = useMutation({
     mutationFn: async (data: JobFormData) => {

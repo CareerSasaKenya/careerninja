@@ -190,7 +190,7 @@ export const useJobThumbnail = (): UseJobThumbnailReturn => {
     ctx.stroke();
   };
 
-  const drawTextContent = (
+  const drawTextContent = useCallback((
     ctx: CanvasRenderingContext2D,
     width: number,
     height: number,
@@ -241,7 +241,7 @@ export const useJobThumbnail = (): UseJobThumbnailReturn => {
     
     // Restore the context state
     ctx.restore();
-  };
+  }, []); // drawTextContent doesn't depend on any external values
 
   const drawLogoPlaceholder = (
     ctx: CanvasRenderingContext2D,

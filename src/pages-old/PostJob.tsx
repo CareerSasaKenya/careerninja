@@ -186,17 +186,23 @@ const PostJob = () => {
   const townName = towns?.find(t => String(t.id) === selectedTownId)?.name || "";
 
   // Keep form location fields in sync with selected county/town - moved to render phase
+  // Using refs to track previous values to avoid unnecessary updates
+  const prevCountyNameRef = useRef<string>("");
+  const prevTownNameRef = useRef<string>("");
+  
   useEffect(() => {
-    if (formData.job_location_county !== countyName) {
+    if (formData.job_location_county !== countyName && prevCountyNameRef.current !== countyName) {
+      prevCountyNameRef.current = countyName;
       setFormData(prev => ({ ...prev, job_location_county: countyName }));
     }
-  }, [countyName]);
+  }, [countyName, formData.job_location_county]);
 
   useEffect(() => {
-    if (formData.job_location_city !== townName) {
+    if (formData.job_location_city !== townName && prevTownNameRef.current !== townName) {
+      prevTownNameRef.current = townName;
       setFormData(prev => ({ ...prev, job_location_city: townName }));
     }
-  }, [townName]);
+  }, [townName, formData.job_location_city]);
 
   useEffect(() => {
     if (!loading && !user) {
