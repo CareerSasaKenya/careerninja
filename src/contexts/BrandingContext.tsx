@@ -25,9 +25,15 @@ const BrandingContext = createContext<BrandingContextType | undefined>(undefined
 export const BrandingProvider = ({ children }: { children: ReactNode }) => {
   const [branding, setBranding] = useState<BrandingSettings | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   // Apply favicon whenever branding changes
   useFavicon(branding?.favicon_url);
+
+  // Track mounted state to prevent hydration issues
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const hexToHSL = (hex: string) => {
     // Remove # if present
@@ -102,50 +108,47 @@ export const BrandingProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    // Only fetch on client side
-    if (typeof window !== "undefined") {
-      fetchBranding();
-    }
+    // Only run on client after mount
+    if (!mounted) return;
+    
+    fetchBranding();
 
-    // Subscribe to changes with better error handling - only on client
-    if (typeof window !== "undefined") {
-      try {
-        const channel = supabase
-          .channel("site_settings_changes")
-          .on(
-            "postgres_changes",
-            {
-              event: "UPDATE",
-              schema: "public",
-              table: "site_settings",
-            },
-            (payload) => {
-              console.log("Branding settings updated:", payload);
-              // Debounce the fetch to avoid rapid updates during navigation
-              setTimeout(() => fetchBranding(), 100);
-            }
-          )
-          .subscribe((status) => {
-            console.log("Real-time subscription status:", status);
-            if (status === "SUBSCRIBED") {
-              console.log("Successfully subscribed to branding changes");
-            } else if (status === "CHANNEL_ERROR") {
-              console.error("Error subscribing to branding changes");
-            }
-          });
-
-        return () => {
-          try {
-            supabase.removeChannel(channel);
-          } catch (error) {
-            console.debug('Error removing branding channel:', error);
+    // DISABLED: Real-time subscription was causing navigation issues
+    // The subscription was triggering re-renders during route transitions
+    // causing React hydration errors. Users can refresh to see branding updates.
+    
+    /* 
+    try {
+      const channel = supabase
+        .channel("site_settings_changes")
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "site_settings",
+          },
+          (payload) => {
+            console.log("Branding settings updated:", payload);
+            setTimeout(() => fetchBranding(), 100);
           }
-        };
-      } catch (error) {
-        console.debug('Error setting up branding subscription:', error);
-      }
+        )
+        .subscribe((status) => {
+          console.log("Real-time subscription status:", status);
+        });
+
+      return () => {
+        try {
+          supabase.removeChannel(channel);
+        } catch (error) {
+          console.debug('Error removing branding channel:', error);
+        }
+      };
+    } catch (error) {
+      console.debug('Error setting up branding subscription:', error);
     }
-  }, [fetchBranding]);
+    */
+  }, [mounted, fetchBranding]);
 
   return (
     <BrandingContext.Provider value={{ branding, loading, refreshBranding: fetchBranding }}>
