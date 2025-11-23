@@ -407,7 +407,7 @@ const JobDetails = () => {
         <Navbar />
         <div className="container mx-auto px-4 py-8 text-center">
           <p className="text-xl text-muted-foreground mb-4">Job not found</p>
-          <Link href="/jobs">
+          <Link href="/jobs" prefetch={true}>
             <Button variant="outline">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Jobs
@@ -431,7 +431,7 @@ const JobDetails = () => {
       <Navbar />
       
       <div className="container mx-auto px-4 py-8">
-        <Link href="/jobs">
+        <Link href="/jobs" prefetch={true}>
           <Button variant="ghost" className="mb-6">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Jobs
@@ -735,7 +735,7 @@ const JobDetails = () => {
           </div>
         )}
         <div className="mt-8 flex justify-center">
-          <Link href="/jobs">
+          <Link href="/jobs" prefetch={true}>
             <Button variant="outline" size="lg" className="border-2 hover:bg-gradient-primary hover:text-primary-foreground hover:border-transparent transition-all duration-300">
               Browse More Opportunities
             </Button>

@@ -61,22 +61,22 @@ export function Footer() {
               <h3 className="text-lg font-semibold text-primary">About Us</h3>
               <ul className="space-y-2.5">
                 <li>
-                  <Link href="/about" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href="/about" className="text-muted-foreground hover:text-foreground transition-colors" prefetch={true}>
                     About CareerSasa
                   </Link>
                 </li>
                 <li>
-                  <Link href="/mission" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href="/mission" className="text-muted-foreground hover:text-foreground transition-colors" prefetch={true}>
                     Mission
                   </Link>
                 </li>
                 <li>
-                  <Link href="/contact" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href="/contact" className="text-muted-foreground hover:text-foreground transition-colors" prefetch={true}>
                     Contact Us
                   </Link>
                 </li>
                 <li>
-                  <Link href="/advertise" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href="/advertise" className="text-muted-foreground hover:text-foreground transition-colors" prefetch={true}>
                     Advertise With Us
                   </Link>
                 </li>
@@ -88,22 +88,22 @@ export function Footer() {
               <h3 className="text-lg font-semibold text-primary">For Job Seekers</h3>
               <ul className="space-y-2.5">
                 <li>
-                  <Link href="/jobs" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href="/jobs" className="text-muted-foreground hover:text-foreground transition-colors" prefetch={true}>
                     Browse Jobs
                   </Link>
                 </li>
                 <li>
-                  <Link href="/auth" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href="/auth" className="text-muted-foreground hover:text-foreground transition-colors" prefetch={true}>
                     Create Account
                   </Link>
                 </li>
                 <li>
-                  <Link href="/job-alerts" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href="/job-alerts" className="text-muted-foreground hover:text-foreground transition-colors" prefetch={true}>
                     Job Alerts
                   </Link>
                 </li>
                 <li>
-                  <Link href="/blog" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href="/blog" className="text-muted-foreground hover:text-foreground transition-colors" prefetch={true}>
                     Career Tips
                   </Link>
                 </li>
@@ -115,22 +115,22 @@ export function Footer() {
               <h3 className="text-lg font-semibold text-primary">For Employers</h3>
               <ul className="space-y-2.5">
                 <li>
-                  <Link href="/post-job" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href="/post-job" className="text-muted-foreground hover:text-foreground transition-colors" prefetch={true}>
                     Post a Job
                   </Link>
                 </li>
                 <li>
-                  <Link href="/auth" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href="/auth" className="text-muted-foreground hover:text-foreground transition-colors" prefetch={true}>
                     Employer Login
                   </Link>
                 </li>
                 <li>
-                  <Link href="/pricing" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href="/pricing" className="text-muted-foreground hover:text-foreground transition-colors" prefetch={true}>
                     Pricing
                   </Link>
                 </li>
                 <li>
-                  <Link href="/candidates" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href="/candidates" className="text-muted-foreground hover:text-foreground transition-colors" prefetch={true}>
                     Candidate Search
                   </Link>
                 </li>
@@ -206,17 +206,17 @@ export function Footer() {
               <h3 className="text-lg font-semibold text-primary">Legal</h3>
               <ul className="space-y-2.5">
                 <li>
-                  <Link href="/terms" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href="/terms" className="text-muted-foreground hover:text-foreground transition-colors" prefetch={true}>
                     Terms & Conditions
                   </Link>
                 </li>
                 <li>
-                  <Link href="/privacy" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href="/privacy" className="text-muted-foreground hover:text-foreground transition-colors" prefetch={true}>
                     Privacy Policy
                   </Link>
                 </li>
                 <li>
-                  <Link href="/cookies" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href="/cookies" className="text-muted-foreground hover:text-foreground transition-colors" prefetch={true}>
                     Cookie Policy
                   </Link>
                 </li>

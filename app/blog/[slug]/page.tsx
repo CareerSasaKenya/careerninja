@@ -58,7 +58,7 @@ export default function BlogPostPage() {
         <div className="container mx-auto px-4 py-8">
           <p className="text-center mb-4">Article not found</p>
           <div className="text-center">
-            <Link href="/blog">
+            <Link href="/blog" prefetch={true}>
               <Button variant="outline">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Blog
@@ -74,7 +74,7 @@ export default function BlogPostPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
       <article className="container mx-auto px-4 py-8 max-w-4xl">
-        <Link href="/blog">
+        <Link href="/blog" prefetch={true}>
           <Button variant="ghost" className="mb-4">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Blog

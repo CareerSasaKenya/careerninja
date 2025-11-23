@@ -147,7 +147,7 @@ const JobCard = ({
   const jobUrl = jobSlug ? `/jobs/${jobSlug}` : `/jobs/${id}`;
 
   return (
-    <Link href={jobUrl} className="block">
+    <Link href={jobUrl} className="block" prefetch={true}>
       <Card className="group hover:shadow-xl transition-all duration-300 border-border/50 hover:border-primary/50 hover:scale-[1.02] overflow-hidden h-full">
       <CardHeader className="pb-3">
         {/* Title (prominent) */}

@@ -67,7 +67,7 @@ const Navbar = () => {
   return (
     <nav className="border-b border-border/50 bg-card/80 sticky top-0 z-40 backdrop-blur-xl">
       <div className="container mx-auto px-4 py-3 md:py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 md:gap-3 group">
+        <Link href="/" className="flex items-center gap-2 md:gap-3 group" prefetch={true}>
           {logoUrl ? (
             <img 
               src={logoUrl} 
@@ -91,15 +91,15 @@ const Navbar = () => {
         
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-2">
-          <Link href="/jobs">
+          <Link href="/jobs" prefetch={true}>
             <Button variant="ghost">Browse Jobs</Button>
           </Link>
-          <Link href="/blog">
+          <Link href="/blog" prefetch={true}>
             <Button variant="ghost">Blog</Button>
           </Link>
           {user ? (
             <>
-              <Link href="/dashboard">
+              <Link href="/dashboard" prefetch={true}>
                 <Button variant="ghost">Dashboard</Button>
               </Link>
               <Button 
@@ -114,10 +114,10 @@ const Navbar = () => {
             </>
           ) : (
             <>
-              <Link href="/auth">
+              <Link href="/auth" prefetch={true}>
                 <Button variant="ghost">Sign In</Button>
               </Link>
-              <Link href="/auth">
+              <Link href="/auth" prefetch={true}>
                 <Button variant="gradient" size="lg" className="hidden lg:flex">
                   Get Started
                 </Button>

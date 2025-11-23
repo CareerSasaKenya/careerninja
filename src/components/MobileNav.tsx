@@ -91,12 +91,12 @@ const MobileNav = () => {
           </div>
 
           <nav className="flex flex-col gap-1">
-            <Link href="/jobs" onClick={closeMenu}>
+            <Link href="/jobs" onClick={closeMenu} prefetch={true}>
               <Button variant="ghost" className="w-full justify-start text-base">
                 Browse Jobs
               </Button>
             </Link>
-            <Link href="/blog" onClick={closeMenu}>
+            <Link href="/blog" onClick={closeMenu} prefetch={true}>
               <Button variant="ghost" className="w-full justify-start text-base">
                 Blog
               </Button>
@@ -104,7 +104,7 @@ const MobileNav = () => {
 
             {user ? (
               <>
-                <Link href="/dashboard" onClick={closeMenu}>
+                <Link href="/dashboard" onClick={closeMenu} prefetch={true}>
                   <Button variant="ghost" className="w-full justify-start text-base">
                     Dashboard
                   </Button>
@@ -122,12 +122,12 @@ const MobileNav = () => {
               </>
             ) : (
               <div className="pt-3 mt-2 border-t">
-                <Link href="/auth" onClick={closeMenu}>
+                <Link href="/auth" onClick={closeMenu} prefetch={true}>
                   <Button variant="ghost" className="w-full text-base mb-2">
                     Sign In
                   </Button>
                 </Link>
-                <Link href="/auth" onClick={closeMenu}>
+                <Link href="/auth" onClick={closeMenu} prefetch={true}>
                   <Button variant="gradient" className="w-full text-base">
                     Get Started
                   </Button>

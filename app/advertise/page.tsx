@@ -91,7 +91,7 @@ export default function AdvertisePage() {
                   </li>
                 </ul>
 
-                <Link href="/post-job">
+                <Link href="/post-job" prefetch={true}>
                   <Button className="w-full" variant="outline">Get Started</Button>
                 </Link>
               </div>
@@ -132,7 +132,7 @@ export default function AdvertisePage() {
                   </li>
                 </ul>
 
-                <Link href="/post-job">
+                <Link href="/post-job" prefetch={true}>
                   <Button className="w-full">Get Started</Button>
                 </Link>
               </div>
@@ -168,7 +168,7 @@ export default function AdvertisePage() {
                   </li>
                 </ul>
 
-                <Link href="/contact">
+                <Link href="/contact" prefetch={true}>
                   <Button className="w-full" variant="outline">Contact Sales</Button>
                 </Link>
               </div>
@@ -181,10 +181,10 @@ export default function AdvertisePage() {
               Join hundreds of companies already finding top talent on CareerSasa. Post your first job today or contact our sales team for a custom package.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-              <Link href="/post-job">
+              <Link href="/post-job" prefetch={true}>
                 <Button size="lg" className="min-w-[200px]">Post a Job</Button>
               </Link>
-              <Link href="/contact">
+              <Link href="/contact" prefetch={true}>
                 <Button size="lg" variant="outline" className="min-w-[200px]">Contact Sales</Button>
               </Link>
             </div>

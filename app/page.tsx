@@ -136,7 +136,7 @@ export default function Home() {
               <h2 className="text-3xl md:text-4xl font-bold mb-3">Featured Opportunities</h2>
               <p className="text-muted-foreground">Hand-picked roles from top employers</p>
             </div>
-            <Link href="/jobs">
+            <Link href="/jobs" prefetch={true}>
               <Button variant="outline">
                 View All <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
@@ -168,7 +168,7 @@ export default function Home() {
                         {job.salary && (
                           <div className="text-primary font-semibold mb-4">{job.salary}</div>
                         )}
-                        <Link href={`/jobs/${job.id}`}>
+                        <Link href={`/jobs/${job.id}`} prefetch={true}>
                           <Button className="w-full" variant="outline">
                             View Details
                           </Button>
@@ -208,7 +208,7 @@ export default function Home() {
               ))}
             </div>
             <div className="mt-8">
-              <Link href="/jobs">
+              <Link href="/jobs" prefetch={true}>
                 <Button variant="gradient" size="lg">
                   Start Your Journey <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
@@ -290,7 +290,7 @@ export default function Home() {
               <h2 className="text-3xl md:text-4xl font-bold mb-3">Latest Job Openings</h2>
               <p className="text-muted-foreground">Fresh opportunities posted today</p>
             </div>
-            <Link href="/jobs">
+            <Link href="/jobs" prefetch={true}>
               <Button variant="outline">
                 View All <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
@@ -320,7 +320,7 @@ export default function Home() {
                     {job.salary && (
                       <div className="text-primary font-semibold mb-4">{job.salary}</div>
                     )}
-                    <Link href={`/jobs/${job.id}`}>
+                    <Link href={`/jobs/${job.id}`} prefetch={true}>
                       <Button className="w-full">
                         Apply Now
                       </Button>
@@ -393,7 +393,7 @@ export default function Home() {
                 <h2 className="text-3xl md:text-4xl font-bold mb-3">Career Insights & Tips</h2>
                 <p className="text-muted-foreground">Expert advice to boost your career</p>
               </div>
-              <Link href="/blog">
+              <Link href="/blog" prefetch={true}>
                 <Button variant="outline">
                   Read More <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
@@ -402,7 +402,7 @@ export default function Home() {
 
             <div className="grid md:grid-cols-3 gap-8">
               {blogPosts.map((post) => (
-                <Link key={post.id} href={`/blog/${post.slug}`}>
+                <Link key={post.id} href={`/blog/${post.slug}`} prefetch={true}>
                   <Card className="glass hover:shadow-xl transition-all duration-300 hover:scale-105 h-full">
                     {post.featured_image && (
                       <img 
@@ -434,13 +434,13 @@ export default function Home() {
             Join thousands of Kenyan professionals who've found their dream jobs through CareerSasa
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/jobs">
+            <Link href="/jobs" prefetch={true}>
               <Button size="lg" variant="secondary" className="text-lg px-10">
                 <Search className="mr-2 h-5 w-5" />
                 Find Your Dream Job
               </Button>
             </Link>
-            <Link href="/post-job">
+            <Link href="/post-job" prefetch={true}>
               <Button size="lg" variant="outline" className="text-lg px-10 border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10">
                 <Briefcase className="mr-2 h-5 w-5" />
                 Post a Job Opening
