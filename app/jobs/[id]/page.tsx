@@ -12,60 +12,12 @@ import JobCard from "@/components/JobCard";
 import JobStructuredData from "@/components/JobStructuredData";
 import JobShareButtons from "@/components/JobShareButtons";
 import ApplySection from "@/components/ApplySection";
-import { getJobMetadata } from "@/lib/jobMetadata";
 
 // Create Supabase client for server-side data fetching
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || '',
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || ''
 );
-
-// Generate metadata for the job page
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const jobMetadata = await getJobMetadata(id);
-  
-  if (!jobMetadata) {
-    return {
-      title: "Job Not Found | CareerSasa",
-      description: "The job you're looking for could not be found. Browse other opportunities on CareerSasa.",
-    };
-  }
-  
-  const siteUrl = 'https://www.careersasa.co.ke';
-  const jobUrl = `${siteUrl}/jobs/${jobMetadata.jobSlug || jobMetadata.id}`;
-  const ogImageUrl = `${siteUrl}/api/og/job/${jobMetadata.id}`;
-  
-  return {
-    title: `${jobMetadata.title} at ${jobMetadata.company} | CareerSasa`,
-    description: jobMetadata.description,
-    alternates: {
-      canonical: jobUrl
-    },
-    openGraph: {
-      title: `${jobMetadata.title} at ${jobMetadata.company}`,
-      description: jobMetadata.description,
-      url: jobUrl,
-      siteName: 'CareerSasa',
-      images: [
-        {
-          url: ogImageUrl,
-          width: 1200,
-          height: 630,
-          alt: `${jobMetadata.title} at ${jobMetadata.company} - CareerSasa`,
-        },
-      ],
-      locale: 'en_KE',
-      type: 'article',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: `${jobMetadata.title} at ${jobMetadata.company}`,
-      description: jobMetadata.description,
-      images: [ogImageUrl],
-    },
-  };
-}
 
 // Server-side data fetching
 async function getJobData(id: string) {
