@@ -189,6 +189,7 @@ const JobPostingForm = ({ jobId, isEdit = false }: { jobId?: string; isEdit?: bo
   const prevCountyNameRef = useRef<string>("");
   const prevTownNameRef = useRef<string>("");
   
+  // Only update form data when values actually change to prevent unnecessary renders
   useEffect(() => {
     if (formData.job_location_county !== countyName && prevCountyNameRef.current !== countyName) {
       prevCountyNameRef.current = countyName;
@@ -260,6 +261,8 @@ const JobPostingForm = ({ jobId, isEdit = false }: { jobId?: string; isEdit?: bo
   });
 
   // Populate form with existing job data when loaded
+  const prevFormDataRef = useRef(formData);
+  
   useEffect(() => {
     if (existingJob && !isJobLoading) {
       // Only update if the form hasn't been modified by the user
@@ -315,11 +318,12 @@ const JobPostingForm = ({ jobId, isEdit = false }: { jobId?: string; isEdit?: bo
       
       // Check if form data is different before updating
       const isDifferent = Object.keys(newFormData).some(key => 
-        formData[key as keyof typeof formData] !== newFormData[key as keyof typeof newFormData]
+        prevFormDataRef.current[key as keyof typeof prevFormDataRef.current] !== newFormData[key as keyof typeof newFormData]
       );
       
       if (isDifferent) {
         setFormData(newFormData);
+        prevFormDataRef.current = newFormData;
       }
       
       // Set county and town IDs if available
@@ -343,7 +347,7 @@ const JobPostingForm = ({ jobId, isEdit = false }: { jobId?: string; isEdit?: bo
         setNewCompanyName("");
       }
     }
-  }, [existingJob, counties, towns, isJobLoading, selectedCountyId, selectedTownId, formData]);
+  }, [existingJob, counties, towns, isJobLoading, selectedCountyId, selectedTownId]);
 
   const mutation = useMutation({
     mutationFn: async (data: JobFormData) => {

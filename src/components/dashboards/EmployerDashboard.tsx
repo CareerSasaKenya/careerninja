@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback } from "react";
-/* eslint-disable react-hooks/set-state-in-effect */
 import Link from "next/link";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -56,12 +55,11 @@ const EmployerDashboard = () => {
       toast.error("Failed to load jobs");
       console.error(error);
     } else {
-      setJobs(prev => {
-        if (JSON.stringify(prev) === JSON.stringify(data || [])) {
-          return prev;
-        }
-        return data || [];
-      });
+      // Only update if data has actually changed to prevent unnecessary renders
+      const newData = data || [];
+      if (JSON.stringify(jobs) !== JSON.stringify(newData)) {
+        setJobs(newData);
+      }
     }
     setLoading(false);
   }, [user]);

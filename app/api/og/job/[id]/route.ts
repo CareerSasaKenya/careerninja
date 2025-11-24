@@ -109,7 +109,7 @@ export async function GET(
     }
 
     // Extract company name
-    const companyName = job.companies?.name || job.company || 'Company';
+    const companyName = (job.companies && job.companies.length > 0) ? job.companies[0].name : job.company || 'Company';
     const jobTitle = job.title || 'Job Opening';
     const location = job.location || 'Kenya';
 

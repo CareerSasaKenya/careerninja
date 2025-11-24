@@ -1,7 +1,5 @@
 "use client";
 
-/* eslint-disable react-hooks/set-state-in-effect */
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";

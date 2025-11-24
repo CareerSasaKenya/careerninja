@@ -1,6 +1,5 @@
 "use client";
 
-/* eslint-disable react-hooks/set-state-in-effect */
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useFavicon } from "@/hooks/useFavicon";

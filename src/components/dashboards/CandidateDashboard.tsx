@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback } from "react";
-/* eslint-disable react-hooks/set-state-in-effect */
 import Link from "next/link";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";

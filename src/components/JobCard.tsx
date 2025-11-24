@@ -122,24 +122,11 @@ const JobCard = ({
     ? toTitleCase(experienceLevel)?.replace("Mid", "Mid-level")?.replace("Entry", "Entry-level")
     : null;
 
-  // Use state for time-based values to avoid hydration mismatch
-  const [postedRel, setPostedRel] = useState<string | null>(null);
-  const [isExpired, setIsExpired] = useState(false);
-  const [deadlineDisplay, setDeadlineDisplay] = useState<string | null>(null);
-
   // Calculate time-based values as derived state instead of in useEffect
-  useEffect(() => {
-    // Calculate time-based values on client side only
-    const newPostedRel = relativeTimeFromNow(datePosted || undefined);
-    const deadline = validThrough ? new Date(validThrough) : null;
-    const newIsExpired = deadline ? deadline.getTime() < Date.now() : false;
-    const newDeadlineDisplay = deadline ? `Apply by ${deadline.toLocaleDateString()}` : null;
-    
-    // Only update state if values have changed to prevent unnecessary renders
-    setPostedRel(prev => prev !== newPostedRel ? newPostedRel : prev);
-    setIsExpired(prev => prev !== newIsExpired ? newIsExpired : prev);
-    setDeadlineDisplay(prev => prev !== newDeadlineDisplay ? newDeadlineDisplay : prev);
-  }, [datePosted, validThrough]);
+  const postedRel = relativeTimeFromNow(datePosted || undefined);
+  const deadline = validThrough ? new Date(validThrough) : null;
+  const isExpired = deadline ? deadline.getTime() < Date.now() : false;
+  const deadlineDisplay = deadline ? `Apply by ${deadline.toLocaleDateString()}` : null;;
 
   const hasExternalApply = !!(applyEmail || applyLink || applicationUrl);
 

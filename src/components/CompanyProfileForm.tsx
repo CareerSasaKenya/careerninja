@@ -171,12 +171,16 @@ const CompanyProfileForm = () => {
   }, [selectedCountyId]);
 
   // Keep formData.location in sync with selected county/town
+  const countyName = counties.find(c => String(c.id) === selectedCountyId)?.name || "";
+  const townName = towns.find(t => String(t.id) === selectedTownId)?.name || "";
+  const loc = townName && countyName ? `${townName}, ${countyName}` : countyName || townName || "";
+  
+  // Only update if location has actually changed
   useEffect(() => {
-    const countyName = counties.find(c => String(c.id) === selectedCountyId)?.name || "";
-    const townName = towns.find(t => String(t.id) === selectedTownId)?.name || "";
-    const loc = townName && countyName ? `${townName}, ${countyName}` : countyName || townName || "";
-    setFormData(prev => ({ ...prev, location: loc }));
-  }, [selectedCountyId, selectedTownId, counties, towns]);
+    if (formData.location !== loc) {
+      setFormData(prev => ({ ...prev, location: loc }));
+    }
+  }, [loc, formData.location]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
