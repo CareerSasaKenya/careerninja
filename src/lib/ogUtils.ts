@@ -14,7 +14,7 @@ export const getJobThumbnailUrl = (jobId: string): string => {
   }
   
   // For production, use the full URL
-  return `https://careersasa.co.ke/api/og/job/${jobId}`;
+  return `https://www.careersasa.co.ke/api/og/job/${jobId}`;
 };
 
 /**
@@ -28,5 +28,5 @@ export const getDefaultThumbnailUrl = (): string => {
   }
   
   // For production, use the full URL
-  return 'https://careersasa.co.ke/og-image.svg';
+  return 'https://www.careersasa.co.ke/og-image.svg';
 };

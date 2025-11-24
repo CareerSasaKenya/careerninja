@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Search, Briefcase, ArrowRight, Clock, MapPin, Building2, CheckCircle2, Star } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import CanonicalTag from "@/components/CanonicalTag";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
@@ -62,6 +63,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background" suppressHydrationWarning>
+      <CanonicalTag url="/" />
       <Navbar />
       
       {/* Hero Section with Image */}
