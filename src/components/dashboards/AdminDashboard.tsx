@@ -6,9 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Briefcase, Users, Trash2, FileText, Edit, Eye, Palette } from "lucide-react";
+import { Plus, Briefcase, Users, Trash2, FileText, Edit } from "lucide-react";
 import { toast } from "sonner";
-import BrandingSettings from "./BrandingSettings";
 
 interface Job {
   id: string;
@@ -199,11 +198,10 @@ const AdminDashboard = () => {
       </div>
 
       <Tabs defaultValue="jobs" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="jobs">All Jobs</TabsTrigger>
           <TabsTrigger value="blog">Blog Posts</TabsTrigger>
           <TabsTrigger value="users">All Users</TabsTrigger>
-          <TabsTrigger value="branding">Branding</TabsTrigger>
         </TabsList>
 
         <TabsContent value="jobs">
@@ -417,10 +415,6 @@ const AdminDashboard = () => {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="branding">
-          <BrandingSettings />
         </TabsContent>
       </Tabs>
     </div>
