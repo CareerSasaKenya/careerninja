@@ -11,9 +11,95 @@ import { supabase } from "@/integrations/supabase/client";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import Autoplay from "embla-carousel-autoplay";
 // Images are now in public folder
 
 export default function Home() {
+  const router = useRouter();
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [searchLocation, setSearchLocation] = useState("");
+  const [activeJobs, setActiveJobs] = useState(0);
+  const [companies, setCompanies] = useState(0);
+  const [successRate, setSuccessRate] = useState(0);
+  const [hasAnimated, setHasAnimated] = useState(false);
+  const statsRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll plugin for carousel
+  const plugin = useRef(
+    Autoplay({ delay: 4000, stopOnInteraction: true })
+  );
+
+  // Counter animation effect
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !hasAnimated) {
+          setHasAnimated(true);
+          
+          // Animate active jobs to 1070
+          let jobCount = 0;
+          const jobInterval = setInterval(() => {
+            jobCount += 25;
+            if (jobCount >= 1070) {
+              setActiveJobs(1070);
+              clearInterval(jobInterval);
+            } else {
+              setActiveJobs(jobCount);
+            }
+          }, 30);
+
+          // Animate companies to 103
+          let companyCount = 0;
+          const companyInterval = setInterval(() => {
+            companyCount += 3;
+            if (companyCount >= 103) {
+              setCompanies(103);
+              clearInterval(companyInterval);
+            } else {
+              setCompanies(companyCount);
+            }
+          }, 30);
+
+          // Animate success rate to 90
+          let rateCount = 0;
+          const rateInterval = setInterval(() => {
+            rateCount += 2;
+            if (rateCount >= 90) {
+              setSuccessRate(90);
+              clearInterval(rateInterval);
+            } else {
+              setSuccessRate(rateCount);
+            }
+          }, 30);
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    if (statsRef.current) {
+      observer.observe(statsRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [hasAnimated]);
+
+  // Handle search
+  const handleSearch = () => {
+    const params = new URLSearchParams();
+    if (searchKeyword) params.set("search", searchKeyword);
+    if (searchLocation) params.set("location", searchLocation);
+    router.push(`/jobs?${params.toString()}`);
+  };
+
+  // Handle Enter key press
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
+
   // Fetch featured jobs (most recent 6)
   const { data: featuredJobs = [], isLoading: loadingFeatured } = useQuery({
     queryKey: ["featured-jobs"],
@@ -84,6 +170,9 @@ export default function Home() {
                   <input 
                     type="text" 
                     placeholder="Job title or keyword"
+                    value={searchKeyword}
+                    onChange={(e) => setSearchKeyword(e.target.value)}
+                    onKeyPress={handleKeyPress}
                     className="w-full px-4 py-3 rounded-lg bg-background/50 border border-border focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
@@ -91,28 +180,31 @@ export default function Home() {
                   <input 
                     type="text" 
                     placeholder="Location"
+                    value={searchLocation}
+                    onChange={(e) => setSearchLocation(e.target.value)}
+                    onKeyPress={handleKeyPress}
                     className="w-full px-4 py-3 rounded-lg bg-background/50 border border-border focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
-                <Button variant="gradient" size="lg" className="sm:w-auto">
+                <Button variant="gradient" size="lg" className="sm:w-auto" onClick={handleSearch}>
                   <Search className="mr-2 h-5 w-5" />
                   Search Jobs
                 </Button>
               </div>
             </div>
 
-            {/* Quick Stats */}
-            <div className="grid grid-cols-3 gap-4 mt-8">
+            {/* Quick Stats with Counter Animation */}
+            <div ref={statsRef} className="grid grid-cols-3 gap-4 mt-8">
               <div className="text-center">
-                <div className="text-3xl font-bold text-primary">2,500+</div>
+                <div className="text-3xl font-bold text-primary">{activeJobs}+</div>
                 <div className="text-sm text-muted-foreground">Active Jobs</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-primary">850+</div>
+                <div className="text-3xl font-bold text-primary">{companies}+</div>
                 <div className="text-sm text-muted-foreground">Companies</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-primary">95%</div>
+                <div className="text-3xl font-bold text-primary">{successRate}%</div>
                 <div className="text-sm text-muted-foreground">Success Rate</div>
               </div>
             </div>
@@ -148,7 +240,12 @@ export default function Home() {
           {loadingFeatured ? (
             <div className="text-center py-12">Loading featured jobs...</div>
           ) : (
-            <Carousel className="w-full">
+            <Carousel 
+              className="w-full"
+              plugins={[plugin.current]}
+              onMouseEnter={plugin.current.stop}
+              onMouseLeave={plugin.current.reset}
+            >
               <CarouselContent className="-ml-2 md:-ml-4">
                 {featuredJobs.map((job) => (
                   <CarouselItem key={job.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
@@ -443,7 +540,7 @@ export default function Home() {
               </Button>
             </Link>
             <Link href="/post-job" prefetch={true}>
-              <Button size="lg" variant="outline" className="text-lg px-10 border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10">
+              <Button size="lg" variant="outline" className="text-lg px-10 border-2 border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary bg-transparent">
                 <Briefcase className="mr-2 h-5 w-5" />
                 Post a Job Opening
               </Button>
