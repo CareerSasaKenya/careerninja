@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 
-export const runtime = 'edge';
+// Remove edge runtime to fix 502 errors
+// export const runtime = 'edge';
 
 // Helper function to escape XML special characters
 function escapeXml(unsafe: string): string {
@@ -65,44 +65,40 @@ export async function GET(
       return new Response('Missing job ID', { status: 400 });
     }
 
-    // Get environment variables
-    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://qxuvqrfqkdpfjfwkqatf.supabase.co';
-    const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4dXZxcmZxa2RwZmpmd2txYXRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk0MjcxNTIsImV4cCI6MjA3NTAwMzE1Mn0.mAiL1p6YqlSaSFOIDW_G-3e_Mqck0cFqLl74_jyNpk8';
+    // Fetch job data directly using fetch API (more reliable in serverless)
+    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://qxuvqrfqkdpfjfwkqatf.supabase.co';
+    const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4dXZxcmZxa2RwZmpmd2txYXRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk0MjcxNTIsImV4cCI6MjA3NTAwMzE1Mn0.mAiL1p6YqlSaSFOIDW_G-3e_Mqck0cFqLl74_jyNpk8';
     
-    // Create Supabase client
-    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    // Try to find by slug first
-    let { data: job, error } = await supabase
-      .from('jobs')
-      .select(`
-        id,
-        title,
-        company,
-        location,
-        companies (
-          name
-        )
-      `)
-      .eq('job_slug', jobId)
-      .maybeSingle();
+    // Try to find by slug first using fetch
+    let response = await fetch(
+      `${SUPABASE_URL}/rest/v1/jobs?job_slug=eq.${jobId}&select=id,title,company,location,companies(name)`,
+      {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+        },
+      }
+    );
+    
+    let jobs = await response.json();
+    let job = jobs?.[0];
     
     // If not found by slug, try by ID
-    if (!job && !error) {
-      ({ data: job, error } = await supabase
-        .from('jobs')
-        .select(`
-          id,
-          title,
-          company,
-          location,
-          companies (
-            name
-          )
-        `)
-        .eq('id', jobId)
-        .maybeSingle());
+    if (!job) {
+      response = await fetch(
+        `${SUPABASE_URL}/rest/v1/jobs?id=eq.${jobId}&select=id,title,company,location,companies(name)`,
+        {
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+          },
+        }
+      );
+      jobs = await response.json();
+      job = jobs?.[0];
     }
+    
+    const error = !job;
 
     if (error || !job) {
       return createDefaultThumbnail();

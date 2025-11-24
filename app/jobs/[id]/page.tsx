@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     };
   }
   
-  const siteUrl = 'https://careersasa.com';
+  const siteUrl = 'https://www.careersasa.co.ke';
   const jobUrl = `${siteUrl}/jobs/${jobMetadata.jobSlug || jobMetadata.id}`;
   const ogImageUrl = `${siteUrl}/api/og/job/${jobMetadata.id}`;
   

@@ -60,8 +60,9 @@ export async function generateJobMetadata(id: string): Promise<Metadata> {
     
     const title = `${jobTitle} at ${companyName} - CareerSasa`;
     const description = `${plainDescription}... Find more jobs on CareerSasa.`;
-    const thumbnailUrl = `https://www.careersasa.co.ke/api/og/job/${job.id}`;
-    const url = `https://www.careersasa.co.ke/jobs/${id}`;
+    const siteUrl = 'https://www.careersasa.co.ke';
+    const thumbnailUrl = `${siteUrl}/api/og/job/${job.id}`;
+    const url = `${siteUrl}/jobs/${id}`;
     
     return {
       title,
