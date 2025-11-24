@@ -64,7 +64,7 @@ const EmployerDashboard = () => {
     if (user) {
       fetchJobs();
     }
-  }, [user]);
+  }, [user, fetchJobs]);
 
   const handleDelete = async (jobId: string) => {
     if (!confirm("Are you sure you want to delete this job?")) return;

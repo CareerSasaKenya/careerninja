@@ -73,7 +73,7 @@ const CandidateDashboard = () => {
     if (user) {
       fetchData();
     }
-  }, [user]);
+  }, [user, fetchData]);
 
   const handleUnsave = async (savedJobId: string) => {
     const { error } = await supabase.from("saved_jobs").delete().eq("id", savedJobId);
