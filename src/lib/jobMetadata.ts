@@ -38,7 +38,7 @@ export async function getJobMetadata(jobId: string): Promise<JobMetadata | null>
         )
       `)
       .eq('job_slug', jobId)
-      .single();
+      .maybeSingle();
     
     // If not found by slug, try by ID
     if (!job && !error) {
@@ -59,7 +59,7 @@ export async function getJobMetadata(jobId: string): Promise<JobMetadata | null>
           )
         `)
         .eq('id', jobId)
-        .single());
+        .maybeSingle());
     }
     
     if (error || !job) {
@@ -67,14 +67,17 @@ export async function getJobMetadata(jobId: string): Promise<JobMetadata | null>
       return null;
     }
     
+    // Handle companies relation - it could be an object, array, or null
+    const companyData = Array.isArray(job.companies) ? job.companies[0] : job.companies;
+    
     return {
       id: job.id,
       title: job.title || 'Job Opening',
-      company: job.companies?.name || job.company || 'Company',
+      company: companyData?.name || job.company || 'Company',
       location: job.location || 'Kenya',
-      description: job.description || `Apply for ${job.title} position at ${job.companies?.name || job.company} in ${job.location}. Find more jobs on CareerSasa.`,
+      description: job.description || `Apply for ${job.title} position at ${companyData?.name || job.company} in ${job.location}. Find more jobs on CareerSasa.`,
       companyId: job.company_id || undefined,
-      companyLogo: job.companies?.logo || undefined,
+      companyLogo: companyData?.logo || undefined,
       jobSlug: job.job_slug || undefined
     };
   } catch (error) {

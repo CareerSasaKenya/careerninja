@@ -108,8 +108,9 @@ export async function GET(
       return createDefaultThumbnail();
     }
 
-    // Extract company name
-    const companyName = (job.companies && job.companies.length > 0) ? job.companies[0].name : job.company || 'Company';
+    // Extract company name - handle both object and array cases
+    const companyData = Array.isArray(job.companies) ? job.companies[0] : job.companies;
+    const companyName = companyData?.name || job.company || 'Company';
     const jobTitle = job.title || 'Job Opening';
     const location = job.location || 'Kenya';
 

@@ -2,11 +2,11 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from '@supabase/supabase-js';
 import Script from 'next/script';
-import { Facebook, Linkedin, Mail, Twitter, MessageSquare, Flag, Instagram, Share2, Download } from "lucide-react";
+import { Flag } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, MapPin, Building2, DollarSign, ExternalLink, Loader2, Bookmark, CheckCircle, FileText, Clock, Briefcase, GraduationCap, Award, Code, Globe, AlertTriangle } from "lucide-react";
+import { ArrowLeft, MapPin, Building2, DollarSign, ExternalLink, Loader2, Bookmark, CheckCircle, FileText, Clock, Briefcase, GraduationCap, Award, Code, Globe, AlertTriangle, Mail } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import JobCard from "@/components/JobCard";
 import JobStructuredData from "@/components/JobStructuredData";
+import JobShareButtons from "@/components/JobShareButtons";
 import { generateThumbnailFilename, downloadBlob } from "@/lib/thumbnailUtils";
 import { getJobThumbnailUrl } from "@/lib/ogUtils";
 import { getJobMetadata } from "@/lib/jobMetadata";
@@ -312,65 +313,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                   </div>
                 </div>
                 <div className="mt-3 flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-3">
-                  <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                    <span className="text-sm text-muted-foreground whitespace-nowrap">Share:</span>
-                    <div className="flex flex-wrap gap-2">
-                      <a 
-                        href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}`} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-[#1877F2] hover:bg-[#1877F2]/10 p-2 rounded-full transition-colors"
-                        aria-label="Share on Facebook"
-                      >
-                        <Facebook className="h-5 w-5" />
-                      </a>
-                      <a 
-                        href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}`} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-[#0077B5] hover:bg-[#0077B5]/10 p-2 rounded-full transition-colors"
-                        aria-label="Share on LinkedIn"
-                      >
-                        <Linkedin className="h-5 w-5" />
-                      </a>
-                      <a 
-                        href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}&text=${encodeURIComponent(`Check out this job: ${job?.title || ''}`)}`} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-[#1DA1F2] hover:bg-[#1DA1F2]/10 p-2 rounded-full transition-colors"
-                        aria-label="Share on Twitter"
-                      >
-                        <Twitter className="h-5 w-5" />
-                      </a>
-                      <a 
-                        href={`https://wa.me/?text=${encodeURIComponent(`Check out this job: ${typeof window !== 'undefined' ? window.location.href : ''}`)}`} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-[#25D366] hover:bg-[#25D366]/10 p-2 rounded-full transition-colors"
-                        aria-label="Share on WhatsApp"
-                      >
-                        <MessageSquare className="h-5 w-5" />
-                      </a>
-                      <a 
-                        href={`https://www.instagram.com/?url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}`} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-[#E1306C] hover:bg-[#E1306C]/10 p-2 rounded-full transition-colors"
-                        aria-label="Share on Instagram"
-                      >
-                        <Instagram className="h-5 w-5" />
-                      </a>
-                      <a 
-                        href={`mailto:?subject=${encodeURIComponent(`Job Opportunity: ${job?.title || ''}`)}&body=${encodeURIComponent(`Check out this job: ${typeof window !== 'undefined' ? window.location.href : ''}`)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-gray-600 hover:bg-gray-600/10 p-2 rounded-full transition-colors flex items-center justify-center"
-                        aria-label="Share via Email"
-                      >
-                        <Mail className="h-5 w-5" />
-                      </a>
-                    </div>
-                  </div>
+                  <JobShareButtons jobTitle={job.title} />
                   <div className="flex flex-wrap gap-2">
                     <Button 
                       variant="outline" 
