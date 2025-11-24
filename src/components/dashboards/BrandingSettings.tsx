@@ -30,9 +30,12 @@ const BrandingSettings = () => {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState<"logo" | "favicon" | null>(null);
 
-  // Update form data when branding changes
+  // Initialize form data from branding (only on mount or when branding first loads)
+  const hasInitializedRef = useRef(false);
+  
   useEffect(() => {
-    if (branding) {
+    if (branding && !hasInitializedRef.current) {
+      hasInitializedRef.current = true;
       setFormData({
         site_name: branding.site_name || "",
         logo_url: branding.logo_url || "",

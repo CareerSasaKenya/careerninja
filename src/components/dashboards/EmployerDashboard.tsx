@@ -55,18 +55,16 @@ const EmployerDashboard = () => {
       toast.error("Failed to load jobs");
       console.error(error);
     } else {
-      // Only update if data has actually changed to prevent unnecessary renders
-      const newData = data || [];
-      if (JSON.stringify(jobs) !== JSON.stringify(newData)) {
-        setJobs(newData);
-      }
+      setJobs(data || []);
     }
     setLoading(false);
   }, [user]);
 
   useEffect(() => {
-    fetchJobs();
-  }, [user, fetchJobs]);
+    if (user) {
+      fetchJobs();
+    }
+  }, [user]);
 
   const handleDelete = async (jobId: string) => {
     if (!confirm("Are you sure you want to delete this job?")) return;
