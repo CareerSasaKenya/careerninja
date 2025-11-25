@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
 import { createClient } from '@supabase/supabase-js';
-import { getJobThumbnailUrl } from '@/lib/ogUtils';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://qxuvqrfqkdpfjfwkqatf.supabase.co';
 const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4dXZxcmZxa2RwZmpmd2txYXRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk0MjcxNTIsImV4cCI6MjA3NTAwMzE1Mn0.mAiL1p6YqlSaSFOIDW_G-3e_Mqck0cFqLl74_jyNpk8';
@@ -61,7 +60,8 @@ export async function generateJobMetadata(id: string): Promise<Metadata> {
     const title = `${jobTitle} at ${companyName} - CareerSasa`;
     const description = `${plainDescription}... Find more jobs on CareerSasa.`;
     const siteUrl = 'https://www.careersasa.co.ke';
-    const thumbnailUrl = `${siteUrl}/api/og/job/${job.id}`;
+    // Use the same id (slug or uuid) that was passed to the page for consistency
+    const thumbnailUrl = `${siteUrl}/api/og/job/${id}`;
     const url = `${siteUrl}/jobs/${id}`;
     
     return {
