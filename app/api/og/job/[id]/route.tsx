@@ -7,6 +7,15 @@ export const runtime = 'edge';
 // Revalidate every hour to ensure fresh data while still caching
 export const revalidate = 3600;
 
+// Brand colors
+const COLORS = {
+  primary: '#7c3aed',      // Purple - HSL(262, 83%, 58%)
+  secondary: '#f97316',    // Orange - HSL(25, 95%, 53%)
+  accent: '#0ea5e9',       // Cyan/Blue - HSL(199, 89%, 48%)
+  primaryDark: '#6d28d9',  // Darker purple for gradient
+  white: '#ffffff',
+};
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -71,8 +80,8 @@ export async function GET(
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: '#1e40af', // Dark blue background
-              backgroundImage: 'linear-gradient(135deg, #1e40af 0%, #0ea5e9 100%)',
+              backgroundColor: COLORS.primaryDark,
+              backgroundImage: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.accent} 100%)`,
               padding: '40px',
               fontFamily: 'sans-serif',
             }}
@@ -87,31 +96,42 @@ export async function GET(
                 position: 'relative',
               }}
             >
-              {/* Background elements */}
+              {/* Background decorative elements with brand colors */}
               <div
                 style={{
                   position: 'absolute',
-                  top: '20%',
-                  left: '10%',
-                  width: '120px',
-                  height: '120px',
+                  top: '15%',
+                  left: '8%',
+                  width: '140px',
+                  height: '140px',
                   borderRadius: '50%',
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  backgroundColor: `${COLORS.secondary}33`,
                 }}
               />
               <div
                 style={{
                   position: 'absolute',
-                  bottom: '20%',
-                  right: '10%',
-                  width: '80px',
-                  height: '80px',
+                  bottom: '15%',
+                  right: '8%',
+                  width: '100px',
+                  height: '100px',
                   borderRadius: '50%',
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  backgroundColor: `${COLORS.secondary}33`,
+                }}
+              />
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  right: '20%',
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: '50%',
+                  backgroundColor: `${COLORS.accent}33`,
                 }}
               />
               
-              {/* Logo placeholder */}
+              {/* Logo placeholder with secondary color accent */}
               <div
                 style={{
                   position: 'absolute',
@@ -120,7 +140,7 @@ export async function GET(
                   width: '60px',
                   height: '60px',
                   borderRadius: '12px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  backgroundColor: COLORS.secondary,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -173,6 +193,7 @@ export async function GET(
                 >
                   Discover exciting career opportunities
                 </p>
+                {/* CTA button with secondary (orange) color */}
                 <div
                   style={{
                     position: 'absolute',
@@ -180,7 +201,7 @@ export async function GET(
                     right: '40px',
                     padding: '16px 32px',
                     borderRadius: '8px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                    backgroundColor: COLORS.secondary,
                     color: 'white',
                     fontSize: '24px',
                     fontWeight: 'bold',
@@ -223,8 +244,8 @@ export async function GET(
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#1e40af', // Dark blue background
-            backgroundImage: 'linear-gradient(135deg, #1e40af 0%, #0ea5e9 100%)',
+            backgroundColor: COLORS.primaryDark,
+            backgroundImage: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.accent} 100%)`,
             padding: '40px',
             fontFamily: 'sans-serif',
           }}
@@ -239,31 +260,42 @@ export async function GET(
               position: 'relative',
             }}
           >
-            {/* Background elements */}
+            {/* Background decorative elements with brand colors */}
             <div
               style={{
                 position: 'absolute',
-                top: '20%',
-                left: '10%',
-                width: '120px',
-                height: '120px',
+                top: '15%',
+                left: '8%',
+                width: '140px',
+                height: '140px',
                 borderRadius: '50%',
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                backgroundColor: `${COLORS.secondary}33`,
               }}
             />
             <div
               style={{
                 position: 'absolute',
-                bottom: '20%',
-                right: '10%',
-                width: '80px',
-                height: '80px',
+                bottom: '15%',
+                right: '8%',
+                width: '100px',
+                height: '100px',
                 borderRadius: '50%',
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                backgroundColor: `${COLORS.secondary}33`,
+              }}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                top: '50%',
+                right: '20%',
+                width: '60px',
+                height: '60px',
+                borderRadius: '50%',
+                backgroundColor: `${COLORS.accent}33`,
               }}
             />
             
-            {/* Company Logo Placeholder */}
+            {/* Company Logo Placeholder with secondary color */}
             <div
               style={{
                 position: 'absolute',
@@ -272,7 +304,7 @@ export async function GET(
                 width: '60px',
                 height: '60px',
                 borderRadius: '12px',
-                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                backgroundColor: COLORS.secondary,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -281,7 +313,7 @@ export async function GET(
                 color: 'white',
               }}
             >
-              C
+              {companyName.charAt(0).toUpperCase()}
             </div>
             
             {/* Main content */}
@@ -327,6 +359,7 @@ export async function GET(
               >
                 in {truncateText(location, 40)}
               </p>
+              {/* CTA button with secondary (orange) color */}
               <div
                 style={{
                   position: 'absolute',
@@ -334,7 +367,7 @@ export async function GET(
                   right: '40px',
                   padding: '16px 32px',
                   borderRadius: '8px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  backgroundColor: COLORS.secondary,
                   color: 'white',
                   fontSize: '24px',
                   fontWeight: 'bold',
@@ -368,8 +401,8 @@ export async function GET(
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#1e40af',
-            backgroundImage: 'linear-gradient(135deg, #1e40af 0%, #0ea5e9 100%)',
+            backgroundColor: COLORS.primaryDark,
+            backgroundImage: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.accent} 100%)`,
             padding: '40px',
             fontFamily: 'sans-serif',
           }}
@@ -384,6 +417,31 @@ export async function GET(
               position: 'relative',
             }}
           >
+            {/* Background decorative elements */}
+            <div
+              style={{
+                position: 'absolute',
+                top: '15%',
+                left: '8%',
+                width: '140px',
+                height: '140px',
+                borderRadius: '50%',
+                backgroundColor: `${COLORS.secondary}33`,
+              }}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '15%',
+                right: '8%',
+                width: '100px',
+                height: '100px',
+                borderRadius: '50%',
+                backgroundColor: `${COLORS.secondary}33`,
+              }}
+            />
+            
+            {/* Logo with secondary color */}
             <div
               style={{
                 position: 'absolute',
@@ -392,7 +450,7 @@ export async function GET(
                 width: '60px',
                 height: '60px',
                 borderRadius: '12px',
-                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                backgroundColor: COLORS.secondary,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
