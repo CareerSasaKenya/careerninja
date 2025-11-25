@@ -1,6 +1,6 @@
 "use client";
 
-import { Twitter, Facebook, Linkedin, Link2, Check } from "lucide-react";
+import { Twitter, Facebook, Linkedin, Link2, Check, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
@@ -10,21 +10,27 @@ interface SocialShareProps {
   description?: string;
 }
 
-export default function SocialShare({ url, title }: SocialShareProps) {
+export default function SocialShare({ url, title, description }: SocialShareProps) {
   const [copied, setCopied] = useState(false);
 
   const encodedUrl = encodeURIComponent(url);
   const encodedTitle = encodeURIComponent(title);
+  const encodedDescription = encodeURIComponent(description || '');
 
   const shareLinks = {
     twitter: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`,
     facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
     linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
     whatsapp: `https://wa.me/?text=${encodedTitle}%20${encodedUrl}`,
+    email: `mailto:?subject=${encodedTitle}&body=${encodedDescription}%0A%0A${encodedUrl}`,
   };
 
   const handleShare = (platform: keyof typeof shareLinks) => {
-    window.open(shareLinks[platform], "_blank", "noopener,noreferrer,width=600,height=400");
+    if (platform === 'email') {
+      window.location.href = shareLinks[platform];
+    } else {
+      window.open(shareLinks[platform], "_blank", "noopener,noreferrer,width=600,height=400");
+    }
   };
 
   const handleCopyLink = async () => {
@@ -39,6 +45,7 @@ export default function SocialShare({ url, title }: SocialShareProps) {
 
   return (
     <div className="flex items-center gap-1">
+      <span className="text-sm text-muted-foreground mr-1">Share this job:</span>
       <Button
         variant="ghost"
         size="icon"
@@ -89,6 +96,15 @@ export default function SocialShare({ url, title }: SocialShareProps) {
         ) : (
           <Link2 className="h-4 w-4" />
         )}
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 text-red-500 hover:bg-red-500/10 hover:text-red-500"
+        onClick={() => handleShare("email")}
+        title="Share via Email"
+      >
+        <Mail className="h-4 w-4" />
       </Button>
     </div>
   );
