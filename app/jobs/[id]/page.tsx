@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import JobCard from "@/components/JobCard";
 import JobStructuredData from "@/components/JobStructuredData";
 import ApplySection from "@/components/ApplySection";
+import SocialShare from "@/components/SocialShare";
 
 // Create Supabase client for server-side data fetching
 const supabase = createClient(
@@ -248,7 +249,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                 </div>
               )}
               
-              {/* Safety Alert + Report Job */}
+              {/* Safety Alert + Share & Report Job */}
               <div className="mt-6 rounded-md border border-amber-200 bg-amber-50 p-4">
                 <div className="flex items-start gap-2">
                   <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5" />
@@ -256,7 +257,12 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                     <strong>CareerSasa Safety Alert:</strong> We strongly advise job seekers not to make any payment to employers or agencies during the recruitment process. If you're asked to pay for training, interviews, or job placement, report the job immediately using the "Report Job" button. CareerSasa thoroughly vets postings, but we encourage all applicants to stay vigilant and verify opportunities independently.
                   </div>
                 </div>
-                <div className="mt-3 flex justify-end">
+                <div className="mt-3 flex justify-end gap-2">
+                  <SocialShare 
+                    url={`https://www.careersasa.co.ke/jobs/${job.job_slug || job.id}`}
+                    title={`${job.title} at ${job.companies?.name || job.company || 'Company'} - CareerSasa`}
+                    description={job.description?.replace(/<[^>]*>/g, '').substring(0, 160)}
+                  />
                   <Button 
                     variant="outline" 
                     size="sm" 
