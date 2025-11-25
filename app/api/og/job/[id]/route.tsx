@@ -4,6 +4,9 @@ import { createClient } from '@supabase/supabase-js';
 
 export const runtime = 'edge';
 
+// Revalidate every hour to ensure fresh data while still caching
+export const revalidate = 3600;
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -192,6 +195,9 @@ export async function GET(
         {
           width: 1200,
           height: 630,
+          headers: {
+            'Cache-Control': 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400',
+          },
         }
       );
     }
@@ -343,6 +349,9 @@ export async function GET(
       {
         width: 1200,
         height: 630,
+        headers: {
+          'Cache-Control': 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400',
+        },
       }
     );
   } catch (error) {
@@ -430,6 +439,9 @@ export async function GET(
       {
         width: 1200,
         height: 630,
+        headers: {
+          'Cache-Control': 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400',
+        },
       }
     );
   }
