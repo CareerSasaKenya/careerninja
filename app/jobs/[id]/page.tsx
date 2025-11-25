@@ -11,7 +11,6 @@ import { Separator } from "@/components/ui/separator";
 import JobCard from "@/components/JobCard";
 import JobStructuredData from "@/components/JobStructuredData";
 import ApplySection from "@/components/ApplySection";
-import JobShareButtons from "@/components/JobShareButtons";
 
 // Create Supabase client for server-side data fetching
 const supabase = createClient(
@@ -257,15 +256,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                     <strong>CareerSasa Safety Alert:</strong> We strongly advise job seekers not to make any payment to employers or agencies during the recruitment process. If you're asked to pay for training, interviews, or job placement, report the job immediately using the "Report Job" button. CareerSasa thoroughly vets postings, but we encourage all applicants to stay vigilant and verify opportunities independently.
                   </div>
                 </div>
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-amber-800 font-medium">Share this job:</span>
-                    <JobShareButtons 
-                      jobTitle={job.title}
-                      companyName={job.companies?.name || job.company}
-                      location={job.location}
-                    />
-                  </div>
+                <div className="mt-3 flex justify-end">
                   <Button 
                     variant="outline" 
                     size="sm" 
