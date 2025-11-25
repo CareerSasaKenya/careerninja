@@ -10,7 +10,6 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import JobCard from "@/components/JobCard";
 import JobStructuredData from "@/components/JobStructuredData";
-import JobShareButtons from "@/components/JobShareButtons";
 import ApplySection from "@/components/ApplySection";
 
 // Create Supabase client for server-side data fetching
@@ -257,18 +256,15 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                     <strong>CareerSasa Safety Alert:</strong> We strongly advise job seekers not to make any payment to employers or agencies during the recruitment process. If you're asked to pay for training, interviews, or job placement, report the job immediately using the "Report Job" button. CareerSasa thoroughly vets postings, but we encourage all applicants to stay vigilant and verify opportunities independently.
                   </div>
                 </div>
-                <div className="mt-3 flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-3">
-                  <JobShareButtons jobTitle={job.title} />
-                  <div className="flex flex-wrap gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="flex items-center gap-2 whitespace-nowrap"
-                    >
-                      <Flag className="h-4 w-4" />
-                      Flag
-                    </Button>
-                  </div>
+                <div className="mt-3 flex justify-end">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex items-center gap-2 whitespace-nowrap"
+                  >
+                    <Flag className="h-4 w-4" />
+                    Flag
+                  </Button>
                 </div>
               </div>
             </div>
