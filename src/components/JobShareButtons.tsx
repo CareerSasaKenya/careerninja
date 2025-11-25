@@ -1,73 +1,85 @@
 'use client';
 
-import { Facebook, Linkedin, Mail, Twitter, MessageSquare, Instagram } from "lucide-react";
+import { Facebook, Linkedin, Mail, MessageCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface JobShareButtonsProps {
   jobTitle: string;
+  companyName?: string;
+  location?: string;
+  jobUrl?: string;
 }
 
-export default function JobShareButtons({ jobTitle }: JobShareButtonsProps) {
-  const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
+// X (Twitter) icon component
+const XIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+  </svg>
+);
+
+export default function JobShareButtons({ jobTitle, companyName, location, jobUrl }: JobShareButtonsProps) {
+  const currentUrl = jobUrl || (typeof window !== 'undefined' ? window.location.href : '');
   
+  // Build share text with job metadata
+  const shareTitle = `${jobTitle}${companyName ? ` at ${companyName}` : ''}${location ? ` - ${location}` : ''}`;
+  const shareText = `🚀 Job Opportunity: ${shareTitle}\n\nApply now on CareerSasa:`;
+  const emailSubject = `Job Opportunity: ${shareTitle}`;
+  const emailBody = `Hi,\n\nI found this job opportunity that might interest you:\n\n${shareTitle}\n\nCheck it out here: ${currentUrl}\n\nBest regards`;
+  
+  const shareButtons = [
+    {
+      name: 'Facebook',
+      href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`,
+      icon: <Facebook className="h-4 w-4" />,
+      color: 'text-[#1877F2] hover:bg-[#1877F2]/10',
+    },
+    {
+      name: 'LinkedIn',
+      href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(currentUrl)}`,
+      icon: <Linkedin className="h-4 w-4" />,
+      color: 'text-[#0077B5] hover:bg-[#0077B5]/10',
+    },
+    {
+      name: 'WhatsApp',
+      href: `https://wa.me/?text=${encodeURIComponent(`${shareText}\n${currentUrl}`)}`,
+      icon: <MessageCircle className="h-4 w-4" />,
+      color: 'text-[#25D366] hover:bg-[#25D366]/10',
+    },
+    {
+      name: 'X',
+      href: `https://twitter.com/intent/tweet?url=${encodeURIComponent(currentUrl)}&text=${encodeURIComponent(shareText)}`,
+      icon: <XIcon className="h-4 w-4" />,
+      color: 'text-black dark:text-white hover:bg-black/10 dark:hover:bg-white/10',
+    },
+    {
+      name: 'Email',
+      href: `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`,
+      icon: <Mail className="h-4 w-4" />,
+      color: 'text-gray-600 hover:bg-gray-600/10',
+    },
+  ];
+
   return (
-    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-      <span className="text-sm text-muted-foreground whitespace-nowrap">Share:</span>
-      <div className="flex flex-wrap gap-2">
-        <a 
-          href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`} 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="text-[#1877F2] hover:bg-[#1877F2]/10 p-2 rounded-full transition-colors"
-          aria-label="Share on Facebook"
+    <div className="flex items-center gap-1">
+      {shareButtons.map((button) => (
+        <Button
+          key={button.name}
+          variant="ghost"
+          size="sm"
+          asChild
+          className={`p-2 h-8 w-8 ${button.color} rounded-full transition-colors`}
         >
-          <Facebook className="h-5 w-5" />
-        </a>
-        <a 
-          href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(currentUrl)}`} 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="text-[#0077B5] hover:bg-[#0077B5]/10 p-2 rounded-full transition-colors"
-          aria-label="Share on LinkedIn"
-        >
-          <Linkedin className="h-5 w-5" />
-        </a>
-        <a 
-          href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(currentUrl)}&text=${encodeURIComponent(`Check out this job: ${jobTitle}`)}`} 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="text-[#1DA1F2] hover:bg-[#1DA1F2]/10 p-2 rounded-full transition-colors"
-          aria-label="Share on Twitter"
-        >
-          <Twitter className="h-5 w-5" />
-        </a>
-        <a 
-          href={`https://wa.me/?text=${encodeURIComponent(`Check out this job: ${currentUrl}`)}`} 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="text-[#25D366] hover:bg-[#25D366]/10 p-2 rounded-full transition-colors"
-          aria-label="Share on WhatsApp"
-        >
-          <MessageSquare className="h-5 w-5" />
-        </a>
-        <a 
-          href={`https://www.instagram.com/?url=${encodeURIComponent(currentUrl)}`} 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="text-[#E1306C] hover:bg-[#E1306C]/10 p-2 rounded-full transition-colors"
-          aria-label="Share on Instagram"
-        >
-          <Instagram className="h-5 w-5" />
-        </a>
-        <a 
-          href={`mailto:?subject=${encodeURIComponent(`Job Opportunity: ${jobTitle}`)}&body=${encodeURIComponent(`Check out this job: ${currentUrl}`)}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-gray-600 hover:bg-gray-600/10 p-2 rounded-full transition-colors flex items-center justify-center"
-          aria-label="Share via Email"
-        >
-          <Mail className="h-5 w-5" />
-        </a>
-      </div>
+          <a
+            href={button.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Share on ${button.name}`}
+            title={`Share on ${button.name}`}
+          >
+            {button.icon}
+          </a>
+        </Button>
+      ))}
     </div>
   );
 }
