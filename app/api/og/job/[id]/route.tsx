@@ -4,8 +4,8 @@ import { createClient } from '@supabase/supabase-js';
 
 export const runtime = 'edge';
 
-// Revalidate every hour to ensure fresh data while still caching
-export const revalidate = 3600;
+// Revalidate every 15 minutes to ensure fresh data while still caching
+export const revalidate = 900;
 
 // Brand colors
 const COLORS = {
@@ -240,7 +240,7 @@ export async function GET(
           width: 1200,
           height: 630,
           headers: {
-            'Cache-Control': 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400',
+            'Cache-Control': 'public, max-age=900, s-maxage=900, stale-while-revalidate=3600',
           },
         }
       );
@@ -452,7 +452,7 @@ export async function GET(
         width: 1200,
         height: 630,
         headers: {
-          'Cache-Control': 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400',
+          'Cache-Control': 'public, max-age=900, s-maxage=900, stale-while-revalidate=3600',
         },
       }
     );
@@ -567,7 +567,7 @@ export async function GET(
         width: 1200,
         height: 630,
         headers: {
-          'Cache-Control': 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400',
+          'Cache-Control': 'public, max-age=900, s-maxage=900, stale-while-revalidate=3600',
         },
       }
     );

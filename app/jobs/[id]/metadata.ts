@@ -60,8 +60,10 @@ export async function generateJobMetadata(id: string): Promise<Metadata> {
     const title = `${jobTitle} at ${companyName} - CareerSasa`;
     const description = `${plainDescription}... Find more jobs on CareerSasa.`;
     const siteUrl = 'https://www.careersasa.co.ke';
+    // Add timestamp for cache busting
+    const timestamp = Date.now();
     // Use the same id (slug or uuid) that was passed to the page for consistency
-    const thumbnailUrl = `${siteUrl}/api/og/job/${id}`;
+    const thumbnailUrl = `${siteUrl}/api/og/job/${id}?t=${timestamp}`;
     const url = `${siteUrl}/jobs/${id}`;
     
     return {
