@@ -203,12 +203,12 @@ export async function GET(
                 >
                   Discover exciting career opportunities
                 </p>
-                {/* CTA button with secondary (orange) color */}
+                {/* CTA button with secondary (orange) color - moved down and to the right */}
                 <div
                   style={{
                     position: 'absolute',
-                    bottom: '80px',
-                    right: '40px',
+                    bottom: '100px',
+                    right: '60px',
                     padding: '16px 32px',
                     borderRadius: '8px',
                     backgroundColor: COLORS.secondary,
@@ -219,7 +219,7 @@ export async function GET(
                 >
                   Apply Now
                 </div>
-                {/* Branding text */}
+                {/* Branding text - pushed to the bottom */}
                 <div
                   style={{
                     position: 'absolute',
@@ -360,7 +360,7 @@ export async function GET(
                   fontSize: '48px',
                   fontWeight: 'bold',
                   color: 'white',
-                  marginBottom: '10px',
+                  marginBottom: '20px',
                   lineHeight: '1.2',
                   maxWidth: '100%',
                 }}
@@ -371,12 +371,13 @@ export async function GET(
                 style={{
                   fontSize: '32px',
                   color: 'rgba(255, 255, 255, 0.9)',
-                  marginBottom: '5px',
+                  marginBottom: '10px',
                   lineHeight: '1.4',
                 }}
               >
                 at {truncateText(companyName, 40)}
               </p>
+              {/* Location with pin emoji */}
               <p
                 style={{
                   fontSize: '28px',
@@ -385,7 +386,7 @@ export async function GET(
                   marginBottom: '10px',
                 }}
               >
-                in {truncateText(location, 40)}
+                📍 {truncateText(location, 40)}
               </p>
               {/* Job Function */}
               {jobFunction && (
@@ -401,26 +402,26 @@ export async function GET(
                   {jobFunction}
                 </p>
               )}
-              {/* Salary */}
+              {/* Salary with dollar sign emoji */}
               {(salaryMin || salaryMax) ? (
                 <p
                   style={{
                     fontSize: '28px',
                     color: 'rgba(255, 255, 255, 0.9)',
                     lineHeight: '1.4',
-                    marginBottom: '20px',
+                    marginBottom: '30px',
                     fontWeight: 'bold',
                   }}
                 >
-                  {salaryCurrency} {salaryMin?.toLocaleString()} - {salaryMax?.toLocaleString()}/{salaryPeriod.toLowerCase()}
+                  💰 {salaryCurrency} {salaryMin?.toLocaleString()} - {salaryMax?.toLocaleString()}/{salaryPeriod.toLowerCase()}
                 </p>
               ) : null}
-              {/* CTA button with secondary (orange) color */}
+              {/* CTA button with secondary (orange) color - moved down and to the right */}
               <div
                 style={{
                   position: 'absolute',
-                  bottom: '80px',
-                  right: '40px',
+                  bottom: '100px',
+                  right: '60px',
                   padding: '16px 32px',
                   borderRadius: '8px',
                   backgroundColor: COLORS.secondary,
@@ -431,7 +432,7 @@ export async function GET(
               >
                 Apply Now
               </div>
-              {/* Branding text */}
+              {/* Branding text - pushed to the bottom */}
               <div
                 style={{
                   position: 'absolute',
@@ -559,6 +560,35 @@ export async function GET(
               >
                 Find Your Dream Job in Kenya
               </p>
+            </div>
+            {/* CTA button with secondary (orange) color - moved down and to the right */}
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '100px',
+                right: '60px',
+                padding: '16px 32px',
+                borderRadius: '8px',
+                backgroundColor: COLORS.secondary,
+                color: 'white',
+                fontSize: '24px',
+                fontWeight: 'bold',
+              }}
+            >
+              Apply Now
+            </div>
+            {/* Branding text - pushed to the bottom */}
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '40px',
+                left: '40px',
+                fontSize: '20px',
+                color: 'rgba(255, 255, 255, 0.7)',
+                fontWeight: 'bold',
+              }}
+            >
+              CareerSasa.co.ke - Enrich Your Career Now
             </div>
           </div>
         </div>
