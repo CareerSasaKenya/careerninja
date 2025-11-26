@@ -135,14 +135,14 @@ export async function GET(
                   position: 'absolute',
                   top: '40px',
                   left: '40px',
-                  width: '60px',
-                  height: '60px',
+                  width: '80px',
+                  height: '80px',
                   borderRadius: '50%',
                   backgroundColor: COLORS.orange,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '32px',
+                  fontSize: '40px',
                   fontWeight: 'bold',
                   color: 'white',
                 }}
@@ -163,7 +163,7 @@ export async function GET(
               >
                 <h1
                   style={{
-                    fontSize: '60px',
+                    fontSize: '72px',
                     fontWeight: 'bold',
                     color: 'white',
                     marginBottom: '20px',
@@ -174,7 +174,7 @@ export async function GET(
                 </h1>
                 <p
                   style={{
-                    fontSize: '36px',
+                    fontSize: '42px',
                     color: 'rgba(255, 255, 255, 0.9)',
                     marginBottom: '30px',
                     lineHeight: '1.4',
@@ -184,7 +184,7 @@ export async function GET(
                 </p>
                 <p
                   style={{
-                    fontSize: '28px',
+                    fontSize: '32px',
                     color: 'rgba(255, 255, 255, 0.8)',
                     lineHeight: '1.4',
                   }}
@@ -195,15 +195,15 @@ export async function GET(
                 <div
                   style={{
                     position: 'absolute',
-                    bottom: '80px',
+                    bottom: '100px',
                     right: '40px',
-                    padding: '16px 32px',
-                    borderRadius: '8px',
+                    padding: '20px 40px',
+                    borderRadius: '12px',
                     backgroundColor: COLORS.orange,
                     color: 'white',
-                    fontSize: '24px',
+                    fontSize: '32px',
                     fontWeight: 'bold',
-                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)',
                   }}
                 >
                   APPLY NOW
@@ -215,8 +215,8 @@ export async function GET(
                     bottom: '40px',
                     left: '50%',
                     transform: 'translateX(-50%)',
-                    fontSize: '20px',
-                    color: COLORS.lightTeal,
+                    fontSize: '24px',
+                    color: 'white', // Changed to white as requested
                     fontWeight: 'bold',
                   }}
                 >
@@ -281,14 +281,14 @@ export async function GET(
                 position: 'absolute',
                 top: '40px',
                 left: '40px',
-                width: '60px',
-                height: '60px',
+                width: '80px',
+                height: '80px',
                 borderRadius: '50%',
                 backgroundColor: COLORS.orange,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '32px',
+                fontSize: '40px',
                 fontWeight: 'bold',
                 color: 'white',
               }}
@@ -303,52 +303,52 @@ export async function GET(
                 top: '60px',
                 left: '50%',
                 transform: 'translateX(-50%)',
-                fontSize: '48px',
+                fontSize: '60px',
                 fontWeight: 'bold',
                 color: 'white',
                 textAlign: 'center',
                 maxWidth: '70%',
+                lineHeight: '1.2',
               }}
             >
-              {truncateText(jobTitle, 50)}
+              {truncateText(jobTitle, 45)}
             </div>
             
             {/* Left Column - Company Info */}
             <div
               style={{
                 position: 'absolute',
-                top: '150px',
-                left: '40px',
+                top: '180px',
+                left: '60px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '20px',
+                gap: '25px',
                 color: 'white',
-                fontSize: '24px',
               }}
             >
               {/* Company Name */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <svg width="18" height="18" fill="white" viewBox="0 0 24 24">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                <svg width="24" height="24" fill="white" viewBox="0 0 24 24">
                   <path d="M3 3h18v18H3z"/>
                 </svg>
-                <span>{truncateText(companyName, 30)}</span>
+                <span style={{ fontSize: '36px', fontWeight: '600' }}>{truncateText(companyName, 25)}</span>
               </div>
               
               {/* Location */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <svg width="18" height="18" fill="white" viewBox="0 0 24 24">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                <svg width="24" height="24" fill="white" viewBox="0 0 24 24">
                   <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>
                 </svg>
-                <span style={{ fontSize: '20px' }}>{truncateText(location, 30)}</span>
+                <span style={{ fontSize: '32px' }}>{truncateText(location, 25)}</span>
               </div>
               
               {/* Salary Range (only if available) */}
               {(salaryMin || salaryMax) && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <svg width="18" height="18" fill="white" viewBox="0 0 24 24">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                  <svg width="24" height="24" fill="white" viewBox="0 0 24 24">
                     <path d="M12 1L3 5v6c0 5.25 3.75 10.74 9 12 5.25-1.26 9-6.75 9-12V5l-9-4zm1 16h-2v-2h2v2zm0-4h-2V7h2v6z"/>
                   </svg>
-                  <span style={{ fontSize: '22px' }}>
+                  <span style={{ fontSize: '34px', fontWeight: '600' }}>
                     {salaryCurrency} {salaryMin?.toLocaleString()} - {salaryMax?.toLocaleString()}/{salaryPeriod.toLowerCase()}
                   </span>
                 </div>
@@ -356,11 +356,11 @@ export async function GET(
               
               {/* Job Function */}
               {jobFunction && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <svg width="18" height="18" fill="white" viewBox="0 0 24 24">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                  <svg width="24" height="24" fill="white" viewBox="0 0 24 24">
                     <path d="M4 7h16v2H4zm0 4h16v2H4zm0 4h10v2H4z"/>
                   </svg>
-                  <span style={{ fontSize: '22px' }}>{truncateText(jobFunction, 30)}</span>
+                  <span style={{ fontSize: '32px' }}>{truncateText(jobFunction, 25)}</span>
                 </div>
               )}
             </div>
@@ -369,15 +369,15 @@ export async function GET(
             <div
               style={{
                 position: 'absolute',
-                bottom: '80px',
+                bottom: '100px',
                 right: '40px',
-                padding: '16px 32px',
-                borderRadius: '8px',
+                padding: '20px 40px',
+                borderRadius: '12px',
                 backgroundColor: COLORS.orange,
                 color: 'white',
-                fontSize: '24px',
+                fontSize: '32px',
                 fontWeight: 'bold',
-                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)',
               }}
             >
               APPLY NOW
@@ -390,8 +390,8 @@ export async function GET(
                 bottom: '40px',
                 left: '50%',
                 transform: 'translateX(-50%)',
-                fontSize: '20px',
-                color: COLORS.lightTeal,
+                fontSize: '24px',
+                color: 'white', // Changed to white as requested
                 fontWeight: 'bold',
               }}
             >
@@ -467,14 +467,14 @@ export async function GET(
                 position: 'absolute',
                 top: '40px',
                 left: '40px',
-                width: '60px',
-                height: '60px',
+                width: '80px',
+                height: '80px',
                 borderRadius: '50%',
                 backgroundColor: COLORS.orange,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '32px',
+                fontSize: '40px',
                 fontWeight: 'bold',
                 color: 'white',
               }}
@@ -494,7 +494,7 @@ export async function GET(
             >
               <h1
                 style={{
-                  fontSize: '60px',
+                  fontSize: '72px',
                   fontWeight: 'bold',
                   color: 'white',
                   marginBottom: '20px',
@@ -504,7 +504,7 @@ export async function GET(
               </h1>
               <p
                 style={{
-                  fontSize: '36px',
+                  fontSize: '42px',
                   color: 'rgba(255, 255, 255, 0.9)',
                 }}
               >
