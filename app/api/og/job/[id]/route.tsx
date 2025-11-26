@@ -42,6 +42,11 @@ export async function GET(
         title,
         company,
         location,
+        salary_min,
+        salary_max,
+        salary_currency,
+        salary_period,
+        job_function,
         companies (
           name,
           logo
@@ -59,6 +64,11 @@ export async function GET(
           title,
           company,
           location,
+          salary_min,
+          salary_max,
+          salary_currency,
+          salary_period,
+          job_function,
           companies (
             name,
             logo
@@ -197,7 +207,7 @@ export async function GET(
                 <div
                   style={{
                     position: 'absolute',
-                    bottom: '40px',
+                    bottom: '80px',
                     right: '40px',
                     padding: '16px 32px',
                     borderRadius: '8px',
@@ -208,6 +218,19 @@ export async function GET(
                   }}
                 >
                   Apply Now
+                </div>
+                {/* Branding text */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: '40px',
+                    left: '40px',
+                    fontSize: '20px',
+                    color: 'rgba(255, 255, 255, 0.7)',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  CareerSasa.co.ke - Enrich Your Career Now
                 </div>
               </div>
             </div>
@@ -228,6 +251,11 @@ export async function GET(
     const companyLogo = job.companies && job.companies.length > 0 && job.companies[0].logo;
     const jobTitle = job.title || 'Job Opening';
     const location = job.location || 'Kenya';
+    const salaryMin = job.salary_min;
+    const salaryMax = job.salary_max;
+    const salaryCurrency = job.salary_currency || 'KES';
+    const salaryPeriod = job.salary_period || 'MONTH';
+    const jobFunction = job.job_function || '';
 
     // Truncate long text to fit in the image
     const truncateText = (text: string, maxLength: number) => {
@@ -329,10 +357,10 @@ export async function GET(
             >
               <h1
                 style={{
-                  fontSize: '56px',
+                  fontSize: '48px',
                   fontWeight: 'bold',
                   color: 'white',
-                  marginBottom: '20px',
+                  marginBottom: '10px',
                   lineHeight: '1.2',
                   maxWidth: '100%',
                 }}
@@ -341,9 +369,9 @@ export async function GET(
               </h1>
               <p
                 style={{
-                  fontSize: '40px',
+                  fontSize: '32px',
                   color: 'rgba(255, 255, 255, 0.9)',
-                  marginBottom: '10px',
+                  marginBottom: '5px',
                   lineHeight: '1.4',
                 }}
               >
@@ -351,19 +379,47 @@ export async function GET(
               </p>
               <p
                 style={{
-                  fontSize: '32px',
+                  fontSize: '28px',
                   color: 'rgba(255, 255, 255, 0.8)',
                   lineHeight: '1.4',
-                  marginBottom: '40px',
+                  marginBottom: '10px',
                 }}
               >
                 in {truncateText(location, 40)}
               </p>
+              {/* Job Function */}
+              {jobFunction && (
+                <p
+                  style={{
+                    fontSize: '24px',
+                    color: 'rgba(255, 255, 255, 0.8)',
+                    lineHeight: '1.4',
+                    marginBottom: '10px',
+                    fontStyle: 'italic',
+                  }}
+                >
+                  {jobFunction}
+                </p>
+              )}
+              {/* Salary */}
+              {(salaryMin || salaryMax) ? (
+                <p
+                  style={{
+                    fontSize: '28px',
+                    color: 'rgba(255, 255, 255, 0.9)',
+                    lineHeight: '1.4',
+                    marginBottom: '20px',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  {salaryCurrency} {salaryMin?.toLocaleString()} - {salaryMax?.toLocaleString()}/{salaryPeriod.toLowerCase()}
+                </p>
+              ) : null}
               {/* CTA button with secondary (orange) color */}
               <div
                 style={{
                   position: 'absolute',
-                  bottom: '40px',
+                  bottom: '80px',
                   right: '40px',
                   padding: '16px 32px',
                   borderRadius: '8px',
@@ -374,6 +430,19 @@ export async function GET(
                 }}
               >
                 Apply Now
+              </div>
+              {/* Branding text */}
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: '40px',
+                  left: '40px',
+                  fontSize: '20px',
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  fontWeight: 'bold',
+                }}
+              >
+                CareerSasa.co.ke - Enrich Your Career Now
               </div>
             </div>
           </div>
