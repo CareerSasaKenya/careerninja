@@ -203,19 +203,23 @@ export default async function handler(request: Request) {
         <circle cx="${canvasWidth * 0.8}" cy="${canvasHeight * 0.2}" r="80" fill="rgba(255, 255, 255, 0.1)" />
         <circle cx="${canvasWidth * 0.2}" cy="${canvasHeight * 0.7}" r="60" fill="rgba(255, 255, 255, 0.1)" />
         
-        <!-- Text content -->
-        <text x="${canvasWidth * 0.1}" y="${canvasHeight * 0.3}" font-family="system-ui, -apple-system, sans-serif" font-size="48" font-weight="bold" fill="white">${escapeXml(job.title || 'Job Title')}</text>
-        <text x="${canvasWidth * 0.1}" y="${canvasHeight * 0.45}" font-family="system-ui, -apple-system, sans-serif" font-size="36" fill="rgba(255, 255, 255, 0.9)">at ${escapeXml(companyName || 'Company Name')}</text>
-        <text x="${canvasWidth * 0.1}" y="${canvasHeight * 0.55}" font-family="system-ui, -apple-system, sans-serif" font-size="28" fill="rgba(255, 255, 255, 0.8)">in ${escapeXml(job.location || 'Location')}</text>
-        <text x="${canvasWidth * 0.1}" y="${canvasHeight * 0.9}" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="bold" fill="rgba(255, 255, 255, 0.7)">CareerSasa.co.ke</text>
+        <!-- Logo - More prominent -->
+        <circle cx="${canvasWidth * 0.85}" cy="${canvasHeight * 0.15}" r="60" fill="rgba(255, 255, 255, 0.25)" stroke="white" stroke-width="3" />
+        <text x="${canvasWidth * 0.85}" y="${canvasHeight * 0.15}" font-family="system-ui, -apple-system, sans-serif" font-size="64" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">C</text>
         
-        <!-- Apply Now Button -->
-        <rect x="${canvasWidth * 0.1}" y="${canvasHeight * 0.75}" width="200" height="50" rx="8" fill="url(#bgGradient)" />
-        <text x="${canvasWidth * 0.1 + 100}" y="${canvasHeight * 0.75 + 25}" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">Apply Now</text>
+        <!-- Text content - pushed down and better organized -->
+        <text x="${canvasWidth * 0.1}" y="${canvasHeight * 0.4}" font-family="system-ui, -apple-system, sans-serif" font-size="52" font-weight="bold" fill="white">${escapeXml(job.title || 'Job Title')}</text>
+        <text x="${canvasWidth * 0.1}" y="${canvasHeight * 0.52}" font-family="system-ui, -apple-system, sans-serif" font-size="38" fill="rgba(255, 255, 255, 0.95)">at ${escapeXml(companyName || 'Company Name')}</text>
         
-        <!-- Logo placeholder -->
-        <circle cx="${canvasWidth * 0.85 + 40}" cy="${canvasHeight * 0.1 + 40}" r="40" fill="rgba(255, 255, 255, 0.2)" />
-        <text x="${canvasWidth * 0.85 + 40}" y="${canvasHeight * 0.1 + 40}" font-family="system-ui, -apple-system, sans-serif" font-size="48" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">C</text>
+        <!-- Location and Apply Now on same line -->
+        <text x="${canvasWidth * 0.1}" y="${canvasHeight * 0.64}" font-family="system-ui, -apple-system, sans-serif" font-size="30" fill="rgba(255, 255, 255, 0.85)">📍 ${escapeXml(job.location || 'Location')}</text>
+        
+        <!-- Apply Now Button - aligned with location -->
+        <rect x="${canvasWidth * 0.55}" y="${canvasHeight * 0.6}" width="220" height="60" rx="10" fill="white" opacity="0.95" />
+        <text x="${canvasWidth * 0.55 + 110}" y="${canvasHeight * 0.6 + 30}" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="bold" fill="hsl(262, 83%, 58%)" text-anchor="middle" dominant-baseline="middle">Apply Now →</text>
+        
+        <!-- Footer branding -->
+        <text x="${canvasWidth * 0.1}" y="${canvasHeight * 0.9}" font-family="system-ui, -apple-system, sans-serif" font-size="26" font-weight="bold" fill="rgba(255, 255, 255, 0.8)">CareerSasa.co.ke</text>
       </svg>
     `;
 
@@ -274,19 +278,23 @@ function createDefaultThumbnail(): Response {
       <circle cx="${canvasWidth * 0.8}" cy="${canvasHeight * 0.2}" r="80" fill="rgba(255, 255, 255, 0.1)" />
       <circle cx="${canvasWidth * 0.2}" cy="${canvasHeight * 0.7}" r="60" fill="rgba(255, 255, 255, 0.1)" />
       
-      <!-- Text content -->
-      <text x="${canvasWidth * 0.1}" y="${canvasHeight * 0.3}" font-family="system-ui, -apple-system, sans-serif" font-size="48" font-weight="bold" fill="white">CareerSasa</text>
-      <text x="${canvasWidth * 0.1}" y="${canvasHeight * 0.45}" font-family="system-ui, -apple-system, sans-serif" font-size="36" fill="rgba(255, 255, 255, 0.9)">Find Your Dream Job in Kenya</text>
-      <text x="${canvasWidth * 0.1}" y="${canvasHeight * 0.55}" font-family="system-ui, -apple-system, sans-serif" font-size="28" fill="rgba(255, 255, 255, 0.8)">Discover exciting career opportunities</text>
-      <text x="${canvasWidth * 0.1}" y="${canvasHeight * 0.9}" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="bold" fill="rgba(255, 255, 255, 0.7)">CareerSasa.co.ke</text>
+      <!-- Logo - More prominent -->
+      <circle cx="${canvasWidth * 0.85}" cy="${canvasHeight * 0.15}" r="60" fill="rgba(255, 255, 255, 0.25)" stroke="white" stroke-width="3" />
+      <text x="${canvasWidth * 0.85}" y="${canvasHeight * 0.15}" font-family="system-ui, -apple-system, sans-serif" font-size="64" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">C</text>
       
-      <!-- Apply Now Button -->
-      <rect x="${canvasWidth * 0.1}" y="${canvasHeight * 0.75}" width="200" height="50" rx="8" fill="url(#bgGradient)" />
-      <text x="${canvasWidth * 0.1 + 100}" y="${canvasHeight * 0.75 + 25}" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">Apply Now</text>
+      <!-- Text content - pushed down and better organized -->
+      <text x="${canvasWidth * 0.1}" y="${canvasHeight * 0.4}" font-family="system-ui, -apple-system, sans-serif" font-size="52" font-weight="bold" fill="white">CareerSasa</text>
+      <text x="${canvasWidth * 0.1}" y="${canvasHeight * 0.52}" font-family="system-ui, -apple-system, sans-serif" font-size="38" fill="rgba(255, 255, 255, 0.95)">Find Your Dream Job in Kenya</text>
       
-      <!-- Logo placeholder -->
-      <circle cx="${canvasWidth * 0.85 + 40}" cy="${canvasHeight * 0.1 + 40}" r="40" fill="rgba(255, 255, 255, 0.2)" />
-      <text x="${canvasWidth * 0.85 + 40}" y="${canvasHeight * 0.1 + 40}" font-family="system-ui, -apple-system, sans-serif" font-size="48" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">C</text>
+      <!-- Tagline and Apply Now on same line -->
+      <text x="${canvasWidth * 0.1}" y="${canvasHeight * 0.64}" font-family="system-ui, -apple-system, sans-serif" font-size="30" fill="rgba(255, 255, 255, 0.85)">🚀 Discover exciting opportunities</text>
+      
+      <!-- Apply Now Button - aligned with tagline -->
+      <rect x="${canvasWidth * 0.55}" y="${canvasHeight * 0.6}" width="220" height="60" rx="10" fill="white" opacity="0.95" />
+      <text x="${canvasWidth * 0.55 + 110}" y="${canvasHeight * 0.6 + 30}" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="bold" fill="hsl(262, 83%, 58%)" text-anchor="middle" dominant-baseline="middle">Apply Now →</text>
+      
+      <!-- Footer branding -->
+      <text x="${canvasWidth * 0.1}" y="${canvasHeight * 0.9}" font-family="system-ui, -apple-system, sans-serif" font-size="26" font-weight="bold" fill="rgba(255, 255, 255, 0.8)">CareerSasa.co.ke</text>
     </svg>
   `;
 

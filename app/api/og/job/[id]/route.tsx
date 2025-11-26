@@ -195,7 +195,7 @@ export async function GET(
                 <div
                   style={{
                     position: 'absolute',
-                    bottom: '100px',
+                    bottom: '40px',
                     right: '40px',
                     padding: '20px 40px',
                     borderRadius: '12px',
@@ -208,15 +208,14 @@ export async function GET(
                 >
                   APPLY NOW
                 </div>
-                {/* Branding text - Bottom Center */}
+                {/* Branding text - Bottom Left */}
                 <div
                   style={{
                     position: 'absolute',
                     bottom: '40px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
+                    left: '40px',
                     fontSize: '24px',
-                    color: 'white', // Changed to white as requested
+                    color: 'white',
                     fontWeight: 'bold',
                   }}
                 >
@@ -314,11 +313,11 @@ export async function GET(
               {truncateText(jobTitle, 45)}
             </div>
             
-            {/* Left Column - Company Info */}
+            {/* Left Column - Company Info (moved down for better spacing) */}
             <div
               style={{
                 position: 'absolute',
-                top: '180px',
+                top: '220px', // Moved down to create space after title
                 left: '60px',
                 display: 'flex',
                 flexDirection: 'column',
@@ -328,7 +327,7 @@ export async function GET(
             >
               {/* Company Name */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                <svg width="24" height="24" fill="white" viewBox="0 0 24 24">
+                <svg width="30" height="30" fill="white" viewBox="0 0 24 24">
                   <path d="M3 3h18v18H3z"/>
                 </svg>
                 <span style={{ fontSize: '36px', fontWeight: '600' }}>{truncateText(companyName, 25)}</span>
@@ -336,7 +335,7 @@ export async function GET(
               
               {/* Location */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                <svg width="24" height="24" fill="white" viewBox="0 0 24 24">
+                <svg width="30" height="30" fill="white" viewBox="0 0 24 24">
                   <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>
                 </svg>
                 <span style={{ fontSize: '32px' }}>{truncateText(location, 25)}</span>
@@ -345,7 +344,7 @@ export async function GET(
               {/* Salary Range (only if available) */}
               {(salaryMin || salaryMax) && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                  <svg width="24" height="24" fill="white" viewBox="0 0 24 24">
+                  <svg width="30" height="30" fill="white" viewBox="0 0 24 24">
                     <path d="M12 1L3 5v6c0 5.25 3.75 10.74 9 12 5.25-1.26 9-6.75 9-12V5l-9-4zm1 16h-2v-2h2v2zm0-4h-2V7h2v6z"/>
                   </svg>
                   <span style={{ fontSize: '34px', fontWeight: '600' }}>
@@ -357,7 +356,7 @@ export async function GET(
               {/* Job Function */}
               {jobFunction && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                  <svg width="24" height="24" fill="white" viewBox="0 0 24 24">
+                  <svg width="30" height="30" fill="white" viewBox="0 0 24 24">
                     <path d="M4 7h16v2H4zm0 4h16v2H4zm0 4h10v2H4z"/>
                   </svg>
                   <span style={{ fontSize: '32px' }}>{truncateText(jobFunction, 25)}</span>
@@ -365,11 +364,11 @@ export async function GET(
               )}
             </div>
             
-            {/* CTA button - Bottom Right */}
+            {/* CTA button - Bottom Right (same line as tagline) */}
             <div
               style={{
                 position: 'absolute',
-                bottom: '100px',
+                bottom: '40px',
                 right: '40px',
                 padding: '20px 40px',
                 borderRadius: '12px',
@@ -383,15 +382,14 @@ export async function GET(
               APPLY NOW
             </div>
             
-            {/* Branding text - Bottom Center */}
+            {/* Branding text - Bottom Left (same line as CTA button) */}
             <div
               style={{
                 position: 'absolute',
                 bottom: '40px',
-                left: '50%',
-                transform: 'translateX(-50%)',
+                left: '40px',
                 fontSize: '24px',
-                color: 'white', // Changed to white as requested
+                color: 'white',
                 fontWeight: 'bold',
               }}
             >
