@@ -152,6 +152,11 @@ export default async function handler(request: Request) {
         title,
         company,
         location,
+        salary_min,
+        salary_max,
+        salary_currency,
+        salary_period,
+        job_function,
         companies (
           name
         )

@@ -7,13 +7,13 @@ export const runtime = 'edge';
 // Revalidate every 15 minutes to ensure fresh data while still caching
 export const revalidate = 900;
 
-// Brand colors
+// Brand colors based on the new design
 const COLORS = {
-  primary: '#7c3aed',      // Purple - HSL(262, 83%, 58%)
-  secondary: '#f97316',    // Orange - HSL(25, 95%, 53%)
-  accent: '#0ea5e9',       // Cyan/Blue - HSL(199, 89%, 48%)
-  primaryDark: '#6d28d9',  // Darker purple for gradient
+  purple: '#7c3aed',      // Purple - HSL(262, 83%, 58%)
+  teal: '#0ea5e9',        // Teal - HSL(199, 89%, 48%)
+  orange: '#f97316',      // Orange - HSL(25, 95%, 53%)
   white: '#ffffff',
+  lightTeal: '#67e8f9',   // Light teal for the tagline
 };
 
 export async function GET(
@@ -90,8 +90,7 @@ export async function GET(
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: COLORS.primaryDark,
-              backgroundImage: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.accent} 100%)`,
+              background: `linear-gradient(to bottom right, ${COLORS.purple}, ${COLORS.teal})`,
               padding: '40px',
               fontFamily: 'sans-serif',
             }}
@@ -106,7 +105,7 @@ export async function GET(
                 position: 'relative',
               }}
             >
-              {/* Background decorative elements with brand colors */}
+              {/* Background decorative elements */}
               <div
                 style={{
                   position: 'absolute',
@@ -115,7 +114,7 @@ export async function GET(
                   width: '140px',
                   height: '140px',
                   borderRadius: '50%',
-                  backgroundColor: `${COLORS.secondary}33`,
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
                 }}
               />
               <div
@@ -126,22 +125,11 @@ export async function GET(
                   width: '100px',
                   height: '100px',
                   borderRadius: '50%',
-                  backgroundColor: `${COLORS.secondary}33`,
-                }}
-              />
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '50%',
-                  right: '20%',
-                  width: '60px',
-                  height: '60px',
-                  borderRadius: '50%',
-                  backgroundColor: `${COLORS.accent}33`,
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
                 }}
               />
               
-              {/* Logo placeholder with secondary color accent */}
+              {/* Company Logo Placeholder - Top Left */}
               <div
                 style={{
                   position: 'absolute',
@@ -149,8 +137,8 @@ export async function GET(
                   left: '40px',
                   width: '60px',
                   height: '60px',
-                  borderRadius: '12px',
-                  backgroundColor: COLORS.secondary,
+                  borderRadius: '50%',
+                  backgroundColor: COLORS.orange,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -203,34 +191,36 @@ export async function GET(
                 >
                   Discover exciting career opportunities
                 </p>
-                {/* CTA button with secondary (orange) color - moved down and to the right */}
+                {/* CTA button - Bottom Right */}
                 <div
                   style={{
                     position: 'absolute',
-                    bottom: '100px',
-                    right: '60px',
+                    bottom: '80px',
+                    right: '40px',
                     padding: '16px 32px',
                     borderRadius: '8px',
-                    backgroundColor: COLORS.secondary,
+                    backgroundColor: COLORS.orange,
                     color: 'white',
                     fontSize: '24px',
                     fontWeight: 'bold',
+                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
                   }}
                 >
-                  Apply Now
+                  APPLY NOW
                 </div>
-                {/* Branding text - pushed to the bottom */}
+                {/* Branding text - Bottom Center */}
                 <div
                   style={{
                     position: 'absolute',
                     bottom: '40px',
-                    left: '40px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
                     fontSize: '20px',
-                    color: 'rgba(255, 255, 255, 0.7)',
+                    color: COLORS.lightTeal,
                     fontWeight: 'bold',
                   }}
                 >
-                  CareerSasa.co.ke - Enrich Your Career Now
+                  CareerSasa.co.ke — Enrich Your Career Now
                 </div>
               </div>
             </div>
@@ -272,8 +262,7 @@ export async function GET(
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: COLORS.primaryDark,
-            backgroundImage: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.accent} 100%)`,
+            background: `linear-gradient(to bottom right, ${COLORS.purple}, ${COLORS.teal})`,
             padding: '40px',
             fontFamily: 'sans-serif',
           }}
@@ -281,49 +270,12 @@ export async function GET(
           <div
             style={{
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
               width: '100%',
               height: '100%',
               position: 'relative',
             }}
           >
-            {/* Background decorative elements with brand colors */}
-            <div
-              style={{
-                position: 'absolute',
-                top: '15%',
-                left: '8%',
-                width: '140px',
-                height: '140px',
-                borderRadius: '50%',
-                backgroundColor: `${COLORS.secondary}33`,
-              }}
-            />
-            <div
-              style={{
-                position: 'absolute',
-                bottom: '15%',
-                right: '8%',
-                width: '100px',
-                height: '100px',
-                borderRadius: '50%',
-                backgroundColor: `${COLORS.secondary}33`,
-              }}
-            />
-            <div
-              style={{
-                position: 'absolute',
-                top: '50%',
-                right: '20%',
-                width: '60px',
-                height: '60px',
-                borderRadius: '50%',
-                backgroundColor: `${COLORS.accent}33`,
-              }}
-            />
-            
-            {/* Company Logo Placeholder with secondary color */}
+            {/* Company Logo Placeholder - Top Left */}
             <div
               style={{
                 position: 'absolute',
@@ -331,8 +283,8 @@ export async function GET(
                 left: '40px',
                 width: '60px',
                 height: '60px',
-                borderRadius: '12px',
-                backgroundColor: COLORS.secondary,
+                borderRadius: '50%',
+                backgroundColor: COLORS.orange,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -344,107 +296,106 @@ export async function GET(
               {companyName.charAt(0).toUpperCase()}
             </div>
             
-            {/* Main content */}
+            {/* Job Title - Top Center */}
             <div
               style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'flex-start',
-                justifyContent: 'center',
-                textAlign: 'left',
-                maxWidth: '80%',
+                position: 'absolute',
+                top: '60px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                fontSize: '48px',
+                fontWeight: 'bold',
+                color: 'white',
+                textAlign: 'center',
+                maxWidth: '70%',
               }}
             >
-              <h1
-                style={{
-                  fontSize: '48px',
-                  fontWeight: 'bold',
-                  color: 'white',
-                  marginBottom: '20px',
-                  lineHeight: '1.2',
-                  maxWidth: '100%',
-                }}
-              >
-                {truncateText(jobTitle, 50)}
-              </h1>
-              <p
-                style={{
-                  fontSize: '32px',
-                  color: 'rgba(255, 255, 255, 0.9)',
-                  marginBottom: '10px',
-                  lineHeight: '1.4',
-                }}
-              >
-                at {truncateText(companyName, 40)}
-              </p>
-              {/* Location with pin emoji */}
-              <p
-                style={{
-                  fontSize: '28px',
-                  color: 'rgba(255, 255, 255, 0.8)',
-                  lineHeight: '1.4',
-                  marginBottom: '10px',
-                }}
-              >
-                📍 {truncateText(location, 40)}
-              </p>
+              {truncateText(jobTitle, 50)}
+            </div>
+            
+            {/* Left Column - Company Info */}
+            <div
+              style={{
+                position: 'absolute',
+                top: '150px',
+                left: '40px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '20px',
+                color: 'white',
+                fontSize: '24px',
+              }}
+            >
+              {/* Company Name */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <svg width="18" height="18" fill="white" viewBox="0 0 24 24">
+                  <path d="M3 3h18v18H3z"/>
+                </svg>
+                <span>{truncateText(companyName, 30)}</span>
+              </div>
+              
+              {/* Location */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <svg width="18" height="18" fill="white" viewBox="0 0 24 24">
+                  <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>
+                </svg>
+                <span style={{ fontSize: '20px' }}>{truncateText(location, 30)}</span>
+              </div>
+              
+              {/* Salary Range (only if available) */}
+              {(salaryMin || salaryMax) && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <svg width="18" height="18" fill="white" viewBox="0 0 24 24">
+                    <path d="M12 1L3 5v6c0 5.25 3.75 10.74 9 12 5.25-1.26 9-6.75 9-12V5l-9-4zm1 16h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                  </svg>
+                  <span style={{ fontSize: '22px' }}>
+                    {salaryCurrency} {salaryMin?.toLocaleString()} - {salaryMax?.toLocaleString()}/{salaryPeriod.toLowerCase()}
+                  </span>
+                </div>
+              )}
+              
               {/* Job Function */}
               {jobFunction && (
-                <p
-                  style={{
-                    fontSize: '24px',
-                    color: 'rgba(255, 255, 255, 0.8)',
-                    lineHeight: '1.4',
-                    marginBottom: '10px',
-                    fontStyle: 'italic',
-                  }}
-                >
-                  {jobFunction}
-                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <svg width="18" height="18" fill="white" viewBox="0 0 24 24">
+                    <path d="M4 7h16v2H4zm0 4h16v2H4zm0 4h10v2H4z"/>
+                  </svg>
+                  <span style={{ fontSize: '22px' }}>{truncateText(jobFunction, 30)}</span>
+                </div>
               )}
-              {/* Salary with dollar sign emoji */}
-              {(salaryMin || salaryMax) ? (
-                <p
-                  style={{
-                    fontSize: '28px',
-                    color: 'rgba(255, 255, 255, 0.9)',
-                    lineHeight: '1.4',
-                    marginBottom: '30px',
-                    fontWeight: 'bold',
-                  }}
-                >
-                  💰 {salaryCurrency} {salaryMin?.toLocaleString()} - {salaryMax?.toLocaleString()}/{salaryPeriod.toLowerCase()}
-                </p>
-              ) : null}
-              {/* CTA button with secondary (orange) color - moved down and to the right */}
-              <div
-                style={{
-                  position: 'absolute',
-                  bottom: '100px',
-                  right: '60px',
-                  padding: '16px 32px',
-                  borderRadius: '8px',
-                  backgroundColor: COLORS.secondary,
-                  color: 'white',
-                  fontSize: '24px',
-                  fontWeight: 'bold',
-                }}
-              >
-                Apply Now
-              </div>
-              {/* Branding text - pushed to the bottom */}
-              <div
-                style={{
-                  position: 'absolute',
-                  bottom: '40px',
-                  left: '40px',
-                  fontSize: '20px',
-                  color: 'rgba(255, 255, 255, 0.7)',
-                  fontWeight: 'bold',
-                }}
-              >
-                CareerSasa.co.ke - Enrich Your Career Now
-              </div>
+            </div>
+            
+            {/* CTA button - Bottom Right */}
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '80px',
+                right: '40px',
+                padding: '16px 32px',
+                borderRadius: '8px',
+                backgroundColor: COLORS.orange,
+                color: 'white',
+                fontSize: '24px',
+                fontWeight: 'bold',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+              }}
+            >
+              APPLY NOW
+            </div>
+            
+            {/* Branding text - Bottom Center */}
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '40px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                fontSize: '20px',
+                color: COLORS.lightTeal,
+                fontWeight: 'bold',
+              }}
+            >
+              CareerSasa.co.ke — Enrich Your Career Now
             </div>
           </div>
         </div>
@@ -471,8 +422,7 @@ export async function GET(
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: COLORS.primaryDark,
-            backgroundImage: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.accent} 100%)`,
+            background: `linear-gradient(to bottom right, ${COLORS.purple}, ${COLORS.teal})`,
             padding: '40px',
             fontFamily: 'sans-serif',
           }}
@@ -496,7 +446,7 @@ export async function GET(
                 width: '140px',
                 height: '140px',
                 borderRadius: '50%',
-                backgroundColor: `${COLORS.secondary}33`,
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
               }}
             />
             <div
@@ -507,7 +457,7 @@ export async function GET(
                 width: '100px',
                 height: '100px',
                 borderRadius: '50%',
-                backgroundColor: `${COLORS.secondary}33`,
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
               }}
             />
             
@@ -519,8 +469,8 @@ export async function GET(
                 left: '40px',
                 width: '60px',
                 height: '60px',
-                borderRadius: '12px',
-                backgroundColor: COLORS.secondary,
+                borderRadius: '50%',
+                backgroundColor: COLORS.orange,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -560,35 +510,6 @@ export async function GET(
               >
                 Find Your Dream Job in Kenya
               </p>
-            </div>
-            {/* CTA button with secondary (orange) color - moved down and to the right */}
-            <div
-              style={{
-                position: 'absolute',
-                bottom: '100px',
-                right: '60px',
-                padding: '16px 32px',
-                borderRadius: '8px',
-                backgroundColor: COLORS.secondary,
-                color: 'white',
-                fontSize: '24px',
-                fontWeight: 'bold',
-              }}
-            >
-              Apply Now
-            </div>
-            {/* Branding text - pushed to the bottom */}
-            <div
-              style={{
-                position: 'absolute',
-                bottom: '40px',
-                left: '40px',
-                fontSize: '20px',
-                color: 'rgba(255, 255, 255, 0.7)',
-                fontWeight: 'bold',
-              }}
-            >
-              CareerSasa.co.ke - Enrich Your Career Now
             </div>
           </div>
         </div>
