@@ -442,7 +442,7 @@ export default function Home() {
               <img 
                 src="/assets/success-story-1.jpg" 
                 alt="Success Story"
-                className="w-full h-64 object-cover"
+                className="w-full h-64 object-cover object-top"
               />
               <CardContent className="p-6">
                 <h3 className="text-2xl font-semibold mb-3">From Graduate to Senior Manager</h3>
@@ -463,7 +463,7 @@ export default function Home() {
               <img 
                 src="/assets/success-story-2.jpg" 
                 alt="Success Story"
-                className="w-full h-64 object-cover"
+                className="w-full h-64 object-cover object-top"
               />
               <CardContent className="p-6">
                 <h3 className="text-2xl font-semibold mb-3">Career Change Made Easy</h3>
