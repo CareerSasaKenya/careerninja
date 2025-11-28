@@ -232,7 +232,7 @@ export default function AuthPage() {
                       <SelectContent>
                         <SelectItem value="candidate">Job Seeker</SelectItem>
                         <SelectItem value="employer">Employer</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
+                        {/* <SelectItem value="admin">Admin</SelectItem> */}
                       </SelectContent>
                     </Select>
                   </div>
