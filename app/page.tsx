@@ -401,7 +401,7 @@ export default function Home() {
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {latestJobs.map((job) => (
-                <Card key={job.id} className="glass hover:shadow-xl transition-all duration-300 hover:scale-105">
+                <Card key={job.id} className="glass hover:shadow-xl transition-all duration-3300 hover:scale-105">
                   <CardContent className="p-6">
                     <div className="flex justify-between items-start mb-4">
                       <Badge variant="secondary">New</Badge>
@@ -439,11 +439,13 @@ export default function Home() {
           
           <div className="grid md:grid-cols-2 gap-8">
             <Card className="glass overflow-hidden hover:shadow-xl transition-all duration-300">
-              <img 
-                src="/assets/success-story-1.jpg" 
-                alt="Success Story"
-                className="w-full h-80 object-cover"
-              />
+              <div className="overflow-hidden h-80">
+                <img 
+                  src="/assets/success-story-1.jpg" 
+                  alt="Success Story"
+                  className="w-full h-full object-cover -mt-12"
+                />
+              </div>
               <CardContent className="p-6">
                 <h3 className="text-2xl font-semibold mb-3">From Graduate to Senior Manager</h3>
                 <p className="text-muted-foreground mb-4">
@@ -460,11 +462,13 @@ export default function Home() {
             </Card>
 
             <Card className="glass overflow-hidden hover:shadow-xl transition-all duration-300">
-              <img 
-                src="/assets/success-story-2.jpg" 
-                alt="Success Story"
-                className="w-full h-80 object-cover"
-              />
+              <div className="overflow-hidden h-80">
+                <img 
+                  src="/assets/success-story-2.jpg" 
+                  alt="Success Story"
+                  className="w-full h-full object-cover -mt-12"
+                />
+              </div>
               <CardContent className="p-6">
                 <h3 className="text-2xl font-semibold mb-3">Career Change Made Easy</h3>
                 <p className="text-muted-foreground mb-4">
