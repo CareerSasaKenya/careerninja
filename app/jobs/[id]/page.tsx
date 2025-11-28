@@ -282,6 +282,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                 <ApplySection job={job} />
               </div>
 
+              {/* Tags section only */}
               {job?.tags && Array.isArray(job.tags) && job.tags.length > 0 && (
                 <Card>
                   <CardHeader>
@@ -297,6 +298,11 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                 </Card>
               )}
             </div>
+          </div>
+
+          {/* Mobile Apply Section - Visible on mobile devices at the bottom */}
+          <div className="lg:hidden mt-6">
+            <ApplySection job={job} />
           </div>
 
           {/* Related Opportunities Section */}
