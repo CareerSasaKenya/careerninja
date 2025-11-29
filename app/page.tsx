@@ -439,7 +439,7 @@ export default function Home() {
           
           <div className="grid md:grid-cols-2 gap-8">
             <Card className="glass overflow-hidden hover:shadow-xl transition-all duration-300">
-              <div className="overflow-hidden h-96">
+              <div className="overflow-hidden h-[28rem]">
                 <img 
                   src="/assets/success-story-1.jpg" 
                   alt="Success Story"
@@ -462,7 +462,7 @@ export default function Home() {
             </Card>
 
             <Card className="glass overflow-hidden hover:shadow-xl transition-all duration-300">
-              <div className="overflow-hidden h-96">
+              <div className="overflow-hidden h-[28rem]">
                 <img 
                   src="/assets/success-story-2.jpg" 
                   alt="Success Story"
