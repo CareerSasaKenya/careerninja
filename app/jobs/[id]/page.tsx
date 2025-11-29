@@ -93,6 +93,10 @@ async function getRelatedJobs(jobId: string, industry?: string, jobFunction?: st
   }
 }
 
+// Force dynamic rendering and disable caching
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // Main page component
 export default async function JobDetails({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

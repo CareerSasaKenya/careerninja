@@ -22,6 +22,24 @@ const nextConfig = {
   trailingSlash: false,
   // Skip trailing slash redirect for better compatibility
   skipTrailingSlashRedirect: false,
+  // Add headers to prevent Facebook WebView caching issues
+  async headers() {
+    return [
+      {
+        source: '/jobs/:slug*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, s-maxage=3600, stale-while-revalidate=86400',
+          },
+          {
+            key: 'Vary',
+            value: 'User-Agent',
+          },
+        ],
+      },
+    ];
+  },
 }
 
 export default nextConfig;
