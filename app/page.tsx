@@ -443,7 +443,7 @@ export default function Home() {
                 <img 
                   src="/assets/success-story-1.jpg" 
                   alt="Success Story"
-                  className="w-full h-full object-cover object-center mt-8"
+                  className="w-full h-full object-cover object-center"
                 />
               </div>
               <CardContent className="p-6">
@@ -466,7 +466,7 @@ export default function Home() {
                 <img 
                   src="/assets/success-story-2.jpg" 
                   alt="Success Story"
-                  className="w-full h-full object-cover object-center mt-8"
+                  className="w-full h-full object-cover object-center"
                 />
               </div>
               <CardContent className="p-6">
