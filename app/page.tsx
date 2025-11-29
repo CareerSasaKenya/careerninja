@@ -439,11 +439,11 @@ export default function Home() {
           
           <div className="grid md:grid-cols-2 gap-8">
             <Card className="glass overflow-hidden hover:shadow-xl transition-all duration-300">
-              <div className="overflow-hidden h-80">
+              <div className="overflow-hidden h-96">
                 <img 
                   src="/assets/success-story-1.jpg" 
                   alt="Success Story"
-                  className="w-full h-full object-cover -mt-12"
+                  className="w-full h-full object-cover object-center mt-8"
                 />
               </div>
               <CardContent className="p-6">
@@ -462,11 +462,11 @@ export default function Home() {
             </Card>
 
             <Card className="glass overflow-hidden hover:shadow-xl transition-all duration-300">
-              <div className="overflow-hidden h-80">
+              <div className="overflow-hidden h-96">
                 <img 
                   src="/assets/success-story-2.jpg" 
                   alt="Success Story"
-                  className="w-full h-full object-cover -mt-12"
+                  className="w-full h-full object-cover object-center mt-8"
                 />
               </div>
               <CardContent className="p-6">
