@@ -225,13 +225,13 @@ export default function Home() {
       {/* Featured Jobs Carousel */}
       <section className="py-16 px-4 bg-gradient-subtle">
         <div className="container mx-auto">
-          <div className="flex justify-between items-center mb-12">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-12">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold mb-3">Featured Opportunities</h2>
               <p className="text-muted-foreground">Hand-picked roles from top employers</p>
             </div>
-            <Link href="/jobs" prefetch={true}>
-              <Button variant="outline">
+            <Link href="/jobs" prefetch={true} className="shrink-0">
+              <Button variant="outline" className="w-full sm:w-auto whitespace-nowrap">
                 View All <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
@@ -384,13 +384,13 @@ export default function Home() {
       {/* Latest Jobs Grid */}
       <section className="py-16 px-4">
         <div className="container mx-auto">
-          <div className="flex justify-between items-center mb-12">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-12">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold mb-3">Latest Job Openings</h2>
               <p className="text-muted-foreground">Fresh opportunities posted today</p>
             </div>
-            <Link href="/jobs" prefetch={true}>
-              <Button variant="outline">
+            <Link href="/jobs" prefetch={true} className="shrink-0">
+              <Button variant="outline" className="w-full sm:w-auto whitespace-nowrap">
                 View All <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
@@ -491,13 +491,13 @@ export default function Home() {
       {blogPosts.length > 0 && (
         <section className="py-16 px-4">
           <div className="container mx-auto">
-            <div className="flex justify-between items-center mb-12">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-12">
               <div>
                 <h2 className="text-3xl md:text-4xl font-bold mb-3">Career Insights & Tips</h2>
                 <p className="text-muted-foreground">Expert advice to boost your career</p>
               </div>
-              <Link href="/blog" prefetch={true}>
-                <Button variant="outline">
+              <Link href="/blog" prefetch={true} className="shrink-0">
+                <Button variant="outline" className="w-full sm:w-auto whitespace-nowrap">
                   Read More <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
@@ -536,17 +536,17 @@ export default function Home() {
           <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90">
             Join thousands of Kenyan professionals who've found their dream jobs through CareerSasa
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/jobs" prefetch={true}>
-              <Button size="lg" variant="secondary" className="text-lg px-10">
-                <Search className="mr-2 h-5 w-5" />
-                Find Your Dream Job
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-stretch sm:items-center max-w-2xl mx-auto px-4">
+            <Link href="/jobs" prefetch={true} className="flex-1 sm:flex-initial">
+              <Button size="lg" variant="secondary" className="w-full text-base sm:text-lg px-6 sm:px-10 whitespace-normal sm:whitespace-nowrap">
+                <Search className="mr-2 h-5 w-5 shrink-0" />
+                <span className="break-words">Find Your Dream Job</span>
               </Button>
             </Link>
-            <Link href="/post-job" prefetch={true}>
-              <Button size="lg" variant="outline" className="text-lg px-10 border-2 border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary bg-transparent">
-                <Briefcase className="mr-2 h-5 w-5" />
-                Post a Job Opening
+            <Link href="/post-job" prefetch={true} className="flex-1 sm:flex-initial">
+              <Button size="lg" variant="outline" className="w-full text-base sm:text-lg px-6 sm:px-10 border-2 border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary bg-transparent whitespace-normal sm:whitespace-nowrap">
+                <Briefcase className="mr-2 h-5 w-5 shrink-0" />
+                <span className="break-words">Post a Job Opening</span>
               </Button>
             </Link>
           </div>
