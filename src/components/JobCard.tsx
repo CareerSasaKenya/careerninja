@@ -138,7 +138,7 @@ const JobCard = ({
       <Card className="group hover:shadow-xl transition-all duration-300 border-border/50 hover:border-primary/50 hover:scale-[1.02] overflow-hidden h-full">
       <CardHeader className="pb-3">
         {/* Title (prominent) */}
-        <CardTitle className="text-2xl font-bold text-card-foreground group-hover:text-primary transition-colors line-clamp-1" title={title}>
+        <CardTitle className="text-xl sm:text-2xl font-bold text-card-foreground group-hover:text-primary transition-colors line-clamp-2 sm:line-clamp-1" title={title}>
           {title}
         </CardTitle>
 

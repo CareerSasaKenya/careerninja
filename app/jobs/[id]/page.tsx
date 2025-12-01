@@ -148,7 +148,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                           )}
                         </div>
                       )}
-                      <CardTitle className="text-3xl mb-4">{job.title}</CardTitle>
+                      <CardTitle className="text-2xl sm:text-3xl mb-4 break-words">{job.title}</CardTitle>
                       <div className="flex flex-wrap gap-4 text-muted-foreground">
                         {job.company_id && job.companies ? (
                           <Link 

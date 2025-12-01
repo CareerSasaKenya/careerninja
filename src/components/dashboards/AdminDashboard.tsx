@@ -249,10 +249,39 @@ const AdminDashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
+              <div className="flex gap-2 mb-4">
+                <Button
+                  variant={jobFilter === "all" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setJobFilter("all")}
+                >
+                  All ({jobs.length})
+                </Button>
+                <Button
+                  variant={jobFilter === "active" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setJobFilter("active")}
+                >
+                  Active ({activeCount})
+                </Button>
+                <Button
+                  variant={jobFilter === "draft" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setJobFilter("draft")}
+                >
+                  Drafts ({draftCount})
+                </Button>
+              </div>
               {loading ? (
                 <p className="text-muted-foreground">Loading...</p>
-              ) : jobs.length === 0 ? (
-                <p className="text-muted-foreground">No jobs available.</p>
+              ) : filteredJobs.length === 0 ? (
+                <p className="text-muted-foreground">
+                  {jobFilter === "draft" 
+                    ? "No draft jobs. Save a job as draft to see it here." 
+                    : jobFilter === "active"
+                    ? "No active jobs. Publish a job to see it here."
+                    : "No jobs available."}
+                </p>
               ) : (
                 <div className="overflow-x-auto">
                   <Table>
@@ -262,12 +291,13 @@ const AdminDashboard = () => {
                         <TableHead>Company</TableHead>
                         <TableHead>Location</TableHead>
                         <TableHead>Education</TableHead>
+                        <TableHead>Status</TableHead>
                         <TableHead>Posted</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {jobs.map((job) => (
+                      {filteredJobs.map((job) => (
                         <TableRow key={job.id}>
                           <TableCell className="font-medium">
                             <Link href={`/jobs/${job.id}`} className="hover:underline">
@@ -277,14 +307,35 @@ const AdminDashboard = () => {
                           <TableCell>{job.company}</TableCell>
                           <TableCell>{job.location}</TableCell>
                           <TableCell>{job.education_levels?.name || 'Not specified'}</TableCell>
+                          <TableCell>
+                            <Badge variant={job.status === 'active' ? 'default' : job.status === 'draft' ? 'secondary' : 'outline'}>
+                              {job.status}
+                            </Badge>
+                          </TableCell>
                           <TableCell>{new Date(job.created_at).toLocaleDateString()}</TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
-                              <Link href={`/post-job/${job.id}`}>
-                                <Button variant="ghost" size="icon">
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                              </Link>
+                              {job.status === "draft" && (
+                                <>
+                                  <Link href={`/post-job/${job.id}`}>
+                                    <Button variant="outline" size="sm">Edit</Button>
+                                  </Link>
+                                  <Button 
+                                    variant="default" 
+                                    size="sm" 
+                                    onClick={() => handlePublishJob(job.id)}
+                                  >
+                                    Publish
+                                  </Button>
+                                </>
+                              )}
+                              {job.status === "active" && (
+                                <Link href={`/post-job/${job.id}`}>
+                                  <Button variant="ghost" size="icon">
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                </Link>
+                              )}
                               <Button variant="ghost" size="icon" onClick={() => handleDeleteJob(job.id)}>
                                 <Trash2 className="h-4 w-4" />
                               </Button>
@@ -296,7 +347,7 @@ const AdminDashboard = () => {
                   </Table>
                 </div>
               )}
-              {!loading && jobs.length > 0 && (
+              {!loading && filteredJobs.length > 0 && (
                 <div className="flex items-center justify-between mt-4">
                   <p className="text-sm text-muted-foreground">
                     Showing {((currentPage - 1) * jobsPerPage) + 1} to {Math.min(currentPage * jobsPerPage, totalJobs)} of {totalJobs} jobs
