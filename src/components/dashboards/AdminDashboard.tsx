@@ -46,6 +46,7 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalJobs, setTotalJobs] = useState(0);
+  const [jobFilter, setJobFilter] = useState<"all" | "active" | "draft">("all");
   const jobsPerPage = 10;
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -167,6 +168,41 @@ const AdminDashboard = () => {
       toast.error("An unexpected error occurred while deleting the blog post");
     }
   };
+
+  const handlePublishJob = async (jobId: string) => {
+    try {
+      const { error } = await supabase
+        .from("jobs")
+        .update({ status: "active" })
+        .eq("id", jobId);
+
+      if (error) {
+        toast.error("Failed to publish job");
+        console.error("Job publish error:", error);
+      } else {
+        toast.success("Job published successfully!");
+        if (fetchTimeoutRef.current) {
+          clearTimeout(fetchTimeoutRef.current);
+        }
+        fetchTimeoutRef.current = setTimeout(() => {
+          fetchData();
+        }, 500);
+      }
+    } catch (error) {
+      console.error("Unexpected error publishing job:", error);
+      toast.error("An unexpected error occurred while publishing the job");
+    }
+  };
+
+  const filteredJobs = jobs.filter((job) => {
+    if (jobFilter === "all") return true;
+    if (jobFilter === "active") return job.status === "active";
+    if (jobFilter === "draft") return job.status === "draft";
+    return true;
+  });
+
+  const draftCount = jobs.filter((j) => j.status === "draft").length;
+  const activeCount = jobs.filter((j) => j.status === "active").length;
 
   const generateSlug = (title: string) => {
     return title

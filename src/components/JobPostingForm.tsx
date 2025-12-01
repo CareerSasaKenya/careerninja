@@ -529,7 +529,13 @@ const JobPostingForm = ({ jobId, isEdit = false }: { jobId?: string; isEdit?: bo
       }
     },
     onSuccess: async () => {
-      toast.success(jobId ? "Job updated successfully!" : "Job posted successfully!");
+      const isDraft = formData.status === "draft";
+      const message = jobId 
+        ? "Job updated successfully!" 
+        : isDraft 
+          ? "Job saved as draft! You can publish it later from your dashboard." 
+          : "Job published successfully!";
+      toast.success(message);
       queryClient.invalidateQueries({ queryKey: ["jobs"] });
       queryClient.invalidateQueries({ queryKey: ["all-companies"] });
       queryClient.invalidateQueries({ queryKey: ["relatedJobs"] });
@@ -1100,22 +1106,29 @@ const JobPostingForm = ({ jobId, isEdit = false }: { jobId?: string; isEdit?: bo
             </div>
           </div>
 
-          {role === "admin" && (
-            <div className="space-y-2">
-              <Label htmlFor="status">Job Status</Label>
-              <Select value={formData.status} onValueChange={(value) => setFormData({...formData, status: value})}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="pending">Pending Review</SelectItem>
-                  <SelectItem value="expired">Expired</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+          <div className="space-y-2">
+            <Label htmlFor="status">Job Status</Label>
+            <Select value={formData.status} onValueChange={(value) => setFormData({...formData, status: value})}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Active (Publish Now)</SelectItem>
+                <SelectItem value="draft">Draft (Save for Later)</SelectItem>
+                {role === "admin" && (
+                  <>
+                    <SelectItem value="pending">Pending Review</SelectItem>
+                    <SelectItem value="expired">Expired</SelectItem>
+                  </>
+                )}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              {formData.status === "draft" 
+                ? "Draft jobs are saved but not visible to job seekers. You can edit and publish them later." 
+                : "Active jobs are immediately visible to job seekers."}
+            </p>
+          </div>
         </TabsContent>
       </Tabs>
 
@@ -1127,10 +1140,10 @@ const JobPostingForm = ({ jobId, isEdit = false }: { jobId?: string; isEdit?: bo
         {mutation.isPending ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            {isEdit ? "Updating Job..." : "Posting Job..."}
+            {formData.status === "draft" ? "Saving Draft..." : isEdit ? "Updating Job..." : "Publishing Job..."}
           </>
         ) : (
-          isEdit ? "Update Job" : "Post Job"
+          formData.status === "draft" ? "Save as Draft" : isEdit ? "Update Job" : "Publish Job"
         )}
       </Button>
     </form>

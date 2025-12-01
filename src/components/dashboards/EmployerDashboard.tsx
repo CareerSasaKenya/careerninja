@@ -30,6 +30,7 @@ const EmployerDashboard = () => {
   const { user } = useAuth();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
+  const [jobFilter, setJobFilter] = useState<"all" | "active" | "draft">("all");
 
   const fetchJobs = useCallback(async () => {
     if (!user) return;
@@ -79,6 +80,30 @@ const EmployerDashboard = () => {
     }
   };
 
+  const handlePublish = async (jobId: string) => {
+    const { error } = await supabase
+      .from("jobs")
+      .update({ status: "active" })
+      .eq("id", jobId);
+
+    if (error) {
+      toast.error("Failed to publish job");
+    } else {
+      toast.success("Job published successfully!");
+      fetchJobs();
+    }
+  };
+
+  const filteredJobs = jobs.filter((job) => {
+    if (jobFilter === "all") return true;
+    if (jobFilter === "active") return job.status === "active";
+    if (jobFilter === "draft") return job.status === "draft";
+    return true;
+  });
+
+  const draftCount = jobs.filter((j) => j.status === "draft").length;
+  const activeCount = jobs.filter((j) => j.status === "active").length;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -106,10 +131,39 @@ const EmployerDashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
+              <div className="flex gap-2 mb-4">
+                <Button
+                  variant={jobFilter === "all" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setJobFilter("all")}
+                >
+                  All ({jobs.length})
+                </Button>
+                <Button
+                  variant={jobFilter === "active" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setJobFilter("active")}
+                >
+                  Active ({activeCount})
+                </Button>
+                <Button
+                  variant={jobFilter === "draft" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setJobFilter("draft")}
+                >
+                  Drafts ({draftCount})
+                </Button>
+              </div>
               {loading ? (
                 <p className="text-muted-foreground">Loading...</p>
-              ) : jobs.length === 0 ? (
-                <p className="text-muted-foreground">No jobs posted yet. Create your first job posting!</p>
+              ) : filteredJobs.length === 0 ? (
+                <p className="text-muted-foreground">
+                  {jobFilter === "draft" 
+                    ? "No draft jobs. Save a job as draft to see it here." 
+                    : jobFilter === "active"
+                    ? "No active jobs. Publish a job to see it here."
+                    : "No jobs posted yet. Create your first job posting!"}
+                </p>
               ) : (
                 <div className="overflow-x-auto">
                   <Table>
@@ -126,19 +180,39 @@ const EmployerDashboard = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {jobs.map((job) => (
+                      {filteredJobs.map((job) => (
                         <TableRow key={job.id}>
                           <TableCell className="font-medium">
                             <Link href={`/jobs/${job.id}`} className="hover:underline">{job.title}</Link>
                           </TableCell>
                           <TableCell><Badge variant="outline">{job.employment_type?.replace(/_/g, ' ')}</Badge></TableCell>
                           <TableCell>{job.education_levels?.name || 'Not specified'}</TableCell>
-                          <TableCell><Badge variant={job.status === 'active' ? 'default' : 'secondary'}>{job.status}</Badge></TableCell>
+                          <TableCell>
+                            <Badge variant={job.status === 'active' ? 'default' : job.status === 'draft' ? 'secondary' : 'outline'}>
+                              {job.status}
+                            </Badge>
+                          </TableCell>
                           <TableCell>{job.applications_count || 0}</TableCell>
                           <TableCell>{job.views_count || 0}</TableCell>
                           <TableCell>{new Date(job.created_at).toLocaleDateString()}</TableCell>
-                          <TableCell className="text-right space-x-2">
-                            <Button variant="ghost" size="sm" onClick={() => handleDelete(job.id)}>Delete</Button>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              {job.status === "draft" && (
+                                <>
+                                  <Link href={`/post-job/${job.id}`}>
+                                    <Button variant="outline" size="sm">Edit</Button>
+                                  </Link>
+                                  <Button 
+                                    variant="default" 
+                                    size="sm" 
+                                    onClick={() => handlePublish(job.id)}
+                                  >
+                                    Publish
+                                  </Button>
+                                </>
+                              )}
+                              <Button variant="ghost" size="sm" onClick={() => handleDelete(job.id)}>Delete</Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
