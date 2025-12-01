@@ -225,61 +225,64 @@ export default function Home() {
       {/* Featured Jobs Carousel */}
       <section className="py-16 px-4 bg-gradient-subtle">
         <div className="container mx-auto">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-12">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-3">Featured Opportunities</h2>
-              <p className="text-muted-foreground">Hand-picked roles from top employers</p>
-            </div>
-            <Link href="/jobs" prefetch={true} className="shrink-0">
-              <Button variant="outline" className="w-full sm:w-auto whitespace-nowrap">
-                View All <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
+          <div className="mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-3">Featured Opportunities</h2>
+            <p className="text-muted-foreground">Hand-picked roles from top employers</p>
           </div>
 
           {loadingFeatured ? (
             <div className="text-center py-12">Loading featured jobs...</div>
           ) : (
-            <Carousel 
-              className="w-full"
-              plugins={[plugin.current]}
-              onMouseEnter={plugin.current.stop}
-              onMouseLeave={plugin.current.reset}
-            >
-              <CarouselContent className="-ml-2 md:-ml-4">
-                {featuredJobs.map((job) => (
-                  <CarouselItem key={job.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
-                    <Card className="glass hover:shadow-xl transition-all duration-300 hover:scale-105">
-                      <CardContent className="p-6">
-                        <div className="flex justify-between items-start mb-4">
-                          <Badge className="bg-gradient-primary text-primary-foreground">Featured</Badge>
-                          <Clock className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                        <h3 className="text-xl font-semibold mb-2">{job.title}</h3>
-                        <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                          <Building2 className="h-4 w-4" />
-                          <span>{job.company}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-muted-foreground mb-4">
-                          <MapPin className="h-4 w-4" />
-                          <span>{job.location}</span>
-                        </div>
-                        {job.salary && (
-                          <div className="text-primary font-semibold mb-4">{job.salary}</div>
-                        )}
-                        <Link href={`/jobs/${job.id}`} prefetch={true}>
-                          <Button className="w-full" variant="outline">
-                            View Details
-                          </Button>
-                        </Link>
-                      </CardContent>
-                    </Card>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious className="hidden md:flex" />
-              <CarouselNext className="hidden md:flex" />
-            </Carousel>
+            <>
+              <Carousel 
+                className="w-full mb-8"
+                plugins={[plugin.current]}
+                onMouseEnter={plugin.current.stop}
+                onMouseLeave={plugin.current.reset}
+              >
+                <CarouselContent className="-ml-2 md:-ml-4">
+                  {featuredJobs.map((job) => (
+                    <CarouselItem key={job.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
+                      <Card className="glass hover:shadow-xl transition-all duration-300 hover:scale-105">
+                        <CardContent className="p-6">
+                          <div className="flex justify-between items-start mb-4">
+                            <Badge className="bg-gradient-primary text-primary-foreground">Featured</Badge>
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                          <h3 className="text-xl font-semibold mb-2">{job.title}</h3>
+                          <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                            <Building2 className="h-4 w-4" />
+                            <span>{job.company}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-muted-foreground mb-4">
+                            <MapPin className="h-4 w-4" />
+                            <span>{job.location}</span>
+                          </div>
+                          {job.salary && (
+                            <div className="text-primary font-semibold mb-4">{job.salary}</div>
+                          )}
+                          <Link href={`/jobs/${job.id}`} prefetch={true}>
+                            <Button className="w-full" variant="outline">
+                              View Details
+                            </Button>
+                          </Link>
+                        </CardContent>
+                      </Card>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="hidden md:flex" />
+                <CarouselNext className="hidden md:flex" />
+              </Carousel>
+              
+              <div className="flex justify-center">
+                <Link href="/jobs" prefetch={true}>
+                  <Button variant="outline" className="whitespace-nowrap">
+                    View All <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+            </>
           )}
         </div>
       </section>
@@ -384,50 +387,53 @@ export default function Home() {
       {/* Latest Jobs Grid */}
       <section className="py-16 px-4">
         <div className="container mx-auto">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-12">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-3">Latest Job Openings</h2>
-              <p className="text-muted-foreground">Fresh opportunities posted today</p>
-            </div>
-            <Link href="/jobs" prefetch={true} className="shrink-0">
-              <Button variant="outline" className="w-full sm:w-auto whitespace-nowrap">
-                View All <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
+          <div className="mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-3">Latest Job Openings</h2>
+            <p className="text-muted-foreground">Fresh opportunities posted today</p>
           </div>
 
           {loadingLatest ? (
             <div className="text-center py-12">Loading latest jobs...</div>
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {latestJobs.map((job) => (
-                <Card key={job.id} className="glass hover:shadow-xl transition-all duration-3300 hover:scale-105">
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start mb-4">
-                      <Badge variant="secondary">New</Badge>
-                      <span className="text-xs text-muted-foreground">Just posted</span>
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2 line-clamp-1">{job.title}</h3>
-                    <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                      <Building2 className="h-4 w-4 flex-shrink-0" />
-                      <span className="line-clamp-1">{job.company}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-muted-foreground mb-4">
-                      <MapPin className="h-4 w-4 flex-shrink-0" />
-                      <span className="line-clamp-1">{job.location}</span>
-                    </div>
-                    {job.salary && (
-                      <div className="text-primary font-semibold mb-4">{job.salary}</div>
-                    )}
-                    <Link href={`/jobs/${job.id}`} prefetch={true}>
-                      <Button className="w-full">
-                        Apply Now
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                {latestJobs.map((job) => (
+                  <Card key={job.id} className="glass hover:shadow-xl transition-all duration-3300 hover:scale-105">
+                    <CardContent className="p-6">
+                      <div className="flex justify-between items-start mb-4">
+                        <Badge variant="secondary">New</Badge>
+                        <span className="text-xs text-muted-foreground">Just posted</span>
+                      </div>
+                      <h3 className="text-xl font-semibold mb-2 line-clamp-1">{job.title}</h3>
+                      <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                        <Building2 className="h-4 w-4 flex-shrink-0" />
+                        <span className="line-clamp-1">{job.company}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-muted-foreground mb-4">
+                        <MapPin className="h-4 w-4 flex-shrink-0" />
+                        <span className="line-clamp-1">{job.location}</span>
+                      </div>
+                      {job.salary && (
+                        <div className="text-primary font-semibold mb-4">{job.salary}</div>
+                      )}
+                      <Link href={`/jobs/${job.id}`} prefetch={true}>
+                        <Button className="w-full">
+                          Apply Now
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              
+              <div className="flex justify-center">
+                <Link href="/jobs" prefetch={true}>
+                  <Button variant="outline" className="whitespace-nowrap">
+                    View All <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+            </>
           )}
         </div>
       </section>
@@ -491,19 +497,12 @@ export default function Home() {
       {blogPosts.length > 0 && (
         <section className="py-16 px-4">
           <div className="container mx-auto">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-12">
-              <div>
-                <h2 className="text-3xl md:text-4xl font-bold mb-3">Career Insights & Tips</h2>
-                <p className="text-muted-foreground">Expert advice to boost your career</p>
-              </div>
-              <Link href="/blog" prefetch={true} className="shrink-0">
-                <Button variant="outline" className="w-full sm:w-auto whitespace-nowrap">
-                  Read More <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
+            <div className="mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold mb-3">Career Insights & Tips</h2>
+              <p className="text-muted-foreground">Expert advice to boost your career</p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-3 gap-8 mb-8">
               {blogPosts.map((post) => (
                 <Link key={post.id} href={`/blog/${post.slug}`} prefetch={true}>
                   <Card className="glass hover:shadow-xl transition-all duration-300 hover:scale-105 h-full">
@@ -524,6 +523,14 @@ export default function Home() {
                   </Card>
                 </Link>
               ))}
+            </div>
+            
+            <div className="flex justify-center">
+              <Link href="/blog" prefetch={true}>
+                <Button variant="outline" className="whitespace-nowrap">
+                  Read More <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
             </div>
           </div>
         </section>
