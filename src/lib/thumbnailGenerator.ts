@@ -27,7 +27,7 @@ export const generateJobThumbnail = async (
   const {
     width = 1200,
     height = 630,
-    backgroundColor = 'hsl(262 83% 58%)', // Primary brand color
+    backgroundColor = 'hsl(210 89% 40%)', // Primary brand color
     textColor = '#ffffff'
   } = options;
 

@@ -280,7 +280,7 @@ export const useJobThumbnail = (): UseJobThumbnailReturn => {
     
     // Button background with brand colors
     const gradient = ctx.createLinearGradient(buttonX, buttonY, buttonX + buttonWidth, buttonY + buttonHeight);
-    gradient.addColorStop(0, 'hsl(262 83% 58%)'); // Primary purple
+    gradient.addColorStop(0, 'hsl(210 89% 40%)'); // Primary blue
     gradient.addColorStop(1, 'hsl(199 89% 48%)'); // Accent blue
     
     // Add shadow for depth
@@ -354,7 +354,7 @@ export const useJobThumbnail = (): UseJobThumbnailReturn => {
       
       // Draw background gradient (using brand colors)
       const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-      gradient.addColorStop(0, 'hsl(262 83% 58%)'); // Primary purple
+      gradient.addColorStop(0, 'hsl(210 89% 40%)'); // Primary blue
       gradient.addColorStop(1, 'hsl(199 89% 48%)'); // Accent blue
       
       ctx.fillStyle = gradient;

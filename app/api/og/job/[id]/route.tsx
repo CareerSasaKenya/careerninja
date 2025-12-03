@@ -9,7 +9,7 @@ export const revalidate = 900;
 
 // Brand colors based on the new design
 const COLORS = {
-  purple: '#7c3aed',      // Purple - HSL(262, 83%, 58%)
+  primary: '#0b66c3',     // Primary Blue - HSL(210, 89%, 40%)
   teal: '#0ea5e9',        // Teal - HSL(199, 89%, 48%)
   orange: '#f97316',      // Orange - HSL(25, 95%, 53%)
   white: '#ffffff',
@@ -90,7 +90,7 @@ export async function GET(
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              background: `linear-gradient(to bottom right, ${COLORS.purple}, ${COLORS.teal})`,
+              background: `linear-gradient(to bottom right, ${COLORS.primary}, ${COLORS.teal})`,
               padding: '40px',
               fontFamily: 'sans-serif',
             }}
