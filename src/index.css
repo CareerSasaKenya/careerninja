@@ -17,9 +17,9 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    --primary: 262 83% 58%;
+    --primary: 214 65% 11%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 262 83% 68%;
+    --primary-glow: 214 65% 21%;
 
     --secondary: 25 95% 53%;
     --secondary-foreground: 0 0% 100%;
@@ -40,16 +40,16 @@ All colors MUST be HSL.
 
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 262 83% 58%;
+    --ring: 214 65% 11%;
 
     --radius: 0.75rem;
 
     /* Modern SaaS Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(262 83% 58%), hsl(199 89% 48%));
-    --gradient-secondary: linear-gradient(135deg, hsl(262 83% 58%), hsl(199 89% 55%));
-    --gradient-hero: linear-gradient(135deg, hsl(262 83% 58%) 0%, hsl(199 89% 48%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(214 65% 11%), hsl(199 89% 48%));
+    --gradient-secondary: linear-gradient(135deg, hsl(214 65% 11%), hsl(199 89% 55%));
+    --gradient-hero: linear-gradient(135deg, hsl(214 65% 11%) 0%, hsl(199 89% 48%) 100%);
     --gradient-subtle: linear-gradient(180deg, hsl(220 20% 98%), hsl(220 13% 95%));
-    --gradient-mesh: radial-gradient(at 40% 20%, hsl(262 83% 58% / 0.3) 0px, transparent 50%),
+    --gradient-mesh: radial-gradient(at 40% 20%, hsl(214 65% 11% / 0.3) 0px, transparent 50%),
                       radial-gradient(at 80% 0%, hsl(199 89% 48% / 0.25) 0px, transparent 50%),
                       radial-gradient(at 0% 50%, hsl(199 89% 48% / 0.2) 0px, transparent 50%);
 
@@ -58,7 +58,7 @@ All colors MUST be HSL.
     --shadow-md: 0 4px 6px -1px hsl(220 13% 91% / 0.5), 0 2px 4px -2px hsl(220 13% 91% / 0.5);
     --shadow-lg: 0 10px 15px -3px hsl(220 13% 91% / 0.5), 0 4px 6px -4px hsl(220 13% 91% / 0.5);
     --shadow-xl: 0 20px 25px -5px hsl(220 13% 91% / 0.5), 0 8px 10px -6px hsl(220 13% 91% / 0.5);
-    --shadow-glow: 0 0 20px hsl(262 83% 58% / 0.3);
+    --shadow-glow: 0 0 20px hsl(214 65% 11% / 0.3);
     --shadow-glow-accent: 0 0 20px hsl(199 89% 48% / 0.3);
   }
 
@@ -72,9 +72,9 @@ All colors MUST be HSL.
     --popover: 222 47% 9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 262 83% 65%;
+    --primary: 214 65% 18%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 262 83% 75%;
+    --primary-glow: 214 65% 28%;
 
     --secondary: 25 95% 53%;
     --secondary-foreground: 0 0% 100%;
@@ -95,14 +95,14 @@ All colors MUST be HSL.
 
     --border: 217 33% 17%;
     --input: 217 33% 17%;
-    --ring: 262 83% 65%;
+    --ring: 214 65% 18%;
     
     /* Dark Mode Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(262 83% 65%), hsl(199 89% 55%));
-    --gradient-secondary: linear-gradient(135deg, hsl(262 83% 65%), hsl(199 89% 65%));
-    --gradient-hero: linear-gradient(135deg, hsl(262 83% 65%) 0%, hsl(199 89% 55%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(214 65% 18%), hsl(199 89% 55%));
+    --gradient-secondary: linear-gradient(135deg, hsl(214 65% 18%), hsl(199 89% 65%));
+    --gradient-hero: linear-gradient(135deg, hsl(214 65% 18%) 0%, hsl(199 89% 55%) 100%);
     --gradient-subtle: linear-gradient(180deg, hsl(222 47% 6%), hsl(217 33% 17%));
-    --gradient-mesh: radial-gradient(at 40% 20%, hsl(262 83% 65% / 0.25) 0px, transparent 50%),
+    --gradient-mesh: radial-gradient(at 40% 20%, hsl(214 65% 18% / 0.25) 0px, transparent 50%),
                       radial-gradient(at 80% 0%, hsl(199 89% 55% / 0.2) 0px, transparent 50%),
                       radial-gradient(at 0% 50%, hsl(199 89% 55% / 0.15) 0px, transparent 50%);
 
@@ -111,7 +111,7 @@ All colors MUST be HSL.
     --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.5), 0 2px 4px -2px hsl(0 0% 0% / 0.5);
     --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.5), 0 4px 6px -4px hsl(0 0% 0% / 0.5);
     --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.5), 0 8px 10px -6px hsl(0 0% 0% / 0.5);
-    --shadow-glow: 0 0 25px hsl(262 83% 65% / 0.4);
+    --shadow-glow: 0 0 25px hsl(214 65% 18% / 0.4);
     --shadow-glow-accent: 0 0 25px hsl(199 89% 55% / 0.4);
   }
 }
