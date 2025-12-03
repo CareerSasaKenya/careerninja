@@ -225,7 +225,7 @@ export default function Home() {
       {/* Featured Jobs Carousel */}
       <section className="py-16 px-4 bg-gradient-subtle">
         <div className="container mx-auto">
-          <div className="mb-12">
+          <div className="mb-12 text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-3">Featured Opportunities</h2>
             <p className="text-muted-foreground">Hand-picked roles from top employers</p>
           </div>
@@ -387,7 +387,7 @@ export default function Home() {
       {/* Latest Jobs Grid */}
       <section className="py-16 px-4">
         <div className="container mx-auto">
-          <div className="mb-12">
+          <div className="mb-12 text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-3">Latest Job Openings</h2>
             <p className="text-muted-foreground">Fresh opportunities posted today</p>
           </div>
@@ -497,7 +497,7 @@ export default function Home() {
       {blogPosts.length > 0 && (
         <section className="py-16 px-4">
           <div className="container mx-auto">
-            <div className="mb-12">
+            <div className="mb-12 text-center">
               <h2 className="text-3xl md:text-4xl font-bold mb-3">Career Insights & Tips</h2>
               <p className="text-muted-foreground">Expert advice to boost your career</p>
             </div>
