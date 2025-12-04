@@ -96,7 +96,11 @@ const JobTextParser = ({ onParsed }: JobTextParserProps) => {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || "Failed to parse job text");
+        const errorMsg = result.error || "Failed to parse job text";
+        if (result.status === 401) {
+          throw new Error(`${errorMsg}\n\nSteps to fix:\n1. Go to https://openrouter.ai/credits\n2. Add at least $5 in credits\n3. Verify your API key is active`);
+        }
+        throw new Error(errorMsg);
       }
 
       if (result.success && result.data) {

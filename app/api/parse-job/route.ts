@@ -119,9 +119,21 @@ Return JSON in this exact structure:
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error("OpenRouter API error:", errorData);
+      console.error("OpenRouter API error:", {
+        status: response.status,
+        statusText: response.statusText,
+        data: errorData
+      });
+      
+      let errorMessage = "Failed to parse job text";
+      if (response.status === 401) {
+        errorMessage = "Invalid OpenRouter API key or insufficient credits. Please check your API key and add credits at https://openrouter.ai/credits";
+      } else if (response.status === 429) {
+        errorMessage = "Rate limit exceeded. Please try again in a moment.";
+      }
+      
       return NextResponse.json(
-        { error: "Failed to parse job text", details: errorData },
+        { error: errorMessage, details: errorData, status: response.status },
         { status: response.status }
       );
     }
