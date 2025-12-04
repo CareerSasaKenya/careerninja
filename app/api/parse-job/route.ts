@@ -25,6 +25,7 @@ interface ParsedJob {
   minimum_experience?: string;
   apply_email?: string;
   apply_link?: string;
+  additional_info?: string;
   tags?: string;
   job_function?: string;
   valid_through?: string;
@@ -72,6 +73,29 @@ IMPORTANT RULES:
 9. Tags should be comma-separated keywords
 10. If information is not found, omit the field or use empty string
 
+CRITICAL FIELDS TO EXTRACT:
+
+EDUCATION LEVEL (education_level_id):
+- Look for phrases like: "Bachelor's degree", "Master's", "Diploma", "Certificate", "PhD", "Degree required", "University graduate"
+- Map to ID: "1" = Certificate, "2" = Diploma, "3" = Bachelor's Degree, "4" = Master's Degree, "5" = PhD, "6" = High School
+- If "degree" or "bachelor" mentioned → use "3"
+- If "diploma" mentioned → use "2"
+- If "certificate" mentioned → use "1"
+- If "master" mentioned → use "4"
+- If no education mentioned → omit field
+
+LOCATION (CRITICAL):
+- job_location_country: Always "Kenya" unless explicitly stated otherwise
+- job_location_county: Extract county name (e.g., "Nairobi", "Mombasa", "Kisumu", "Nakuru")
+- job_location_city: Extract city/town name (e.g., "Nairobi", "Westlands", "Mombasa", "Eldoret")
+- Look for phrases: "Location:", "Based in", "Office in", "Work from"
+
+APPLICATION INFORMATION (additional_info):
+- Extract ALL application instructions as HTML
+- Look for: "How to Apply", "Application Process", "To Apply", "Send CV to", "Apply via", "Application Deadline"
+- Include: email addresses, application links, required documents, deadline dates
+- Format as: "<p><strong>How to Apply:</strong></p><ul><li>Send CV to email@company.com</li><li>Deadline: Date</li></ul>"
+
 Return JSON in this exact structure:
 {
   "title": "Job Title",
@@ -86,6 +110,7 @@ Return JSON in this exact structure:
   "job_location_county": "Nairobi",
   "job_location_city": "Nairobi",
   "industry": "Technology",
+  "education_level_id": "3",
   "experience_level": "Mid",
   "language_requirements": "English, Kiswahili",
   "salary_min": "50000",
@@ -95,6 +120,7 @@ Return JSON in this exact structure:
   "minimum_experience": "3",
   "apply_email": "careers@company.com",
   "apply_link": "https://company.com/careers",
+  "additional_info": "<p><strong>How to Apply:</strong></p><ul><li>Send your CV and cover letter to careers@company.com</li><li>Application deadline: 2025-12-31</li></ul>",
   "tags": "engineering, remote, senior",
   "job_function": "Engineering",
   "valid_through": "2025-12-31"

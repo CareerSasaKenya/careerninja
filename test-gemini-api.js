@@ -12,29 +12,48 @@ if (!GEMINI_API_KEY) {
 console.log('✓ API Key found:', GEMINI_API_KEY.substring(0, 10) + '...');
 
 const testJobText = `Software Engineer at TechCorp Kenya
-Location: Nairobi, Kenya
+Location: Nairobi, Kenya (Westlands Office)
 Type: Full-time, On-site
 Salary: KES 80,000 - 120,000 per month
 
 About the role:
-We are looking for a talented Software Engineer to join our growing team.
+We are looking for a talented Software Engineer to join our growing team in Nairobi.
 
 Responsibilities:
-- Develop web applications
-- Write clean code
+- Develop web applications using React and Node.js
+- Write clean, maintainable code
+- Collaborate with cross-functional teams
 
 Requirements:
-- 3+ years experience
-- React, Node.js skills`;
+- Bachelor's degree in Computer Science or related field
+- 3+ years of professional experience
+- Strong skills in React, Node.js, and TypeScript
+- Excellent communication skills in English
+
+How to Apply:
+Interested candidates should send their CV and cover letter to careers@techcorp.co.ke with the subject line "Software Engineer Application".
+Application deadline: December 31, 2025.
+
+Only shortlisted candidates will be contacted.`;
 
 const systemPrompt = `You are a job posting parser. Extract structured information and return ONLY valid JSON.
+
+CRITICAL: Extract these fields:
+- education_level_id: "1"=Certificate, "2"=Diploma, "3"=Bachelor's, "4"=Master's, "5"=PhD
+- job_location_county: County name (e.g., "Nairobi", "Mombasa")
+- job_location_city: City/area name (e.g., "Westlands", "Nairobi")
+- additional_info: Application instructions as HTML
 
 Return JSON in this structure:
 {
   "title": "Job Title",
   "company": "Company Name",
   "employment_type": "FULL_TIME",
-  "job_location_city": "City"
+  "job_location_country": "Kenya",
+  "job_location_county": "Nairobi",
+  "job_location_city": "Westlands",
+  "education_level_id": "3",
+  "additional_info": "<p><strong>How to Apply:</strong></p><ul><li>Send CV to email</li></ul>"
 }`;
 
 async function listModels() {
