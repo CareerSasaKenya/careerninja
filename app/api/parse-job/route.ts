@@ -41,11 +41,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Try Gemini first (free tier), fallback to OpenRouter
+    const geminiApiKey = process.env.GEMINI_API_KEY;
     const openRouterApiKey = process.env.OPENROUTER_API_KEY;
     
-    if (!openRouterApiKey) {
+    if (!geminiApiKey && !openRouterApiKey) {
       return NextResponse.json(
-        { error: "OpenRouter API key not configured" },
+        { error: "No AI API key configured. Please add GEMINI_API_KEY (free) or OPENROUTER_API_KEY to environment variables." },
         { status: 500 }
       );
     }
@@ -92,30 +94,79 @@ Return JSON in this exact structure:
   "valid_through": "2025-12-31"
 }`;
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${openRouterApiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "https://careerninja.co.ke",
-        "X-Title": "CareerNinja Job Parser",
-      },
-      body: JSON.stringify({
-        model: "anthropic/claude-3.5-sonnet",
-        messages: [
-          {
-            role: "system",
-            content: systemPrompt,
-          },
-          {
-            role: "user",
-            content: `Parse this job posting and return ONLY the JSON object:\n\n${jobText}`,
-          },
-        ],
-        temperature: 0.1,
-        max_tokens: 4000,
-      }),
-    });
+    let response: Response;
+    let content: string;
+
+    // Try Gemini first (free tier)
+    if (geminiApiKey) {
+      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`;
+      
+      response = await fetch(geminiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: `${systemPrompt}\n\nParse this job posting and return ONLY the JSON object:\n\n${jobText}`
+            }]
+          }],
+          generationConfig: {
+            temperature: 0.1,
+            maxOutputTokens: 4000,
+          }
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error("Gemini API error:", errorData);
+        
+        // If Gemini fails and we have OpenRouter, try that
+        if (openRouterApiKey) {
+          console.log("Gemini failed, trying OpenRouter...");
+          response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${openRouterApiKey}`,
+              "Content-Type": "application/json",
+              "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "https://careerninja.co.ke",
+              "X-Title": "CareerNinja Job Parser",
+            },
+            body: JSON.stringify({
+              model: "anthropic/claude-3.5-sonnet",
+              messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: `Parse this job posting and return ONLY the JSON object:\n\n${jobText}` },
+              ],
+              temperature: 0.1,
+              max_tokens: 4000,
+            }),
+          });
+        }
+      }
+    } else {
+      // Use OpenRouter if no Gemini key
+      response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${openRouterApiKey}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "https://careerninja.co.ke",
+          "X-Title": "CareerNinja Job Parser",
+        },
+        body: JSON.stringify({
+          model: "anthropic/claude-3.5-sonnet",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: `Parse this job posting and return ONLY the JSON object:\n\n${jobText}` },
+          ],
+          temperature: 0.1,
+          max_tokens: 4000,
+        }),
+      });
+    }
 
     if (!response.ok) {
       const errorData = await response.text();
@@ -139,11 +190,19 @@ Return JSON in this exact structure:
     }
 
     const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
+    
+    // Handle different response formats
+    if (geminiApiKey && data.candidates) {
+      // Gemini response format
+      content = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    } else {
+      // OpenRouter response format
+      content = data.choices?.[0]?.message?.content;
+    }
 
     if (!content) {
       return NextResponse.json(
-        { error: "No response from AI" },
+        { error: "No response from AI", details: JSON.stringify(data) },
         { status: 500 }
       );
     }

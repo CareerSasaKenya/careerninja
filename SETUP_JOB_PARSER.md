@@ -1,31 +1,55 @@
 # Quick Setup Guide: AI Job Parser
 
-## Step 1: Get OpenRouter API Key
+## Step 1: Get AI API Key (Choose One)
+
+### Option A: Google Gemini (FREE - Recommended)
+
+1. Go to [Google AI Studio](https://aistudio.google.com/app/apikey)
+2. Sign in with your Google account
+3. Click "Create API Key"
+4. Copy your API key
+5. **Free tier**: 15 requests/minute, 1500 requests/day
+
+### Option B: OpenRouter (PAID - More Powerful)
 
 1. Go to [OpenRouter.ai](https://openrouter.ai/)
 2. Sign up or log in
 3. Navigate to "Keys" section
 4. Click "Create Key"
 5. Copy your API key
+6. **Add credits**: Go to https://openrouter.ai/credits and add at least $5
 
 ## Step 2: Add API Key to Environment
 
 Open `careerninja/.env` and add:
 
+### For Gemini (FREE):
+```env
+GEMINI_API_KEY=your_actual_gemini_key_here
+NEXT_PUBLIC_SITE_URL=https://careerninja.co.ke
+```
+
+### For OpenRouter (PAID):
 ```env
 OPENROUTER_API_KEY=sk-or-v1-your-actual-key-here
 NEXT_PUBLIC_SITE_URL=https://careerninja.co.ke
 ```
 
-**Important:** Replace `sk-or-v1-your-actual-key-here` with your actual OpenRouter API key.
+**Note:** The system will try Gemini first (if configured), then fallback to OpenRouter.
 
-## Step 3: Add Credits to OpenRouter
+## Step 3: Setup for Vercel (Production)
 
-1. Go to [OpenRouter Credits](https://openrouter.ai/credits)
-2. Add at least $5 (will last for ~500 job parses)
-3. Verify credits are showing in your account
+Add the environment variable in Vercel:
 
-## Step 4: Restart Development Server
+1. Go to your Vercel project dashboard
+2. Settings → Environment Variables
+3. Add one of:
+   - **For Gemini**: Key: `GEMINI_API_KEY`, Value: your key
+   - **For OpenRouter**: Key: `OPENROUTER_API_KEY`, Value: your key
+4. Select all environments (Production, Preview, Development)
+5. Save and redeploy
+
+## Step 4: Restart Development Server (Local Only)
 
 ```bash
 cd careerninja
