@@ -45,6 +45,12 @@ export async function POST(request: NextRequest) {
     const geminiApiKey = process.env.GEMINI_API_KEY;
     const openRouterApiKey = process.env.OPENROUTER_API_KEY;
     
+    console.log("API Keys available:", {
+      hasGemini: !!geminiApiKey,
+      hasOpenRouter: !!openRouterApiKey,
+      geminiKeyPrefix: geminiApiKey ? geminiApiKey.substring(0, 10) + "..." : "none"
+    });
+    
     if (!geminiApiKey && !openRouterApiKey) {
       return NextResponse.json(
         { error: "No AI API key configured. Please add GEMINI_API_KEY (free) or OPENROUTER_API_KEY to environment variables." },
@@ -99,33 +105,77 @@ Return JSON in this exact structure:
 
     // Try Gemini first (free tier)
     if (geminiApiKey) {
-      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`;
+      console.log("Using Gemini API...");
+      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`;
       
-      response = await fetch(geminiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: `${systemPrompt}\n\nParse this job posting and return ONLY the JSON object:\n\n${jobText}`
-            }]
-          }],
-          generationConfig: {
-            temperature: 0.1,
-            maxOutputTokens: 4000,
-          }
-        }),
-      });
+      try {
+        response = await fetch(geminiUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{
+                text: `${systemPrompt}\n\nParse this job posting and return ONLY the JSON object:\n\n${jobText}`
+              }]
+            }],
+            generationConfig: {
+              temperature: 0.1,
+              maxOutputTokens: 4000,
+            }
+          }),
+        });
 
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error("Gemini API error:", errorData);
+        if (!response.ok) {
+          const errorData = await response.text();
+          console.error("Gemini API error:", {
+            status: response.status,
+            statusText: response.statusText,
+            data: errorData
+          });
+          
+          // If Gemini fails and we have OpenRouter, try that
+          if (openRouterApiKey) {
+            console.log("Gemini failed, trying OpenRouter...");
+            response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${openRouterApiKey}`,
+              "Content-Type": "application/json",
+              "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "https://careerninja.co.ke",
+              "X-Title": "CareerNinja Job Parser",
+            },
+            body: JSON.stringify({
+              model: "anthropic/claude-3.5-sonnet",
+              messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: `Parse this job posting and return ONLY the JSON object:\n\n${jobText}` },
+              ],
+              temperature: 0.1,
+              max_tokens: 4000,
+            }),
+          });
+          } else {
+            // No fallback available, return Gemini error
+            return NextResponse.json(
+              { 
+                error: "Gemini API failed and no fallback available", 
+                details: errorData,
+                geminiStatus: response.status 
+              },
+              { status: response.status }
+            );
+          }
+        } else {
+          console.log("Gemini API success!");
+        }
+      } catch (geminiError: any) {
+        console.error("Gemini fetch error:", geminiError);
         
-        // If Gemini fails and we have OpenRouter, try that
+        // If Gemini throws and we have OpenRouter, try that
         if (openRouterApiKey) {
-          console.log("Gemini failed, trying OpenRouter...");
+          console.log("Gemini threw error, trying OpenRouter...");
           response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
             headers: {
@@ -144,6 +194,8 @@ Return JSON in this exact structure:
               max_tokens: 4000,
             }),
           });
+        } else {
+          throw geminiError;
         }
       }
     } else {
