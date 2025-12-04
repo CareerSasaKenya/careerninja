@@ -261,7 +261,7 @@ export async function GET(
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            background: `linear-gradient(to bottom right, ${COLORS.purple}, ${COLORS.teal})`,
+            background: `linear-gradient(to bottom right, ${COLORS.primary}, ${COLORS.teal})`,
             padding: '40px',
             fontFamily: 'sans-serif',
           }}
