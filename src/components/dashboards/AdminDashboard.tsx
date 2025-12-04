@@ -224,6 +224,12 @@ const AdminDashboard = () => {
               New Blog Post
             </Button>
           </Link>
+          <Link href="/dashboard/admin/parse-job">
+            <Button variant="outline" className="w-full sm:w-auto">
+              <Plus className="mr-2 h-4 w-4" />
+              Parse Job Text
+            </Button>
+          </Link>
           <Link href="/post-job">
             <Button className="bg-gradient-primary hover:opacity-90 w-full sm:w-auto">
               <Plus className="mr-2 h-4 w-4" />

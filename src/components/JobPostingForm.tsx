@@ -62,54 +62,72 @@ interface JobFormData {
   additional_info: string;
 }
 
-const JobPostingForm = ({ jobId, isEdit = false }: { jobId?: string; isEdit?: boolean }) => {
+interface JobPostingFormProps {
+  jobId?: string;
+  isEdit?: boolean;
+  initialData?: Partial<JobFormData>;
+  isParsedData?: boolean;
+}
+
+const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = false }: JobPostingFormProps) => {
   const { user } = useAuth();
   const { role } = useUserRole();
   const queryClient = useQueryClient();
 
-  const [formData, setFormData] = useState<JobFormData>({
-    // Core fields
-    title: "",
-    company: "",
-    description: "",
-    responsibilities: "",
-    required_qualifications: "",
-    software_skills: "",
-    company_id: "",
-    // Google Job Posting Fields
-    valid_through: "",
-    employment_type: "FULL_TIME",
-    job_location_type: "ON_SITE",
-    job_location_country: "Kenya",
-    job_location_county: "",
-    job_location_city: "",
-    direct_apply: true,
-    application_url: "",
-    // STEM/Health/Architecture Fields
-    industry: "",
-    education_level_id: "none",
-    experience_level: "Mid",
-    language_requirements: "",
-    // New fields
-    salary_visibility: "Show",
-    minimum_experience: "",
-    is_featured: false,
-    salary_type: "Monthly",
-    // Compensation & Schedule
-    salary_currency: "KES",
-    salary_min: "",
-    salary_max: "",
-    salary_period: "MONTH",
-    work_schedule: "",
-    // Application
-    apply_link: "",
-    apply_email: "",
-    // Functional Portal Fields
-    tags: "",
-    job_function: "",
-    status: "active",
-    additional_info: "",
-  });
+  const getInitialFormData = (): JobFormData => {
+    const defaults: JobFormData = {
+      // Core fields
+      title: "",
+      company: "",
+      description: "",
+      responsibilities: "",
+      required_qualifications: "",
+      software_skills: "",
+      company_id: "",
+      // Google Job Posting Fields
+      valid_through: "",
+      employment_type: "FULL_TIME",
+      job_location_type: "ON_SITE",
+      job_location_country: "Kenya",
+      job_location_county: "",
+      job_location_city: "",
+      direct_apply: true,
+      application_url: "",
+      // STEM/Health/Architecture Fields
+      industry: "",
+      education_level_id: "none",
+      experience_level: "Mid",
+      language_requirements: "",
+      // New fields
+      salary_visibility: "Show",
+      minimum_experience: "",
+      is_featured: false,
+      salary_type: "Monthly",
+      // Compensation & Schedule
+      salary_currency: "KES",
+      salary_min: "",
+      salary_max: "",
+      salary_period: "MONTH",
+      work_schedule: "",
+      // Application
+      apply_link: "",
+      apply_email: "",
+      // Functional Portal Fields
+      tags: "",
+      job_function: "",
+      status: "draft",
+      additional_info: "",
+    };
+
+    // Merge with initialData if provided
+    if (initialData) {
+      return { ...defaults, ...initialData };
+    }
+
+    return defaults;
+  };
+
+  const [formData, setFormData] = useState<JobFormData>(getInitialFormData());
 
   const [selectedCountyId, setSelectedCountyId] = useState<string>("");
   const [selectedTownId, setSelectedTownId] = useState<string>("");
@@ -607,6 +625,15 @@ const JobPostingForm = ({ jobId, isEdit = false }: { jobId?: string; isEdit?: bo
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {isParsedData && (
+        <Alert className="bg-primary/10 border-primary">
+          <Info className="h-4 w-4 text-primary" />
+          <AlertDescription>
+            <strong>AI-Parsed Data:</strong> This form has been pre-filled with AI-extracted information. Please review all fields carefully before saving.
+          </AlertDescription>
+        </Alert>
+      )}
+      
       {role === "employer" && !userCompany && (
         <Alert>
           <Info className="h-4 w-4" />
