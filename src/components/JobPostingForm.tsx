@@ -483,6 +483,14 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
         }
       }
 
+      console.log("Final company values:", {
+        companyName,
+        companyId,
+        shouldCreateCompany,
+        newCompanyName,
+        originalCompanyId: data.company_id
+      });
+
       const jobData: any = {
         // Core fields
         title: data.title,
@@ -556,16 +564,31 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
         }
       } else {
         // Create new job
+        console.log("Creating job with data:", {
+          ...jobData,
+          description: jobData.description?.substring(0, 50) + "...",
+          company_id: jobData.company_id,
+          company: jobData.company
+        });
+        
         const { error } = await supabase
           .from("jobs")
           .insert([jobData]);
         
         if (error) {
+          console.error("Job creation error details:", {
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            company_id: jobData.company_id
+          });
+          
           if (error.code === '409') {
             throw new Error("Conflict: The job could not be created due to a database constraint. Please check that all data is valid.");
           }
           if (error.code === '23503') {
-            throw new Error("Invalid company reference. Please select a valid company or create a new one.");
+            throw new Error(`Invalid company reference. Company ID: ${jobData.company_id}. Please select a valid company or create a new one. Error: ${error.message}`);
           }
           console.error("Job creation error:", error);
           throw error;
