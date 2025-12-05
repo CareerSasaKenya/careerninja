@@ -286,15 +286,20 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                 <ApplySection job={job} />
               </div>
 
-              {/* Tags section only */}
-              {job?.tags && Array.isArray(job.tags) && job.tags.length > 0 && (
+              {/* Tags section */}
+              {job?.tags && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-lg">Tags</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="flex flex-wrap gap-2">
-                      {job.tags.map((tag: string, index: number) => (
+                      {(typeof job.tags === 'string' 
+                        ? job.tags.split(',').map((t: string) => t.trim()).filter(Boolean)
+                        : Array.isArray(job.tags) 
+                          ? job.tags 
+                          : []
+                      ).map((tag: string, index: number) => (
                         <Badge key={index} variant="secondary">{tag}</Badge>
                       ))}
                     </div>
