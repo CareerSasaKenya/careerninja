@@ -133,8 +133,13 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
   const [selectedTownId, setSelectedTownId] = useState<string>("");
   
   // State for automatic company creation
-  const [shouldCreateCompany, setShouldCreateCompany] = useState(false);
-  const [newCompanyName, setNewCompanyName] = useState("");
+  // If parsed data has company name but no company_id, auto-enable company creation
+  const [shouldCreateCompany, setShouldCreateCompany] = useState(
+    isParsedData && initialData?.company && !initialData?.company_id
+  );
+  const [newCompanyName, setNewCompanyName] = useState(
+    isParsedData && initialData?.company && !initialData?.company_id ? initialData.company : ""
+  );
 
   const { data: industries } = useQuery({
     queryKey: ["industries"],
@@ -630,6 +635,11 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
           <Info className="h-4 w-4 text-primary" />
           <AlertDescription>
             <strong>AI-Parsed Data:</strong> This form has been pre-filled with AI-extracted information. Please review all fields carefully before saving.
+            {shouldCreateCompany && newCompanyName && (
+              <span className="block mt-2">
+                <strong>Note:</strong> Company "{newCompanyName}" will be automatically created when you save this job.
+              </span>
+            )}
           </AlertDescription>
         </Alert>
       )}
