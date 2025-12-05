@@ -216,17 +216,16 @@ Return JSON in this exact structure:
               max_tokens: 4000,
             }),
           });
-          } else {
-            // No fallback available, return last Gemini error
-            return NextResponse.json(
-              { 
-                error: `All ${geminiApiKeys.length} Gemini API key(s) failed and no OpenRouter fallback available`, 
-                details: lastError,
-                geminiStatus: lastError?.status 
-              },
-              { status: lastError?.status || 500 }
-            );
-          }
+        } else {
+          // No fallback available, return last Gemini error
+          return NextResponse.json(
+            { 
+              error: `All ${geminiApiKeys.length} Gemini API key(s) failed and no OpenRouter fallback available`, 
+              details: lastError,
+              geminiStatus: lastError?.status 
+            },
+            { status: lastError?.status || 500 }
+          );
         }
       }
     } else {
@@ -261,7 +260,7 @@ Return JSON in this exact structure:
       
       let errorMessage = "Failed to parse job text";
       if (response.status === 401) {
-        if (geminiApiKey && openRouterApiKey) {
+        if (geminiApiKeys.length > 0 && openRouterApiKey) {
           errorMessage = "Both Gemini and OpenRouter failed. Gemini quota may be exceeded and OpenRouter has no credits. Please either: 1) Wait for Gemini quota reset (24hrs), 2) Add credits to OpenRouter at https://openrouter.ai/credits, or 3) Create a new Gemini API key.";
         } else {
           errorMessage = "Invalid API key or insufficient credits. Please check your API key configuration.";
