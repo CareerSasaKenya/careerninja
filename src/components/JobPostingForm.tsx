@@ -121,7 +121,12 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
 
     // Merge with initialData if provided
     if (initialData) {
-      return { ...defaults, ...initialData };
+      const merged = { ...defaults, ...initialData };
+      // If we're going to create a company, clear company_id to avoid conflicts
+      if (isParsedData && initialData.company && !initialData.company_id) {
+        merged.company_id = "";
+      }
+      return merged;
     }
 
     return defaults;
@@ -384,7 +389,8 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
       const companyName = shouldCreateCompany && role === "admin" ? newCompanyName : data.company;
       
       // Check if we need to create a company first (admin only)
-      let companyId = data.company_id || null;
+      // Convert empty string to null for proper database handling
+      let companyId = data.company_id && data.company_id !== "" ? data.company_id : null;
       
       // Only create new company if explicitly requested
       if (role === "admin" && shouldCreateCompany && newCompanyName) {
