@@ -140,6 +140,21 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
   const [newCompanyName, setNewCompanyName] = useState(
     isParsedData && initialData?.company && !initialData?.company_id ? initialData.company : ""
   );
+  
+  // Check if company already exists (for UI feedback)
+  const { data: existingCompanyCheck } = useQuery({
+    queryKey: ["check-company", newCompanyName],
+    queryFn: async () => {
+      if (!newCompanyName || !shouldCreateCompany) return null;
+      const { data } = await supabase
+        .from("companies")
+        .select("id, name")
+        .eq("name", newCompanyName)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!newCompanyName && shouldCreateCompany,
+  });
 
   const { data: industries } = useQuery({
     queryKey: ["industries"],
@@ -710,7 +725,9 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
           {/* Show company creation form when needed */}
           {role === "admin" && shouldCreateCompany && (
             <div className="space-y-4 p-4 bg-muted/30 rounded-lg">
-              <h3 className="font-medium">Create New Company</h3>
+              <h3 className="font-medium">
+                {existingCompanyCheck ? "Existing Company Found" : "Create New Company"}
+              </h3>
               <div className="space-y-2">
                 <Label htmlFor="new_company_name">Company Name *</Label>
                 <Input
@@ -720,9 +737,15 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
                   placeholder="e.g., TechCorp Kenya"
                   required
                 />
-                <p className="text-xs text-muted-foreground">
-                  This company will be automatically created when you post the job.
-                </p>
+                {existingCompanyCheck ? (
+                  <p className="text-xs text-green-600 dark:text-green-400">
+                    ✓ Company "{existingCompanyCheck.name}" already exists and will be reused (no duplicate will be created).
+                  </p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    This company will be automatically created when you post the job.
+                  </p>
+                )}
               </div>
             </div>
           )}
