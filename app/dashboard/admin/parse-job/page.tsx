@@ -23,6 +23,7 @@ interface ParsedJobData {
   job_location_county?: string;
   job_location_city?: string;
   industry: string;
+  education_level_name?: string;
   education_level_id?: string;
   experience_level: string;
   language_requirements?: string;
@@ -43,7 +44,25 @@ const ParseJobPage = () => {
   const [parsedData, setParsedData] = useState<ParsedJobData | null>(null);
   const [showForm, setShowForm] = useState(false);
 
-  const handleParsed = (data: ParsedJobData) => {
+  const handleParsed = async (data: ParsedJobData) => {
+    // Convert education_level_name to education_level_id
+    if (data.education_level_name) {
+      try {
+        const { supabase } = await import("@/integrations/supabase/client");
+        const { data: educationLevel } = await supabase
+          .from("education_levels")
+          .select("id")
+          .eq("name", data.education_level_name)
+          .maybeSingle();
+        
+        if (educationLevel) {
+          (data as any).education_level_id = String(educationLevel.id);
+        }
+      } catch (error) {
+        console.error("Error fetching education level:", error);
+      }
+    }
+    
     setParsedData(data);
     setShowForm(true);
   };

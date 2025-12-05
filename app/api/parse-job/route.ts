@@ -15,7 +15,7 @@ interface ParsedJob {
   job_location_county?: string;
   job_location_city?: string;
   industry: string;
-  education_level_id?: string;
+  education_level_name?: string;
   experience_level: string;
   language_requirements?: string;
   salary_min?: string;
@@ -81,14 +81,17 @@ IMPORTANT RULES:
 
 CRITICAL FIELDS TO EXTRACT:
 
-EDUCATION LEVEL (education_level_id):
+EDUCATION LEVEL (education_level_name):
 - Look for phrases like: "Bachelor's degree", "Master's", "Diploma", "Certificate", "PhD", "Degree required", "University graduate"
-- Map to ID: "1" = Certificate, "2" = Diploma, "3" = Bachelor's Degree, "4" = Master's Degree, "5" = PhD, "6" = High School
-- If "degree" or "bachelor" mentioned → use "3"
-- If "diploma" mentioned → use "2"
-- If "certificate" mentioned → use "1"
-- If "master" mentioned → use "4"
-- If no education mentioned → omit field
+- Return the EXACT education level name (not ID):
+  * "Bachelor's Degree" for bachelor's/degree mentions
+  * "Diploma" for diploma mentions
+  * "Craft Certificate (Certificate Level)" for certificate mentions
+  * "Master's Degree" for master's mentions
+  * "Doctorate (PhD)" for PhD/doctorate mentions
+  * "KCSE / Senior Secondary Certificate" for high school/KCSE
+  * "Artisan Certificate / Trade Test" for artisan/trade mentions
+- If no education mentioned → omit field or use empty string
 
 LOCATION (CRITICAL):
 - job_location_country: Always "Kenya" unless explicitly stated otherwise
@@ -116,7 +119,7 @@ Return JSON in this exact structure:
   "job_location_county": "Nairobi",
   "job_location_city": "Nairobi",
   "industry": "Technology",
-  "education_level_id": "3",
+  "education_level_name": "Bachelor's Degree",
   "experience_level": "Mid",
   "language_requirements": "English, Kiswahili",
   "salary_min": "50000",
