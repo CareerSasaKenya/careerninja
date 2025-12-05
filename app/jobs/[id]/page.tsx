@@ -310,8 +310,29 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
           </div>
 
           {/* Mobile Apply Section - Visible on mobile devices at the bottom */}
-          <div className="lg:hidden mt-6">
+          <div className="lg:hidden mt-6 space-y-6">
             <ApplySection job={job} />
+            
+            {/* Tags section for mobile */}
+            {job?.tags && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Tags</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {(typeof job.tags === 'string' 
+                      ? job.tags.split(',').map((t: string) => t.trim()).filter(Boolean)
+                      : Array.isArray(job.tags) 
+                        ? job.tags 
+                        : []
+                    ).map((tag: string, index: number) => (
+                      <Badge key={index} variant="secondary">{tag}</Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Related Opportunities Section */}
