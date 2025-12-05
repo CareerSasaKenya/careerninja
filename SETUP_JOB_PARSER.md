@@ -26,8 +26,12 @@ Open `careerninja/.env` and add:
 ### For Gemini (FREE):
 ```env
 GEMINI_API_KEY=your_actual_gemini_key_here
+GEMINI_API_KEY_2=your_second_key_here  # Optional: Add more keys for fallback
+GEMINI_API_KEY_3=your_third_key_here   # Optional: System tries keys in sequence
 NEXT_PUBLIC_SITE_URL=https://careerninja.co.ke
 ```
+
+**Pro Tip**: Create 2-3 Gemini API keys for automatic fallback when one hits quota limits!
 
 ### For OpenRouter (PAID):
 ```env

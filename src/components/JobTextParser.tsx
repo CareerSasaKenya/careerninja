@@ -98,7 +98,9 @@ const JobTextParser = ({ onParsed }: JobTextParserProps) => {
       if (!response.ok) {
         const errorMsg = result.error || "Failed to parse job text";
         if (result.status === 401) {
-          throw new Error(`${errorMsg}\n\nSteps to fix:\n1. Go to https://openrouter.ai/credits\n2. Add at least $5 in credits\n3. Verify your API key is active`);
+          throw new Error(`${errorMsg}\n\nSteps to fix:\n1. Verify your API key in Vercel environment variables\n2. Check API key is active`);
+        } else if (result.status === 402) {
+          throw new Error(`${errorMsg}\n\nYour Gemini API free quota may be exceeded.\n\nOptions:\n1. Wait for quota to reset (usually 24 hours)\n2. Enable billing in Google Cloud Console\n3. Create a new Gemini API key\n4. Use OpenRouter instead (requires credits)`);
         }
         throw new Error(errorMsg);
       }
