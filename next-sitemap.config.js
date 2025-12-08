@@ -1,5 +1,5 @@
 /** @type {import('next-sitemap').IConfig} */
-module.exports = {
+export default {
   siteUrl: process.env.SITE_URL || 'https://careersasa.com',
   generateRobotsTxt: true,
   exclude: [
@@ -20,7 +20,7 @@ module.exports = {
     const result = [];
     
     // Import Supabase client
-    const { createClient } = require('@supabase/supabase-js');
+    const { createClient } = await import('@supabase/supabase-js').then(m => m);
     
     // Get environment variables
     const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://qxuvqrfqkdpfjfwkqatf.supabase.co';
