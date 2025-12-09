@@ -3,7 +3,8 @@
 ## Brand Overview
 
 **Brand Name:** CareerSasa  
-**Tagline:** Your Career Starts Sasa (Sasa means "now" in Swahili)  
+**Tagline:** Enrich Your Career Now  
+**Swahili Context:** "Sasa" means "now" in Swahili  
 **Mission:** Empowering Kenyan professionals to discover and secure their dream careers  
 **Website:** www.careersasa.co.ke
 
@@ -206,6 +207,123 @@ radial-gradient(at 0% 50%, hsl(199 89% 48% / 0.2) 0px, transparent 50%)
 
 ---
 
+## Brand Voice & Writing Style
+
+### Core Voice Identity
+
+CareerSasa's voice is:
+- **Conversational mentor with motivational energy**
+- **Equal parts career coach and cheerleader**
+- **Relatable, practical, and solution-oriented**
+
+We aim to inspire hope, build confidence, and provide practical guidance for Kenyan youth navigating the job market.
+
+### Tone
+
+**Encouraging & empathetic** → Recognize struggles, then reframe with hope.  
+**Confident but not arrogant** → Give advice with authority, but keep it human.  
+**Positive & forward-looking** → Always show a way forward, even in tough situations.
+
+💡 **Example:**  
+❌ "The job market is brutal. Most people won't make it."  
+✅ "Yes, the market is competitive—but with resilience and the right strategy, you can stand out."
+
+### Style & Patterns
+
+- **Direct & personal:** Always write to one person ("you"), not "job seekers."
+- **Engaging questions:** Use rhetorical questions to pull readers in.
+- **Punchy + explanatory rhythm:** Mix short, impactful lines with longer context.
+- **Action-driven:** Use verbs like gather, reflect, plan, connect, prepare.
+- **List-friendly:** Break down advice in steps, lists, or numbered tips.
+
+💡 **Example:**  
+"Gloomy reality, right? But don't throw in the towel yet. Here's how to bounce back and land stronger."
+
+### Vocabulary
+
+**Core words:** resilient, practical, skills, connect, opportunity, grow, mindset, strategy.
+
+**Positive framing:** "Challenges" instead of "problems," "opportunities" instead of "obstacles."
+
+**Local & relatable touches:** Mention Kenyan realities (LinkedIn, M-Pesa, networking events, Nairobi hubs, Upwork, etc.)
+
+**Avoid:**
+- Overly formal corporate-speak ("synergize talent pools")
+- Overly casual slang that kills professionalism ("bros, lit, vibe check")
+
+### Patterns of Engagement
+
+**Acknowledge reality → Reassure → Give a step forward**
+
+- Mini pep talks inside practical tips
+- Celebrate small wins → Always encourage readers to feel progress
+
+💡 **Example Flow:**  
+"Yes, rejection stings." (acknowledge)  
+"But remember—you only need a few yeses." (reassure)  
+"Here's how to tweak your CV for the next shot." (next step)
+
+### Formatting & Structure
+
+- Use headings & subheadings to make content scannable.
+- Use numbered tips, bullet points, and examples for clarity.
+- Bold key ideas to help readers absorb takeaways quickly.
+- Keep paragraphs short (2–4 lines max) → mobile readers!
+
+### Do's and Don'ts
+
+✅ **Do:**
+- Speak directly to the reader
+- Mix empathy with practicality
+- Use Kenyan-relevant examples
+- Celebrate resilience and growth
+
+❌ **Don't:**
+- Be overly negative without a solution
+- Use jargon-heavy or textbook language
+- Talk down to readers as if they're clueless
+- Write long walls of text without breaks
+
+### Example Brand Voice in Action
+
+**CareerSasa Style:**  
+"Got laid off? It's painful, yes—but it doesn't define you. Your skills, your wins, and your network are still yours. Now's the time to lean on connections, polish your CV, and remind yourself: you only need one yes."
+
+**Not CareerSasa Style:**  
+"In today's volatile economic landscape, job displacement is a recurring phenomenon. Therefore, affected candidates should optimize resumes and leverage professional networks."
+
+### Core Promise to Readers
+
+Every CareerSasa piece should leave readers feeling:
+- **Seen** → "They understand my struggles."
+- **Encouraged** → "I can do this."
+- **Guided** → "I know my next step."
+
+### Sentence Patterns
+
+- Mix of short punchy lines ("Gloomy reality, right?") and longer explanatory sentences for context.
+- Use of rhetorical questions to pull readers in ("But where do these companies and their recruiters hang out?").
+- Lists and bullet points to break down complex advice (SMART goals, networking places, resilience zones).
+- Action verbs ("Gather," "Reflect," "Plan," "Prepare") that make tips sound actionable.
+
+### Voice Characteristics
+
+- **Relatable:** You don't write like a textbook—you sound like someone who has "been there" and understands.
+- **Positive framing:** Even when describing setbacks (layoffs, rejection), you always redirect toward growth and resilience.
+- **Slightly informal but professional:** Words like "throw in the towel," "gather your mind" add warmth without diluting credibility.
+
+### Content Application
+
+This voice should be consistent across:
+- Blog posts and articles
+- Social media captions
+- Email newsletters
+- Job descriptions
+- Landing page copy
+- Help documentation
+
+---
+
 ## UI Components
 
 ### Buttons
@@ -370,9 +488,15 @@ Job thumbnails: `src/hooks/useJobThumbnail.ts`
 
 ## Version History
 
+**Version 1.1** - December 2024
+- Added comprehensive Brand Voice & Writing Style guide
+- Updated tagline to "Enrich Your Career Now"
+- Defined conversational mentor voice with motivational energy
+- Established tone, style patterns, and content guidelines
+
 **Version 1.0** - December 2024
 - Initial brand guide creation
-- Primary color updated to blue (#0b66c3)
+- Primary color palette defined
 - Comprehensive color palette defined
 - Typography and spacing standards established
 
