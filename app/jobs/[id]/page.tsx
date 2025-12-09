@@ -256,9 +256,14 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
               
               {/* Additional Info Section */}
               {job.additional_info && (
-                <div className="mt-6 rounded-md border border-border bg-muted/30 p-4">
-                  <div className="richtext-content text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: job.additional_info }} />
-                </div>
+                <Card className="border-border">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Additional Information</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="richtext-content text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: job.additional_info }} />
+                  </CardContent>
+                </Card>
               )}
               
               {/* Safety Alert + Share & Report Job */}

@@ -174,7 +174,7 @@ All colors MUST be HSL.
   }
 
   .richtext-content p {
-    @apply mb-4;
+    @apply mb-3;
   }
 
   .richtext-content strong,
@@ -189,7 +189,7 @@ All colors MUST be HSL.
 
   .richtext-content ul,
   .richtext-content ol {
-    @apply list-disc list-inside mb-4 ml-4;
+    @apply list-disc list-inside mb-3 ml-4;
   }
 
   .richtext-content ol {
@@ -204,7 +204,7 @@ All colors MUST be HSL.
   }
 
   .richtext-content li {
-    @apply mb-1;
+    @apply mb-2;
   }
 
   .richtext-content li:last-child {
