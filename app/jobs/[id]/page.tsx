@@ -31,6 +31,10 @@ async function getJobData(id: string) {
           id,
           name,
           logo
+        ),
+        education_levels (
+          id,
+          name
         )
       `)
       .eq("job_slug", id)
@@ -46,6 +50,10 @@ async function getJobData(id: string) {
             id,
             name,
             logo
+          ),
+          education_levels (
+            id,
+            name
           )
         `)
         .eq("id", id)
@@ -432,10 +440,10 @@ const RoleDetails = ({ job }: { job: any }) => {
   ].filter(Boolean);
 
   const requirements = [
-    job.education_level_id ? {
+    job.education_levels?.name ? {
       icon: <GraduationCap className="h-5 w-5 text-primary mt-0.5" />,
       label: "Education Level",
-      value: job.education_level_id
+      value: job.education_levels.name
     } : null,
     job.education_requirements ? {
       icon: <GraduationCap className="h-5 w-5 text-primary mt-0.5" />,
@@ -498,38 +506,26 @@ const RoleDetails = ({ job }: { job: any }) => {
       </CardHeader>
       <CardContent className="space-y-6">
         {salaryDetails.length > 0 && (
-          <div>
-            <h3 className="text-md font-semibold mb-3 text-primary">Compensation</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {salaryDetails.map((item, index) => <div key={index}>{renderDetailItem(item)}</div>)}
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {salaryDetails.map((item, index) => <div key={index}>{renderDetailItem(item)}</div>)}
           </div>
         )}
 
         {jobDetails.length > 0 && (
-          <div>
-            <h3 className="text-md font-semibold mb-3 text-primary">Job Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {jobDetails.map((item, index) => <div key={index}>{renderDetailItem(item)}</div>)}
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {jobDetails.map((item, index) => <div key={index}>{renderDetailItem(item)}</div>)}
           </div>
         )}
 
         {requirements.length > 0 && (
-          <div>
-            <h3 className="text-md font-semibold mb-3 text-primary">Requirements</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {requirements.map((item, index) => <div key={index}>{renderDetailItem(item)}</div>)}
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {requirements.map((item, index) => <div key={index}>{renderDetailItem(item)}</div>)}
           </div>
         )}
 
         {additionalDetails.length > 0 && (
-          <div>
-            <h3 className="text-md font-semibold mb-3 text-primary">Additional Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {additionalDetails.map((item, index) => <div key={index}>{renderDetailItem(item)}</div>)}
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {additionalDetails.map((item, index) => <div key={index}>{renderDetailItem(item)}</div>)}
           </div>
         )}
       </CardContent>
