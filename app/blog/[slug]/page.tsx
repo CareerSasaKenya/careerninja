@@ -153,11 +153,12 @@ function CommentsSection({ postId }: { postId: string }) {
 
   useEffect(() => {
     fetchComments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [postId]);
 
   const fetchComments = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('blog_comments')
         .select('*')
         .eq('post_id', postId)
@@ -182,7 +183,7 @@ function CommentsSection({ postId }: { postId: string }) {
     setIsSubmitting(true);
     
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('blog_comments')
         .insert([{
           post_id: postId,
