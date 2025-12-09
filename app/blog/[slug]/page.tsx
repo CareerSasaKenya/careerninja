@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import Head from "next/head";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -75,7 +76,7 @@ export default function BlogPostPage() {
 
   return (
     <>
-      <head>
+      <Head>
         <title>{post.title} - CareerSasa Blog</title>
         <meta name="description" content={post.excerpt || post.title} />
         
@@ -85,14 +86,16 @@ export default function BlogPostPage() {
         <meta property="og:title" content={post.title} />
         <meta property="og:description" content={post.excerpt || post.title} />
         <meta property="og:image" content={ogImageUrl} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
         
         {/* Twitter */}
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content={pageUrl} />
-        <meta property="twitter:title" content={post.title} />
-        <meta property="twitter:description" content={post.excerpt || post.title} />
-        <meta property="twitter:image" content={ogImageUrl} />
-      </head>
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:url" content={pageUrl} />
+        <meta name="twitter:title" content={post.title} />
+        <meta name="twitter:description" content={post.excerpt || post.title} />
+        <meta name="twitter:image" content={ogImageUrl} />
+      </Head>
       
       <div className="min-h-screen bg-background">
         <Navbar />

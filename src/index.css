@@ -189,6 +189,18 @@ All colors MUST be HSL.
     @apply mb-2 leading-relaxed;
   }
 
+  /* Remove extra spacing from empty paragraphs */
+  .richtext-content p:empty,
+  .prose p:empty {
+    @apply mb-0 h-0;
+  }
+
+  /* Reduce spacing for consecutive paragraphs */
+  .richtext-content p + p,
+  .prose p + p {
+    @apply mt-0;
+  }
+
   .richtext-content strong,
   .richtext-content b,
   .prose strong,
@@ -269,6 +281,25 @@ All colors MUST be HSL.
   /* Override Tailwind prose max-width */
   .prose {
     max-width: none !important;
+  }
+
+  /* Handle br tags - reduce their spacing */
+  .richtext-content br,
+  .prose br {
+    display: block;
+    content: "";
+    margin-top: 0.25rem;
+  }
+
+  /* Remove excessive spacing between elements */
+  .richtext-content > *:first-child,
+  .prose > *:first-child {
+    @apply mt-0;
+  }
+
+  .richtext-content > *:last-child,
+  .prose > *:last-child {
+    @apply mb-0;
   }
 }
 
