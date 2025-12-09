@@ -144,7 +144,8 @@ All colors MUST be HSL.
   }
 
   /* Rich text content styling */
-  .richtext-content {
+  .richtext-content,
+  .prose {
     @apply leading-relaxed;
   }
 
@@ -153,86 +154,121 @@ All colors MUST be HSL.
   .richtext-content h3,
   .richtext-content h4,
   .richtext-content h5,
-  .richtext-content h6 {
-    @apply font-bold mt-6 mb-4 text-foreground;
+  .richtext-content h6,
+  .prose h1,
+  .prose h2,
+  .prose h3,
+  .prose h4,
+  .prose h5,
+  .prose h6 {
+    @apply font-bold mt-4 mb-2 text-foreground;
   }
 
-  .richtext-content h1 {
+  .richtext-content h1,
+  .prose h1 {
     @apply text-3xl;
   }
 
-  .richtext-content h2 {
+  .richtext-content h2,
+  .prose h2 {
     @apply text-2xl;
   }
 
-  .richtext-content h3 {
+  .richtext-content h3,
+  .prose h3 {
     @apply text-xl;
   }
 
-  .richtext-content h4 {
+  .richtext-content h4,
+  .prose h4 {
     @apply text-lg;
   }
 
-  .richtext-content p {
-    @apply mb-3;
+  .richtext-content p,
+  .prose p {
+    @apply mb-2 leading-relaxed;
   }
 
   .richtext-content strong,
-  .richtext-content b {
+  .richtext-content b,
+  .prose strong,
+  .prose b {
     @apply font-bold;
   }
 
   .richtext-content em,
-  .richtext-content i {
+  .richtext-content i,
+  .prose em,
+  .prose i {
     @apply italic;
   }
 
   .richtext-content ul,
-  .richtext-content ol {
-    @apply list-disc list-inside mb-3 ml-4;
+  .richtext-content ol,
+  .prose ul,
+  .prose ol {
+    @apply list-disc list-inside mb-2 ml-4;
   }
 
-  .richtext-content ol {
+  .richtext-content ol,
+  .prose ol {
     @apply list-decimal;
   }
 
   .richtext-content ul ul,
   .richtext-content ol ol,
   .richtext-content ul ol,
-  .richtext-content ol ul {
+  .richtext-content ol ul,
+  .prose ul ul,
+  .prose ol ol,
+  .prose ul ol,
+  .prose ol ul {
     @apply ml-6 mb-0;
   }
 
-  .richtext-content li {
-    @apply mb-2;
+  .richtext-content li,
+  .prose li {
+    @apply mb-1 leading-relaxed;
   }
 
-  .richtext-content li:last-child {
+  .richtext-content li:last-child,
+  .prose li:last-child {
     @apply mb-0;
   }
 
-  .richtext-content a {
+  .richtext-content a,
+  .prose a {
     @apply text-primary underline hover:text-primary/80;
   }
 
-  .richtext-content blockquote {
-    @apply border-l-4 border-primary pl-4 italic my-4;
+  .richtext-content blockquote,
+  .prose blockquote {
+    @apply border-l-4 border-primary pl-4 italic my-3;
   }
 
-  .richtext-content pre {
-    @apply bg-muted p-4 rounded-lg overflow-x-auto my-4;
+  .richtext-content pre,
+  .prose pre {
+    @apply bg-muted p-4 rounded-lg overflow-x-auto my-3;
   }
 
-  .richtext-content code {
-    @apply bg-muted p-1 rounded font-mono;
+  .richtext-content code,
+  .prose code {
+    @apply bg-muted px-1 py-0.5 rounded font-mono text-sm;
   }
 
-  .richtext-content img {
-    @apply max-w-full h-auto my-4 rounded-lg;
+  .richtext-content img,
+  .prose img {
+    @apply max-w-full h-auto my-3 rounded-lg;
   }
 
-  .richtext-content hr {
-    @apply my-6 border-t border-border;
+  .richtext-content hr,
+  .prose hr {
+    @apply my-4 border-t border-border;
+  }
+
+  /* Override Tailwind prose max-width */
+  .prose {
+    max-width: none !important;
   }
 }
 
