@@ -5,7 +5,7 @@ import { Flag } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, MapPin, Building2, DollarSign, FileText, Clock, Briefcase, GraduationCap, Award, Code, Globe, AlertTriangle } from "lucide-react";
+import { ArrowLeft, MapPin, Building2, DollarSign, FileText, Clock, Briefcase, GraduationCap, Award, Code, Globe, AlertTriangle, Target, TrendingUp, Layers, Lightbulb } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import JobCard from "@/components/JobCard";
@@ -418,12 +418,12 @@ const RoleDetails = ({ job }: { job: any }) => {
 
   const jobDetails = [
     job.specialization ? {
-      icon: <Briefcase className="h-5 w-5 text-primary mt-0.5" />,
+      icon: <Lightbulb className="h-5 w-5 text-primary mt-0.5" />,
       label: "Specialization",
       value: job.specialization
     } : null,
     job.job_function ? {
-      icon: <Briefcase className="h-5 w-5 text-primary mt-0.5" />,
+      icon: <Target className="h-5 w-5 text-primary mt-0.5" />,
       label: "Job Function",
       value: job.job_function
     } : null,
@@ -433,7 +433,7 @@ const RoleDetails = ({ job }: { job: any }) => {
       value: job.work_schedule
     } : null,
     job.minimum_experience ? {
-      icon: <Briefcase className="h-5 w-5 text-primary mt-0.5" />,
+      icon: <TrendingUp className="h-5 w-5 text-primary mt-0.5" />,
       label: "Minimum Experience",
       value: `${job.minimum_experience} years`
     } : null
@@ -464,7 +464,7 @@ const RoleDetails = ({ job }: { job: any }) => {
 
   const additionalDetails = [
     job.practice_area ? {
-      icon: <Briefcase className="h-5 w-5 text-primary mt-0.5" />,
+      icon: <Layers className="h-5 w-5 text-primary mt-0.5" />,
       label: "Practice Area",
       value: job.practice_area
     } : null,
@@ -490,7 +490,7 @@ const RoleDetails = ({ job }: { job: any }) => {
     <div className="flex items-start gap-3">
       {item.icon}
       <div>
-        <p className="text-sm text-muted-foreground">{item.label}</p>
+        <p className="text-sm font-medium" style={{ color: '#0b66c3' }}>{item.label}</p>
         <p className={`font-medium ${item.label === 'Featured Job' ? 'text-yellow-600' : ''}`}>
           {item.value}
           {item.subtext && <span className="text-sm text-muted-foreground ml-1">{item.subtext}</span>}
