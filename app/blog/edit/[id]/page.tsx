@@ -37,10 +37,11 @@ export default function EditBlogPostPage() {
   useEffect(() => {
     const fetchBlogPost = async () => {
       try {
+        const id = Array.isArray(params.id) ? params.id[0] : params.id;
         const { data, error } = await supabase
           .from("blog_posts")
           .select("*")
-          .eq("id", params.id)
+          .eq("id", id)
           .single();
 
         if (error) throw error;
@@ -96,10 +97,11 @@ export default function EditBlogPostPage() {
         tags: formData.tags ? formData.tags.split(",").map(tag => tag.trim()).filter(Boolean) : null,
       };
 
+      const id = Array.isArray(params.id) ? params.id[0] : params.id;
       const { error } = await supabase
         .from("blog_posts")
         .update(postData)
-        .eq("id", params.id);
+        .eq("id", id);
       
       if (error) throw error;
       toast.success("Blog post updated successfully!");
