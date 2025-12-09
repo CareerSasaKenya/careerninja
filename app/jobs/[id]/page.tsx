@@ -432,6 +432,11 @@ const RoleDetails = ({ job }: { job: any }) => {
   ].filter(Boolean);
 
   const requirements = [
+    job.education_level_id ? {
+      icon: <GraduationCap className="h-5 w-5 text-primary mt-0.5" />,
+      label: "Education Level",
+      value: job.education_level_id
+    } : null,
     job.education_requirements ? {
       icon: <GraduationCap className="h-5 w-5 text-primary mt-0.5" />,
       label: "Education",
