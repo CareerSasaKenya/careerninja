@@ -286,9 +286,9 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                 <ApplySection job={job} />
               </div>
 
-              {/* Tags section */}
+              {/* Tags section - only visible on desktop */}
               {job?.tags && (
-                <Card>
+                <Card className="hidden lg:block">
                   <CardHeader>
                     <CardTitle className="text-lg">Tags</CardTitle>
                   </CardHeader>
