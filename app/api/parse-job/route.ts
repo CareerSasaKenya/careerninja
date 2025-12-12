@@ -1,5 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// Add timeout helper function
+const fetchWithTimeout = async (url: string, options: RequestInit, timeout: number = 30000): Promise<Response> => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error(`Request timeout after ${timeout}ms`);
+    }
+    throw error;
+  }
+};
+
 export const runtime = "edge";
 
 interface ParsedJob {
@@ -176,7 +197,7 @@ Return JSON in this exact structure:
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`;
         
         try {
-          response = await fetch(geminiUrl, {
+          response = await fetchWithTimeout(geminiUrl, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -184,7 +205,11 @@ Return JSON in this exact structure:
             body: JSON.stringify({
               contents: [{
                 parts: [{
-                  text: `${systemPrompt}\n\nParse this job posting and return ONLY the JSON object:\n\n${jobText}`
+                  text: `${systemPrompt}
+
+Parse this job posting and return ONLY the JSON object:
+
+${jobText}`
                 }]
               }],
               generationConfig: {
@@ -192,7 +217,7 @@ Return JSON in this exact structure:
                 maxOutputTokens: 8000,
               }
             }),
-          });
+          }, 25000); // 25 second timeout
 
           if (response.ok) {
             console.log(`✓ Gemini API key ${i + 1} succeeded!`);
@@ -230,7 +255,7 @@ Return JSON in this exact structure:
       if (!response || !response.ok) {
         if (openRouterApiKey) {
           console.log(`All Gemini keys failed, trying OpenRouter fallback...`);
-          response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          response = await fetchWithTimeout("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
             headers: {
               "Authorization": `Bearer ${openRouterApiKey}`,
@@ -247,7 +272,7 @@ Return JSON in this exact structure:
               temperature: 0.1,
               max_tokens: 8000,
             }),
-          });
+          }, 25000); // 25 second timeout
         } else {
           // No fallback available, return last Gemini error
           return NextResponse.json(
@@ -262,7 +287,7 @@ Return JSON in this exact structure:
       }
     } else {
       // Use OpenRouter if no Gemini key
-      response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      response = await fetchWithTimeout("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${openRouterApiKey}`,
@@ -279,7 +304,7 @@ Return JSON in this exact structure:
           temperature: 0.1,
           max_tokens: 8000,
         }),
-      });
+      }, 25000); // 25 second timeout
     }
 
     if (!response.ok) {

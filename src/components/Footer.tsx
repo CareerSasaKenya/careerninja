@@ -124,16 +124,6 @@ export function Footer() {
                     Employer Login
                   </Link>
                 </li>
-                <li>
-                  <Link href="/pricing" className="text-muted-foreground hover:text-foreground transition-colors" prefetch={true}>
-                    Pricing
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/candidates" className="text-muted-foreground hover:text-foreground transition-colors" prefetch={true}>
-                    Candidate Search
-                  </Link>
-                </li>
               </ul>
             </div>
 

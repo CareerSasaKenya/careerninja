@@ -93,14 +93,35 @@ const JobTextParser = ({ onParsed }: JobTextParserProps) => {
         body: JSON.stringify({ jobText }),
       });
 
+      // Check if response is JSON before parsing
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const errorText = await response.text();
+        throw new Error(`Invalid response from server: ${errorText || 'Unknown error'}`);
+      }
+
       const result = await response.json();
 
       if (!response.ok) {
         const errorMsg = result.error || "Failed to parse job text";
         if (result.status === 401) {
-          throw new Error(`${errorMsg}\n\nSteps to fix:\n1. Verify your API key in Vercel environment variables\n2. Check API key is active`);
+          throw new Error(`${errorMsg}
+
+Steps to fix:
+1. Verify your API key in Vercel environment variables
+2. Check API key is active`);
         } else if (result.status === 402) {
-          throw new Error(`${errorMsg}\n\nYour Gemini API free quota may be exceeded.\n\nOptions:\n1. Wait for quota to reset (usually 24 hours)\n2. Enable billing in Google Cloud Console\n3. Create a new Gemini API key\n4. Use OpenRouter instead (requires credits)`);
+          throw new Error(`${errorMsg}
+
+Your Gemini API free quota may be exceeded.
+
+Options:
+1. Wait for quota to reset (usually 24 hours)
+2. Enable billing in Google Cloud Console
+3. Create a new Gemini API key
+4. Use OpenRouter instead (requires credits)`);
+        } else if (result.status === 504) {
+          throw new Error(`Request timeout. The AI service took too long to respond. Please try again.`);
         }
         throw new Error(errorMsg);
       }
