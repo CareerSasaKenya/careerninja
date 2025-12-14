@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Clean up expired cache entries
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('ai_response_cache')
       .delete()
       .lt('expires_at', new Date().toISOString());
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    const { error: jobCleanupError } = await supabase
+    const { error: jobCleanupError } = await (supabase as any)
       .from('job_parsing_queue')
       .delete()
       .eq('status', 'failed')

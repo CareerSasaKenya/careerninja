@@ -58,7 +58,7 @@ export async function getCachedResponse(jobText: string): Promise<ParsedJobData 
   try {
     const hash = await generateHash(jobText);
     
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('ai_response_cache')
       .select('response_data')
       .eq('input_hash', hash)
@@ -70,9 +70,9 @@ export async function getCachedResponse(jobText: string): Promise<ParsedJobData 
     }
 
     // Update hit count
-    await supabase
+    await (supabase as any)
       .from('ai_response_cache')
-      .update({ hit_count: supabase.sql`hit_count + 1` })
+      .update({ hit_count: (supabase as any).sql`hit_count + 1` })
       .eq('input_hash', hash);
 
     return data.response_data as ParsedJobData;
@@ -93,7 +93,7 @@ export async function saveToCache(
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7); // 7 days cache
 
-    await supabase
+    await (supabase as any)
       .from('ai_response_cache')
       .upsert({
         input_hash: hash,
@@ -280,7 +280,7 @@ function parseAIResponse(content: string): ParsedJobData {
 export async function queueJobForParsing(jobText: string): Promise<string> {
   const hash = await generateHash(jobText);
   
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('job_parsing_queue')
     .insert({
       job_text: jobText,
@@ -304,7 +304,7 @@ export async function getJobParsingStatus(jobId: string): Promise<{
   error?: string;
   progress?: number;
 }> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('job_parsing_queue')
     .select('status, result, error_message')
     .eq('id', jobId)
@@ -324,7 +324,7 @@ export async function getJobParsingStatus(jobId: string): Promise<{
 
 // Process queued jobs (for background processing)
 export async function processQueuedJobs(batchSize: number = 5): Promise<void> {
-  const { data: jobs, error } = await supabase
+  const { data: jobs, error } = await (supabase as any)
     .from('job_parsing_queue')
     .select('id, job_text')
     .eq('status', 'pending')
@@ -337,7 +337,7 @@ export async function processQueuedJobs(batchSize: number = 5): Promise<void> {
   
   // Process jobs in parallel (but limited batch size)
   await Promise.allSettled(
-    jobs.map(job => processQueuedJob(job.id, job.job_text))
+    jobs.map((job: any) => processQueuedJob(job.id, job.job_text))
   );
 }
 
@@ -345,7 +345,7 @@ export async function processQueuedJobs(batchSize: number = 5): Promise<void> {
 async function processQueuedJob(jobId: string, jobText: string): Promise<void> {
   try {
     // Mark as processing
-    await supabase
+    await (supabase as any)
       .from('job_parsing_queue')
       .update({ 
         status: 'processing', 
@@ -368,7 +368,7 @@ async function processQueuedJob(jobId: string, jobText: string): Promise<void> {
     }
     
     // Mark as completed
-    await supabase
+    await (supabase as any)
       .from('job_parsing_queue')
       .update({ 
         status: 'completed',
@@ -379,7 +379,7 @@ async function processQueuedJob(jobId: string, jobText: string): Promise<void> {
       
   } catch (error: any) {
     // Mark as failed
-    await supabase
+    await (supabase as any)
       .from('job_parsing_queue')
       .update({ 
         status: 'failed',

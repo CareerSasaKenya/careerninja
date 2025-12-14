@@ -32,7 +32,7 @@ const JobParserStatsPage = () => {
   const fetchStats = async () => {
     try {
       // Fetch job queue stats
-      const { data: jobs, error: jobError } = await supabase
+      const { data: jobs, error: jobError } = await (supabase as any)
         .from('job_parsing_queue')
         .select('status');
 
@@ -40,16 +40,16 @@ const JobParserStatsPage = () => {
 
       const stats: JobStats = {
         total: jobs?.length || 0,
-        pending: jobs?.filter(j => j.status === 'pending').length || 0,
-        processing: jobs?.filter(j => j.status === 'processing').length || 0,
-        completed: jobs?.filter(j => j.status === 'completed').length || 0,
-        failed: jobs?.filter(j => j.status === 'failed').length || 0,
+        pending: jobs?.filter((j: any) => j.status === 'pending').length || 0,
+        processing: jobs?.filter((j: any) => j.status === 'processing').length || 0,
+        completed: jobs?.filter((j: any) => j.status === 'completed').length || 0,
+        failed: jobs?.filter((j: any) => j.status === 'failed').length || 0,
       };
 
       setJobStats(stats);
 
       // Fetch cache stats
-      const { data: cache, error: cacheError } = await supabase
+      const { data: cache, error: cacheError } = await (supabase as any)
         .from('ai_response_cache')
         .select('hit_count');
 
@@ -57,14 +57,14 @@ const JobParserStatsPage = () => {
 
       const cacheStatsData: CacheStats = {
         total: cache?.length || 0,
-        hitCount: cache?.reduce((sum, c) => sum + (c.hit_count || 0), 0) || 0,
-        avgHitCount: cache?.length ? (cache.reduce((sum, c) => sum + (c.hit_count || 0), 0) / cache.length) : 0,
+        hitCount: cache?.reduce((sum: number, c: any) => sum + (c.hit_count || 0), 0) || 0,
+        avgHitCount: cache?.length ? (cache.reduce((sum: number, c: any) => sum + (c.hit_count || 0), 0) / cache.length) : 0,
       };
 
       setCacheStats(cacheStatsData);
 
       // Fetch recent jobs
-      const { data: recent, error: recentError } = await supabase
+      const { data: recent, error: recentError } = await (supabase as any)
         .from('job_parsing_queue')
         .select('id, status, created_at, error_message, started_at, completed_at')
         .order('created_at', { ascending: false })
