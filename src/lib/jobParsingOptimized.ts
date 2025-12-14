@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '@/integrations/supabase/types';
-import crypto from 'crypto';
 
 // Create a Supabase client for server-side operations
 const supabase = createClient<Database>(
@@ -45,15 +44,19 @@ export interface JobParsingResult {
   processingTime?: number;
 }
 
-// Generate hash for caching
-function generateHash(text: string): string {
-  return crypto.createHash('sha256').update(text.trim().toLowerCase()).digest('hex');
+// Generate hash for caching using Web Crypto API (Edge runtime compatible)
+async function generateHash(text: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(text.trim().toLowerCase());
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 // Check cache first
 export async function getCachedResponse(jobText: string): Promise<ParsedJobData | null> {
   try {
-    const hash = generateHash(jobText);
+    const hash = await generateHash(jobText);
     
     const { data, error } = await supabase
       .from('ai_response_cache')
@@ -86,7 +89,7 @@ export async function saveToCache(
   modelUsed: string = 'unknown'
 ): Promise<void> {
   try {
-    const hash = generateHash(jobText);
+    const hash = await generateHash(jobText);
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7); // 7 days cache
 
@@ -275,7 +278,7 @@ function parseAIResponse(content: string): ParsedJobData {
 
 // Queue job for async processing
 export async function queueJobForParsing(jobText: string): Promise<string> {
-  const hash = generateHash(jobText);
+  const hash = await generateHash(jobText);
   
   const { data, error } = await supabase
     .from('job_parsing_queue')
