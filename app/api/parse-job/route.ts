@@ -148,5 +148,4 @@ Return JSON structure:
   "experience_level": "Mid",
   "additional_info": "<p><strong>How to Apply:</strong> Instructions here</p><h3>Tips:</h3><p>1. Tip one...</p>"
 }`;
-
-
+}
