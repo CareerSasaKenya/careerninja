@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Briefcase, Users, Trash2, FileText, Edit } from "lucide-react";
+import { Plus, Briefcase, Users, Trash2, FileText, Edit, BarChart } from "lucide-react";
 import { toast } from "sonner";
 
 interface Job {
@@ -228,6 +228,12 @@ const AdminDashboard = () => {
             <Button variant="outline" className="w-full sm:w-auto">
               <Plus className="mr-2 h-4 w-4" />
               Parse Job Text
+            </Button>
+          </Link>
+          <Link href="/dashboard/admin/job-parser-stats">
+            <Button variant="outline" className="w-full sm:w-auto">
+              <BarChart className="mr-2 h-4 w-4" />
+              Parser Stats
             </Button>
           </Link>
           <Link href="/post-job">

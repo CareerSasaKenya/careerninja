@@ -69,6 +69,11 @@ const JobTextParser = ({ onParsed }: JobTextParserProps) => {
   const [jobText, setJobText] = useState("");
   const [isParsing, setIsParsing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [useStreaming, setUseStreaming] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [processingTime, setProcessingTime] = useState<number | null>(null);
+  const [isCached, setIsCached] = useState(false);
 
   const loadExample = () => {
     setJobText(EXAMPLE_JOB_TEXT);
@@ -83,55 +88,16 @@ const JobTextParser = ({ onParsed }: JobTextParserProps) => {
 
     setIsParsing(true);
     setError(null);
+    setProgress(0);
+    setStatusMessage("");
+    setProcessingTime(null);
+    setIsCached(false);
 
     try {
-      const response = await fetch("/api/parse-job", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ jobText }),
-      });
-
-      // Check if response is JSON before parsing
-      const contentType = response.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        const errorText = await response.text();
-        throw new Error(`Invalid response from server: ${errorText || 'Unknown error'}`);
-      }
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        const errorMsg = result.error || "Failed to parse job text";
-        if (result.status === 401) {
-          throw new Error(`${errorMsg}
-
-Steps to fix:
-1. Verify your API key in Vercel environment variables
-2. Check API key is active`);
-        } else if (result.status === 402) {
-          throw new Error(`${errorMsg}
-
-Your Gemini API free quota may be exceeded.
-
-Options:
-1. Wait for quota to reset (usually 24 hours)
-2. Enable billing in Google Cloud Console
-3. Create a new Gemini API key
-4. Use OpenRouter instead (requires credits)`);
-        } else if (result.status === 504) {
-          throw new Error(`Request timeout. The AI service took too long to respond. Please try again.`);
-        }
-        throw new Error(errorMsg);
-      }
-
-      if (result.success && result.data) {
-        toast.success("Job text parsed successfully!");
-        onParsed(result.data);
-        setJobText(""); // Clear the text area
+      if (useStreaming) {
+        await handleStreamingParse();
       } else {
-        throw new Error("Invalid response from parser");
+        await handleDirectParse();
       }
     } catch (err: any) {
       console.error("Parse error:", err);
@@ -140,6 +106,132 @@ Options:
       toast.error(errorMessage);
     } finally {
       setIsParsing(false);
+      setProgress(0);
+      setStatusMessage("");
+    }
+  };
+
+  const handleDirectParse = async () => {
+    const startTime = Date.now();
+    
+    const response = await fetch("/api/parse-job", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ jobText }),
+    });
+
+    // Check if response is JSON before parsing
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      const errorText = await response.text();
+      throw new Error(`Invalid response from server: ${errorText || 'Unknown error'}`);
+    }
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      const errorMsg = result.error || "Failed to parse job text";
+      if (result.status === 401) {
+        throw new Error(`${errorMsg}
+
+Steps to fix:
+1. Verify your API key in Vercel environment variables
+2. Check API key is active`);
+      } else if (result.status === 402) {
+        throw new Error(`${errorMsg}
+
+Your Gemini API free quota may be exceeded.
+
+Options:
+1. Wait for quota to reset (usually 24 hours)
+2. Enable billing in Google Cloud Console
+3. Create a new Gemini API key
+4. Use OpenRouter instead (requires credits)`);
+      } else if (result.status === 504) {
+        throw new Error(`Request timeout. The AI service took too long to respond. Please try again.`);
+      }
+      throw new Error(errorMsg);
+    }
+
+    if (result.success && result.data) {
+      setProcessingTime(result.processingTime || Date.now() - startTime);
+      setIsCached(result.cached || false);
+      
+      const successMsg = result.cached 
+        ? "Job text parsed successfully (from cache)!" 
+        : "Job text parsed successfully!";
+      
+      toast.success(successMsg);
+      onParsed(result.data);
+      setJobText(""); // Clear the text area
+    } else {
+      throw new Error("Invalid response from parser");
+    }
+  };
+
+  const handleStreamingParse = async () => {
+    const response = await fetch("/api/parse-job/stream", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ jobText }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to start streaming parse");
+    }
+
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error("No response stream available");
+    }
+
+    const decoder = new TextDecoder();
+    
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        
+        if (done) break;
+        
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n');
+        
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              
+              switch (data.type) {
+                case 'status':
+                case 'progress':
+                  setProgress(data.progress || 0);
+                  setStatusMessage(data.message || '');
+                  break;
+                  
+                case 'completed':
+                  setProgress(100);
+                  setStatusMessage('Completed!');
+                  toast.success("Job text parsed successfully!");
+                  onParsed(data.data);
+                  setJobText("");
+                  return;
+                  
+                case 'error':
+                case 'timeout':
+                  throw new Error(data.error);
+              }
+            } catch (parseError) {
+              console.warn('Failed to parse SSE data:', parseError);
+            }
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
     }
   };
 
@@ -164,15 +256,26 @@ Options:
 
         <div className="flex justify-between items-center mb-2">
           <label className="text-sm font-medium">Job Text</label>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={loadExample}
-            disabled={isParsing}
-          >
-            Load Example
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setUseStreaming(!useStreaming)}
+              disabled={isParsing}
+            >
+              {useStreaming ? "Direct Mode" : "Stream Mode"}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={loadExample}
+              disabled={isParsing}
+            >
+              Load Example
+            </Button>
+          </div>
         </div>
 
         <div className="space-y-2">
@@ -201,6 +304,30 @@ Responsibilities:
           </p>
         </div>
 
+        {/* Progress indicator for streaming mode */}
+        {isParsing && useStreaming && (
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>{statusMessage}</span>
+              <span>{progress}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-primary h-2 rounded-full transition-all duration-300" 
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Performance metrics */}
+        {processingTime && !isParsing && (
+          <div className="text-xs text-muted-foreground flex gap-4">
+            <span>Processing time: {processingTime}ms</span>
+            {isCached && <span className="text-green-600">✓ Cached result</span>}
+          </div>
+        )}
+
         <Button
           onClick={handleParse}
           disabled={isParsing || !jobText.trim()}
@@ -209,15 +336,21 @@ Responsibilities:
           {isParsing ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Parsing with AI...
+              {useStreaming ? statusMessage || "Processing..." : "Parsing with AI..."}
             </>
           ) : (
             <>
               <Sparkles className="mr-2 h-4 w-4" />
-              Parse Job Text
+              {useStreaming ? "Parse with Streaming" : "Parse Job Text"}
             </>
           )}
         </Button>
+        
+        {useStreaming && (
+          <p className="text-xs text-muted-foreground text-center">
+            Streaming mode provides real-time progress updates and handles large jobs better
+          </p>
+        )}
       </CardContent>
     </Card>
   );
