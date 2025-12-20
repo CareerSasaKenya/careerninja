@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import Script from "next/script";
@@ -6,7 +5,11 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { pageview } from "@/lib/gtagHelper";
 
-export default function GoogleAnalytics({ gaMeasurementId }: { gaMeasurementId: string }) {
+interface GoogleAnalyticsProps {
+  gaMeasurementId: string;
+}
+
+export default function GoogleAnalytics({ gaMeasurementId }: GoogleAnalyticsProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
