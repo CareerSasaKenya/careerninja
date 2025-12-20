@@ -4,6 +4,7 @@ import "@/index.css";
 import { Providers } from "./providers";
 import { NavigationEvents } from "@/components/NavigationEvents";
 import { Suspense } from "react";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -42,6 +43,8 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "";
+  
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -50,6 +53,10 @@ export default function RootLayout({
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+        {/* Google Search Console Verification */}
+        <meta name="google-site-verification" content="YOUR_GOOGLE_SEARCH_CONSOLE_VERIFICATION_CODE_HERE" />
+        {/* Bing Webmaster Tools Verification */}
+        <meta name="msvalidate.01" content="YOUR_BING_WEBMASTER_TOOLS_VERIFICATION_CODE_HERE" />
       </head>
       <body className={inter.className} suppressHydrationWarning>
         <Providers>
@@ -58,6 +65,9 @@ export default function RootLayout({
             <NavigationEvents />
           </Suspense>
         </Providers>
+        {gaMeasurementId && (
+          <GoogleAnalytics gaMeasurementId={gaMeasurementId} />
+        )}
       </body>
     </html>
   );
