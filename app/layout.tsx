@@ -65,9 +65,11 @@ export default function RootLayout({
             <NavigationEvents />
           </Suspense>
         </Providers>
-        {gaMeasurementId && (
-          <GoogleAnalytics gaMeasurementId={gaMeasurementId} />
-        )}
+        <Suspense fallback={null}>
+          {gaMeasurementId && (
+            <GoogleAnalytics gaMeasurementId={gaMeasurementId} />
+          )}
+        </Suspense>
       </body>
     </html>
   );
