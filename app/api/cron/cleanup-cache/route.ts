@@ -4,12 +4,28 @@ import { Database } from '@/integrations/supabase/types';
 
 export const runtime = "edge";
 
-const supabase = createClient<Database>(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || ''
-);
+// Check if required environment variables are present
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+// Only create the Supabase client if we have the required variables
+let supabase: ReturnType<typeof createClient<Database>> | null = null;
+
+if (supabaseUrl && supabaseKey) {
+  supabase = createClient<Database>(supabaseUrl, supabaseKey);
+}
 
 export async function GET(request: NextRequest) {
+  // If Supabase isn't configured, return early
+  if (!supabase) {
+    console.warn("Supabase not configured - skipping cache cleanup");
+    return NextResponse.json({
+      success: true,
+      message: "Cache cleanup skipped - Supabase not configured",
+      timestamp: new Date().toISOString()
+    });
+  }
+
   try {
     // Verify the request is from a cron job (optional security)
     const authHeader = request.headers.get('authorization');

@@ -2,10 +2,16 @@ import { createClient } from '@supabase/supabase-js';
 import { Database } from '@/integrations/supabase/types';
 
 // Create a Supabase client for server-side operations
-const supabase = createClient<Database>(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || ''
-);
+// Check if required environment variables are present
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+// Only create the Supabase client if we have the required variables
+let supabase: ReturnType<typeof createClient<Database>> | null = null;
+
+if (supabaseUrl && supabaseKey) {
+  supabase = createClient<Database>(supabaseUrl, supabaseKey);
+}
 
 export interface ParsedJobData {
   title: string;
@@ -55,6 +61,12 @@ async function generateHash(text: string): Promise<string> {
 
 // Check cache first
 export async function getCachedResponse(jobText: string): Promise<ParsedJobData | null> {
+  // If Supabase isn't configured, return null
+  if (!supabase) {
+    console.warn("Supabase not configured - skipping cache lookup");
+    return null;
+  }
+  
   try {
     const hash = await generateHash(jobText);
     
@@ -88,6 +100,12 @@ export async function saveToCache(
   response: ParsedJobData, 
   modelUsed: string = 'unknown'
 ): Promise<void> {
+  // If Supabase isn't configured, skip cache save
+  if (!supabase) {
+    console.warn("Supabase not configured - skipping cache save");
+    return;
+  }
+  
   try {
     const hash = await generateHash(jobText);
     const expiresAt = new Date();
@@ -172,7 +190,11 @@ async function callGeminiAPI(apiKey: string, jobText: string, systemPrompt: stri
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{
-            parts: [{ text: `${systemPrompt}\n\nParse this job posting:\n\n${jobText}` }]
+            parts: [{ text: `${systemPrompt}
+
+Parse this job posting:
+
+${jobText}` }]
           }],
           generationConfig: {
             temperature: 0.1,
@@ -254,7 +276,7 @@ function parseAIResponse(content: string): ParsedJobData {
   let cleanedContent = content.trim();
   
   // Remove markdown code blocks
-  if (cleanedContent.startsWith("```json")) {
+  if (cleanedContent.startsWith("``json")) {
     cleanedContent = cleanedContent.replace(/^```json\n/, "").replace(/\n```$/, "");
   } else if (cleanedContent.startsWith("```")) {
     cleanedContent = cleanedContent.replace(/^```\n/, "").replace(/\n```$/, "");
@@ -278,6 +300,11 @@ function parseAIResponse(content: string): ParsedJobData {
 
 // Queue job for async processing
 export async function queueJobForParsing(jobText: string): Promise<string> {
+  // If Supabase isn't configured, throw an error
+  if (!supabase) {
+    throw new Error("Supabase not configured - cannot queue job");
+  }
+  
   const hash = await generateHash(jobText);
   
   const { data, error } = await (supabase as any)
@@ -304,6 +331,11 @@ export async function getJobParsingStatus(jobId: string): Promise<{
   error?: string;
   progress?: number;
 }> {
+  // If Supabase isn't configured, throw an error
+  if (!supabase) {
+    throw new Error("Supabase not configured - cannot get job status");
+  }
+  
   const { data, error } = await (supabase as any)
     .from('job_parsing_queue')
     .select('status, result, error_message')
@@ -324,6 +356,12 @@ export async function getJobParsingStatus(jobId: string): Promise<{
 
 // Process queued jobs (for background processing)
 export async function processQueuedJobs(batchSize: number = 5): Promise<void> {
+  // If Supabase isn't configured, skip processing
+  if (!supabase) {
+    console.warn("Supabase not configured - skipping job processing");
+    return;
+  }
+  
   const { data: jobs, error } = await (supabase as any)
     .from('job_parsing_queue')
     .select('id, job_text')
@@ -343,6 +381,12 @@ export async function processQueuedJobs(batchSize: number = 5): Promise<void> {
 
 // Process individual queued job
 async function processQueuedJob(jobId: string, jobText: string): Promise<void> {
+  // If Supabase isn't configured, skip processing
+  if (!supabase) {
+    console.warn("Supabase not configured - skipping job processing");
+    return;
+  }
+  
   try {
     // Mark as processing
     await (supabase as any)
