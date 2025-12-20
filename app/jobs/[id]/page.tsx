@@ -14,13 +14,25 @@ import ApplySection from "@/components/ApplySection";
 import SocialShare from "@/components/SocialShare";
 
 // Create Supabase client for server-side data fetching
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || ''
-);
+// Check if required environment variables are present
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+// Only create the Supabase client if we have the required variables
+let supabase: ReturnType<typeof createClient> | null = null;
+
+if (supabaseUrl && supabaseKey) {
+  supabase = createClient(supabaseUrl, supabaseKey);
+}
 
 // Server-side data fetching
 async function getJobData(id: string) {
+  // If Supabase isn't configured, return null
+  if (!supabase) {
+    console.warn("Supabase not configured - cannot fetch job data");
+    return null;
+  }
+  
   try {
     // Try to find by slug first (more user-friendly URLs)
     let { data: job, error } = await supabase
@@ -71,6 +83,12 @@ async function getJobData(id: string) {
 }
 
 async function getRelatedJobs(jobId: string, industry?: string, jobFunction?: string) {
+  // If Supabase isn't configured, return empty array
+  if (!supabase) {
+    console.warn("Supabase not configured - cannot fetch related jobs");
+    return [];
+  }
+  
   try {
     let query = supabase
       .from("jobs")
