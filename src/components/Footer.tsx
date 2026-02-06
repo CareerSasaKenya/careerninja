@@ -107,6 +107,11 @@ export function Footer() {
                     Career Tips
                   </Link>
                 </li>
+                <li>
+                  <Link href="/services/linkedin" className="text-muted-foreground hover:text-foreground transition-colors" prefetch={true}>
+                    LinkedIn Services
+                  </Link>
+                </li>
               </ul>
             </div>
 

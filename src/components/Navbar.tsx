@@ -74,6 +74,9 @@ const Navbar = () => {
           <Link href="/blog" prefetch={true}>
             <Button variant="ghost">Blog</Button>
           </Link>
+          <Link href="/services/linkedin" prefetch={true}>
+            <Button variant="ghost">LinkedIn Services</Button>
+          </Link>
           {user ? (
             <>
               <Link href="/dashboard" prefetch={true}>
