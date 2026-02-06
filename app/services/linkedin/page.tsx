@@ -241,142 +241,240 @@ export default function LinkedInServicesPage() {
         {/* Individual Services */}
         <section className="mb-16">
           <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Our LinkedIn Services</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {services.map((service) => (
-              <div key={service.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{service.title}</h3>
-                  <p className="text-gray-600 mb-4">{service.subtitle}</p>
-                  <ul className="space-y-2 mb-4">
-                    {service.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-start">
-                        <span className="text-green-600 mr-2 mt-1">✓</span>
-                        <span className="text-gray-700">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="text-sm text-gray-500 italic mb-4">{service.bestFor}</p>
-                  <div className="flex justify-between items-center">
-                    <span className="font-bold text-lg text-primary">{service.price}</span>
-                    <Link href={`https://wa.me/254795564135?text=${encodeURIComponent(service.whatsappMessage)}`} target="_blank">
-                      <Button variant="outline" size="sm">
-                        WhatsApp Us
-                      </Button>
-                    </Link>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {services.map((service, index) => {
+              const colors = [
+                'from-green-50 to-emerald-50',
+                'from-blue-50 to-cyan-50',
+                'from-purple-50 to-violet-50',
+                'from-pink-50 to-rose-50',
+                'from-amber-50 to-orange-50'
+              ];
+              
+              const color = colors[index % colors.length];
+              
+              return (
+                <div 
+                  key={service.id}
+                  className={`relative bg-gradient-to-br ${color} border border-gray-200 rounded-2xl p-6 shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 overflow-hidden`}
+                >
+                  {/* Decorative corner elements */}
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/30 to-transparent rounded-bl-full"></div>
+                  <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-white/30 to-transparent rounded-tr-full"></div>
+                  
+                  <div className="relative z-10">
+                    <div className="flex items-start mb-4">
+                      <div className="mr-3 mt-1">
+                        <span className="text-2xl">{service.title.split(' ')[0]}</span>
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-gray-900">{service.title.substring(service.title.indexOf(' ') + 1)}</h3>
+                        <p className="text-gray-600 mt-1">{service.subtitle}</p>
+                      </div>
+                    </div>
+                    
+                    <ul className="space-y-2 mb-4">
+                      {service.features.map((feature, idx) => (
+                        <li key={idx} className="flex items-start">
+                          <span className="text-green-600 mr-2 mt-1">✓</span>
+                          <span className="text-gray-700">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    
+                    <p className="text-sm text-gray-500 italic mb-4">{service.bestFor}</p>
+                    
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <span className="font-bold text-lg text-primary">{service.price}</span>
+                      <Link href={`https://wa.me/254795564135?text=${encodeURIComponent(service.whatsappMessage)}`} target="_blank">
+                        <Button variant="outline" className="border-green-500 text-green-600 hover:bg-green-50 hover:border-green-600">
+                          WhatsApp Us
+                        </Button>
+                      </Link>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 
         {/* Bundled Packages */}
         <section className="mb-16">
           <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Bundled LinkedIn Packages</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {packages.map((pkg) => (
-              <div key={pkg.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{pkg.title}</h3>
-                  <p className="text-gray-600 mb-4">{pkg.subtitle}</p>
-                  <ul className="space-y-2 mb-4">
-                    {pkg.services.map((service, idx) => (
-                      <li key={idx} className="flex items-start">
-                        <span className="text-green-600 mr-2 mt-1">✓</span>
-                        <span className="text-gray-700">{service}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="flex justify-between items-center">
-                    <span className="font-bold text-lg text-primary">{pkg.price}</span>
-                    <Link href={`https://wa.me/254795564135?text=${encodeURIComponent(pkg.whatsappMessage)}`} target="_blank">
-                      <Button variant="default" className="bg-green-500 hover:bg-green-600">
-                        Order Now
-                      </Button>
-                    </Link>
+          <div className="space-y-8 max-w-6xl mx-auto">
+            {packages.map((pkg, index) => {
+              const colors = [
+                { bg: 'from-emerald-50 to-teal-50', border: 'border-emerald-200', accent: 'bg-emerald-500', text: 'text-emerald-700' },
+                { bg: 'from-blue-50 to-cyan-50', border: 'border-blue-200', accent: 'bg-blue-500', text: 'text-blue-700' },
+                { bg: 'from-violet-50 to-purple-50', border: 'border-violet-200', accent: 'bg-violet-500', text: 'text-violet-700' },
+                { bg: 'from-rose-50 to-pink-50', border: 'border-rose-200', accent: 'bg-rose-500', text: 'text-rose-700' },
+                { bg: 'from-amber-50 to-orange-50', border: 'border-amber-200', accent: 'bg-amber-500', text: 'text-amber-700' }
+              ];
+              
+              const color = colors[index % colors.length];
+              
+              return (
+                <div 
+                  key={pkg.id}
+                  className={`relative bg-gradient-to-br ${color.bg} border ${color.border} rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden`}
+                >
+                  {/* Decorative elements */}
+                  <div className="absolute -top-4 -right-4 w-24 h-24 rounded-full bg-white/30 blur-xl"></div>
+                  <div className="absolute -bottom-4 -left-4 w-20 h-20 rounded-full bg-white/30 blur-xl"></div>
+                  
+                  <div className="relative z-10">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+                      <div>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-2">{pkg.title}</h3>
+                        <p className="text-gray-600 font-medium">{pkg.subtitle}</p>
+                      </div>
+                      <div className="mt-4 md:mt-0 md:ml-6">
+                        <div className={`inline-block px-4 py-2 rounded-full ${color.accent} text-white font-bold text-lg`}>
+                          {pkg.price}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div>
+                        <h4 className="font-semibold text-gray-800 mb-3 flex items-center">
+                          <span className={`${color.accent} w-2 h-2 rounded-full mr-2`}></span>
+                          What's Included:
+                        </h4>
+                        <ul className="space-y-2">
+                          {pkg.services.map((service, idx) => (
+                            <li key={idx} className="flex items-start">
+                              <span className="text-green-600 mr-2 mt-1">✓</span>
+                              <span className="text-gray-700">{service}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      
+                      <div className="flex items-center justify-center">
+                        <Link href={`https://wa.me/254795564135?text=${encodeURIComponent(pkg.whatsappMessage)}`} target="_blank">
+                          <Button className={`${color.accent} hover:${color.accent.replace('500', '600')} text-white px-8 py-3 text-lg font-semibold rounded-xl transition-all duration-200 transform hover:scale-105`}>
+                            Get Started Now
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 
         {/* Custom Solutions */}
-        <section className="mb-16 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-8 border border-purple-100">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">🧩 Custom LinkedIn Solutions</h2>
-          <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">Need Something More Specific? Let's Build It Together.</h3>
-          <p className="text-gray-700 mb-6 text-center">
-            Not every career fits into a standard package. Some professionals need <strong>specialized LinkedIn support</strong> — whether it's a career transition, confidential job search, niche industry positioning, or advanced visibility strategy.
-          </p>
-          <p className="text-gray-700 mb-6 text-center">
-            That's why CareerSasa offers <strong>Custom LinkedIn Packages</strong>, tailored exactly to your goals.
-          </p>
+        <section className="mb-16 relative overflow-hidden rounded-2xl border border-purple-200">
+          {/* Background decorative elements */}
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-50 to-indigo-100 opacity-70"></div>
+          <div className="absolute top-10 left-10 w-32 h-32 bg-purple-300/20 rounded-full blur-2xl"></div>
+          <div className="absolute bottom-10 right-10 w-40 h-40 bg-indigo-300/20 rounded-full blur-2xl"></div>
+          
+          <div className="relative z-10 p-10">
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl mb-4">
+                <span className="text-2xl text-white">🧩</span>
+              </div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">Custom LinkedIn Solutions</h2>
+              <h3 className="text-xl font-semibold text-gray-700">Need Something More Specific? Let's Build It Together.</h3>
+            </div>
+            
+            <div className="text-center mb-8 max-w-3xl mx-auto">
+              <p className="text-gray-700 mb-4">
+                Not every career fits into a standard package. Some professionals need <strong>specialized LinkedIn support</strong> — whether it's a career transition, confidential job search, niche industry positioning, or advanced visibility strategy.
+              </p>
+              <p className="text-gray-700">
+                That's why CareerSasa offers <strong>Custom LinkedIn Packages</strong>, tailored exactly to your goals.
+              </p>
+            </div>
 
-          <h4 className="text-lg font-semibold text-gray-800 mb-4">What a Custom Package Can Include</h4>
-          <div className="grid md:grid-cols-2 gap-4 mb-6">
-            <ul className="space-y-2">
-              <li className="flex items-start">
-                <span className="text-purple-600 mr-2">•</span>
-                <span className="text-gray-700">Career transition positioning (e.g. technical → leadership)</span>
-              </li>
-              <li className="flex items-start">
-                <span className="text-purple-600 mr-2">•</span>
-                <span className="text-gray-700">Confidential job search support</span>
-              </li>
-              <li className="flex items-start">
-                <span className="text-purple-600 mr-2">•</span>
-                <span className="text-gray-700">Industry-specific keyword & recruiter targeting</span>
-              </li>
-            </ul>
-            <ul className="space-y-2">
-              <li className="flex items-start">
-                <span className="text-purple-600 mr-2">•</span>
-                <span className="text-gray-700">Advanced LinkedIn SEO & search visibility</span>
-              </li>
-              <li className="flex items-start">
-                <span className="text-purple-600 mr-2">•</span>
-                <span className="text-gray-700">Executive personal branding & thought leadership</span>
-              </li>
-              <li className="flex items-start">
-                <span className="text-purple-600 mr-2">•</span>
-                <span className="text-gray-700">LinkedIn social media management (custom volume)</span>
-              </li>
-            </ul>
-          </div>
+            <div className="bg-white/50 backdrop-blur-sm rounded-xl p-8 mb-8 border border-white/30">
+              <h4 className="text-lg font-semibold text-gray-800 mb-6 text-center">What a Custom Package Can Include</h4>
+              <div className="grid md:grid-cols-2 gap-6">
+                <ul className="space-y-3">
+                  <li className="flex items-start">
+                    <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-0.5">
+                      <span className="text-purple-600 text-sm">✓</span>
+                    </div>
+                    <span className="text-gray-700">Career transition positioning (e.g. technical → leadership)</span>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-0.5">
+                      <span className="text-purple-600 text-sm">✓</span>
+                    </div>
+                    <span className="text-gray-700">Confidential job search support</span>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-0.5">
+                      <span className="text-purple-600 text-sm">✓</span>
+                    </div>
+                    <span className="text-gray-700">Industry-specific keyword & recruiter targeting</span>
+                  </li>
+                </ul>
+                <ul className="space-y-3">
+                  <li className="flex items-start">
+                    <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-0.5">
+                      <span className="text-purple-600 text-sm">✓</span>
+                    </div>
+                    <span className="text-gray-700">Advanced LinkedIn SEO & search visibility</span>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-0.5">
+                      <span className="text-purple-600 text-sm">✓</span>
+                    </div>
+                    <span className="text-gray-700">Executive personal branding & thought leadership</span>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-0.5">
+                      <span className="text-purple-600 text-sm">✓</span>
+                    </div>
+                    <span className="text-gray-700">LinkedIn social media management (custom volume)</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
 
-          <p className="text-gray-700 mb-6 text-center">
-            If it involves LinkedIn and your career — we can build it.
-          </p>
-
-          <h4 className="text-lg font-semibold text-gray-800 mb-4 text-center">How It Works</h4>
-          <ol className="space-y-2 mb-6 text-center">
-            <li className="flex items-center justify-center">
-              <span className="bg-purple-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3">1</span>
-              <span className="text-gray-700">Contact CareerSasa and describe your needs</span>
-            </li>
-            <li className="flex items-center justify-center">
-              <span className="bg-purple-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3">2</span>
-              <span className="text-gray-700">We assess your goals and challenges</span>
-            </li>
-            <li className="flex items-center justify-center">
-              <span className="bg-purple-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3">3</span>
-              <span className="text-gray-700">We design a tailored LinkedIn solution</span>
-            </li>
-            <li className="flex items-center justify-center">
-              <span className="bg-purple-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3">4</span>
-              <span className="text-gray-700">You receive a clear scope, timeline & price</span>
-            </li>
-          </ol>
-
-          <div className="text-center">
-            <p className="text-lg text-gray-700 mb-4">
-              💰 <strong>Custom pricing based on scope and duration</strong>
+            <p className="text-gray-700 mb-8 text-center max-w-2xl mx-auto">
+              If it involves LinkedIn and your career — we can build it.
             </p>
-            <Link href="https://wa.me/254795564135?text=Hi,%20I'm%20interested%20in%20a%20custom%20LinkedIn%20solution." target="_blank">
-              <Button className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg">
-                👉 Contact us for a custom LinkedIn solution
-              </Button>
-            </Link>
+
+            <div className="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-2xl p-8 mb-8 text-white">
+              <h4 className="text-xl font-semibold mb-6 text-center">How It Works</h4>
+              <div className="grid md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3 text-lg font-bold">1</div>
+                  <p>Describe your needs</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3 text-lg font-bold">2</div>
+                  <p>We assess challenges</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3 text-lg font-bold">3</div>
+                  <p>Design solution</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3 text-lg font-bold">4</div>
+                  <p>Get scope & pricing</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <div className="inline-flex items-center bg-yellow-100 text-yellow-800 px-4 py-2 rounded-full mb-6">
+                <span className="text-lg mr-2">💰</span>
+                <span className="font-semibold">Custom pricing based on scope and duration</span>
+              </div>
+              <Link href="https://wa.me/254795564135?text=Hi,%20I'm%20interested%20in%20a%20custom%20LinkedIn%20solution." target="_blank">
+                <Button className="bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 text-white px-10 py-4 text-xl font-semibold rounded-xl transition-all duration-200 transform hover:scale-105">
+                  👉 Contact us for a custom LinkedIn solution
+                </Button>
+              </Link>
+            </div>
           </div>
         </section>
 
