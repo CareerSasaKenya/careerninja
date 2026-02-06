@@ -116,7 +116,6 @@ export default function ContactPage() {
                     <div>
                       <h3 className="font-semibold text-foreground mb-1">Email</h3>
                       <p className="text-muted-foreground">support@careersasa.co.ke</p>
-                      <p className="text-muted-foreground">info@careersasa.co.ke</p>
                     </div>
                   </div>
 
@@ -126,8 +125,7 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-foreground mb-1">Phone</h3>
-                      <p className="text-muted-foreground">+254 700 123 456</p>
-                      <p className="text-muted-foreground">+254 733 789 012</p>
+                      <p className="text-muted-foreground">+254795564135</p>
                     </div>
                   </div>
 
