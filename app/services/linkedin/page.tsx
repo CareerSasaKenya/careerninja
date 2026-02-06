@@ -178,7 +178,7 @@ export default function LinkedInServicesPage() {
               <div className="relative w-full max-w-lg">
                 <div className="relative aspect-video bg-gradient-to-br from-blue-100 to-indigo-200 rounded-2xl overflow-hidden shadow-xl border-8 border-white">
                   <img 
-                    src="https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
+                    src="https://images.unsplash.com/photo-1675232916541-44c51cada3d6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
                     alt="LinkedIn Professional Network"
                     className="w-full h-full object-cover"
                   />
@@ -229,7 +229,7 @@ export default function LinkedInServicesPage() {
               <div className="flex-shrink-0">
                 <div className="relative w-64 h-64 rounded-2xl overflow-hidden shadow-lg border-4 border-white">
                   <img 
-                    src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
+                    src="https://images.unsplash.com/photo-1627483856846-60d7a65f6b40?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
                     alt="LinkedIn Business Meeting"
                     className="w-full h-full object-cover"
                   />
@@ -327,7 +327,7 @@ export default function LinkedInServicesPage() {
                       <div className="flex-shrink-0 ml-4">
                         <div className="w-12 h-12 rounded-lg overflow-hidden shadow-sm border border-gray-200">
                           <img 
-                            src="https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
+                            src="https://images.unsplash.com/photo-1627483856846-60d7a65f6b40?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
                             alt="Service icon"
                             className="w-full h-full object-cover"
                           />
@@ -390,7 +390,7 @@ export default function LinkedInServicesPage() {
                       <div className="flex items-center gap-4">
                         <div className="w-16 h-16 rounded-xl overflow-hidden shadow-md border border-white/30">
                           <img 
-                            src="https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
+                            src="https://images.unsplash.com/photo-1628261253432-f4f2379b9b0c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
                             alt="Package icon"
                             className="w-full h-full object-cover"
                           />
@@ -574,7 +574,7 @@ export default function LinkedInServicesPage() {
             <div className="flex-shrink-0">
               <div className="relative w-48 h-48 rounded-2xl overflow-hidden shadow-lg border-4 border-white">
                 <img 
-                  src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1376&q=80" 
+                  src="https://images.unsplash.com/photo-1628261253432-f4f2379b9b0c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
                   alt="Professional Success"
                   className="w-full h-full object-cover"
                 />
@@ -605,7 +605,7 @@ export default function LinkedInServicesPage() {
                   {step === 1 && (
                     <div className="mx-auto w-16 h-16 rounded-lg overflow-hidden shadow-lg border-2 border-white">
                       <img 
-                        src="https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
+                        src="https://images.unsplash.com/photo-1627483856846-60d7a65f6b40?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
                         alt="Choose service"
                         className="w-full h-full object-cover"
                       />
@@ -614,7 +614,7 @@ export default function LinkedInServicesPage() {
                   {step === 2 && (
                     <div className="mx-auto w-16 h-16 rounded-lg overflow-hidden shadow-lg border-2 border-white">
                       <img 
-                        src="https://images.unsplash.com/photo-1553877522-43269d4ea984?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
+                        src="https://images.unsplash.com/photo-1675232916541-44c51cada3d6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
                         alt="Onboarding form"
                         className="w-full h-full object-cover"
                       />
@@ -623,7 +623,7 @@ export default function LinkedInServicesPage() {
                   {step === 3 && (
                     <div className="mx-auto w-16 h-16 rounded-lg overflow-hidden shadow-lg border-2 border-white">
                       <img 
-                        src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
+                        src="https://images.unsplash.com/photo-1628261253432-f4f2379b9b0c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
                         alt="LinkedIn optimization"
                         className="w-full h-full object-cover"
                       />
@@ -632,7 +632,7 @@ export default function LinkedInServicesPage() {
                   {step === 4 && (
                     <div className="mx-auto w-16 h-16 rounded-lg overflow-hidden shadow-lg border-2 border-white">
                       <img 
-                        src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1376&q=80" 
+                        src="https://images.unsplash.com/photo-1627483856846-60d7a65f6b40?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
                         alt="Success"
                         className="w-full h-full object-cover"
                       />
@@ -663,7 +663,7 @@ export default function LinkedInServicesPage() {
               <div className="flex flex-col items-center">
                 <div className="relative w-32 h-32 rounded-full overflow-hidden shadow-lg border-4 border-white mb-4">
                   <img 
-                    src="https://images.unsplash.com/photo-1542744095-291d1f67b221?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1469&q=80" 
+                    src="https://images.unsplash.com/photo-1628261253432-f4f2379b9b0c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
                     alt="LinkedIn Success"
                     className="w-full h-full object-cover"
                   />
