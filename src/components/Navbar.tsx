@@ -71,14 +71,14 @@ const Navbar = () => {
           <Link href="/jobs" prefetch={true}>
             <Button variant="ghost">Browse Jobs</Button>
           </Link>
-          <Link href="/blog" prefetch={true}>
-            <Button variant="ghost">Blog</Button>
-          </Link>
           <Link href="/services/linkedin" prefetch={true}>
             <Button variant="ghost">Boost Your LinkedIn</Button>
           </Link>
           <Link href="/services/cv" prefetch={true}>
             <Button variant="ghost">Power Your CV & Resume</Button>
+          </Link>
+          <Link href="/blog" prefetch={true}>
+            <Button variant="ghost">Blog</Button>
           </Link>
           {user ? (
             <>

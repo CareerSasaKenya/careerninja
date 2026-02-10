@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import Navbar from "@/components/Navbar";
 
 export default function CVServicesPage() {
   const [expandedPackage, setExpandedPackage] = useState<string | null>(null);
@@ -135,7 +136,9 @@ export default function CVServicesPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* WhatsApp Button */}
       <WhatsAppButton />
       
@@ -629,6 +632,7 @@ export default function CVServicesPage() {
           </div>
         </section>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
