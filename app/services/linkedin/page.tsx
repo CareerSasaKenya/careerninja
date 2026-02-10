@@ -508,7 +508,7 @@ export default function LinkedInServicesPage() {
         </section>
 
         {/* Call to Action */}
-        <section className="mb-16 bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 rounded-2xl p-8 text-white text-center relative overflow-hidden">
+        <section className="mb-16 bg-gradient-to-br from-blue-600 via-blue-500 to-orange-500 rounded-2xl p-8 text-white text-center relative overflow-hidden">
           <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full -translate-x-32 -translate-y-32 blur-2xl"></div>
           <div className="absolute bottom-0 right-0 w-56 h-56 bg-white/10 rounded-full translate-x-32 translate-y-32 blur-2xl"></div>
           
