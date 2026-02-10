@@ -21,16 +21,22 @@ export function usePageContent(pageSlug: string, sectionKey?: string) {
   return useQuery({
     queryKey: ["page-content", pageSlug, sectionKey],
     queryFn: async () => {
-      let query = supabase
+      if (sectionKey) {
+        const { data, error } = await supabase
+          .from("page_content")
+          .select("*")
+          .eq("page_slug", pageSlug)
+          .eq("section_key", sectionKey)
+          .single();
+
+        if (error) throw error;
+        return data;
+      }
+
+      const { data, error } = await supabase
         .from("page_content")
         .select("*")
         .eq("page_slug", pageSlug);
-
-      if (sectionKey) {
-        query = query.eq("section_key", sectionKey).single();
-      }
-
-      const { data, error } = await query;
 
       if (error) throw error;
       return data;
