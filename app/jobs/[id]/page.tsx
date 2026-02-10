@@ -12,6 +12,7 @@ import JobCard from "@/components/JobCard";
 import JobStructuredData from "@/components/JobStructuredData";
 import ApplySection from "@/components/ApplySection";
 import SocialShare from "@/components/SocialShare";
+import ServiceAdvertisement from "@/components/ServiceAdvertisement";
 
 // Create Supabase client for server-side data fetching
 // Check if required environment variables are present
@@ -317,6 +318,11 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                 <ApplySection job={job} />
               </div>
 
+              {/* Service Advertisement - only visible on desktop */}
+              <div className="hidden lg:block">
+                <ServiceAdvertisement />
+              </div>
+
               {/* Tags section - only visible on desktop */}
               {job?.tags && (
                 <Card className="hidden lg:block">
@@ -343,6 +349,9 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
           {/* Mobile Apply Section - Visible on mobile devices at the bottom */}
           <div className="lg:hidden mt-6 space-y-6">
             <ApplySection job={job} />
+            
+            {/* Service Advertisement for mobile */}
+            <ServiceAdvertisement />
             
             {/* Tags section for mobile */}
             {job?.tags && (
