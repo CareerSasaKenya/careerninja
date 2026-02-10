@@ -373,34 +373,75 @@ export default function LinkedInServicesPage() {
 
         {/* Target Audience */}
         <section className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Who These Services Are For</h2>
-          <div className="flex flex-wrap justify-center gap-4 mb-8">
-            {[
-              "Students & fresh graduates",
-              "Job seekers & career switchers",
-              "Professionals seeking promotion",
-              "Managers & senior leaders",
-              "Consultants & founders"
-            ].map((audience, idx) => (
-              <div key={idx} className="bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 px-6 py-3 rounded-full border border-green-200 flex items-center">
-                <span className="mr-2">✅</span>{audience}
+          <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">Who These Services Are For</h2>
+          <p className="text-xl text-gray-600 text-center mb-12 max-w-3xl mx-auto">
+            LinkedIn isn't optional anymore. It's where recruiters search, where hiring managers verify you, and where opportunities find you — if your profile is ready.
+          </p>
+          
+          <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+            {/* Students & Fresh Graduates */}
+            <div className="bg-white rounded-2xl p-8 shadow-md border border-gray-100">
+              <div className="flex items-center mb-4">
+                <div className="bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 px-4 py-2 rounded-full border border-green-200 flex items-center">
+                  <span className="mr-2">✅</span>
+                  <span className="font-semibold">Students & Fresh Graduates</span>
+                </div>
               </div>
-            ))}
-          </div>
-          <div className="flex flex-col md:flex-row items-center gap-8 max-w-4xl mx-auto">
-            <div className="flex-1">
-              <p className="text-center text-lg text-gray-700">
-                If LinkedIn affects your career — this is for you.
+              <p className="text-gray-700 leading-relaxed">
+                You're building your professional presence from scratch, and your LinkedIn profile is often the first thing recruiters see. We help you create a profile that positions you as career-ready — highlighting internships, projects, and skills in a way that shows potential, not just inexperience. Start your career with a profile that opens doors.
               </p>
             </div>
-            <div className="flex-shrink-0">
-              <div className="relative w-48 h-48 rounded-2xl overflow-hidden shadow-lg border-4 border-white">
-                <img 
-                  src="https://images.unsplash.com/photo-1531545514256-b1400bc00f31?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1374&q=80" 
-                  alt="Professional Success"
-                  className="w-full h-full object-cover"
-                />
+
+            {/* Job Seekers & Career Switchers */}
+            <div className="bg-white rounded-2xl p-8 shadow-md border border-gray-100">
+              <div className="flex items-center mb-4">
+                <div className="bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-800 px-4 py-2 rounded-full border border-blue-200 flex items-center">
+                  <span className="mr-2">✅</span>
+                  <span className="font-semibold">Job Seekers & Career Switchers</span>
+                </div>
               </div>
+              <p className="text-gray-700 leading-relaxed">
+                You're actively job hunting, but your LinkedIn profile isn't helping. Maybe it's outdated, generic, or doesn't match your CV. Recruiters are searching for people like you — but they're not finding you. We optimize your profile for recruiter searches, align it with your CV, and position you as the candidate they're looking for.
+              </p>
+            </div>
+
+            {/* Professionals Seeking Promotion */}
+            <div className="bg-white rounded-2xl p-8 shadow-md border border-gray-100">
+              <div className="flex items-center mb-4">
+                <div className="bg-gradient-to-r from-purple-100 to-violet-100 text-purple-800 px-4 py-2 rounded-full border border-purple-200 flex items-center">
+                  <span className="mr-2">✅</span>
+                  <span className="font-semibold">Professionals Seeking Promotion</span>
+                </div>
+              </div>
+              <p className="text-gray-700 leading-relaxed">
+                You've grown in your career, but your LinkedIn still reads like your first job. To attract senior opportunities, you need a profile that reflects leadership, impact, and industry credibility. We reposition your profile to show you're ready for the next level — not stuck at the current one.
+              </p>
+            </div>
+
+            {/* Managers & Senior Leaders */}
+            <div className="bg-white rounded-2xl p-8 shadow-md border border-gray-100">
+              <div className="flex items-center mb-4">
+                <div className="bg-gradient-to-r from-orange-100 to-amber-100 text-orange-800 px-4 py-2 rounded-full border border-orange-200 flex items-center">
+                  <span className="mr-2">✅</span>
+                  <span className="font-semibold">Managers & Senior Leaders</span>
+                </div>
+              </div>
+              <p className="text-gray-700 leading-relaxed">
+                At your level, LinkedIn is more than a profile — it's your professional brand. Executive recruiters, board members, and industry peers are watching. We optimize your profile for authority, manage your content strategy, and position you as a thought leader in your field. Your LinkedIn should reflect the influence you've built.
+              </p>
+            </div>
+
+            {/* Consultants & Founders */}
+            <div className="bg-white rounded-2xl p-8 shadow-md border border-gray-100">
+              <div className="flex items-center mb-4">
+                <div className="bg-gradient-to-r from-pink-100 to-rose-100 text-pink-800 px-4 py-2 rounded-full border border-pink-200 flex items-center">
+                  <span className="mr-2">✅</span>
+                  <span className="font-semibold">Consultants & Founders</span>
+                </div>
+              </div>
+              <p className="text-gray-700 leading-relaxed">
+                Your LinkedIn isn't just about jobs — it's about clients, partnerships, and visibility. You need a profile that builds trust, demonstrates expertise, and attracts the right opportunities. We help you position yourself as an authority, manage your content, and turn LinkedIn into a business development tool that works while you sleep.
+              </p>
             </div>
           </div>
         </section>

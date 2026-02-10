@@ -438,33 +438,62 @@ export default function CoverLetterServicesPage() {
 
         {/* Target Audience */}
         <section className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Who These Services Are For</h2>
-          <div className="flex flex-wrap justify-center gap-4 mb-8">
-            {[
-              "Students & fresh graduates",
-              "Job seekers & career switchers",
-              "Professionals applying for competitive roles",
-              "Managers & senior leaders"
-            ].map((audience, idx) => (
-              <div key={idx} className="bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 px-6 py-3 rounded-full border border-green-200 flex items-center">
-                <span className="mr-2">✅</span>{audience}
+          <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">Who These Services Are For</h2>
+          <p className="text-xl text-gray-600 text-center mb-12 max-w-3xl mx-auto">
+            A cover letter isn't just a formality — it's your chance to explain why you're the right fit. We make sure yours strengthens your application, not weakens it.
+          </p>
+          
+          <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+            {/* Students & Fresh Graduates */}
+            <div className="bg-white rounded-2xl p-8 shadow-md border border-gray-100">
+              <div className="flex items-center mb-4">
+                <div className="bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 px-4 py-2 rounded-full border border-green-200 flex items-center">
+                  <span className="mr-2">✅</span>
+                  <span className="font-semibold">Students & Fresh Graduates</span>
+                </div>
               </div>
-            ))}
-          </div>
-          <div className="flex flex-col md:flex-row items-center gap-8 max-w-4xl mx-auto">
-            <div className="flex-1">
-              <p className="text-center text-lg text-gray-700">
-                If a cover letter is required — this service matters.
+              <p className="text-gray-700 leading-relaxed">
+                You're applying for your first real job, and you're not sure what to say beyond "I'm a hard worker." We help you write cover letters that show motivation, highlight relevant skills from internships and projects, and position you as someone ready to learn and contribute — without sounding desperate or generic.
               </p>
             </div>
-            <div className="flex-shrink-0">
-              <div className="relative w-48 h-48 rounded-2xl overflow-hidden shadow-lg border-4 border-white">
-                <img 
-                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
-                  alt="Professional Success"
-                  className="w-full h-full object-cover"
-                />
+
+            {/* Job Seekers & Career Switchers */}
+            <div className="bg-white rounded-2xl p-8 shadow-md border border-gray-100">
+              <div className="flex items-center mb-4">
+                <div className="bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-800 px-4 py-2 rounded-full border border-blue-200 flex items-center">
+                  <span className="mr-2">✅</span>
+                  <span className="font-semibold">Job Seekers & Career Switchers</span>
+                </div>
               </div>
+              <p className="text-gray-700 leading-relaxed">
+                You're applying to roles that require explanation — maybe you're changing industries, have a career gap, or your CV doesn't tell the full story. A strong cover letter bridges that gap. We write letters that clarify your transition, highlight transferable skills, and give recruiters confidence in your fit for the role.
+              </p>
+            </div>
+
+            {/* Professionals Applying for Competitive Roles */}
+            <div className="bg-white rounded-2xl p-8 shadow-md border border-gray-100">
+              <div className="flex items-center mb-4">
+                <div className="bg-gradient-to-r from-purple-100 to-violet-100 text-purple-800 px-4 py-2 rounded-full border border-purple-200 flex items-center">
+                  <span className="mr-2">✅</span>
+                  <span className="font-semibold">Professionals Applying for Competitive Roles</span>
+                </div>
+              </div>
+              <p className="text-gray-700 leading-relaxed">
+                You're competing with dozens of qualified candidates, and a generic cover letter won't cut it. You need a letter that speaks directly to the role, shows you understand the company's needs, and positions you as the solution. We write cover letters that get read — and remembered.
+              </p>
+            </div>
+
+            {/* Managers & Senior Leaders */}
+            <div className="bg-white rounded-2xl p-8 shadow-md border border-gray-100">
+              <div className="flex items-center mb-4">
+                <div className="bg-gradient-to-r from-orange-100 to-amber-100 text-orange-800 px-4 py-2 rounded-full border border-orange-200 flex items-center">
+                  <span className="mr-2">✅</span>
+                  <span className="font-semibold">Managers & Senior Leaders</span>
+                </div>
+              </div>
+              <p className="text-gray-700 leading-relaxed">
+                At your level, a cover letter is a strategic positioning tool. It's not about listing achievements — it's about demonstrating leadership, vision, and fit for high-stakes roles. We write executive-level cover letters that reflect your seniority, communicate impact, and open doors to board-level and C-suite opportunities.
+              </p>
             </div>
           </div>
         </section>

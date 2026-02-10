@@ -427,33 +427,62 @@ export default function CVServicesPage() {
 
         {/* Target Audience */}
         <section className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Who These Services Are For</h2>
-          <div className="flex flex-wrap justify-center gap-4 mb-8">
-            {[
-              "Students & fresh graduates",
-              "Job seekers & career switchers",
-              "Professionals seeking promotion",
-              "Managers & senior leaders"
-            ].map((audience, idx) => (
-              <div key={idx} className="bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 px-6 py-3 rounded-full border border-green-200 flex items-center">
-                <span className="mr-2">✅</span>{audience}
+          <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">Who These Services Are For</h2>
+          <p className="text-xl text-gray-600 text-center mb-12 max-w-3xl mx-auto">
+            Whether you're starting your career, making a change, or aiming higher — your CV is the first filter. We help you pass it.
+          </p>
+          
+          <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+            {/* Students & Fresh Graduates */}
+            <div className="bg-white rounded-2xl p-8 shadow-md border border-gray-100">
+              <div className="flex items-center mb-4">
+                <div className="bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 px-4 py-2 rounded-full border border-green-200 flex items-center">
+                  <span className="mr-2">✅</span>
+                  <span className="font-semibold">Students & Fresh Graduates</span>
+                </div>
               </div>
-            ))}
-          </div>
-          <div className="flex flex-col md:flex-row items-center gap-8 max-w-4xl mx-auto">
-            <div className="flex-1">
-              <p className="text-center text-lg text-gray-700">
-                If your CV decides whether you get shortlisted — this is for you.
+              <p className="text-gray-700 leading-relaxed">
+                You're entering the job market with limited experience, but that doesn't mean your CV should look weak. We help you position internships, attachments, academic projects, and skills in a way that shows you're ready to contribute. Your first CV sets the tone for your career — let's make it count.
               </p>
             </div>
-            <div className="flex-shrink-0">
-              <div className="relative w-48 h-48 rounded-2xl overflow-hidden shadow-lg border-4 border-white">
-                <img 
-                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
-                  alt="Professional Success"
-                  className="w-full h-full object-cover"
-                />
+
+            {/* Job Seekers & Career Switchers */}
+            <div className="bg-white rounded-2xl p-8 shadow-md border border-gray-100">
+              <div className="flex items-center mb-4">
+                <div className="bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-800 px-4 py-2 rounded-full border border-blue-200 flex items-center">
+                  <span className="mr-2">✅</span>
+                  <span className="font-semibold">Job Seekers & Career Switchers</span>
+                </div>
               </div>
+              <p className="text-gray-700 leading-relaxed">
+                You're actively applying, but not getting interviews. Or you're changing careers and need to reposition your experience without confusing recruiters. We rewrite your CV to highlight transferable skills, clarify your career narrative, and make you shortlist-ready for the roles you actually want.
+              </p>
+            </div>
+
+            {/* Professionals Seeking Promotion */}
+            <div className="bg-white rounded-2xl p-8 shadow-md border border-gray-100">
+              <div className="flex items-center mb-4">
+                <div className="bg-gradient-to-r from-purple-100 to-violet-100 text-purple-800 px-4 py-2 rounded-full border border-purple-200 flex items-center">
+                  <span className="mr-2">✅</span>
+                  <span className="font-semibold">Professionals Seeking Promotion</span>
+                </div>
+              </div>
+              <p className="text-gray-700 leading-relaxed">
+                You've built solid experience, but your CV still reads like a job description. To move up, you need a CV that shows impact, leadership, and results — not just responsibilities. We help you position yourself as the next-level professional you've become, not the junior hire you once were.
+              </p>
+            </div>
+
+            {/* Managers & Senior Leaders */}
+            <div className="bg-white rounded-2xl p-8 shadow-md border border-gray-100">
+              <div className="flex items-center mb-4">
+                <div className="bg-gradient-to-r from-orange-100 to-amber-100 text-orange-800 px-4 py-2 rounded-full border border-orange-200 flex items-center">
+                  <span className="mr-2">✅</span>
+                  <span className="font-semibold">Managers & Senior Leaders</span>
+                </div>
+              </div>
+              <p className="text-gray-700 leading-relaxed">
+                At your level, your CV isn't just a list of roles — it's a strategic document that positions you for board-level conversations, executive searches, and high-stakes opportunities. We write CVs that reflect leadership, decision-making, and measurable business impact, with the confidentiality and professionalism your career demands.
+              </p>
             </div>
           </div>
         </section>
