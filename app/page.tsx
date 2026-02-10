@@ -96,7 +96,7 @@ export default function Home() {
     }
 
     return () => observer.disconnect();
-  }, [hasAnimated]);
+  }, [hasAnimated, statsJobsTarget, statsCompaniesTarget, statsSuccessRateTarget]);
 
   // Handle search
   const handleSearch = () => {

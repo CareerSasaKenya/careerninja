@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 
 export interface PageContent {
   id: string;
@@ -7,7 +8,7 @@ export interface PageContent {
   section_key: string;
   content_type: string;
   content_value: string;
-  metadata: Record<string, any>;
+  metadata: Database['public']['Tables']['page_content']['Row']['metadata'];
   created_at: string;
   updated_at: string;
 }
