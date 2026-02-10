@@ -595,6 +595,13 @@ export type Database = {
           metadata: Json
           created_at: string
           updated_at: string
+          seo_title: string | null
+          seo_meta_description: string | null
+          seo_url_slug: string | null
+          seo_canonical_url: string | null
+          seo_index: boolean | null
+          seo_h1_title: string | null
+          seo_follow: boolean | null
         }
         Insert: {
           id?: string
@@ -605,6 +612,13 @@ export type Database = {
           metadata?: Json
           created_at?: string
           updated_at?: string
+          seo_title?: string | null
+          seo_meta_description?: string | null
+          seo_url_slug?: string | null
+          seo_canonical_url?: string | null
+          seo_index?: boolean | null
+          seo_h1_title?: string | null
+          seo_follow?: boolean | null
         }
         Update: {
           id?: string
@@ -615,6 +629,13 @@ export type Database = {
           metadata?: Json
           created_at?: string
           updated_at?: string
+          seo_title?: string | null
+          seo_meta_description?: string | null
+          seo_url_slug?: string | null
+          seo_canonical_url?: string | null
+          seo_index?: boolean | null
+          seo_h1_title?: string | null
+          seo_follow?: boolean | null
         }
         Relationships: []
       }

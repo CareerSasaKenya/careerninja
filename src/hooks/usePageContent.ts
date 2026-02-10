@@ -11,6 +11,13 @@ export interface PageContent {
   metadata: Database['public']['Tables']['page_content']['Row']['metadata'];
   created_at: string;
   updated_at: string;
+  seo_title?: string | null;
+  seo_meta_description?: string | null;
+  seo_url_slug?: string | null;
+  seo_canonical_url?: string | null;
+  seo_index?: boolean | null;
+  seo_h1_title?: string | null;
+  seo_follow?: boolean | null;
 }
 
 /**
@@ -79,4 +86,38 @@ export function getJsonContent<T = any>(
   } catch {
     return fallback;
   }
+}
+
+/**
+ * Helper to get SEO data from page content
+ */
+export function getSEOData(
+  content: PageContent[] | PageContent | null | undefined,
+  sectionKey?: string
+) {
+  if (!content) return null;
+
+  let item: PageContent | undefined;
+
+  if (Array.isArray(content)) {
+    // If sectionKey is provided, find that specific item
+    // Otherwise, find the first item with SEO data
+    item = sectionKey 
+      ? content.find((c) => c.section_key === sectionKey)
+      : content.find((c) => c.seo_title || c.seo_meta_description);
+  } else {
+    item = content;
+  }
+
+  if (!item) return null;
+
+  return {
+    seo_title: item.seo_title,
+    seo_meta_description: item.seo_meta_description,
+    seo_url_slug: item.seo_url_slug,
+    seo_canonical_url: item.seo_canonical_url,
+    seo_index: item.seo_index,
+    seo_h1_title: item.seo_h1_title,
+    seo_follow: item.seo_follow,
+  };
 }
