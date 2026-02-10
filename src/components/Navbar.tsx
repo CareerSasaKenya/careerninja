@@ -75,10 +75,10 @@ const Navbar = () => {
             <Button variant="ghost">Blog</Button>
           </Link>
           <Link href="/services/linkedin" prefetch={true}>
-            <Button variant="ghost">LinkedIn Services</Button>
+            <Button variant="ghost">Boost Your LinkedIn</Button>
           </Link>
           <Link href="/services/cv" prefetch={true}>
-            <Button variant="ghost">CV Services</Button>
+            <Button variant="ghost">Power Your CV & Resume</Button>
           </Link>
           {user ? (
             <>

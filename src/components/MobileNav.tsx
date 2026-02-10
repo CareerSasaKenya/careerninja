@@ -95,6 +95,16 @@ const MobileNav = () => {
                 Browse Jobs
               </Button>
             </Link>
+            <Link href="/services/linkedin" onClick={closeMenu} prefetch={true}>
+              <Button variant="ghost" className="w-full justify-start text-base">
+                Boost Your LinkedIn
+              </Button>
+            </Link>
+            <Link href="/services/cv" onClick={closeMenu} prefetch={true}>
+              <Button variant="ghost" className="w-full justify-start text-base">
+                Power Your CV & Resume
+              </Button>
+            </Link>
             <Link href="/blog" onClick={closeMenu} prefetch={true}>
               <Button variant="ghost" className="w-full justify-start text-base">
                 Blog
