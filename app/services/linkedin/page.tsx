@@ -508,7 +508,7 @@ export default function LinkedInServicesPage() {
         </section>
 
         {/* Call to Action */}
-        <section className="mb-16 bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 rounded-2xl p-8 text-white text-center relative overflow-hidden">
+        <section className="mb-16 bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 rounded-2xl p-8 text-white text-center relative overflow-hidden">
           <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full -translate-x-32 -translate-y-32 blur-2xl"></div>
           <div className="absolute bottom-0 right-0 w-56 h-56 bg-white/10 rounded-full translate-x-32 translate-y-32 blur-2xl"></div>
           
@@ -520,7 +520,7 @@ export default function LinkedInServicesPage() {
             <div className="flex flex-col lg:flex-row gap-8 justify-center items-center">
               <Link href="https://wa.me/254795564135?text=Hi,%20I'd%20like%20to%20choose%20a%20LinkedIn%20service%20today!" target="_blank">
                 <Button className="bg-white text-orange-600 hover:bg-gray-100 text-lg px-10 py-4 font-semibold rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105">
-                  👉 Choose a LinkedIn service today
+                  Yes, I'm Ready!
                 </Button>
               </Link>
               <div className="flex flex-col items-center">
