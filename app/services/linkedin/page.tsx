@@ -356,28 +356,6 @@ export default function LinkedInServicesPage() {
               If it involves LinkedIn and your career — we can build it.
             </p>
 
-            <div className="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-2xl p-8 mb-8 text-white">
-              <h4 className="text-xl font-semibold mb-6 text-center">How It Works</h4>
-              <div className="grid md:grid-cols-4 gap-4">
-                <div className="text-center">
-                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3 text-lg font-bold">1</div>
-                  <p>Describe your needs</p>
-                </div>
-                <div className="text-center">
-                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3 text-lg font-bold">2</div>
-                  <p>We assess challenges</p>
-                </div>
-                <div className="text-center">
-                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3 text-lg font-bold">3</div>
-                  <p>Design solution</p>
-                </div>
-                <div className="text-center">
-                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3 text-lg font-bold">4</div>
-                  <p>Get scope & pricing</p>
-                </div>
-              </div>
-            </div>
-
             <div className="text-center">
               <div className="inline-flex items-center bg-yellow-100 text-yellow-800 px-4 py-2 rounded-full mb-6">
                 <span className="text-lg mr-2">💰</span>

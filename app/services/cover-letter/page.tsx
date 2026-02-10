@@ -314,7 +314,7 @@ export default function CoverLetterServicesPage() {
               </p>
             </div>
 
-            <div className="bg-white/50 backdrop-blur-sm rounded-xl p-8 mb-8 border border-white/30">
+            <div className="bg-white/50 backdrop-blur-sm rounded-xl p-8 mb-6 border border-white/30">
               <h4 className="text-lg font-semibold text-gray-800 mb-6 text-center">Custom solutions may include:</h4>
               <div className="grid md:grid-cols-2 gap-6">
                 <ul className="space-y-3">
