@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Briefcase, Users, Trash2, FileText, Edit, BarChart, FileEdit } from "lucide-react";
+import { Plus, Briefcase, Users, Trash2, FileText, Edit, BarChart, FileEdit, Search } from "lucide-react";
 import { toast } from "sonner";
 
 interface Job {
@@ -222,6 +222,12 @@ const AdminDashboard = () => {
             <Button variant="default" className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700">
               <FileEdit className="mr-2 h-4 w-4" />
               Content Editor
+            </Button>
+          </Link>
+          <Link href="/dashboard/seo-editor">
+            <Button variant="default" className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700">
+              <Search className="mr-2 h-4 w-4" />
+              SEO Manager
             </Button>
           </Link>
           <Link href="/blog/create">
