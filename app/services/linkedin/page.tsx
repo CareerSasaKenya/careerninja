@@ -1,18 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import Navbar from "@/components/Navbar";
 
 export default function LinkedInServicesPage() {
-  const [expandedPackage, setExpandedPackage] = useState<string | null>(null);
-
-  const togglePackageDetails = (packageName: string) => {
-    setExpandedPackage(expandedPackage === packageName ? null : packageName);
-  };
-
   const services = [
     {
       id: "audit",
@@ -83,71 +76,7 @@ export default function LinkedInServicesPage() {
     }
   ];
 
-  const packages = [
-    {
-      id: "graduate",
-      title: "🟢 Graduate Launch Bundle",
-      subtitle: "For students & fresh graduates",
-      services: [
-        "LinkedIn audit",
-        "Entry-level profile optimization",
-        "CV–LinkedIn alignment"
-      ],
-      price: "KES 3,500 – 5,000",
-      whatsappMessage: "Hi, I'm interested in the Graduate Launch Bundle."
-    },
-    {
-      id: "job-seeker",
-      title: "🔵 Job Seeker Accelerator (Most Popular)",
-      subtitle: "For active job seekers",
-      services: [
-        "Full LinkedIn optimization",
-        "CV rewrite + alignment",
-        "Job search & recruiter outreach strategy"
-      ],
-      price: "KES 7,000 – 10,000",
-      whatsappMessage: "Hi, I'm interested in the Job Seeker Accelerator bundle."
-    },
-    {
-      id: "growth",
-      title: "🟣 Career Growth + Visibility Bundle",
-      subtitle: "For professionals aiming higher",
-      services: [
-        "LinkedIn optimization",
-        "Personal branding strategy",
-        "1-month content plan",
-        "6 professionally written posts"
-      ],
-      price: "KES 12,000 – 18,000",
-      whatsappMessage: "Hi, I'm interested in the Career Growth + Visibility Bundle."
-    },
-    {
-      id: "authority",
-      title: "🔴 Authority Builder + Management Bundle",
-      subtitle: "For managers & senior professionals",
-      services: [
-        "Advanced LinkedIn SEO optimization",
-        "Personal brand positioning",
-        "1-month LinkedIn management (8–12 posts)",
-        "Networking & visibility playbook"
-      ],
-      price: "KES 20,000 – 30,000",
-      whatsappMessage: "Hi, I'm interested in the Authority Builder + Management Bundle."
-    },
-    {
-      id: "executive",
-      title: "🟠 Executive Growth Retainer",
-      subtitle: "For executives, consultants & founders",
-      services: [
-        "Executive-level profile optimization",
-        "Thought leadership positioning",
-        "Monthly LinkedIn management (12–16 posts)",
-        "Authority & influence strategy"
-      ],
-      price: "KES 30,000 – 50,000 per month",
-      whatsappMessage: "Hi, I'm interested in the Executive Growth Retainer."
-    }
-  ];
+
 
   return (
     <>
@@ -294,150 +223,61 @@ export default function LinkedInServicesPage() {
           </div>
         </section>
 
-        {/* Individual Services */}
+        {/* Services Pricing Table */}
         <section className="mb-16">
           <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Our LinkedIn Services</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {services.map((service, index) => {
-              const colors = [
-                'from-green-50 to-emerald-50',
-                'from-blue-50 to-cyan-50',
-                'from-purple-50 to-violet-50',
-                'from-pink-50 to-rose-50',
-                'from-amber-50 to-orange-50'
-              ];
-              
-              const color = colors[index % colors.length];
-              
-              return (
-                <div 
-                  key={service.id}
-                  className={`relative bg-gradient-to-br ${color} border border-gray-200 rounded-2xl p-6 shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 overflow-hidden`}
-                >
-                  {/* Decorative corner elements */}
-                  <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/30 to-transparent rounded-bl-full"></div>
-                  <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-white/30 to-transparent rounded-tr-full"></div>
+          <div className="overflow-x-auto">
+            <div className="inline-block min-w-full align-middle">
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                {services.map((service, index) => {
+                  const colors = [
+                    { bg: 'from-green-50 to-emerald-50', border: 'border-green-200', icon: '🔍' },
+                    { bg: 'from-blue-50 to-cyan-50', border: 'border-blue-200', icon: '✍️' },
+                    { bg: 'from-purple-50 to-violet-50', border: 'border-purple-200', icon: '📄' },
+                    { bg: 'from-pink-50 to-rose-50', border: 'border-pink-200', icon: '🌟' },
+                    { bg: 'from-amber-50 to-orange-50', border: 'border-amber-200', icon: '📈' }
+                  ];
                   
-                  <div className="relative z-10">
-                    <div className="flex items-start mb-4">
-                      <div className="mr-3 mt-1">
-                        <span className="text-2xl">{service.title.split(' ')[0]}</span>
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-xl font-bold text-gray-900">{service.title.substring(service.title.indexOf(' ') + 1)}</h3>
-                        <p className="text-gray-600 mt-1">{service.subtitle}</p>
-                      </div>
-                      <div className="flex-shrink-0 ml-4">
-                        <div className="w-12 h-12 rounded-lg overflow-hidden shadow-sm border border-gray-200">
-                          <img 
-                            src="https://images.unsplash.com/photo-1611944212129-29977ae1398c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1374&q=80" 
-                            alt="Service icon"
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <ul className="space-y-2 mb-4">
-                      {service.features.map((feature, idx) => (
-                        <li key={idx} className="flex items-start">
-                          <span className="text-green-600 mr-2 mt-1">✓</span>
-                          <span className="text-gray-700">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    
-                    <p className="text-sm text-gray-500 italic mb-4">{service.bestFor}</p>
-                    
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                      <span className="font-bold text-lg text-primary">{service.price}</span>
-                      <Link href={`https://wa.me/254795564135?text=${encodeURIComponent(service.whatsappMessage)}`} target="_blank">
-                        <Button variant="outline" className="border-green-500 text-green-600 hover:bg-green-50 hover:border-green-600">
-                          WhatsApp Us
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* Bundled Packages */}
-        <section className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Bundled LinkedIn Packages</h2>
-          <div className="space-y-8 max-w-6xl mx-auto">
-            {packages.map((pkg, index) => {
-              const colors = [
-                { bg: 'from-emerald-50 to-teal-50', border: 'border-emerald-200', accent: 'bg-emerald-500', text: 'text-emerald-700' },
-                { bg: 'from-blue-50 to-cyan-50', border: 'border-blue-200', accent: 'bg-blue-500', text: 'text-blue-700' },
-                { bg: 'from-violet-50 to-purple-50', border: 'border-violet-200', accent: 'bg-violet-500', text: 'text-violet-700' },
-                { bg: 'from-rose-50 to-pink-50', border: 'border-rose-200', accent: 'bg-rose-500', text: 'text-rose-700' },
-                { bg: 'from-amber-50 to-orange-50', border: 'border-amber-200', accent: 'bg-amber-500', text: 'text-amber-700' }
-              ];
-              
-              const color = colors[index % colors.length];
-              
-              return (
-                <div 
-                  key={pkg.id}
-                  className={`relative bg-gradient-to-br ${color.bg} border ${color.border} rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden`}
-                >
-                  {/* Decorative elements */}
-                  <div className="absolute -top-4 -right-4 w-24 h-24 rounded-full bg-white/30 blur-xl"></div>
-                  <div className="absolute -bottom-4 -left-4 w-20 h-20 rounded-full bg-white/30 blur-xl"></div>
+                  const color = colors[index % colors.length];
                   
-                  <div className="relative z-10">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-                      <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-xl overflow-hidden shadow-md border border-white/30">
-                          <img 
-                            src="https://images.unsplash.com/photo-1611944212129-29977ae1398c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1374&q=80" 
-                            alt="Package icon"
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div>
-                          <h3 className="text-2xl font-bold text-gray-900 mb-2">{pkg.title}</h3>
-                          <p className="text-gray-600 font-medium">{pkg.subtitle}</p>
-                        </div>
+                  return (
+                    <div 
+                      key={service.id}
+                      className={`relative bg-gradient-to-br ${color.bg} border-2 ${color.border} rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col h-full`}
+                    >
+                      <div className="text-center mb-4">
+                        <div className="text-4xl mb-3">{color.icon}</div>
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">{service.title.substring(service.title.indexOf(' ') + 1)}</h3>
+                        <p className="text-sm text-gray-600 mb-4">{service.subtitle}</p>
                       </div>
-                      <div className="mt-4 md:mt-0 md:ml-6">
-                        <div className={`inline-block px-4 py-2 rounded-full ${color.accent} text-white font-bold text-lg`}>
-                          {pkg.price}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div>
-                        <h4 className="font-semibold text-gray-800 mb-3 flex items-center">
-                          <span className={`${color.accent} w-2 h-2 rounded-full mr-2`}></span>
-                          What's Included:
-                        </h4>
-                        <ul className="space-y-2">
-                          {pkg.services.map((service, idx) => (
+                      
+                      <div className="flex-grow mb-4">
+                        <ul className="space-y-2 text-sm">
+                          {service.features.map((feature, idx) => (
                             <li key={idx} className="flex items-start">
-                              <span className="text-green-600 mr-2 mt-1">✓</span>
-                              <span className="text-gray-700">{service}</span>
+                              <span className="text-green-600 mr-2 mt-0.5 flex-shrink-0">✓</span>
+                              <span className="text-gray-700">{feature}</span>
                             </li>
                           ))}
                         </ul>
                       </div>
                       
-                      <div className="flex items-center justify-center">
-                        <Link href={`https://wa.me/254795564135?text=${encodeURIComponent(pkg.whatsappMessage)}`} target="_blank">
-                          <Button className={`${color.accent} hover:${color.accent.replace('500', '600')} text-white px-8 py-3 text-lg font-semibold rounded-xl transition-all duration-200 transform hover:scale-105`}>
-                            Get Started Now
+                      <div className="mt-auto">
+                        <p className="text-xs text-gray-500 italic mb-3 text-center">{service.bestFor}</p>
+                        <div className="bg-white rounded-lg p-3 mb-3 text-center">
+                          <span className="font-bold text-xl text-primary">{service.price}</span>
+                        </div>
+                        <Link href={`https://wa.me/254795564135?text=${encodeURIComponent(service.whatsappMessage)}`} target="_blank" className="block">
+                          <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+                            Get Started
                           </Button>
                         </Link>
                       </div>
                     </div>
-                  </div>
-                </div>
-              );
-            })}
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </section>
 
