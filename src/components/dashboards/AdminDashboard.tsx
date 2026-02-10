@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Briefcase, Users, Trash2, FileText, Edit, BarChart } from "lucide-react";
+import { Plus, Briefcase, Users, Trash2, FileText, Edit, BarChart, FileEdit } from "lucide-react";
 import { toast } from "sonner";
 
 interface Job {
@@ -218,6 +218,12 @@ const AdminDashboard = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-3xl font-bold">Admin Dashboard</h1>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <Link href="/dashboard/content-editor">
+            <Button variant="default" className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700">
+              <FileEdit className="mr-2 h-4 w-4" />
+              Content Editor
+            </Button>
+          </Link>
           <Link href="/blog/create">
             <Button variant="outline" className="w-full sm:w-auto">
               <FileText className="mr-2 h-4 w-4" />
