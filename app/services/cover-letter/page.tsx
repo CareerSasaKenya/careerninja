@@ -221,7 +221,7 @@ export default function CoverLetterServicesPage() {
                     </p>
                   </div>
                   <Link href="https://wa.me/254795564135" target="_blank">
-                    <Button className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 w-full text-white text-lg py-6">
+                    <Button className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 w-full text-white text-lg py-6">
                       Chat with Us on WhatsApp
                     </Button>
                   </Link>
@@ -276,7 +276,7 @@ export default function CoverLetterServicesPage() {
                           <span className="font-bold text-xl text-primary">{service.price}</span>
                         </div>
                         <Link href={`https://wa.me/254795564135?text=${encodeURIComponent(service.whatsappMessage)}`} target="_blank" className="block">
-                          <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+                          <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white">
                             Get Started
                           </Button>
                         </Link>
@@ -366,8 +366,9 @@ export default function CoverLetterServicesPage() {
                 <span className="font-semibold">Custom pricing based on scope</span>
               </div>
               <Link href="https://wa.me/254795564135?text=Hi,%20I'm%20interested%20in%20a%20custom%20cover%20letter%20solution." target="_blank">
-                <Button className="bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 text-white px-10 py-4 text-xl font-semibold rounded-xl transition-all duration-200 transform hover:scale-105">
-                  👉 Contact us for a custom cover letter solution
+                <Button className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-6 sm:px-10 py-3 sm:py-4 text-lg sm:text-xl font-semibold rounded-xl transition-all duration-200 transform hover:scale-105">
+                  <span className="hidden sm:inline">👉 Get a custom cover letter solution</span>
+                  <span className="sm:hidden">Get custom solution</span>
                 </Button>
               </Link>
             </div>
