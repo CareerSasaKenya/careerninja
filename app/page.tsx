@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Autoplay from "embla-carousel-autoplay";
+import { usePageContent, getContentValue } from "@/hooks/usePageContent";
 // Images are now in public folder
 
 export default function Home() {
@@ -25,6 +26,18 @@ export default function Home() {
   const [successRate, setSuccessRate] = useState(0);
   const [hasAnimated, setHasAnimated] = useState(false);
   const statsRef = useRef<HTMLDivElement>(null);
+
+  // Fetch CMS content
+  const { data: content } = usePageContent("home");
+
+  // Get content values with fallbacks
+  const heroTitle = getContentValue(content, "hero_title", "Your Dream Career Starts Here");
+  const heroSubtitle = getContentValue(content, "hero_subtitle", "Join thousands of Kenyan professionals who've found their perfect role. Connect with top employers and unlock your potential.");
+  const statsJobsTarget = parseInt(getContentValue(content, "stats_jobs", "1070"));
+  const statsCompaniesTarget = parseInt(getContentValue(content, "stats_companies", "103"));
+  const statsSuccessRateTarget = parseInt(getContentValue(content, "stats_success_rate", "90"));
+  const ctaTitle = getContentValue(content, "cta_title", "Ready to Transform Your Career?");
+  const ctaSubtitle = getContentValue(content, "cta_subtitle", "Join thousands of Kenyan professionals who've found their dream jobs through CareerSasa");
 
   // Auto-scroll plugin for carousel
   const plugin = useRef(
@@ -38,36 +51,36 @@ export default function Home() {
         if (entries[0].isIntersecting && !hasAnimated) {
           setHasAnimated(true);
           
-          // Animate active jobs to 1070
+          // Animate active jobs to CMS value
           let jobCount = 0;
           const jobInterval = setInterval(() => {
             jobCount += 25;
-            if (jobCount >= 1070) {
-              setActiveJobs(1070);
+            if (jobCount >= statsJobsTarget) {
+              setActiveJobs(statsJobsTarget);
               clearInterval(jobInterval);
             } else {
               setActiveJobs(jobCount);
             }
           }, 30);
 
-          // Animate companies to 103
+          // Animate companies to CMS value
           let companyCount = 0;
           const companyInterval = setInterval(() => {
             companyCount += 3;
-            if (companyCount >= 103) {
-              setCompanies(103);
+            if (companyCount >= statsCompaniesTarget) {
+              setCompanies(statsCompaniesTarget);
               clearInterval(companyInterval);
             } else {
               setCompanies(companyCount);
             }
           }, 30);
 
-          // Animate success rate to 90
+          // Animate success rate to CMS value
           let rateCount = 0;
           const rateInterval = setInterval(() => {
             rateCount += 2;
-            if (rateCount >= 90) {
-              setSuccessRate(90);
+            if (rateCount >= statsSuccessRateTarget) {
+              setSuccessRate(statsSuccessRateTarget);
               clearInterval(rateInterval);
             } else {
               setSuccessRate(rateCount);
@@ -157,10 +170,10 @@ export default function Home() {
         <div className="container mx-auto grid lg:grid-cols-2 gap-8 items-center py-16 md:py-24 px-4">
           <div className="animate-fade-in z-10">
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 bg-gradient-primary bg-clip-text text-transparent leading-tight">
-              Your Dream Career<br />Starts Here
+              {heroTitle}
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl">
-              Join thousands of Kenyan professionals who've found their perfect role. Connect with top employers and unlock your potential.
+              {heroSubtitle}
             </p>
             
             {/* Search Bar */}
@@ -541,9 +554,9 @@ export default function Home() {
       {/* Final CTA */}
       <section className="py-20 px-4 bg-gradient-primary text-primary-foreground">
         <div className="container mx-auto text-center">
-          <h2 className="text-3xl md:text-5xl font-bold mb-6">Ready to Transform Your Career?</h2>
+          <h2 className="text-3xl md:text-5xl font-bold mb-6">{ctaTitle}</h2>
           <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90">
-            Join thousands of Kenyan professionals who've found their dream jobs through CareerSasa
+            {ctaSubtitle}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-stretch sm:items-center max-w-2xl mx-auto px-4">
             <Link href="/jobs" prefetch={true} className="flex-1 sm:flex-initial">
