@@ -4,8 +4,19 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import Navbar from "@/components/Navbar";
+import { usePageContent, getContentValue } from "@/hooks/usePageContent";
 
 export default function LinkedInServicesPage() {
+  // Fetch CMS content
+  const { data: content } = usePageContent("services-linkedin");
+
+  // Get content values with fallbacks
+  const heroTitle = getContentValue(content, "hero_title", "LinkedIn Career Services by CareerSasa");
+  const heroSubtitle = getContentValue(content, "hero_subtitle", "Turn Your LinkedIn Profile Into Opportunities 🚀");
+  const heroDescription1 = getContentValue(content, "hero_description_1", "Your LinkedIn profile is no longer optional. It's your digital CV, your personal brand, and often the first interview filter.");
+  const heroDescription2 = getContentValue(content, "hero_description_2", "At CareerSasa, we help students, job seekers, professionals, and executives use LinkedIn strategically — to get interviews, build credibility, and attract real opportunities.");
+  const heroDescription3 = getContentValue(content, "hero_description_3", "Whether you want a better job, career growth, or professional visibility, we've built LinkedIn services that work for the African job market.");
+
   const services = [
     {
       id: "audit",
@@ -91,19 +102,19 @@ export default function LinkedInServicesPage() {
           <div className="grid md:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
             <div className="text-center md:text-left">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-                LinkedIn Career Services by <span className="text-primary">CareerSasa</span>
+                {heroTitle}
               </h1>
               <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-6">
-                Turn Your LinkedIn Profile Into Opportunities 🚀
+                {heroSubtitle}
               </h2>
               <p className="text-lg text-gray-600 mb-4">
-                Your LinkedIn profile is no longer optional. It's your <strong>digital CV</strong>, your <strong>personal brand</strong>, and often the <strong>first interview filter</strong>.
+                {heroDescription1}
               </p>
               <p className="text-lg text-gray-600 mb-4">
-                At CareerSasa, we help students, job seekers, professionals, and executives <strong>use LinkedIn strategically</strong> — to get interviews, build credibility, and attract real opportunities.
+                {heroDescription2}
               </p>
               <p className="text-lg text-gray-600">
-                Whether you want a better job, career growth, or professional visibility, we've built LinkedIn services that work for the African job market.
+                {heroDescription3}
               </p>
             </div>
             <div className="flex justify-center">

@@ -4,8 +4,19 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import Navbar from "@/components/Navbar";
+import { usePageContent, getContentValue } from "@/hooks/usePageContent";
 
 export default function CVServicesPage() {
+  // Fetch CMS content
+  const { data: content } = usePageContent("services-cv");
+
+  // Get content values with fallbacks
+  const heroTitle = getContentValue(content, "hero_title", "CV & Resume Services by CareerSasa");
+  const heroSubtitle = getContentValue(content, "hero_subtitle", "Professional CVs That Open Doors 🚪📄");
+  const heroDescription1 = getContentValue(content, "hero_description_1", "Your CV is often the first decision-maker in your job search. Before interviews. Before LinkedIn. Before explanations.");
+  const heroDescription2 = getContentValue(content, "hero_description_2", "At CareerSasa, we don't just rewrite CVs — we position you to be shortlisted.");
+  const heroDescription3 = getContentValue(content, "hero_description_3", "Whether you're a student, job seeker, professional, or executive, our CV and resume services are designed to help you stand out in today's competitive job market.");
+
   const services = [
     {
       id: "writing",
@@ -93,19 +104,19 @@ export default function CVServicesPage() {
           <div className="grid md:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
             <div className="text-center md:text-left">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-                CV & Resume Services by <span className="text-primary">CareerSasa</span>
+                {heroTitle}
               </h1>
               <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-6">
-                Professional CVs That Open Doors 🚪📄
+                {heroSubtitle}
               </h2>
               <p className="text-lg text-gray-600 mb-4">
-                Your CV is often the <strong>first decision-maker</strong> in your job search. Before interviews. Before LinkedIn. Before explanations.
+                {heroDescription1}
               </p>
               <p className="text-lg text-gray-600 mb-4">
-                At CareerSasa, we don't just rewrite CVs — we <strong>position you to be shortlisted</strong>.
+                {heroDescription2}
               </p>
               <p className="text-lg text-gray-600">
-                Whether you're a student, job seeker, professional, or executive, our CV and resume services are designed to help you stand out in today's competitive job market.
+                {heroDescription3}
               </p>
             </div>
             <div className="flex justify-center">

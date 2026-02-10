@@ -4,8 +4,19 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import Navbar from "@/components/Navbar";
+import { usePageContent, getContentValue } from "@/hooks/usePageContent";
 
 export default function CoverLetterServicesPage() {
+  // Fetch CMS content
+  const { data: content } = usePageContent("services-cover-letter");
+
+  // Get content values with fallbacks
+  const heroTitle = getContentValue(content, "hero_title", "Outstanding Cover Letters by CareerSasa");
+  const heroSubtitle = getContentValue(content, "hero_subtitle", "Cover Letters That Get Read 📄✉️");
+  const heroDescription1 = getContentValue(content, "hero_description_1", "Your CV shows what you've done. Your cover letter explains why you're the right fit.");
+  const heroDescription2 = getContentValue(content, "hero_description_2", "At CareerSasa, we write cover letters that connect your experience to the job, speak directly to recruiters, and increase your chances of getting shortlisted.");
+  const heroDescription3 = getContentValue(content, "hero_description_3", "Whether you're applying for your first job or a senior role, our cover letter services help your application stand out — for the right reasons.");
+
   const services = [
     {
       id: "professional",
@@ -95,19 +106,19 @@ export default function CoverLetterServicesPage() {
           <div className="grid md:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
             <div className="text-center md:text-left">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-                Outstanding Cover Letters by <span className="text-primary">CareerSasa</span>
+                {heroTitle}
               </h1>
               <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-6">
-                Cover Letters That Get Read 📄✉️
+                {heroSubtitle}
               </h2>
               <p className="text-lg text-gray-600 mb-4">
-                Your CV shows what you've done. Your cover letter explains <strong>why you're the right fit</strong>.
+                {heroDescription1}
               </p>
               <p className="text-lg text-gray-600 mb-4">
-                At CareerSasa, we write cover letters that connect your experience to the job, speak directly to recruiters, and increase your chances of getting shortlisted.
+                {heroDescription2}
               </p>
               <p className="text-lg text-gray-600">
-                Whether you're applying for your first job or a senior role, our cover letter services help your application stand out — for the right reasons.
+                {heroDescription3}
               </p>
             </div>
             <div className="flex justify-center">
