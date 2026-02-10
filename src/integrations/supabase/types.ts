@@ -585,6 +585,39 @@ export type Database = {
           }
         ]
       }
+      page_content: {
+        Row: {
+          id: string
+          page_slug: string
+          section_key: string
+          content_type: string
+          content_value: string
+          metadata: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          page_slug: string
+          section_key: string
+          content_type?: string
+          content_value: string
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          page_slug?: string
+          section_key?: string
+          content_type?: string
+          content_value?: string
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
