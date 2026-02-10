@@ -77,6 +77,9 @@ const Navbar = () => {
           <Link href="/services/cv" prefetch={true}>
             <Button variant="ghost">Power Your CV & Resume</Button>
           </Link>
+          <Link href="/services/cover-letter" prefetch={true}>
+            <Button variant="ghost">Outstanding Cover Letters</Button>
+          </Link>
           <Link href="/blog" prefetch={true}>
             <Button variant="ghost">Blog</Button>
           </Link>

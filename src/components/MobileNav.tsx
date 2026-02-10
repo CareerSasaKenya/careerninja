@@ -105,6 +105,11 @@ const MobileNav = () => {
                 Power Your CV & Resume
               </Button>
             </Link>
+            <Link href="/services/cover-letter" onClick={closeMenu} prefetch={true}>
+              <Button variant="ghost" className="w-full justify-start text-base">
+                Outstanding Cover Letters
+              </Button>
+            </Link>
             <Link href="/blog" onClick={closeMenu} prefetch={true}>
               <Button variant="ghost" className="w-full justify-start text-base">
                 Blog

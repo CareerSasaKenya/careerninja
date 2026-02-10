@@ -1,0 +1,650 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import WhatsAppButton from "@/components/WhatsAppButton";
+import Navbar from "@/components/Navbar";
+
+export default function CoverLetterServicesPage() {
+  const [expandedPackage, setExpandedPackage] = useState<string | null>(null);
+
+  const togglePackageDetails = (packageName: string) => {
+    setExpandedPackage(expandedPackage === packageName ? null : packageName);
+  };
+
+  const services = [
+    {
+      id: "professional",
+      title: "✍️ Professional Cover Letter Writing",
+      subtitle: "Clear, tailored, and compelling",
+      features: [
+        "Fully written cover letter from scratch",
+        "Customized to a specific job or role",
+        "Professional tone and structure",
+        "Strong opening lines that grab attention",
+        "Achievement-focused content"
+      ],
+      bestFor: "Best for most job seekers",
+      price: "KES 2,500 – 4,000",
+      whatsappMessage: "Hi, I'm interested in the Professional Cover Letter Writing service."
+    },
+    {
+      id: "graduate",
+      title: "🎓 Graduate & Entry-Level Cover Letters",
+      subtitle: "Tell your story, even with limited experience",
+      features: [
+        "Skills-based approach",
+        "Internship, attachment & academic positioning",
+        "Confidence without exaggeration",
+        "Clear motivation narrative"
+      ],
+      bestFor: "Best for students & fresh graduates",
+      price: "KES 1,500 – 2,500",
+      whatsappMessage: "Hi, I'm interested in the Graduate & Entry-Level Cover Letters service."
+    },
+    {
+      id: "transition",
+      title: "🔄 Career Transition Cover Letters",
+      subtitle: "Change direction without confusing recruiters",
+      features: [
+        "Clear explanation of career change",
+        "Transferable skills highlighted",
+        "Strong motivation narrative",
+        "Honest, confident positioning"
+      ],
+      bestFor: "Best for career switchers",
+      price: "KES 3,000 – 5,000",
+      whatsappMessage: "Hi, I'm interested in the Career Transition Cover Letters service."
+    },
+    {
+      id: "executive",
+      title: "📌 Executive & Senior-Level Cover Letters",
+      subtitle: "Position yourself as a leader",
+      features: [
+        "Strategic, impact-focused writing",
+        "Leadership & decision-making emphasis",
+        "Confidential handling",
+        "Board-level positioning"
+      ],
+      bestFor: "Best for managers & executives",
+      price: "KES 5,000 – 8,000",
+      whatsappMessage: "Hi, I'm interested in the Executive & Senior-Level Cover Letters service."
+    },
+    {
+      id: "alignment",
+      title: "📄 CV + Cover Letter Alignment",
+      subtitle: "One clear professional message",
+      features: [
+        "Cover letter aligned with CV",
+        "Consistent tone and positioning",
+        "Strong, credible personal narrative",
+        "Complementary, not repetitive"
+      ],
+      bestFor: "Highly recommended",
+      price: "KES 2,500 – 4,000",
+      whatsappMessage: "Hi, I'm interested in the CV + Cover Letter Alignment service."
+    }
+  ];
+
+  const packages = [
+    {
+      id: "graduate-starter",
+      title: "🟢 Graduate Starter Cover Letter",
+      subtitle: "For students & fresh graduates",
+      services: [
+        "One tailored cover letter",
+        "Skills-based approach",
+        "Professional format"
+      ],
+      price: "KES 1,500 – 2,500",
+      whatsappMessage: "Hi, I'm interested in the Graduate Starter Cover Letter package."
+    },
+    {
+      id: "job-seeker",
+      title: "🔵 Job Seeker Cover Letter (Most Popular)",
+      subtitle: "For active job seekers",
+      services: [
+        "One professionally written cover letter",
+        "Job-specific customization",
+        "Recruiter-focused content"
+      ],
+      price: "KES 2,500 – 4,000",
+      whatsappMessage: "Hi, I'm interested in the Job Seeker Cover Letter package."
+    },
+    {
+      id: "multiple",
+      title: "🟣 Multiple Applications Package",
+      subtitle: "For applying to several roles",
+      services: [
+        "2–3 customized cover letters",
+        "Role-specific targeting",
+        "Consistent professional voice"
+      ],
+      price: "KES 4,500 – 7,000",
+      whatsappMessage: "Hi, I'm interested in the Multiple Applications Package."
+    },
+    {
+      id: "executive-package",
+      title: "🔴 Executive Cover Letter",
+      subtitle: "For senior professionals",
+      services: [
+        "Executive-level cover letter",
+        "Strategic, confidential approach",
+        "Leadership positioning"
+      ],
+      price: "KES 5,000 – 8,000",
+      whatsappMessage: "Hi, I'm interested in the Executive Cover Letter package."
+    }
+  ];
+
+  return (
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      {/* WhatsApp Button */}
+      <WhatsAppButton />
+      
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        {/* Hero Section */}
+        <section className="mb-16">
+          <div className="grid md:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
+            <div className="text-center md:text-left">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
+                Outstanding Cover Letters by <span className="text-primary">CareerSasa</span>
+              </h1>
+              <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-6">
+                Cover Letters That Get Read 📄✉️
+              </h2>
+              <p className="text-lg text-gray-600 mb-4">
+                Your CV shows what you've done. Your cover letter explains <strong>why you're the right fit</strong>.
+              </p>
+              <p className="text-lg text-gray-600 mb-4">
+                At CareerSasa, we write cover letters that connect your experience to the job, speak directly to recruiters, and increase your chances of getting shortlisted.
+              </p>
+              <p className="text-lg text-gray-600">
+                Whether you're applying for your first job or a senior role, our cover letter services help your application stand out — for the right reasons.
+              </p>
+            </div>
+            <div className="flex justify-center">
+              <div className="relative w-full max-w-lg">
+                <div className="relative aspect-video bg-gradient-to-br from-blue-100 to-indigo-200 rounded-2xl overflow-hidden shadow-xl border-8 border-white">
+                  <img 
+                    src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
+                    alt="Professional Cover Letter Writing"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl overflow-hidden shadow-lg border-4 border-white">
+                  <img 
+                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
+                    alt="Professional Success"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Why Cover Letters Matter */}
+        <section className="mb-16 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 border border-blue-100 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-200/30 rounded-full -translate-y-16 translate-x-16 blur-xl"></div>
+          <div className="absolute bottom-0 left-0 w-40 h-40 bg-indigo-200/30 rounded-full translate-y-20 -translate-x-20 blur-xl"></div>
+          
+          <div className="relative z-10">
+            <div className="flex flex-col md:flex-row items-center gap-8 max-w-6xl mx-auto">
+              <div className="flex-1">
+                <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">Why Cover Letters Still Matter</h2>
+                <ul className="space-y-4">
+                  <li className="flex items-start">
+                    <span className="text-blue-600 font-bold mr-3">•</span>
+                    <span className="text-gray-700"><strong>Many recruiters read cover letters for serious roles</strong></span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-blue-600 font-bold mr-3">•</span>
+                    <span className="text-gray-700"><strong>Cover letters explain career gaps and transitions</strong></span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-blue-600 font-bold mr-3">•</span>
+                    <span className="text-gray-700"><strong>They show motivation, clarity, and communication skills</strong></span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-blue-600 font-bold mr-3">•</span>
+                    <span className="text-gray-700"><strong>A generic cover letter can hurt a strong CV</strong></span>
+                  </li>
+                </ul>
+                <p className="text-lg text-gray-700 mt-6 italic text-center">
+                  When required, a weak cover letter can cost you an interview. We make sure yours strengthens your application.
+                </p>
+              </div>
+              <div className="flex-shrink-0">
+                <div className="relative w-64 h-64 rounded-2xl overflow-hidden shadow-lg border-4 border-white">
+                  <img 
+                    src="https://images.unsplash.com/photo-1586281380349-632531db7ed4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
+                    alt="Cover Letter Review"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* What We Do Differently */}
+        <section className="mb-16">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">What We Do Differently at CareerSasa</h2>
+          <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-8 rounded-2xl border border-gray-200 shadow-sm relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-green-100 to-emerald-100 rounded-full -translate-y-12 translate-x-12 blur-xl opacity-50"></div>
+              <div className="relative z-10">
+                <div className="flex items-start mb-6">
+                  <span className="text-green-600 font-bold mr-3 text-xl">✔</span>
+                  <span className="font-semibold text-gray-800">Job-specific, not generic templates</span>
+                </div>
+                <div className="flex items-start mb-6">
+                  <span className="text-green-600 font-bold mr-3 text-xl">✔</span>
+                  <span className="font-semibold text-gray-800">Recruiter-focused writing</span>
+                </div>
+                <div className="flex items-start mb-6">
+                  <span className="text-green-600 font-bold mr-3 text-xl">✔</span>
+                  <span className="font-semibold text-gray-800">Clear structure and strong opening lines</span>
+                </div>
+                <div className="flex items-start mb-6">
+                  <span className="text-green-600 font-bold mr-3 text-xl">✔</span>
+                  <span className="font-semibold text-gray-800">Honest, confident positioning</span>
+                </div>
+                <div className="flex items-start mb-6">
+                  <span className="text-green-600 font-bold mr-3 text-xl">✔</span>
+                  <span className="font-semibold text-gray-800">Aligned with your CV and LinkedIn profile</span>
+                </div>
+                <div className="flex items-start">
+                  <span className="text-green-600 font-bold mr-3 text-xl">✔</span>
+                  <span className="font-semibold text-gray-800">Trusted career platform in Kenya & East Africa</span>
+                </div>
+              </div>
+            </div>
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-8 rounded-2xl border border-green-200 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-green-200 to-emerald-200 rounded-full -translate-x-16 -translate-y-16 blur-xl opacity-30"></div>
+              <div className="relative z-10">
+                <div className="flex flex-col h-full justify-center">
+                  <div className="mb-8 text-center">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full mb-4 mx-auto">
+                      <span className="text-2xl text-white">✉️</span>
+                    </div>
+                    <p className="text-gray-700 mb-6 text-lg">
+                      We don't repeat your CV. We explain your value.
+                    </p>
+                  </div>
+                  <Link href="https://wa.me/254795564135" target="_blank">
+                    <Button className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 w-full text-white text-lg py-6">
+                      Chat with Us on WhatsApp
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Individual Services */}
+        <section className="mb-16">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Our Cover Letter Services</h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {services.map((service, index) => {
+              const colors = [
+                'from-green-50 to-emerald-50',
+                'from-blue-50 to-cyan-50', 
+                'from-purple-50 to-violet-50',
+                'from-pink-50 to-rose-50',
+                'from-amber-50 to-orange-50'
+              ];
+              
+              const color = colors[index % colors.length];
+              
+              return (
+                <div 
+                  key={service.id}
+                  className={`relative bg-gradient-to-br ${color} border border-gray-200 rounded-2xl p-6 shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 overflow-hidden`}
+                >
+                  {/* Decorative corner elements */}
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/30 to-transparent rounded-bl-full"></div>
+                  <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-white/30 to-transparent rounded-tr-full"></div>
+                  
+                  <div className="relative z-10">
+                    <div className="flex items-start mb-4">
+                      <div className="mr-3 mt-1">
+                        <span className="text-2xl">{service.title.split(' ')[0]}</span>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold text-gray-900">{service.title.substring(service.title.indexOf(' ') + 1)}</h3>
+                        <p className="text-gray-600 mt-1">{service.subtitle}</p>
+                      </div>
+                      <div className="flex-shrink-0 ml-4">
+                        <div className="w-12 h-12 rounded-lg overflow-hidden shadow-sm border border-gray-200">
+                          <img 
+                            src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
+                            alt="Service icon"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <ul className="space-y-2 mb-4">
+                      {service.features.map((feature, idx) => (
+                        <li key={idx} className="flex items-start">
+                          <span className="text-green-600 mr-2 mt-1">✓</span>
+                          <span className="text-gray-700">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    
+                    <p className="text-sm text-gray-500 italic mb-4">{service.bestFor}</p>
+                    
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <span className="font-bold text-lg text-primary">{service.price}</span>
+                      <Link href={`https://wa.me/254795564135?text=${encodeURIComponent(service.whatsappMessage)}`} target="_blank">
+                        <Button variant="outline" className="border-green-500 text-green-600 hover:bg-green-50 hover:border-green-600">
+                          WhatsApp Us
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Bundled Packages */}
+        <section className="mb-16">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Cover Letter Packages</h2>
+          <div className="space-y-8 max-w-6xl mx-auto">
+            {packages.map((pkg, index) => {
+              const colors = [
+                { bg: 'from-emerald-50 to-teal-50', border: 'border-emerald-200', accent: 'bg-emerald-500', text: 'text-emerald-700' },
+                { bg: 'from-blue-50 to-cyan-50', border: 'border-blue-200', accent: 'bg-blue-500', text: 'text-blue-700' },
+                { bg: 'from-violet-50 to-purple-50', border: 'border-violet-200', accent: 'bg-violet-500', text: 'text-violet-700' },
+                { bg: 'from-rose-50 to-pink-50', border: 'border-rose-200', accent: 'bg-rose-500', text: 'text-rose-700' }
+              ];
+              
+              const color = colors[index % colors.length];
+              
+              return (
+                <div 
+                  key={pkg.id}
+                  className={`relative bg-gradient-to-br ${color.bg} border ${color.border} rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden`}
+                >
+                  {/* Decorative elements */}
+                  <div className="absolute -top-4 -right-4 w-24 h-24 rounded-full bg-white/30 blur-xl"></div>
+                  <div className="absolute -bottom-4 -left-4 w-20 h-20 rounded-full bg-white/30 blur-xl"></div>
+                  
+                  <div className="relative z-10">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 rounded-xl overflow-hidden shadow-md border border-white/30">
+                          <img 
+                            src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
+                            alt="Package icon"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div>
+                          <h3 className="text-2xl font-bold text-gray-900 mb-2">{pkg.title}</h3>
+                          <p className="text-gray-600 font-medium">{pkg.subtitle}</p>
+                        </div>
+                      </div>
+                      <div className="mt-4 md:mt-0 md:ml-6">
+                        <div className={`inline-block px-4 py-2 rounded-full ${color.accent} text-white font-bold text-lg`}>
+                          {pkg.price}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div>
+                        <h4 className="font-semibold text-gray-800 mb-3 flex items-center">
+                          <span className={`${color.accent} w-2 h-2 rounded-full mr-2`}></span>
+                          What's Included:
+                        </h4>
+                        <ul className="space-y-2">
+                          {pkg.services.map((service, idx) => (
+                            <li key={idx} className="flex items-start">
+                              <span className="text-green-600 mr-2 mt-1">✓</span>
+                              <span className="text-gray-700">{service}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      
+                      <div className="flex items-center justify-center">
+                        <Link href={`https://wa.me/254795564135?text=${encodeURIComponent(pkg.whatsappMessage)}`} target="_blank">
+                          <Button className={`${color.accent} hover:${color.accent.replace('500', '600')} text-white px-8 py-3 text-lg font-semibold rounded-xl transition-all duration-200 transform hover:scale-105`}>
+                            Get Started Now
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Custom Solutions */}
+        <section className="mb-16 relative overflow-hidden rounded-2xl border border-purple-200">
+          {/* Background decorative elements */}
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-50 to-indigo-100 opacity-70"></div>
+          <div className="absolute top-10 left-10 w-32 h-32 bg-purple-300/20 rounded-full blur-2xl"></div>
+          <div className="absolute bottom-10 right-10 w-40 h-40 bg-indigo-300/20 rounded-full blur-2xl"></div>
+          
+          <div className="relative z-10 p-10">
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl mb-4">
+                <span className="text-2xl text-white">🧩</span>
+              </div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">Custom Cover Letter Solutions</h2>
+              <h3 className="text-xl font-semibold text-gray-700">Need Something More Specific? Let's Build It Together.</h3>
+            </div>
+            
+            <div className="text-center mb-8 max-w-3xl mx-auto">
+              <p className="text-gray-700 mb-4">
+                Some applications require special handling — international roles, confidential searches, scholarships, fellowships, or highly technical positions.
+              </p>
+              <p className="text-gray-700">
+                That's why we offer <strong>Custom Cover Letter Packages</strong>, tailored to your exact needs.
+              </p>
+            </div>
+
+            <div className="bg-white/50 backdrop-blur-sm rounded-xl p-8 mb-8 border border-white/30">
+              <h4 className="text-lg font-semibold text-gray-800 mb-6 text-center">Custom solutions may include:</h4>
+              <div className="grid md:grid-cols-2 gap-6">
+                <ul className="space-y-3">
+                  <li className="flex items-start">
+                    <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-0.5">
+                      <span className="text-purple-600 text-sm">✓</span>
+                    </div>
+                    <span className="text-gray-700">International job or scholarship applications</span>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-0.5">
+                      <span className="text-purple-600 text-sm">✓</span>
+                    </div>
+                    <span className="text-gray-700">Technical or academic cover letters</span>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-0.5">
+                      <span className="text-purple-600 text-sm">✓</span>
+                    </div>
+                    <span className="text-gray-700">Confidential job search support</span>
+                  </li>
+                </ul>
+                <ul className="space-y-3">
+                  <li className="flex items-start">
+                    <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-0.5">
+                      <span className="text-purple-600 text-sm">✓</span>
+                    </div>
+                    <span className="text-gray-700">Employer- or institution-specific requirements</span>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-0.5">
+                      <span className="text-purple-600 text-sm">✓</span>
+                    </div>
+                    <span className="text-gray-700">Fellowship or grant applications</span>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-0.5">
+                      <span className="text-purple-600 text-sm">✓</span>
+                    </div>
+                    <span className="text-gray-700">Multiple cover letters for different industries</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <div className="inline-flex items-center bg-yellow-100 text-yellow-800 px-4 py-2 rounded-full mb-6">
+                <span className="text-lg mr-2">💰</span>
+                <span className="font-semibold">Custom pricing based on scope</span>
+              </div>
+              <Link href="https://wa.me/254795564135?text=Hi,%20I'm%20interested%20in%20a%20custom%20cover%20letter%20solution." target="_blank">
+                <Button className="bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 text-white px-10 py-4 text-xl font-semibold rounded-xl transition-all duration-200 transform hover:scale-105">
+                  👉 Contact us for a custom cover letter solution
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Process */}
+        <section className="mb-16 bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl p-8 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-40 h-40 bg-blue-200/20 rounded-full -translate-x-20 -translate-y-20 blur-xl"></div>
+          <div className="absolute bottom-0 right-0 w-32 h-32 bg-green-200/20 rounded-full translate-x-20 translate-y-20 blur-xl"></div>
+          
+          <div className="relative z-10">
+            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">How It Works</h2>
+            <div className="grid md:grid-cols-4 gap-6">
+              {[1, 2, 3, 4].map((step) => (
+                <div key={step} className="text-center relative group">
+                  <div className="bg-gradient-to-br from-primary to-blue-600 text-white rounded-full w-16 h-16 flex items-center justify-center text-xl font-bold mx-auto mb-4 transition-transform duration-300 group-hover:scale-110">
+                    {step}
+                  </div>
+                  <p className="text-gray-700 mb-4">
+                    {step === 1 && "Choose a cover letter service"}
+                    {step === 2 && "Share the job details and your CV"}
+                    {step === 3 && "We write and refine your cover letter"}
+                    {step === 4 && "You receive a ready-to-send document"}
+                  </p>
+                  {step === 1 && (
+                    <div className="mx-auto w-16 h-16 rounded-lg overflow-hidden shadow-lg border-2 border-white">
+                      <img 
+                        src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
+                        alt="Choose service"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  {step === 2 && (
+                    <div className="mx-auto w-16 h-16 rounded-lg overflow-hidden shadow-lg border-2 border-white">
+                      <img 
+                        src="https://images.unsplash.com/photo-1586281380349-632531db7ed4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
+                        alt="Share details"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  {step === 3 && (
+                    <div className="mx-auto w-16 h-16 rounded-lg overflow-hidden shadow-lg border-2 border-white">
+                      <img 
+                        src="https://images.unsplash.com/photo-1455390582262-044cdead277a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1473&q=80" 
+                        alt="Writing process"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  {step === 4 && (
+                    <div className="mx-auto w-16 h-16 rounded-lg overflow-hidden shadow-lg border-2 border-white">
+                      <img 
+                        src="https://images.unsplash.com/photo-1531545514256-b1400bc00f31?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1374&q=80" 
+                        alt="Success"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Target Audience */}
+        <section className="mb-16">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Who These Services Are For</h2>
+          <div className="flex flex-wrap justify-center gap-4 mb-8">
+            {[
+              "Students & fresh graduates",
+              "Job seekers & career switchers",
+              "Professionals applying for competitive roles",
+              "Managers & senior leaders"
+            ].map((audience, idx) => (
+              <div key={idx} className="bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 px-6 py-3 rounded-full border border-green-200 flex items-center">
+                <span className="mr-2">✅</span>{audience}
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-col md:flex-row items-center gap-8 max-w-4xl mx-auto">
+            <div className="flex-1">
+              <p className="text-center text-lg text-gray-700">
+                If a cover letter is required — this service matters.
+              </p>
+            </div>
+            <div className="flex-shrink-0">
+              <div className="relative w-48 h-48 rounded-2xl overflow-hidden shadow-lg border-4 border-white">
+                <img 
+                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
+                  alt="Professional Success"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Call to Action */}
+        <section className="mb-16 bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 rounded-2xl p-8 text-white text-center relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full -translate-x-32 -translate-y-32 blur-2xl"></div>
+          <div className="absolute bottom-0 right-0 w-56 h-56 bg-white/10 rounded-full translate-x-32 translate-y-32 blur-2xl"></div>
+          
+          <div className="relative z-10">
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Strengthen Your Applications?</h2>
+            <p className="text-xl mb-8">
+              Don't let a weak or generic cover letter undermine your CV.
+            </p>
+            <div className="flex flex-col lg:flex-row gap-8 justify-center items-center">
+              <Link href="https://wa.me/254795564135?text=Hi,%20I'd%20like%20to%20choose%20a%20cover%20letter%20service%20today!" target="_blank">
+                <Button className="bg-white text-orange-600 hover:bg-gray-100 text-lg px-10 py-4 font-semibold rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105">
+                  👉 Choose a cover letter service today
+                </Button>
+              </Link>
+              <div className="flex flex-col items-center">
+                <div className="relative w-32 h-32 rounded-full overflow-hidden shadow-lg border-4 border-white mb-4">
+                  <img 
+                    src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
+                    alt="Cover Letter Success"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <p className="text-white text-lg">
+                  ⏳ <em>Limited writing slots available each week</em>
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+      </div>
+    </>
+  );
+}

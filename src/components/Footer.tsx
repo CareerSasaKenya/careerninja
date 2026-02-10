@@ -117,6 +117,11 @@ export function Footer() {
                     CV Services
                   </Link>
                 </li>
+                <li>
+                  <Link href="/services/cover-letter" className="text-muted-foreground hover:text-foreground transition-colors" prefetch={true}>
+                    Cover Letter Services
+                  </Link>
+                </li>
               </ul>
             </div>
 
