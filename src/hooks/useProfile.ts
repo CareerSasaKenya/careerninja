@@ -74,12 +74,14 @@ export function useProfile() {
 
   useEffect(() => {
     fetchProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (profile) {
       calculateCompleteness();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile, workExperience, education, skills]);
 
   const fetchProfile = async () => {

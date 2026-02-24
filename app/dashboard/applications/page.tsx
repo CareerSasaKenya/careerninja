@@ -13,12 +13,6 @@ interface Application {
   id: string;
   status: string;
   created_at: string;
-  cover_letter: string;
-  years_experience: number;
-  expected_salary_min: number;
-  salary_negotiable: boolean;
-  cv_file_url: string;
-  cv_file_name: string;
   job: {
     id: string;
     title: string;
@@ -35,6 +29,7 @@ export default function ApplicationsPage() {
 
   useEffect(() => {
     fetchApplications();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchApplications = async () => {
@@ -51,12 +46,6 @@ export default function ApplicationsPage() {
           id,
           status,
           created_at,
-          cover_letter,
-          years_experience,
-          expected_salary_min,
-          salary_negotiable,
-          cv_file_url,
-          cv_file_name,
           job:jobs (
             id,
             title,
@@ -153,30 +142,6 @@ export default function ApplicationsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {application.years_experience && (
-                    <div className="text-sm">
-                      <span className="font-medium">Experience:</span> {application.years_experience} years
-                    </div>
-                  )}
-                  {application.expected_salary_min && (
-                    <div className="text-sm">
-                      <span className="font-medium">Expected Salary:</span> ₦{application.expected_salary_min.toLocaleString()}
-                      {application.salary_negotiable && ' (Negotiable)'}
-                    </div>
-                  )}
-                  {application.cv_file_url && (
-                    <div className="text-sm">
-                      <a 
-                        href={application.cv_file_url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-primary hover:underline"
-                      >
-                        <FileText className="h-4 w-4" />
-                        {application.cv_file_name || 'View CV'}
-                      </a>
-                    </div>
-                  )}
                   <div className="flex gap-2 pt-2">
                     <Button
                       variant="outline"
