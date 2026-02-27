@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { FileText, Upload, Trash2, Download, Star, Loader2, CheckCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import CVParseDialog from './CVParseDialog';
 
 interface Document {
   id: string;
@@ -27,13 +28,17 @@ interface DocumentsSectionProps {
   candidateId: string;
   documents: Document[];
   onUpdate: () => void;
+  onCVParsed?: (parsedData: any) => void;
 }
 
-export default function DocumentsSection({ candidateId, documents, onUpdate }: DocumentsSectionProps) {
+export default function DocumentsSection({ candidateId, documents, onUpdate, onCVParsed }: DocumentsSectionProps) {
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [documentType, setDocumentType] = useState<string>('cv');
+  const [showParseDialog, setShowParseDialog] = useState(false);
+  const [isParsing, setIsParsing] = useState(false);
+  const [parsedData, setParsedData] = useState<any>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -76,6 +81,8 @@ export default function DocumentsSection({ candidateId, documents, onUpdate }: D
     }
 
     setIsUploading(true);
+    let uploadedFileUrl = '';
+    let uploadedFileType = '';
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -95,6 +102,9 @@ export default function DocumentsSection({ candidateId, documents, onUpdate }: D
       const { data: { publicUrl } } = supabase.storage
         .from('candidate-documents')
         .getPublicUrl(fileName);
+
+      uploadedFileUrl = publicUrl;
+      uploadedFileType = selectedFile.type;
 
       // If this is a CV/resume and it's the first one, make it primary
       const isPrimary = (documentType === 'cv' || documentType === 'resume') && 
@@ -130,6 +140,41 @@ export default function DocumentsSection({ candidateId, documents, onUpdate }: D
       setSelectedFile(null);
       setDocumentType('cv');
       onUpdate();
+
+      // Auto-parse CV/Resume
+      if (documentType === 'cv' || documentType === 'resume') {
+        setShowParseDialog(true);
+        setIsParsing(true);
+        
+        try {
+          const response = await fetch('/api/parse-cv', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fileUrl: uploadedFileUrl,
+              fileType: uploadedFileType,
+            }),
+          });
+
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(result.error || 'Failed to parse CV');
+          }
+
+          setParsedData(result.data);
+          setIsParsing(false);
+        } catch (parseError: any) {
+          console.error('CV parsing error:', parseError);
+          setIsParsing(false);
+          setShowParseDialog(false);
+          toast({
+            title: 'CV parsing failed',
+            description: parseError.message || 'Could not automatically parse your CV. You can still fill in your profile manually.',
+            variant: 'destructive',
+          });
+        }
+      }
     } catch (error: any) {
       console.error('Upload error:', error);
       
@@ -149,6 +194,37 @@ export default function DocumentsSection({ candidateId, documents, onUpdate }: D
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const handleConfirmParsedData = async () => {
+    if (!parsedData) return;
+
+    try {
+      // Call the parent callback to apply parsed data
+      if (onCVParsed) {
+        await onCVParsed(parsedData);
+      }
+
+      toast({
+        title: 'Profile updated',
+        description: 'Your profile has been populated with CV data. Review and save each section.',
+      });
+
+      setShowParseDialog(false);
+      setParsedData(null);
+    } catch (error: any) {
+      toast({
+        title: 'Failed to apply data',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleCancelParsing = () => {
+    setShowParseDialog(false);
+    setParsedData(null);
+    setIsParsing(false);
   };
 
   const handleSetPrimary = async (documentId: string) => {
@@ -237,16 +313,26 @@ export default function DocumentsSection({ candidateId, documents, onUpdate }: D
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileText className="h-5 w-5" />
-          Documents & CV
-        </CardTitle>
-        <CardDescription>
-          Upload your CV, resume, certificates, and other documents
-        </CardDescription>
-      </CardHeader>
+    <>
+      <CVParseDialog
+        open={showParseDialog}
+        onOpenChange={setShowParseDialog}
+        parsedData={parsedData}
+        isParsing={isParsing}
+        onConfirm={handleConfirmParsedData}
+        onCancel={handleCancelParsing}
+      />
+      
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Documents & CV
+          </CardTitle>
+          <CardDescription>
+            Upload your CV, resume, certificates, and other documents. CVs will be automatically parsed to fill your profile.
+          </CardDescription>
+        </CardHeader>
       <CardContent className="space-y-6">
         {/* Upload Section */}
         <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
@@ -385,5 +471,6 @@ export default function DocumentsSection({ candidateId, documents, onUpdate }: D
         </div>
       </CardContent>
     </Card>
+    </>
   );
 }
