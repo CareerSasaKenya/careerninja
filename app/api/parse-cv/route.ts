@@ -31,11 +31,10 @@ export async function POST(request: NextRequest) {
       const textDecoder = new TextDecoder('utf-8');
       cvText = textDecoder.decode(fileBuffer);
       
-      // Clean up PDF artifacts
-      // eslint-disable-next-line no-control-regex
+      // Clean up PDF artifacts (remove control characters and normalize whitespace)
       cvText = cvText
-        .replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F-\x9F]/g, '') // Remove control characters
-        .replace(/\s+/g, ' ') // Normalize whitespace
+        .replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F-\x9F]/g, '') // eslint-disable-line no-control-regex
+        .replace(/\s+/g, ' ')
         .trim();
     } else if (
       fileType === 'application/msword' ||
@@ -45,10 +44,9 @@ export async function POST(request: NextRequest) {
       const textDecoder = new TextDecoder('utf-8');
       cvText = textDecoder.decode(fileBuffer);
       
-      // Clean up
-      // eslint-disable-next-line no-control-regex
+      // Clean up (remove control characters and normalize whitespace)
       cvText = cvText
-        .replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F-\x9F]/g, '')
+        .replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F-\x9F]/g, '') // eslint-disable-line no-control-regex
         .replace(/\s+/g, ' ')
         .trim();
     } else {
