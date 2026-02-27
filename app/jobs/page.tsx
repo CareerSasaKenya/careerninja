@@ -748,13 +748,7 @@ const Jobs = () => {
                           applicationUrl={job.application_url}
                           applyEmail={job.apply_email}
                           applyLink={job.apply_link}
-                          skillsTop3={
-                            Array.isArray(job.software_skills)
-                              ? (job.software_skills as unknown[])
-                                  .filter((s): s is string => typeof s === "string")
-                                  .slice(0, 3)
-                              : undefined
-                          }
+                          skillsTop3={undefined}
                           department={job.job_function}
                           jobSlug={job.job_slug}
                           educationLevel=""
