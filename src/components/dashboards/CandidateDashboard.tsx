@@ -88,7 +88,23 @@ const CandidateDashboard = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Job Seeker Dashboard</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Job Seeker Dashboard</h1>
+        <div className="flex gap-2">
+          <Link href="/dashboard/profile">
+            <Button variant="outline">
+              <FileText className="h-4 w-4 mr-2" />
+              My Profile
+            </Button>
+          </Link>
+          <Link href="/dashboard/applications">
+            <Button variant="outline">
+              <FileText className="h-4 w-4 mr-2" />
+              All Applications
+            </Button>
+          </Link>
+        </div>
+      </div>
 
       <Card>
         <CardHeader>
@@ -105,38 +121,47 @@ const CandidateDashboard = () => {
               No applications yet. <Link href="/jobs" className="text-primary underline">Browse jobs</Link> to apply.
             </p>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Job Title</TableHead>
-                    <TableHead>Company</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Applied</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {applications.map((app) => (
-                    <TableRow key={app.id}>
-                      <TableCell className="font-medium">
-                        <Link href={`/jobs/${app.job_id}`} className="hover:underline">
-                          {app.jobs?.title || "N/A"}
-                        </Link>
-                      </TableCell>
-                      <TableCell>{app.jobs?.company || "N/A"}</TableCell>
-                      <TableCell>{app.jobs?.location || "N/A"}</TableCell>
-                      <TableCell>
-                        <span className="capitalize px-2 py-1 rounded-full text-xs bg-primary/10 text-primary">
-                          {app.status}
-                        </span>
-                      </TableCell>
-                      <TableCell>{new Date(app.created_at).toLocaleDateString()}</TableCell>
+            <>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Job Title</TableHead>
+                      <TableHead>Company</TableHead>
+                      <TableHead>Location</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Applied</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {applications.slice(0, 5).map((app) => (
+                      <TableRow key={app.id}>
+                        <TableCell className="font-medium">
+                          <Link href={`/jobs/${app.job_id}`} className="hover:underline">
+                            {app.jobs?.title || "N/A"}
+                          </Link>
+                        </TableCell>
+                        <TableCell>{app.jobs?.company || "N/A"}</TableCell>
+                        <TableCell>{app.jobs?.location || "N/A"}</TableCell>
+                        <TableCell>
+                          <span className="capitalize px-2 py-1 rounded-full text-xs bg-primary/10 text-primary">
+                            {app.status}
+                          </span>
+                        </TableCell>
+                        <TableCell>{new Date(app.created_at).toLocaleDateString()}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              {applications.length > 5 && (
+                <div className="mt-4 text-center">
+                  <Link href="/dashboard/applications">
+                    <Button variant="outline">View All Applications ({applications.length})</Button>
+                  </Link>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
