@@ -114,7 +114,13 @@ export default function DocumentsSection({ candidateId, documents, onUpdate }: D
           is_active: true,
         });
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        // If database insert fails, clean up the uploaded file
+        await supabase.storage
+          .from('candidate-documents')
+          .remove([fileName]);
+        throw dbError;
+      }
 
       toast({
         title: 'Document uploaded',
@@ -126,9 +132,18 @@ export default function DocumentsSection({ candidateId, documents, onUpdate }: D
       onUpdate();
     } catch (error: any) {
       console.error('Upload error:', error);
+      
+      let errorMessage = 'Failed to upload document';
+      if (error.message) {
+        errorMessage = error.message;
+      }
+      if (error.code === '22001') {
+        errorMessage = 'File name or type is too long. Please rename your file to something shorter.';
+      }
+      
       toast({
         title: 'Upload failed',
-        description: error.message || 'Failed to upload document',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
