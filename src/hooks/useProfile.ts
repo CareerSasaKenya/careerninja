@@ -89,7 +89,7 @@ export function useProfile() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: profileData } = await supabase
+      const { data: profileData } = await (supabase as any)
         .from('candidate_profiles')
         .select('*')
         .eq('user_id', user.id)
@@ -109,7 +109,7 @@ export function useProfile() {
   };
 
   const fetchWorkExperience = async (candidateId: string) => {
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from('candidate_work_experience')
       .select('*')
       .eq('candidate_id', candidateId)
@@ -119,7 +119,7 @@ export function useProfile() {
   };
 
   const fetchEducation = async (candidateId: string) => {
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from('candidate_education')
       .select('*')
       .eq('candidate_id', candidateId)
@@ -129,7 +129,7 @@ export function useProfile() {
   };
 
   const fetchSkills = async (candidateId: string) => {
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from('candidate_skills')
       .select('*')
       .eq('candidate_id', candidateId)

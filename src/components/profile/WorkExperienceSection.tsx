@@ -84,7 +84,7 @@ export default function WorkExperienceSection({ candidateId, experiences, onUpda
       };
 
       if (editingId) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('candidate_work_experience')
           .update(data)
           .eq('id', editingId);
@@ -92,7 +92,7 @@ export default function WorkExperienceSection({ candidateId, experiences, onUpda
         if (error) throw error;
         toast({ title: 'Work experience updated' });
       } else {
-        const { error } = await supabase
+        const { error} = await (supabase as any)
           .from('candidate_work_experience')
           .insert(data);
         
@@ -118,7 +118,7 @@ export default function WorkExperienceSection({ candidateId, experiences, onUpda
     if (!confirm('Are you sure you want to delete this work experience?')) return;
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('candidate_work_experience')
         .delete()
         .eq('id', id);

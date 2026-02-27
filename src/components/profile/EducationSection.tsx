@@ -87,7 +87,7 @@ export default function EducationSection({ candidateId, education, onUpdate }: E
       };
 
       if (editingId) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('candidate_education')
           .update(data)
           .eq('id', editingId);
@@ -95,7 +95,7 @@ export default function EducationSection({ candidateId, education, onUpdate }: E
         if (error) throw error;
         toast({ title: 'Education updated' });
       } else {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('candidate_education')
           .insert(data);
         
@@ -121,7 +121,7 @@ export default function EducationSection({ candidateId, education, onUpdate }: E
     if (!confirm('Are you sure you want to delete this education?')) return;
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('candidate_education')
         .delete()
         .eq('id', id);

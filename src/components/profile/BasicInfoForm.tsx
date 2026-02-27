@@ -63,14 +63,14 @@ export default function BasicInfoForm({ profile, onUpdate }: BasicInfoFormProps)
       };
 
       if (profile) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('candidate_profiles')
           .update(profileData)
           .eq('id', profile.id);
         
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('candidate_profiles')
           .insert(profileData);
         

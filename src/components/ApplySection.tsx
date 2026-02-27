@@ -75,7 +75,7 @@ export default function ApplySection({ job }: ApplySectionProps) {
       }
 
       // Get user profile data
-      const { data: profile } = await supabase
+      const { data: profile } = await (supabase as any)
         .from('candidate_profiles')
         .select('*')
         .eq('user_id', user.id)

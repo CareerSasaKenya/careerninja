@@ -66,7 +66,7 @@ export default function SkillsSection({ candidateId, skills, onUpdate }: SkillsS
       };
 
       if (editingId) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('candidate_skills')
           .update(data)
           .eq('id', editingId);
@@ -74,7 +74,7 @@ export default function SkillsSection({ candidateId, skills, onUpdate }: SkillsS
         if (error) throw error;
         toast({ title: 'Skill updated' });
       } else {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('candidate_skills')
           .insert(data);
         
@@ -100,7 +100,7 @@ export default function SkillsSection({ candidateId, skills, onUpdate }: SkillsS
     if (!confirm('Are you sure you want to delete this skill?')) return;
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('candidate_skills')
         .delete()
         .eq('id', id);
