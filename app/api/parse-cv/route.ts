@@ -32,6 +32,7 @@ export async function POST(request: NextRequest) {
       cvText = textDecoder.decode(fileBuffer);
       
       // Clean up PDF artifacts
+      // eslint-disable-next-line no-control-regex
       cvText = cvText
         .replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F-\x9F]/g, '') // Remove control characters
         .replace(/\s+/g, ' ') // Normalize whitespace
@@ -45,6 +46,7 @@ export async function POST(request: NextRequest) {
       cvText = textDecoder.decode(fileBuffer);
       
       // Clean up
+      // eslint-disable-next-line no-control-regex
       cvText = cvText
         .replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F-\x9F]/g, '')
         .replace(/\s+/g, ' ')
