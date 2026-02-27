@@ -25,7 +25,6 @@ interface JobFormData {
   description: string;
   responsibilities: string;
   required_qualifications: string;
-  software_skills: string;
   company_id: string;
   // Google Job Posting Fields
   valid_through: string;
@@ -82,7 +81,6 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
       description: "",
       responsibilities: "",
       required_qualifications: "",
-      software_skills: "",
       company_id: "",
       // Google Job Posting Fields
       valid_through: "",
@@ -313,7 +311,6 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
         description: existingJob.description || "",
         responsibilities: existingJob.responsibilities || "",
         required_qualifications: existingJob.required_qualifications?.toString() || "",
-        software_skills: existingJob.software_skills || "",
         company_id: existingJob.company_id ? String(existingJob.company_id) : "",
         
         // Google Job Posting Fields

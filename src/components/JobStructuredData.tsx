@@ -43,13 +43,7 @@ export default function JobStructuredData({ job }: JobStructuredDataProps) {
         "unitText": job.salary_period || "YEAR"
       }
     } : undefined,
-    "skills": job.software_skills ? 
-      (Array.isArray(job.software_skills) 
-        ? job.software_skills 
-        : typeof job.software_skills === 'string' 
-          ? job.software_skills.split(',').map((skill: string) => skill.trim())
-          : [])
-      : undefined,
+    "skills": undefined,
     "experienceRequirements": job.minimum_experience ? `${job.minimum_experience} years` : job.experience_level || undefined,
     "educationRequirements": job.education_requirements || undefined,
     "industry": job.industry || undefined,

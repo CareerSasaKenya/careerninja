@@ -404,13 +404,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                     applicationUrl={relatedJob.application_url}
                     applyEmail={relatedJob.apply_email}
                     applyLink={relatedJob.apply_link}
-                    skillsTop3={
-                      Array.isArray(relatedJob.software_skills)
-                        ? (relatedJob.software_skills as unknown[])
-                            .filter((s): s is string => typeof s === "string")
-                            .slice(0, 3)
-                        : undefined
-                    }
+                    skillsTop3={undefined}
                     department={relatedJob.job_function}
                     jobSlug={relatedJob.job_slug}
                     educationLevel=""
