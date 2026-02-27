@@ -164,126 +164,9 @@ export default function ApplySection({ job }: ApplySectionProps) {
     }
   };
 
-  // If only external methods exist (application_url/apply_link/apply_email), show a single button
-  if (job?.application_url) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Apply Here</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Button onClick={() => { if (typeof window !== 'undefined') window.open(job.application_url, "_blank"); }} className="w-full bg-gradient-primary hover:opacity-90">
-            <ExternalLink className="mr-2 h-5 w-5" /> Apply on Company Site
-          </Button>
-          {(job?.apply_email || job?.apply_link) && (
-            <div className="mt-4 pt-4 border-t border-border">
-              <p className="text-sm text-muted-foreground mb-2">Alternative ways to apply:</p>
-              {job?.apply_email && (
-                <Button 
-                  variant="outline" 
-                  className="w-full mb-2"
-                  onClick={() => { if (typeof window !== 'undefined') window.location.href = `mailto:${job.apply_email}?subject=Application for ${job.title}`; }}
-                >
-                  <Mail className="mr-2 h-4 w-4" /> Apply via Email
-                </Button>
-              )}
-              {job?.apply_link && (
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => { if (typeof window !== 'undefined') window.open(job.apply_link, "_blank"); }}
-                >
-                  <ExternalLink className="mr-2 h-4 w-4" /> Apply via External Link
-                </Button>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (job?.apply_link) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Apply Here</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Button onClick={() => { if (typeof window !== 'undefined') window.open(job.apply_link, "_blank"); }} className="w-full bg-gradient-primary hover:opacity-90">
-            <ExternalLink className="mr-2 h-5 w-5" /> Apply via External Link
-          </Button>
-          {(job?.apply_email || job?.application_url) && (
-            <div className="mt-4 pt-4 border-t border-border">
-              <p className="text-sm text-muted-foreground mb-2">Alternative ways to apply:</p>
-              {job?.apply_email && (
-                <Button 
-                  variant="outline" 
-                  className="w-full mb-2"
-                  onClick={() => { if (typeof window !== 'undefined') window.location.href = `mailto:${job.apply_email}?subject=Application for ${job.title}`; }}
-                >
-                  <Mail className="mr-2 h-4 w-4" /> Apply via Email
-                </Button>
-              )}
-              {job?.application_url && (
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => { if (typeof window !== 'undefined') window.open(job.application_url, "_blank"); }}
-                >
-                  <ExternalLink className="mr-2 h-4 w-4" /> Apply on Company Site
-                </Button>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (job?.apply_email) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Apply Here</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Button 
-            onClick={() => { if (typeof window !== 'undefined') window.location.href = `mailto:${job.apply_email}?subject=Application for ${job.title}`; }}
-            className="w-full bg-gradient-primary hover:opacity-90"
-          >
-            <Mail className="mr-2 h-5 w-5" /> Apply via Email
-          </Button>
-          <p className="text-sm text-muted-foreground mt-2 text-center">
-            Clicking above will open your email client with a pre-filled subject line
-          </p>
-          {(job?.application_url || job?.apply_link) && (
-            <div className="mt-4 pt-4 border-t border-border">
-              <p className="text-sm text-muted-foreground mb-2">Alternative ways to apply:</p>
-              {job?.application_url && (
-                <Button 
-                  variant="outline" 
-                  className="w-full mb-2"
-                  onClick={() => { if (typeof window !== 'undefined') window.open(job.application_url, "_blank"); }}
-                >
-                  <ExternalLink className="mr-2 h-4 w-4" /> Apply on Company Site
-                </Button>
-              )}
-              {job?.apply_link && (
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => { if (typeof window !== 'undefined') window.open(job.apply_link, "_blank"); }}
-                >
-                  <ExternalLink className="mr-2 h-4 w-4" /> Apply via External Link
-                </Button>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    );
-  }
+  // Check if there are any external application methods
+  const hasExternalMethods = !!(job?.application_url || job?.apply_link || job?.apply_email);
+  const hasDirectApply = job?.direct_apply !== false; // Default to true if not explicitly false
 
   // Success state
   if (isSuccess) {
@@ -319,117 +202,180 @@ export default function ApplySection({ job }: ApplySectionProps) {
     );
   }
 
+  // Main application section - show all available methods
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Apply Here</CardTitle>
+        <CardTitle className="text-lg">Apply for this Job</CardTitle>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="yearsExp">Years of experience</Label>
-            <Input 
-              id="yearsExp" 
-              type="number" 
-              min={0} 
-              placeholder="e.g. 3"
-              value={formData.yearsExperience}
-              onChange={(e) => setFormData(prev => ({ ...prev, yearsExperience: e.target.value }))}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="coverLetter">Cover letter</Label>
-            <Textarea 
-              id="coverLetter" 
-              placeholder="Write a brief cover letter..." 
-              rows={5}
-              value={formData.coverLetter}
-              onChange={(e) => setFormData(prev => ({ ...prev, coverLetter: e.target.value }))}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="expectedSalary">Expected salary (NGN)</Label>
-              <Input 
-                id="expectedSalary" 
-                type="number" 
-                min={0} 
-                placeholder="e.g. 80000"
-                value={formData.expectedSalary}
-                onChange={(e) => setFormData(prev => ({ ...prev, expectedSalary: e.target.value }))}
-              />
+      <CardContent className="space-y-4">
+        {/* Direct portal application form */}
+        {hasDirectApply && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 pb-2">
+              <div className="h-px flex-1 bg-border" />
+              <span className="text-sm font-medium text-muted-foreground">Apply via Portal</span>
+              <div className="h-px flex-1 bg-border" />
             </div>
-            <div className="flex items-center gap-2 mt-6">
-              <Checkbox 
-                id="negotiable"
-                checked={formData.salaryNegotiable}
-                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, salaryNegotiable: checked as boolean }))}
-              />
-              <Label htmlFor="negotiable">Negotiable</Label>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Choose how to apply</Label>
-            <RadioGroup 
-              value={formData.applicationMethod}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, applicationMethod: value as 'profile' | 'cv' }))}
-              className="grid grid-cols-1 sm:grid-cols-2 gap-2"
-            >
-              <div className="flex items-center space-x-2 border rounded-md p-3">
-                <RadioGroupItem value="profile" id="apply-profile" />
-                <Label htmlFor="apply-profile" className="cursor-pointer">Apply with my profile</Label>
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="yearsExp">Years of experience</Label>
+                <Input 
+                  id="yearsExp" 
+                  type="number" 
+                  min={0} 
+                  placeholder="e.g. 3"
+                  value={formData.yearsExperience}
+                  onChange={(e) => setFormData(prev => ({ ...prev, yearsExperience: e.target.value }))}
+                />
               </div>
-              <div className="flex items-center space-x-2 border rounded-md p-3">
-                <RadioGroupItem value="cv" id="apply-cv" />
-                <Label htmlFor="apply-cv" className="cursor-pointer">Apply with uploaded CV</Label>
+
+              <div className="space-y-2">
+                <Label htmlFor="coverLetter">Cover letter</Label>
+                <Textarea 
+                  id="coverLetter" 
+                  placeholder="Write a brief cover letter..." 
+                  rows={5}
+                  value={formData.coverLetter}
+                  onChange={(e) => setFormData(prev => ({ ...prev, coverLetter: e.target.value }))}
+                />
               </div>
-            </RadioGroup>
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="cv">Upload CV (PDF/DOC) {formData.applicationMethod === 'cv' && <span className="text-red-500">*</span>}</Label>
-            <div className="flex items-center gap-2">
-              <Input 
-                id="cv" 
-                type="file" 
-                accept=".pdf,.doc,.docx"
-                onChange={handleFileChange}
-                required={formData.applicationMethod === 'cv'}
-              />
-              {formData.cvFile && (
-                <span className="text-sm text-green-600 flex items-center gap-1">
-                  <CheckCircle className="h-4 w-4" />
-                  {formData.cvFile.name}
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground">Max file size: 5MB. Accepted formats: PDF, DOC, DOCX</p>
-          </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="expectedSalary">Expected salary (NGN)</Label>
+                  <Input 
+                    id="expectedSalary" 
+                    type="number" 
+                    min={0} 
+                    placeholder="e.g. 80000"
+                    value={formData.expectedSalary}
+                    onChange={(e) => setFormData(prev => ({ ...prev, expectedSalary: e.target.value }))}
+                  />
+                </div>
+                <div className="flex items-center gap-2 mt-6">
+                  <Checkbox 
+                    id="negotiable"
+                    checked={formData.salaryNegotiable}
+                    onCheckedChange={(checked) => setFormData(prev => ({ ...prev, salaryNegotiable: checked as boolean }))}
+                  />
+                  <Label htmlFor="negotiable">Negotiable</Label>
+                </div>
+              </div>
 
-          <div className="pt-2">
-            <Button 
-              type="submit"
-              className="w-full bg-gradient-primary hover:opacity-90"
-              disabled={isSubmitting || (formData.applicationMethod === 'cv' && !formData.cvFile)}
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Submitting...
-                </>
-              ) : (
-                <>
-                  <Mail className="mr-2 h-5 w-5" />
-                  Apply Now
-                </>
-              )}
-            </Button>
+              <div className="space-y-2">
+                <Label>Choose how to apply</Label>
+                <RadioGroup 
+                  value={formData.applicationMethod}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, applicationMethod: value as 'profile' | 'cv' }))}
+                  className="grid grid-cols-1 sm:grid-cols-2 gap-2"
+                >
+                  <div className="flex items-center space-x-2 border rounded-md p-3">
+                    <RadioGroupItem value="profile" id="apply-profile" />
+                    <Label htmlFor="apply-profile" className="cursor-pointer">Apply with my profile</Label>
+                  </div>
+                  <div className="flex items-center space-x-2 border rounded-md p-3">
+                    <RadioGroupItem value="cv" id="apply-cv" />
+                    <Label htmlFor="apply-cv" className="cursor-pointer">Apply with uploaded CV</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="cv">Upload CV (PDF/DOC) {formData.applicationMethod === 'cv' && <span className="text-red-500">*</span>}</Label>
+                <div className="flex items-center gap-2">
+                  <Input 
+                    id="cv" 
+                    type="file" 
+                    accept=".pdf,.doc,.docx"
+                    onChange={handleFileChange}
+                    required={formData.applicationMethod === 'cv'}
+                  />
+                  {formData.cvFile && (
+                    <span className="text-sm text-green-600 flex items-center gap-1">
+                      <CheckCircle className="h-4 w-4" />
+                      {formData.cvFile.name}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">Max file size: 5MB. Accepted formats: PDF, DOC, DOCX</p>
+              </div>
+
+              <div className="pt-2">
+                <Button 
+                  type="submit"
+                  className="w-full bg-gradient-primary hover:opacity-90"
+                  disabled={isSubmitting || (formData.applicationMethod === 'cv' && !formData.cvFile)}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="mr-2 h-5 w-5" />
+                      Apply Now
+                    </>
+                  )}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">Note: CVs are stored securely in our database.</p>
+            </form>
           </div>
-          <p className="text-xs text-muted-foreground">Note: CVs are stored securely in our database.</p>
-        </form>
+        )}
+
+        {/* External application methods */}
+        {hasExternalMethods && (
+          <div className="space-y-4">
+            {hasDirectApply && (
+              <div className="flex items-center gap-2 py-2">
+                <div className="h-px flex-1 bg-border" />
+                <span className="text-sm font-medium text-muted-foreground">Or Apply Externally</span>
+                <div className="h-px flex-1 bg-border" />
+              </div>
+            )}
+            
+            {!hasDirectApply && (
+              <div className="flex items-center gap-2 pb-2">
+                <div className="h-px flex-1 bg-border" />
+                <span className="text-sm font-medium text-muted-foreground">External Application</span>
+                <div className="h-px flex-1 bg-border" />
+              </div>
+            )}
+
+            {job?.application_url && (
+              <Button 
+                onClick={() => { if (typeof window !== 'undefined') window.open(job.application_url, "_blank"); }} 
+                className="w-full"
+                variant={hasDirectApply ? "outline" : "default"}
+              >
+                <ExternalLink className="mr-2 h-5 w-5" /> Apply on Company Site
+              </Button>
+            )}
+
+            {job?.apply_link && (
+              <Button 
+                onClick={() => { if (typeof window !== 'undefined') window.open(job.apply_link, "_blank"); }} 
+                className="w-full"
+                variant="outline"
+              >
+                <ExternalLink className="mr-2 h-4 w-4" /> Apply via External Link
+              </Button>
+            )}
+
+            {job?.apply_email && (
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => { if (typeof window !== 'undefined') window.location.href = `mailto:${job.apply_email}?subject=Application for ${job.title}`; }}
+              >
+                <Mail className="mr-2 h-4 w-4" /> Apply via Email
+              </Button>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

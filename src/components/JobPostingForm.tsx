@@ -645,8 +645,10 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
       return;
     }
     
-    if (!formData.direct_apply && !formData.application_url && !formData.apply_email && !formData.apply_link) {
-      toast.error("Please provide at least one application method when direct apply is disabled");
+    // Check that at least one application method is provided
+    const hasApplicationMethod = formData.direct_apply || formData.application_url || formData.apply_email || formData.apply_link;
+    if (!hasApplicationMethod) {
+      toast.error("Please provide at least one application method (enable direct apply, or add an external URL/email/link)");
       return;
     }
     
@@ -1138,6 +1140,13 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
         </TabsContent>
 
         <TabsContent value="application" className="space-y-4 mt-4">
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              At least one application method must be enabled. You can enable multiple methods - all will be shown to candidates.
+            </AlertDescription>
+          </Alert>
+
           <div className="flex items-center space-x-2">
             <Checkbox 
               id="direct_apply" 
@@ -1149,9 +1158,12 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
             </Label>
           </div>
 
-          {!formData.direct_apply && (
+          <div className="space-y-4 p-4 bg-muted/30 rounded-lg">
+            <p className="text-sm font-medium">External Application Methods (Optional)</p>
+            <p className="text-xs text-muted-foreground">Add any external application methods. All provided methods will be shown to candidates.</p>
+            
             <div className="space-y-2">
-              <Label htmlFor="application_url">External Application URL *</Label>
+              <Label htmlFor="application_url">Company Application URL</Label>
               <Input
                 id="application_url"
                 name="application_url"
@@ -1159,14 +1171,9 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
                 value={formData.application_url}
                 onChange={handleChange}
                 placeholder="https://company.com/apply"
-                required={!formData.direct_apply}
               />
             </div>
-          )}
 
-          <div className="space-y-4 p-4 bg-muted/30 rounded-lg">
-            <p className="text-sm font-medium">Alternative Application Methods (Optional)</p>
-            
             <div className="space-y-2">
               <Label htmlFor="apply_email">Apply via Email</Label>
               <Input
