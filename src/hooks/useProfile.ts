@@ -64,11 +64,25 @@ export interface Skill {
   endorsed_count: number;
 }
 
+export interface Document {
+  id: string;
+  candidate_id: string;
+  document_type: string;
+  document_name: string;
+  file_url: string;
+  file_size: number;
+  file_type: string;
+  is_primary: boolean;
+  is_active: boolean;
+  uploaded_at: string;
+}
+
 export function useProfile() {
   const [profile, setProfile] = useState<CandidateProfile | null>(null);
   const [workExperience, setWorkExperience] = useState<WorkExperience[]>([]);
   const [education, setEducation] = useState<Education[]>([]);
   const [skills, setSkills] = useState<Skill[]>([]);
+  const [documents, setDocuments] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [completeness, setCompleteness] = useState(0);
 
@@ -82,7 +96,7 @@ export function useProfile() {
       calculateCompleteness();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile, workExperience, education, skills]);
+  }, [profile, workExperience, education, skills, documents]);
 
   const fetchProfile = async () => {
     try {
@@ -100,6 +114,7 @@ export function useProfile() {
         await fetchWorkExperience(profileData.id);
         await fetchEducation(profileData.id);
         await fetchSkills(profileData.id);
+        await fetchDocuments(profileData.id);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -138,6 +153,17 @@ export function useProfile() {
     if (data) setSkills(data);
   };
 
+  const fetchDocuments = async (candidateId: string) => {
+    const { data } = await (supabase as any)
+      .from('candidate_documents')
+      .select('*')
+      .eq('candidate_id', candidateId)
+      .eq('is_active', true)
+      .order('uploaded_at', { ascending: false });
+    
+    if (data) setDocuments(data);
+  };
+
   const calculateCompleteness = () => {
     let score = 0;
     const weights = {
@@ -174,6 +200,11 @@ export function useProfile() {
     if (skills.length >= 5) score += 5;
     if (skills.length >= 10) score += 5;
 
+    // Bonus for having a CV uploaded
+    if (documents.some(doc => (doc.document_type === 'cv' || doc.document_type === 'resume') && doc.is_primary)) {
+      score += 5;
+    }
+
     setCompleteness(Math.min(score, 100));
   };
 
@@ -182,6 +213,7 @@ export function useProfile() {
     workExperience,
     education,
     skills,
+    documents,
     isLoading,
     completeness,
     refetch: fetchProfile,

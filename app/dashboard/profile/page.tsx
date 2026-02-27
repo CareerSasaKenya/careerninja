@@ -7,9 +7,10 @@ import BasicInfoForm from '@/components/profile/BasicInfoForm';
 import WorkExperienceSection from '@/components/profile/WorkExperienceSection';
 import EducationSection from '@/components/profile/EducationSection';
 import SkillsSection from '@/components/profile/SkillsSection';
+import DocumentsSection from '@/components/profile/DocumentsSection';
 
 export default function ProfilePage() {
-  const { profile, workExperience, education, skills, isLoading, completeness, refetch } = useProfile();
+  const { profile, workExperience, education, skills, documents, isLoading, completeness, refetch } = useProfile();
 
   if (isLoading) {
     return (
@@ -46,6 +47,12 @@ export default function ProfilePage() {
           
           {profile && (
             <>
+              <DocumentsSection
+                candidateId={profile.id}
+                documents={documents}
+                onUpdate={refetch}
+              />
+              
               <WorkExperienceSection
                 candidateId={profile.id}
                 experiences={workExperience}
