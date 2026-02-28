@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import MobileNav from "./MobileNav";
+import NotificationBell from "./NotificationBell";
 import { useEffect, useCallback } from "react";
 
 const Navbar = () => {
@@ -88,6 +89,7 @@ const Navbar = () => {
               <Link href="/dashboard" prefetch={true}>
                 <Button variant="ghost">Dashboard</Button>
               </Link>
+              <NotificationBell />
               <Button 
                 variant="outline" 
                 size="icon"

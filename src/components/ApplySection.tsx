@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -139,6 +139,45 @@ export default function ApplySection({ job }: ApplySectionProps) {
           throw applicationError;
         }
         return;
+      }
+
+      // Send notification to employer
+      try {
+        // Get job owner details
+        const { data: jobData, error: jobError } = await supabase
+          .from('jobs')
+          .select(`
+            user_id,
+            title,
+            company
+          `)
+          .eq('id', job.id)
+          .single();
+
+        if (!jobError && jobData) {
+          // Create notification for employer
+          const { error: notifError } = await supabase
+            .from('notifications')
+            .insert({
+              user_id: jobData.user_id,
+              type: 'new_application',
+              title: `New Application: ${jobData.title}`,
+              message: `${profile?.full_name || user.email?.split('@')[0] || "Candidate"} has applied for ${jobData.title} at ${jobData.company}`,
+              data: {
+                job_title: jobData.title,
+                company_name: jobData.company,
+                candidate_name: profile?.full_name || user.email?.split('@')[0] || "Candidate",
+                years_experience: formData.yearsExperience ? parseInt(formData.yearsExperience) : 0
+              }
+            });
+
+          if (notifError) {
+            console.error("Failed to create notification:", notifError);
+          }
+        }
+      } catch (notificationError) {
+        console.error("Failed to send notification:", notificationError);
+        // Don't fail the application if notification fails
       }
 
       setIsSuccess(true);
