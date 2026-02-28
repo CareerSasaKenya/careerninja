@@ -10,6 +10,7 @@ import { Plus, Briefcase, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import CompanyProfileForm from "@/components/CompanyProfileForm";
+import EmployerApplicationsTab from "@/components/dashboards/EmployerApplicationsTab";
 
 interface Job {
   id: string;
@@ -119,6 +120,7 @@ const EmployerDashboard = () => {
       <Tabs defaultValue="jobs" className="w-full">
         <TabsList>
           <TabsTrigger value="jobs">My Jobs</TabsTrigger>
+          <TabsTrigger value="applications">Applications</TabsTrigger>
           <TabsTrigger value="company">Company Profile</TabsTrigger>
         </TabsList>
 
@@ -222,6 +224,10 @@ const EmployerDashboard = () => {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="applications">
+          <EmployerApplicationsTab />
         </TabsContent>
 
         <TabsContent value="company">
