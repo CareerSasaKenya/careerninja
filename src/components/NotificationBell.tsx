@@ -26,7 +26,7 @@ import { formatDistanceToNow } from "date-fns";
 
 interface Notification {
   id: string;
-  type: 'new_application' | 'application_status' | 'new_message' | 'job_alert' | 'system';
+  type: string;
   title: string;
   message: string;
   read: boolean;
@@ -56,7 +56,7 @@ const NotificationBell = () => {
 
       if (error) throw error;
       
-      setNotifications(data || []);
+      setNotifications(data as Notification[] || []);
       setUnreadCount(data?.filter(n => !n.read).length || 0);
     } catch (error) {
       console.error("Error fetching notifications:", error);

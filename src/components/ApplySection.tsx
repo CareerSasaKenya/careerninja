@@ -160,7 +160,7 @@ export default function ApplySection({ job }: ApplySectionProps) {
             .from('notifications')
             .insert({
               user_id: jobData.user_id,
-              type: 'new_application',
+              type: 'application_received',
               title: `New Application: ${jobData.title}`,
               message: `${profile?.full_name || user.email?.split('@')[0] || "Candidate"} has applied for ${jobData.title} at ${jobData.company}`,
               data: {
