@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { 
@@ -43,7 +43,7 @@ const NotificationBell = () => {
   const [loading, setLoading] = useState(true);
 
   // Fetch notifications
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -63,7 +63,7 @@ const NotificationBell = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   // Mark notification as read
   const markAsRead = async (notificationId: string) => {
@@ -190,7 +190,7 @@ const NotificationBell = () => {
   // Fetch notifications on mount and when user changes
   useEffect(() => {
     fetchNotifications();
-  }, [user]);
+  }, [user, fetchNotifications]);
 
   if (!user) return null;
 
