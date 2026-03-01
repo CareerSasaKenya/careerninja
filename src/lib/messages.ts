@@ -44,13 +44,10 @@ export const messageService = {
   },
 
   async getMessages(conversationId: string, userId: string) {
+    // Fetch messages without joins for now (until migration is applied)
     const { data, error } = await supabase
       .from('messages')
-      .select(`
-        *,
-        sender:user_profiles!messages_sender_id_fkey(full_name, avatar_url),
-        receiver:user_profiles!messages_receiver_id_fkey(full_name, avatar_url)
-      `)
+      .select('*')
       .eq('conversation_id', conversationId)
       .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
       .order('created_at', { ascending: true });

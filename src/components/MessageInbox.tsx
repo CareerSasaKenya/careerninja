@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { messageService } from '@/lib/messages';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -175,18 +176,24 @@ const MessageThread = ({ conversationId, userId }: MessageThreadProps) => {
         // Get recipient info from the first message
         if (data.length > 0) {
           const firstMsg = data[0];
-          // Extract sender or receiver profile info depending on who is the other party
-          if (firstMsg.sender_id === userId) {
-            // Current user is sender, so recipient is the receiver
+          const otherUserId = firstMsg.sender_id === userId ? firstMsg.receiver_id : firstMsg.sender_id;
+          
+          // Fetch user profile for the other party
+          const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('full_name, avatar_url')
+            .eq('id', otherUserId)
+            .single();
+          
+          if (profile) {
             setRecipientInfo({
-              full_name: firstMsg.receiver?.full_name || 'Unknown User',
-              avatar_url: firstMsg.receiver?.avatar_url || undefined
+              full_name: profile.full_name || 'Unknown User',
+              avatar_url: profile.avatar_url || undefined
             });
           } else {
-            // Current user is receiver, so recipient is the sender
             setRecipientInfo({
-              full_name: firstMsg.sender?.full_name || 'Unknown User',
-              avatar_url: firstMsg.sender?.avatar_url || undefined
+              full_name: 'Unknown User',
+              avatar_url: undefined
             });
           }
         }
