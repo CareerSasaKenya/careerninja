@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { createClient } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { Bell, Plus, Trash2, Edit2, Save, X } from 'lucide-react';
 import {
   Dialog,
@@ -41,7 +41,6 @@ export function JobAlerts() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showDialog, setShowDialog] = useState(false);
   const { toast } = useToast();
-  const supabase = createClient();
 
   const [formData, setFormData] = useState({
     search_name: '',

@@ -1,4 +1,4 @@
-import { createClient } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface JobMatchScore {
   jobId: string;
@@ -289,8 +289,6 @@ export async function getJobRecommendations(
   limit: number = 10,
   minScore: number = 50
 ): Promise<JobMatchScore[]> {
-  const supabase = createClient();
-
   // Get candidate profile with skills and preferences
   const { data: profile } = await supabase
     .from('candidate_profiles')
@@ -358,8 +356,6 @@ export async function saveRecommendations(
   userId: string,
   recommendations: JobMatchScore[]
 ): Promise<void> {
-  const supabase = createClient();
-
   const records = recommendations.map(rec => ({
     user_id: userId,
     job_id: rec.jobId,
@@ -383,8 +379,6 @@ export async function getSavedRecommendations(
   userId: string,
   includeViewed: boolean = false
 ): Promise<any[]> {
-  const supabase = createClient();
-
   let query = supabase
     .from('job_recommendations')
     .select(`

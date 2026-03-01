@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { createClient } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { getJobRecommendations, saveRecommendations, getSavedRecommendations } from '@/lib/jobRecommendations';
 import { Sparkles, MapPin, Briefcase, DollarSign, TrendingUp, Eye, X } from 'lucide-react';
 import Link from 'next/link';
@@ -37,7 +37,6 @@ export function RecommendedJobs() {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const { toast } = useToast();
-  const supabase = createClient();
 
   useEffect(() => {
     loadRecommendations();
