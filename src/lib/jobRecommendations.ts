@@ -304,6 +304,11 @@ export async function getJobRecommendations(
     return [];
   }
 
+  // Extract preferences - it comes as an array from the query
+  const preferencesData = Array.isArray(profile.preferences) && profile.preferences.length > 0
+    ? profile.preferences[0]
+    : null;
+
   const candidateProfile: CandidateProfile = {
     id: profile.id,
     location: profile.location,
@@ -311,7 +316,14 @@ export async function getJobRecommendations(
     expected_salary_min: profile.expected_salary_min,
     expected_salary_max: profile.expected_salary_max,
     skills: profile.skills || [],
-    preferences: profile.preferences?.[0] || undefined
+    preferences: preferencesData ? {
+      preferred_job_functions: preferencesData.preferred_job_functions || [],
+      preferred_industries: preferencesData.preferred_industries || [],
+      preferred_locations: preferencesData.preferred_locations || [],
+      preferred_employment_types: preferencesData.preferred_employment_types || [],
+      min_salary: preferencesData.min_salary,
+      willing_to_relocate: preferencesData.willing_to_relocate || false
+    } : undefined
   };
 
   // Get active jobs (not applied to)
