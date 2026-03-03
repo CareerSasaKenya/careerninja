@@ -104,33 +104,37 @@ export function ApplicationDetailView({ applicationId, open, onClose, onUpdate }
       if (appError) throw appError;
       setApplication(appData);
 
-      // Load timeline
-      const { data: timelineData, error: timelineError } = await supabase
+      // Load timeline - cast to any to avoid type inference issues with new tables
+      const timelineQuery = (supabase as any)
         .from('application_timeline')
         .select('*')
         .eq('application_id', applicationId)
         .order('created_at', { ascending: false });
+      
+      const { data: timelineData, error: timelineError } = await timelineQuery;
 
       if (timelineError && timelineError.code !== '42P01') {
         // Ignore table not found error (migration not run yet)
         console.warn('Timeline table not found:', timelineError);
       }
-      setTimeline((timelineData as any) || []);
+      setTimeline(timelineData || []);
 
-      // Load notes
-      const { data: notesData, error: notesError } = await supabase
+      // Load notes - cast to any to avoid type inference issues with new tables
+      const notesQuery = (supabase as any)
         .from('application_notes')
         .select('*')
         .eq('application_id', applicationId)
         .eq('is_archived', false)
         .order('is_pinned', { ascending: false })
         .order('created_at', { ascending: false });
+      
+      const { data: notesData, error: notesError } = await notesQuery;
 
       if (notesError && notesError.code !== '42P01') {
         // Ignore table not found error (migration not run yet)
         console.warn('Notes table not found:', notesError);
       }
-      setNotes((notesData as any) || []);
+      setNotes(notesData || []);
     } catch (error) {
       console.error('Error loading application details:', error);
       toast({
@@ -191,14 +195,14 @@ export function ApplicationDetailView({ applicationId, open, onClose, onUpdate }
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('application_notes')
         .insert([{
           application_id: applicationId,
           user_id: user.id,
           note_text: newNote,
           note_type: noteType
-        } as any]);
+        }]);
 
       if (error) {
         if (error.code === '42P01') {
@@ -231,7 +235,7 @@ export function ApplicationDetailView({ applicationId, open, onClose, onUpdate }
 
   async function handleDeleteNote(noteId: string) {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('application_notes')
         .delete()
         .eq('id', noteId);
@@ -251,7 +255,7 @@ export function ApplicationDetailView({ applicationId, open, onClose, onUpdate }
 
   async function handleTogglePin(noteId: string, currentPinned: boolean) {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('application_notes')
         .update({ is_pinned: !currentPinned })
         .eq('id', noteId);
