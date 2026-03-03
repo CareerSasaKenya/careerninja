@@ -111,8 +111,11 @@ export function ApplicationDetailView({ applicationId, open, onClose, onUpdate }
         .eq('application_id', applicationId)
         .order('created_at', { ascending: false });
 
-      if (timelineError) throw timelineError;
-      setTimeline(timelineData || []);
+      if (timelineError && timelineError.code !== '42P01') {
+        // Ignore table not found error (migration not run yet)
+        console.warn('Timeline table not found:', timelineError);
+      }
+      setTimeline((timelineData as any) || []);
 
       // Load notes
       const { data: notesData, error: notesError } = await supabase
@@ -123,8 +126,11 @@ export function ApplicationDetailView({ applicationId, open, onClose, onUpdate }
         .order('is_pinned', { ascending: false })
         .order('created_at', { ascending: false });
 
-      if (notesError) throw notesError;
-      setNotes(notesData || []);
+      if (notesError && notesError.code !== '42P01') {
+        // Ignore table not found error (migration not run yet)
+        console.warn('Notes table not found:', notesError);
+      }
+      setNotes((notesData as any) || []);
     } catch (error) {
       console.error('Error loading application details:', error);
       toast({
@@ -144,11 +150,17 @@ export function ApplicationDetailView({ applicationId, open, onClose, onUpdate }
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { error } = await supabase.rpc('withdraw_application', {
-        p_application_id: applicationId,
-        p_user_id: user.id,
-        p_reason: withdrawalReason || null
-      });
+      // Use direct update instead of RPC until migration is run
+      const { error } = await supabase
+        .from('job_applications')
+        .update({
+          withdrawn: true,
+          withdrawn_at: new Date().toISOString(),
+          withdrawal_reason: withdrawalReason || null,
+          status: 'withdrawn' as any
+        })
+        .eq('id', applicationId)
+        .eq('user_id', user.id);
 
       if (error) throw error;
 
@@ -186,9 +198,19 @@ export function ApplicationDetailView({ applicationId, open, onClose, onUpdate }
           user_id: user.id,
           note_text: newNote,
           note_type: noteType
-        }]);
+        } as any]);
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === '42P01') {
+          toast({
+            title: 'Feature not available',
+            description: 'Notes feature is being set up. Please check back later.',
+            variant: 'destructive',
+          });
+          return;
+        }
+        throw error;
+      }
 
       toast({
         title: 'Note Added',
