@@ -65,7 +65,10 @@ export function JobAlerts() {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
       const { data, error } = await supabase
         .from('saved_searches')
@@ -73,7 +76,20 @@ export function JobAlerts() {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === '42P01') {
+          // Table doesn't exist
+          console.warn('saved_searches table does not exist yet. Please run migration.');
+          toast({
+            title: 'Feature not available',
+            description: 'Job alerts feature is being set up. Please check back later.',
+            variant: 'destructive',
+          });
+          setLoading(false);
+          return;
+        }
+        throw error;
+      }
 
       setSavedSearches(data || []);
     } catch (error) {
@@ -108,7 +124,7 @@ export function JobAlerts() {
         search_name: formData.search_name,
         keywords: formData.keywords || null,
         location: formData.location || null,
-        employment_type: formData.employment_type || null,
+        employment_type: formData.employment_type && formData.employment_type !== 'any' ? formData.employment_type : null,
         experience_level: formData.experience_level || null,
         salary_min: formData.salary_min ? parseFloat(formData.salary_min) : null,
         salary_max: formData.salary_max ? parseFloat(formData.salary_max) : null,
@@ -320,7 +336,7 @@ export function JobAlerts() {
                         <SelectValue placeholder="Any" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Any</SelectItem>
+                        <SelectItem value="any">Any</SelectItem>
                         <SelectItem value="full_time">Full-time</SelectItem>
                         <SelectItem value="part_time">Part-time</SelectItem>
                         <SelectItem value="contract">Contract</SelectItem>

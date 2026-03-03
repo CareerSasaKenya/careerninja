@@ -83,7 +83,10 @@ export default function PreferencesPage() {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
       const { data, error } = await supabase
         .from('candidate_preferences')
@@ -91,8 +94,24 @@ export default function PreferencesPage() {
         .eq('user_id', user.id)
         .single();
 
-      if (error && error.code !== 'PGRST116') {
-        throw error;
+      // Handle table not existing or no data found
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // No data found - this is fine, user hasn't set preferences yet
+          console.log('No preferences found for user');
+        } else if (error.code === '42P01') {
+          // Table doesn't exist
+          console.warn('candidate_preferences table does not exist yet. Please run migration.');
+          toast({
+            title: 'Feature not available',
+            description: 'Job preferences feature is being set up. Please check back later.',
+            variant: 'destructive',
+          });
+        } else {
+          throw error;
+        }
+        setLoading(false);
+        return;
       }
 
       if (data) {
