@@ -5,9 +5,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, Briefcase, Calendar, MapPin, ExternalLink, FileText } from 'lucide-react';
+import { Loader2, Briefcase, Calendar, MapPin, ExternalLink, FileText, Eye } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
+import { ApplicationDetailView } from '@/components/ApplicationDetailView';
 
 interface Application {
   id: string;
@@ -26,6 +27,8 @@ export default function ApplicationsPage() {
   const router = useRouter();
   const [applications, setApplications] = useState<Application[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
+  const [showDetailView, setShowDetailView] = useState(false);
 
   useEffect(() => {
     fetchApplications();
@@ -79,6 +82,20 @@ export default function ApplicationsPage() {
     };
     return colors[status] || 'bg-gray-500';
   };
+
+  function handleViewDetails(applicationId: string) {
+    setSelectedApplicationId(applicationId);
+    setShowDetailView(true);
+  }
+
+  function handleCloseDetailView() {
+    setShowDetailView(false);
+    setSelectedApplicationId(null);
+  }
+
+  function handleApplicationUpdate() {
+    fetchApplications();
+  }
 
   if (isLoading) {
     return (
@@ -144,6 +161,14 @@ export default function ApplicationsPage() {
                 <div className="space-y-3">
                   <div className="flex gap-2 pt-2">
                     <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => handleViewDetails(application.id)}
+                    >
+                      <Eye className="h-4 w-4 mr-1" />
+                      View Details
+                    </Button>
+                    <Button
                       variant="outline"
                       size="sm"
                       onClick={() => router.push(`/jobs/${application.job.id}`)}
@@ -157,6 +182,15 @@ export default function ApplicationsPage() {
             </Card>
           ))}
         </div>
+      )}
+
+      {selectedApplicationId && (
+        <ApplicationDetailView
+          applicationId={selectedApplicationId}
+          open={showDetailView}
+          onClose={handleCloseDetailView}
+          onUpdate={handleApplicationUpdate}
+        />
       )}
     </div>
   );
