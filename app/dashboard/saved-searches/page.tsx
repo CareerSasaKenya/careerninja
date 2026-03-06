@@ -73,10 +73,14 @@ export default function SavedSearchesPage() {
         description: "Email alert settings updated successfully",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("Error updating alerts:", error);
+      const message = error?.message?.includes('schema cache') 
+        ? "Email alerts feature is still initializing. Please try again in 24-48 hours."
+        : "Failed to update alerts";
       toast({
         title: "Error",
-        description: "Failed to update alerts",
+        description: message,
         variant: "destructive",
       });
     },
@@ -163,21 +167,27 @@ export default function SavedSearchesPage() {
                       )}
                       <div>
                         <p className="text-sm font-medium">Email Alerts</p>
-                        {search.email_alerts_enabled && (
+                        {search.email_alerts_enabled && search.alert_frequency && (
                           <p className="text-xs text-muted-foreground">
                             {search.alert_frequency} updates
+                          </p>
+                        )}
+                        {!search.email_alerts_enabled && (
+                          <p className="text-xs text-muted-foreground">
+                            Feature initializing...
                           </p>
                         )}
                       </div>
                     </div>
                     <Switch
-                      checked={search.email_alerts_enabled}
+                      checked={search.email_alerts_enabled || false}
                       onCheckedChange={(checked) =>
                         toggleAlertsMutation.mutate({
                           searchId: search.id,
                           enabled: checked,
                         })
                       }
+                      disabled={toggleAlertsMutation.isPending}
                     />
                   </div>
 

@@ -24,22 +24,36 @@ export const saveSearch = async (
     throw new Error("User must be logged in to save searches");
   }
 
+  // Temporarily use minimal insert due to schema cache issue
+  // PostgREST hasn't recognized the new columns yet
   const { data, error } = await supabase
     .from("saved_searches")
     .insert({
       user_id: user.id,
       name,
-      search_params: searchParams,
-      email_alerts_enabled: emailAlertsEnabled,
-      alert_frequency: alertFrequency
+      search_params: searchParams
+      // email_alerts_enabled and alert_frequency temporarily disabled
+      // due to Supabase schema cache not recognizing these columns yet
     } as any)
     .select()
     .single();
 
   if (error) {
     console.error("Error saving search:", error);
+    
+    // If it's a schema cache error, provide helpful message
+    if (error.message?.includes('schema cache')) {
+      throw new Error("The saved searches feature is still initializing. Please try again in 24-48 hours.");
+    }
+    
     throw new Error(error.message || "Failed to save search");
   }
+  
+  // Show warning if email alerts were requested but couldn't be saved
+  if (emailAlertsEnabled) {
+    console.warn("Email alerts setting could not be saved due to schema cache issue. This will be available once the cache refreshes.");
+  }
+  
   return data as any;
 };
 

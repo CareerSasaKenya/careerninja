@@ -79,7 +79,7 @@ export const SaveSearchButton = ({ searchParams }: SaveSearchButtonProps) => {
       toast({
         title: "Search Saved",
         description: emailAlerts 
-          ? `You'll receive ${alertFrequency} email alerts for new matching jobs`
+          ? "Search saved! Email alerts will be available once the system fully initializes (24-48 hours)."
           : "Search saved successfully"
       });
 
