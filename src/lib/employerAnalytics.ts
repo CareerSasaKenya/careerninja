@@ -124,7 +124,8 @@ export async function getApplicationFunnel(jobId: string): Promise<ApplicationFu
  * Get source analytics for applications
  */
 export async function getSourceAnalytics(jobId?: string, employerId?: string): Promise<SourceAnalytics[]> {
-  let query = supabase
+  const supabaseAny = supabase as any;
+  let query = supabaseAny
     .from("application_sources")
     .select(`
       source_type,
@@ -149,7 +150,7 @@ export async function getSourceAnalytics(jobId?: string, employerId?: string): P
   const sourceCounts: Record<string, { type: string; name: string; count: number }> = {};
   const total = data.length;
 
-  data.forEach((item) => {
+  data.forEach((item: any) => {
     const key = `${item.source_type}-${item.source_name}`;
     if (!sourceCounts[key]) {
       sourceCounts[key] = {
@@ -278,7 +279,8 @@ export async function trackJobView(
     sessionId?: string;
   }
 ) {
-  const { error } = await supabase.from("job_views").insert({
+  const supabaseAny = supabase as any;
+  const { error } = await supabaseAny.from("job_views").insert({
     job_id: jobId,
     referrer: metadata?.referrer,
     session_id: metadata?.sessionId,
@@ -304,7 +306,8 @@ export async function trackApplicationSource(
     referrer?: string;
   }
 ) {
-  const { error } = await supabase.from("application_sources").insert({
+  const supabaseAny = supabase as any;
+  const { error } = await supabaseAny.from("application_sources").insert({
     application_id: applicationId,
     ...source,
   });
