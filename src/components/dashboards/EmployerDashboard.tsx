@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import CompanyProfileForm from "@/components/CompanyProfileForm";
 import EmployerApplicationsTab from "@/components/dashboards/EmployerApplicationsTab";
 import EmployerAnalyticsDashboard from "@/components/dashboards/EmployerAnalyticsDashboard";
+import { JobManagementDashboard } from "@/components/JobManagementDashboard";
 
 interface Job {
   id: string;
@@ -121,6 +122,7 @@ const EmployerDashboard = () => {
       <Tabs defaultValue="jobs" className="w-full">
         <TabsList>
           <TabsTrigger value="jobs">My Jobs</TabsTrigger>
+          <TabsTrigger value="manage">Job Management</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="applications">Applications</TabsTrigger>
           <TabsTrigger value="company">Company Profile</TabsTrigger>
@@ -226,6 +228,10 @@ const EmployerDashboard = () => {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="manage">
+          <JobManagementDashboard />
         </TabsContent>
 
         <TabsContent value="analytics">

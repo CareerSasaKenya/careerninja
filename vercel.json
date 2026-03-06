@@ -1,24 +1,16 @@
 {
-  "builds": [
+  "crons": [
     {
-      "src": "package.json",
-      "use": "@vercel/next"
-    }
-  ],
-  "outputDirectory": ".next",
-  "headers": [
+      "path": "/api/cron/expire-jobs",
+      "schedule": "0 2 * * *"
+    },
     {
-      "source": "/jobs/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, s-maxage=3600, stale-while-revalidate=86400"
-        },
-        {
-          "key": "Vary",
-          "value": "User-Agent"
-        }
-      ]
+      "path": "/api/cron/auto-renew-jobs",
+      "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/expire-promotions",
+      "schedule": "0 * * * *"
     }
   ]
 }
