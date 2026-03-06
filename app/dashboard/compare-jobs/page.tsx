@@ -10,6 +10,29 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { getSavedJobs } from "@/lib/savedJobs";
 
+// ComparisonRow component defined outside of render
+const ComparisonRow = ({ 
+  label, 
+  getValue, 
+  selectedJobs 
+}: { 
+  label: string; 
+  getValue: (job: any) => any;
+  selectedJobs: any[];
+}) => (
+  <div className="grid grid-cols-4 gap-4 py-3 border-b">
+    <div className="font-medium text-sm">{label}</div>
+    {selectedJobs.map((job) => (
+      <div key={job.id} className="text-sm">
+        {getValue(job) || "N/A"}
+      </div>
+    ))}
+    {Array.from({ length: 3 - selectedJobs.length }).map((_, i) => (
+      <div key={`empty-${i}`} className="text-sm text-muted-foreground">-</div>
+    ))}
+  </div>
+);
+
 export default function CompareJobsPage() {
   const [selectedJobs, setSelectedJobs] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -34,20 +57,6 @@ export default function CompareJobsPage() {
 
   const filteredJobs = savedJobs?.filter((savedJob) =>
     savedJob.jobs?.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const ComparisonRow = ({ label, getValue }: { label: string; getValue: (job: any) => any }) => (
-    <div className="grid grid-cols-4 gap-4 py-3 border-b">
-      <div className="font-medium text-sm">{label}</div>
-      {selectedJobs.map((job) => (
-        <div key={job.id} className="text-sm">
-          {getValue(job) || "N/A"}
-        </div>
-      ))}
-      {Array.from({ length: 3 - selectedJobs.length }).map((_, i) => (
-        <div key={`empty-${i}`} className="text-sm text-muted-foreground">-</div>
-      ))}
-    </div>
   );
 
   if (isLoading) {
@@ -170,18 +179,22 @@ export default function CompareJobsPage() {
                   <ComparisonRow
                     label="Location"
                     getValue={(job) => job.location}
+                    selectedJobs={selectedJobs}
                   />
                   <ComparisonRow
                     label="Employment Type"
                     getValue={(job) => job.employment_type?.replace(/_/g, " ")}
+                    selectedJobs={selectedJobs}
                   />
                   <ComparisonRow
                     label="Location Type"
                     getValue={(job) => job.job_location_type?.replace(/_/g, " ")}
+                    selectedJobs={selectedJobs}
                   />
                   <ComparisonRow
                     label="Experience Level"
                     getValue={(job) => job.experience_level}
+                    selectedJobs={selectedJobs}
                   />
                   <ComparisonRow
                     label="Salary Range"
@@ -191,14 +204,17 @@ export default function CompareJobsPage() {
                       }
                       return job.salary || "Negotiable";
                     }}
+                    selectedJobs={selectedJobs}
                   />
                   <ComparisonRow
                     label="Industry"
                     getValue={(job) => job.industry}
+                    selectedJobs={selectedJobs}
                   />
                   <ComparisonRow
                     label="Job Function"
                     getValue={(job) => job.job_function}
+                    selectedJobs={selectedJobs}
                   />
                   <ComparisonRow
                     label="Posted Date"
@@ -207,6 +223,7 @@ export default function CompareJobsPage() {
                         ? new Date(job.date_posted).toLocaleDateString()
                         : "N/A"
                     }
+                    selectedJobs={selectedJobs}
                   />
                   <ComparisonRow
                     label="Application Deadline"
@@ -215,6 +232,7 @@ export default function CompareJobsPage() {
                         ? new Date(job.valid_through).toLocaleDateString()
                         : "N/A"
                     }
+                    selectedJobs={selectedJobs}
                   />
                 </div>
 

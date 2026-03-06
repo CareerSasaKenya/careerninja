@@ -26,18 +26,18 @@ export const SaveJobButton = ({
   const { toast } = useToast();
 
   useEffect(() => {
+    const checkAuthAndSavedStatus = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsAuthenticated(!!user);
+      
+      if (user) {
+        const saved = await isJobSaved(jobId);
+        setIsSaved(saved);
+      }
+    };
+
     checkAuthAndSavedStatus();
   }, [jobId]);
-
-  const checkAuthAndSavedStatus = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    setIsAuthenticated(!!user);
-    
-    if (user) {
-      const saved = await isJobSaved(jobId);
-      setIsSaved(saved);
-    }
-  };
 
   const handleToggleSave = async (e: React.MouseEvent) => {
     e.preventDefault();
