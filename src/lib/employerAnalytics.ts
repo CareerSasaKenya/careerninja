@@ -51,14 +51,14 @@ export async function getEmployerAnalytics(employerId: string): Promise<JobAnaly
     .from("job_analytics_summary")
     .select("*")
     .eq("employer_id", employerId)
-    .order("posted_at", { ascending: false });
+    .order("posted_at", { ascending: false }) as any;
 
   if (error) {
     console.error("Error fetching employer analytics:", error);
     throw error;
   }
 
-  return data || [];
+  return (data || []) as JobAnalytics[];
 }
 
 /**
@@ -69,14 +69,14 @@ export async function getJobAnalytics(jobId: string): Promise<JobAnalytics | nul
     .from("job_analytics_summary")
     .select("*")
     .eq("job_id", jobId)
-    .single();
+    .single() as any;
 
   if (error) {
     console.error("Error fetching job analytics:", error);
     return null;
   }
 
-  return data;
+  return data as JobAnalytics | null;
 }
 
 /**
