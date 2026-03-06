@@ -39,7 +39,7 @@ export default function SavedSearchesPage() {
     queryFn: async () => {
       if (!viewingSearch) return null;
       const search = savedSearches?.find((s) => s.id === viewingSearch);
-      if (!search) return null;
+      if (!search || !search.search_params) return null;
       return getJobsForSavedSearch(search.search_params);
     },
     enabled: !!viewingSearch,
@@ -202,15 +202,17 @@ export default function SavedSearchesPage() {
                     >
                       <Link
                         href={`/jobs?${new URLSearchParams(
-                          Object.entries(search.search_params).reduce(
-                            (acc, [key, value]) => {
-                              if (value !== null && value !== undefined && value !== "") {
-                                acc[key] = String(value);
-                              }
-                              return acc;
-                            },
-                            {} as Record<string, string>
-                          )
+                          search.search_params && typeof search.search_params === 'object'
+                            ? Object.entries(search.search_params).reduce(
+                                (acc, [key, value]) => {
+                                  if (value !== null && value !== undefined && value !== "") {
+                                    acc[key] = String(value);
+                                  }
+                                  return acc;
+                                },
+                                {} as Record<string, string>
+                              )
+                            : {}
                         ).toString()}`}
                       >
                         <Edit className="h-4 w-4 mr-2" />
