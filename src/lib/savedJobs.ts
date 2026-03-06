@@ -20,8 +20,7 @@ export const saveJob = async (jobId: string, notes?: string) => {
     .from("saved_jobs")
     .insert({
       user_id: user.id,
-      job_id: jobId,
-      notes: notes || null
+      job_id: jobId
     } as any)
     .select()
     .single();
