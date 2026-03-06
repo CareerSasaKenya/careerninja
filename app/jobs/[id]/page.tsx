@@ -14,6 +14,7 @@ import ApplySection from "@/components/ApplySection";
 import SocialShare from "@/components/SocialShare";
 import ServiceAdvertisement from "@/components/ServiceAdvertisement";
 import { SaveJobButton } from "@/components/SaveJobButton";
+import JobViewTracker from "@/components/JobViewTracker";
 
 // Create Supabase client for server-side data fetching
 // Check if required environment variables are present
@@ -142,6 +143,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
   return (
     <>
       <JobStructuredData job={job} />
+      <JobViewTracker jobId={job.id} />
       <div className="min-h-screen bg-background">
         <Navbar />
         

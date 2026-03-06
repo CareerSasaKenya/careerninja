@@ -12,6 +12,7 @@ import { Mail, ExternalLink, Upload, CheckCircle, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { trackApplicationSource } from "@/lib/employerAnalytics";
 
 interface ApplySectionProps {
   job: any;
@@ -108,7 +109,7 @@ export default function ApplySection({ job }: ApplySectionProps) {
       }
 
       // Create application
-      const { error: applicationError } = await supabase
+      const { data: applicationData, error: applicationError } = await supabase
         .from('job_applications')
         .insert({
           job_id: job.id,
@@ -126,7 +127,9 @@ export default function ApplySection({ job }: ApplySectionProps) {
           cv_file_size: cvFileSize,
           candidate_profile_id: profile?.id,
           status: 'pending',
-        });
+        })
+        .select()
+        .single();
 
       if (applicationError) {
         if (applicationError.code === '23505') {
@@ -139,6 +142,25 @@ export default function ApplySection({ job }: ApplySectionProps) {
           throw applicationError;
         }
         return;
+      }
+
+      // Track application source
+      if (applicationData?.id) {
+        try {
+          // Get UTM parameters from URL if available
+          const urlParams = new URLSearchParams(window.location.search);
+          await trackApplicationSource(applicationData.id, {
+            source_type: urlParams.get('utm_source') ? 'campaign' : 'direct',
+            source_name: urlParams.get('utm_source') || 'Direct Application',
+            utm_source: urlParams.get('utm_source') || undefined,
+            utm_medium: urlParams.get('utm_medium') || undefined,
+            utm_campaign: urlParams.get('utm_campaign') || undefined,
+            referrer: document.referrer || undefined,
+          });
+        } catch (trackError) {
+          console.error("Failed to track application source:", trackError);
+          // Don't fail the application if tracking fails
+        }
       }
 
       // Send notification to employer
