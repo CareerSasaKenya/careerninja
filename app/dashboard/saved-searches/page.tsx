@@ -83,6 +83,8 @@ export default function SavedSearchesPage() {
   });
 
   const getSearchSummary = (params: Record<string, any>) => {
+    if (!params) return "All jobs";
+    
     const parts = [];
     if (params.searchTerm) parts.push(`"${params.searchTerm}"`);
     if (params.location) parts.push(`in ${params.location}`);
@@ -90,7 +92,7 @@ export default function SavedSearchesPage() {
     if (params.employmentType) parts.push(params.employmentType.replace(/_/g, " "));
     if (params.experienceLevel) parts.push(params.experienceLevel);
     if (params.remoteOnly) parts.push("Remote");
-    return parts.join(" • ") || "All jobs";
+    return parts.length > 0 ? parts.join(" • ") : "All jobs";
   };
 
   if (isLoading) {
