@@ -151,6 +151,9 @@ export default function SavedJobsPage() {
                   </div>
 
                   <div className="lg:col-span-1 p-6 bg-muted/30 space-y-4">
+                    {/* Notes feature temporarily disabled due to Supabase schema cache issue */}
+                    {/* Will be re-enabled once schema cache refreshes (24-48 hours after migration) */}
+                    {/* 
                     <div>
                       <h3 className="font-semibold mb-2">Your Notes</h3>
                       {editingNotes === job.id ? (
@@ -193,8 +196,9 @@ export default function SavedJobsPage() {
                         </div>
                       )}
                     </div>
+                    */}
 
-                    <div className="pt-4 border-t">
+                    <div>
                       <p className="text-xs text-muted-foreground mb-2">
                         Saved on {new Date(savedJob.created_at).toLocaleDateString()}
                       </p>

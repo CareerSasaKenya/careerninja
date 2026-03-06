@@ -16,11 +16,26 @@ export const saveJob = async (jobId: string, notes?: string) => {
     throw new Error("User must be logged in to save jobs");
   }
 
+  // Check if already saved to avoid 409 conflict
+  const existing = await isJobSaved(jobId);
+  if (existing) {
+    // If already saved, just return success (idempotent operation)
+    const { data } = await supabase
+      .from("saved_jobs")
+      .select()
+      .eq("user_id", user.id)
+      .eq("job_id", jobId)
+      .single();
+    return data;
+  }
+
   const { data, error } = await supabase
     .from("saved_jobs")
     .insert({
       user_id: user.id,
       job_id: jobId
+      // Note: 'notes' field temporarily disabled due to Supabase schema cache issue
+      // Will be re-enabled once schema cache refreshes (24-48 hours after migration)
     } as any)
     .select()
     .single();
@@ -99,6 +114,13 @@ export const updateSavedJobNotes = async (jobId: string, notes: string) => {
     throw new Error("User must be logged in");
   }
 
+  // Temporarily disabled due to Supabase schema cache issue
+  // The 'notes' column exists in the database but PostgREST schema cache hasn't refreshed yet
+  // This will be re-enabled once the schema cache updates (24-48 hours after migration)
+  // For now, throw a user-friendly error
+  throw new Error("Notes feature is temporarily unavailable. Please try again in 24-48 hours.");
+
+  /* Will be re-enabled once schema cache refreshes:
   const { error } = await supabase
     .from("saved_jobs")
     .update({ notes } as any)
@@ -106,4 +128,5 @@ export const updateSavedJobNotes = async (jobId: string, notes: string) => {
     .eq("job_id", jobId);
 
   if (error) throw error;
+  */
 };
