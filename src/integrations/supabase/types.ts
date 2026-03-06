@@ -47,6 +47,109 @@ export type Database = {
         }
         Relationships: []
       }
+      application_notes: {
+        Row: {
+          application_id: string
+          created_at: string | null
+          id: string
+          is_archived: boolean | null
+          is_pinned: boolean | null
+          is_reminder: boolean | null
+          note_text: string
+          note_type: string | null
+          reminder_date: string | null
+          reminder_sent: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          application_id: string
+          created_at?: string | null
+          id?: string
+          is_archived?: boolean | null
+          is_pinned?: boolean | null
+          is_reminder?: boolean | null
+          note_text: string
+          note_type?: string | null
+          reminder_date?: string | null
+          reminder_sent?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          application_id?: string
+          created_at?: string | null
+          id?: string
+          is_archived?: boolean | null
+          is_pinned?: boolean | null
+          is_reminder?: boolean | null
+          note_text?: string
+          note_type?: string | null
+          reminder_date?: string | null
+          reminder_sent?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_notes_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "job_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      application_timeline: {
+        Row: {
+          application_id: string
+          created_at: string | null
+          created_by: string | null
+          created_by_role: string | null
+          event_description: string | null
+          event_title: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          new_status: string | null
+          old_status: string | null
+        }
+        Insert: {
+          application_id: string
+          created_at?: string | null
+          created_by?: string | null
+          created_by_role?: string | null
+          event_description?: string | null
+          event_title: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          new_status?: string | null
+          old_status?: string | null
+        }
+        Update: {
+          application_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          created_by_role?: string | null
+          event_description?: string | null
+          event_title?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          new_status?: string | null
+          old_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_timeline_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "job_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_authors: {
         Row: {
           avatar_url: string | null
@@ -959,17 +1062,23 @@ export type Database = {
           cv_file_size: number | null
           cv_file_url: string | null
           email: string | null
+          employer_viewed_at: string | null
           expected_salary_max: number | null
           expected_salary_min: number | null
           full_name: string | null
           id: string
           job_id: string
+          last_viewed_at: string | null
           notes: string | null
           phone: string | null
           salary_negotiable: boolean | null
           status: Database["public"]["Enums"]["application_status"]
           updated_at: string | null
           user_id: string
+          viewed_by_employer: boolean | null
+          withdrawal_reason: string | null
+          withdrawn: boolean | null
+          withdrawn_at: string | null
           years_experience: number | null
         }
         Insert: {
@@ -981,17 +1090,23 @@ export type Database = {
           cv_file_size?: number | null
           cv_file_url?: string | null
           email?: string | null
+          employer_viewed_at?: string | null
           expected_salary_max?: number | null
           expected_salary_min?: number | null
           full_name?: string | null
           id?: string
           job_id: string
+          last_viewed_at?: string | null
           notes?: string | null
           phone?: string | null
           salary_negotiable?: boolean | null
           status?: Database["public"]["Enums"]["application_status"]
           updated_at?: string | null
           user_id: string
+          viewed_by_employer?: boolean | null
+          withdrawal_reason?: string | null
+          withdrawn?: boolean | null
+          withdrawn_at?: string | null
           years_experience?: number | null
         }
         Update: {
@@ -1003,17 +1118,23 @@ export type Database = {
           cv_file_size?: number | null
           cv_file_url?: string | null
           email?: string | null
+          employer_viewed_at?: string | null
           expected_salary_max?: number | null
           expected_salary_min?: number | null
           full_name?: string | null
           id?: string
           job_id?: string
+          last_viewed_at?: string | null
           notes?: string | null
           phone?: string | null
           salary_negotiable?: boolean | null
           status?: Database["public"]["Enums"]["application_status"]
           updated_at?: string | null
           user_id?: string
+          viewed_by_employer?: boolean | null
+          withdrawal_reason?: string | null
+          withdrawn?: boolean | null
+          withdrawn_at?: string | null
           years_experience?: number | null
         }
         Relationships: [
@@ -1032,6 +1153,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      job_comparisons: {
+        Row: {
+          created_at: string | null
+          id: string
+          job_ids: string[]
+          name: string
+          notes: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          job_ids: string[]
+          name: string
+          notes?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          job_ids?: string[]
+          name?: string
+          notes?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       job_functions: {
         Row: {
@@ -1869,6 +2020,20 @@ export type Database = {
       }
     }
     Functions: {
+      add_application_timeline_event: {
+        Args: {
+          p_application_id: string
+          p_created_by?: string
+          p_created_by_role?: string
+          p_event_description?: string
+          p_event_title: string
+          p_event_type: string
+          p_metadata?: Json
+          p_new_status?: string
+          p_old_status?: string
+        }
+        Returns: string
+      }
       calculate_reading_time: { Args: { content: string }; Returns: number }
       clean_expired_cache: { Args: never; Returns: number }
       cleanup_expired_recommendations: { Args: never; Returns: undefined }
@@ -1942,6 +2107,10 @@ export type Database = {
       save_to_cache: {
         Args: { input_text: string; model_used?: string; response_data: Json }
         Returns: string
+      }
+      withdraw_application: {
+        Args: { p_application_id: string; p_reason?: string; p_user_id: string }
+        Returns: boolean
       }
     }
     Enums: {
