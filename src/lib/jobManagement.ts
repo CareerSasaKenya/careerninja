@@ -296,6 +296,7 @@ export async function createJobFromTemplate(templateId: string, overrides?: Part
   const jobData = {
     user_id: user.user.id,
     title: template.title,
+    company: '', // Will be filled from user's company profile or overrides
     description: template.description,
     requirements: template.requirements,
     responsibilities: template.responsibilities,
