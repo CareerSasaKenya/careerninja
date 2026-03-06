@@ -37,7 +37,7 @@ export const saveSearch = async (
     .single();
 
   if (error) throw error;
-  return data as SavedSearch;
+  return data as any;
 };
 
 export const getSavedSearches = async () => {
@@ -54,7 +54,7 @@ export const getSavedSearches = async () => {
     .order("created_at", { ascending: false });
 
   if (error) throw error;
-  return data as SavedSearch[];
+  return data as any;
 };
 
 export const updateSavedSearch = async (
@@ -76,7 +76,7 @@ export const updateSavedSearch = async (
     .single();
 
   if (error) throw error;
-  return data as SavedSearch;
+  return data as any;
 };
 
 export const deleteSavedSearch = async (searchId: string) => {
