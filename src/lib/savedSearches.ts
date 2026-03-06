@@ -32,7 +32,7 @@ export const saveSearch = async (
       search_params: searchParams,
       email_alerts_enabled: emailAlertsEnabled,
       alert_frequency: alertFrequency
-    })
+    } as any)
     .select()
     .single();
 
@@ -69,7 +69,7 @@ export const updateSavedSearch = async (
 
   const { data, error } = await supabase
     .from("saved_searches")
-    .update(updates)
+    .update(updates as any)
     .eq("id", searchId)
     .eq("user_id", user.id)
     .select()
