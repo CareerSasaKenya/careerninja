@@ -13,6 +13,7 @@ import JobStructuredData from "@/components/JobStructuredData";
 import ApplySection from "@/components/ApplySection";
 import SocialShare from "@/components/SocialShare";
 import ServiceAdvertisement from "@/components/ServiceAdvertisement";
+import { SaveJobButton } from "@/components/SaveJobButton";
 
 // Create Supabase client for server-side data fetching
 // Check if required environment variables are present
@@ -213,6 +214,9 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                         {job.industry && (
                           <Badge className="bg-primary/10 text-primary">{job.industry}</Badge>
                         )}
+                      </div>
+                      <div className="mt-4">
+                        <SaveJobButton jobId={job.id} variant="default" size="default" showText={true} />
                       </div>
                     </div>
                   </div>

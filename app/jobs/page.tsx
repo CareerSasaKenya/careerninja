@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 import { Database } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { testSupabaseConnection } from "@/lib/testSupabase";
+import { SaveSearchButton } from "@/components/SaveSearchButton";
 
 interface SearchFilters {
   searchTerm: string;
@@ -476,6 +477,9 @@ const Jobs = () => {
           <p className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto px-4">
             Discover your next career opportunity from top companies in Kenya
           </p>
+          <div className="mt-4 flex justify-center">
+            <SaveSearchButton searchParams={filters} />
+          </div>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-6">

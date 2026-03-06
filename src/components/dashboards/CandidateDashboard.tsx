@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { FileText, Bookmark, Trash2 } from "lucide-react";
+import { FileText, Bookmark, Trash2, Search, Scale } from "lucide-react";
 import { toast } from "sonner";
 import { RecommendedJobs } from "@/components/RecommendedJobs";
 import { JobAlerts } from "@/components/JobAlerts";
@@ -105,6 +105,24 @@ const CandidateDashboard = () => {
               All Applications
             </Button>
           </Link>
+          <Link href="/dashboard/saved-jobs" className="w-full sm:w-auto">
+            <Button variant="outline" className="w-full">
+              <Bookmark className="h-4 w-4 mr-2" />
+              Saved Jobs
+            </Button>
+          </Link>
+          <Link href="/dashboard/saved-searches" className="w-full sm:w-auto">
+            <Button variant="outline" className="w-full">
+              <Search className="h-4 w-4 mr-2" />
+              Saved Searches
+            </Button>
+          </Link>
+          <Link href="/dashboard/compare-jobs" className="w-full sm:w-auto">
+            <Button variant="outline" className="w-full">
+              <Scale className="h-4 w-4 mr-2" />
+              Compare Jobs
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -176,10 +194,15 @@ const CandidateDashboard = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bookmark className="h-5 w-5" />
-            Saved Jobs
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Bookmark className="h-5 w-5" />
+              Saved Jobs
+            </CardTitle>
+            <Link href="/dashboard/saved-jobs">
+              <Button variant="outline" size="sm">View All</Button>
+            </Link>
+          </div>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -201,7 +224,7 @@ const CandidateDashboard = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {savedJobs.map((saved) => (
+                  {savedJobs.slice(0, 5).map((saved) => (
                     <TableRow key={saved.id}>
                       <TableCell className="font-medium">
                         <Link href={`/jobs/${saved.jobs?.id}`} className="hover:underline">
