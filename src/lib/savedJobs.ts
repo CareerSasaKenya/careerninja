@@ -22,7 +22,7 @@ export const saveJob = async (jobId: string, notes?: string) => {
       user_id: user.id,
       job_id: jobId,
       notes: notes || null
-    })
+    } as any)
     .select()
     .single();
 
@@ -102,7 +102,7 @@ export const updateSavedJobNotes = async (jobId: string, notes: string) => {
 
   const { error } = await supabase
     .from("saved_jobs")
-    .update({ notes })
+    .update({ notes } as any)
     .eq("user_id", user.id)
     .eq("job_id", jobId);
 
