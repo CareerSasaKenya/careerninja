@@ -293,24 +293,24 @@ export async function createJobFromTemplate(templateId: string, overrides?: Part
   const { data: user } = await supabase.auth.getUser();
   if (!user.user) throw new Error('Not authenticated');
 
-  const jobData = {
+  const jobData: any = {
     user_id: user.user.id,
     title: template.title,
     company: '', // Will be filled from user's company profile or overrides
-    description: template.description,
-    requirements: template.requirements,
-    responsibilities: template.responsibilities,
-    benefits: template.benefits,
-    job_type: template.job_type,
-    experience_level: template.experience_level,
+    description: template.description || '',
+    requirements: template.requirements || '',
+    responsibilities: template.responsibilities || '',
+    benefits: template.benefits || '',
+    job_type: template.job_type || '',
+    experience_level: template.experience_level || '',
     salary_min: template.salary_min,
     salary_max: template.salary_max,
-    salary_currency: template.salary_currency,
-    location: template.location,
-    remote_type: template.remote_type,
-    category: template.category,
-    tags: template.tags,
-    custom_fields: template.custom_fields,
+    salary_currency: template.salary_currency || 'USD',
+    location: template.location || '',
+    remote_type: template.remote_type || '',
+    category: template.category || '',
+    tags: template.tags || [],
+    custom_fields: template.custom_fields || {},
     status: 'draft',
     ...overrides
   };
