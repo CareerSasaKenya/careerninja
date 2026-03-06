@@ -321,7 +321,8 @@ export async function trackApplicationSource(
  * Refresh analytics materialized view
  */
 export async function refreshAnalytics() {
-  const { error } = await supabase.rpc("refresh_job_analytics");
+  const supabaseAny = supabase as any;
+  const { error } = await supabaseAny.rpc("refresh_job_analytics");
 
   if (error) {
     console.error("Error refreshing analytics:", error);
