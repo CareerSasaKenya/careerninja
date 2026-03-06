@@ -14,12 +14,12 @@
    - Shows when each job was saved
 
 3. **Saved Searches Dashboard** (`/dashboard/saved-searches`)
-   - Save current search filters with a custom name
-   - View all saved searches
-   - Toggle email alerts on/off for each search
-   - View matching jobs for any saved search
-   - Edit search by clicking "Edit" (redirects to jobs page with filters)
-   - Delete saved searches
+   - Save current search filters with a custom name ✅
+   - View all saved searches ✅
+   - View matching jobs for any saved search ✅
+   - Edit search by clicking "Edit" (redirects to jobs page with filters) ✅
+   - Delete saved searches ✅
+   - Toggle email alerts - TEMPORARILY DISABLED (see below)
 
 4. **Job Comparison** (`/dashboard/compare-jobs`)
    - Side-by-side comparison of multiple jobs
@@ -27,7 +27,7 @@
 
 ## Temporarily Disabled ⏳
 
-### Notes Feature
+### 1. Notes Feature on Saved Jobs
 The notes feature on saved jobs is temporarily disabled due to a Supabase PostgREST schema cache issue.
 
 **Why?**
@@ -35,14 +35,32 @@ The notes feature on saved jobs is temporarily disabled due to a Supabase PostgR
 - PostgREST's schema cache hasn't refreshed yet to recognize the new column
 - API returns error: `PGRST204: Could not find the 'notes' column`
 
-**When will it work?**
-- Supabase schema cache typically refreshes within 24-48 hours
-- Once refreshed, we'll re-enable the notes feature
-- No code changes needed - just uncomment the disabled sections
-
 **What's disabled:**
 - Adding/editing notes on saved jobs
 - Viewing existing notes (if any were saved before)
+
+### 2. Email Alerts Toggle on Saved Searches
+The email alerts toggle is temporarily disabled due to the same schema cache issue.
+
+**Why?**
+- The `email_alerts_enabled` and `alert_frequency` columns exist in the database
+- PostgREST's schema cache hasn't refreshed yet to recognize these columns
+- API returns error: `Could not find the 'email_alerts_enabled' column`
+
+**What's disabled:**
+- Toggling email alerts on/off for saved searches
+- Setting alert frequency (instant/daily/weekly)
+
+**What still works:**
+- Saving searches with name and search parameters
+- Viewing saved searches
+- Viewing matching jobs for saved searches
+- Editing and deleting saved searches
+
+### When will these features work?
+- Supabase schema cache typically refreshes within 24-48 hours
+- Once refreshed, we'll re-enable both features
+- No code changes needed - just uncomment the disabled sections
 
 ## Not Yet Implemented 🚧
 
@@ -63,11 +81,15 @@ The database structure is ready, but the background job system isn't implemented
 
 ## Known Issues 🐛
 
-### 1. Schema Cache Issue (Temporary)
-- **Error**: 400/409 errors when saving jobs
-- **Cause**: PostgREST schema cache not recognizing new tables/columns
+### 1. Schema Cache Issue (Temporary) - ACTIVE
+- **Error**: `Could not find the 'notes' column` and `Could not find the 'email_alerts_enabled' column`
+- **Cause**: PostgREST schema cache not recognizing new columns
+- **Impact**: 
+  - Notes feature on saved jobs disabled
+  - Email alerts toggle on saved searches disabled
+  - Core save/view functionality still works
 - **Fix**: Wait 24-48 hours for automatic cache refresh
-- **Workaround**: Implemented - prevents 409 conflicts, disabled notes feature
+- **Workaround**: Implemented - features gracefully disabled with user-friendly messages
 
 ### 2. TypeScript Type Assertions
 - **Issue**: Using `as any` in savedJobs.ts and savedSearches.ts
@@ -75,9 +97,11 @@ The database structure is ready, but the background job system isn't implemented
 - **Fix**: Run `./generate-types.bat` after schema cache refreshes
 - **Impact**: No runtime issues, just TypeScript warnings
 
-## How to Re-enable Notes Feature
+## How to Re-enable Features After Schema Cache Refresh
 
-Once the Supabase schema cache refreshes (you'll know when the 400 errors stop):
+Once the Supabase schema cache refreshes (you'll know when the 400/PGRST errors stop):
+
+### Re-enable Notes Feature
 
 1. **Update `src/lib/savedJobs.ts`:**
    ```typescript
@@ -88,11 +112,31 @@ Once the Supabase schema cache refreshes (you'll know when the 400 errors stop):
      notes: notes || null  // Add this line
    })
    
-   // In updateSavedJobNotes function, uncomment the update code
+   // In updateSavedJobNotes function, remove the error throw and uncomment the update code
    ```
 
 2. **Update `app/dashboard/saved-jobs/page.tsx`:**
    - Uncomment the notes UI section (lines with /* ... */)
+
+### Re-enable Email Alerts
+
+1. **Update `src/lib/savedSearches.ts`:**
+   ```typescript
+   // In saveSearch function, add email fields back:
+   .insert({
+     user_id: user.id,
+     name,
+     search_params: searchParams,
+     email_alerts_enabled: emailAlertsEnabled,  // Add this line
+     alert_frequency: alertFrequency  // Add this line
+   })
+   ```
+
+2. **Update `app/dashboard/saved-searches/page.tsx`:**
+   - Remove the "disabled" prop from the Switch component
+   - Update the UI text from "Feature initializing..." to show actual status
+
+### Final Steps
 
 3. **Regenerate TypeScript types:**
    ```bash
@@ -104,28 +148,30 @@ Once the Supabase schema cache refreshes (you'll know when the 400 errors stop):
    - In `src/lib/savedJobs.ts`
    - In `src/lib/savedSearches.ts`
 
-5. **Test the notes feature:**
-   - Save a job
-   - Add notes
-   - Edit notes
-   - Verify notes persist
+5. **Test all features:**
+   - Save a job and add notes
+   - Save a search with email alerts enabled
+   - Toggle email alerts on/off
+   - Verify all data persists correctly
 
 ## Testing Checklist
 
 ### Save Jobs
-- [ ] Save a job from job listings page
-- [ ] Save a job from job detail page
-- [ ] Try to save the same job twice (should work without error)
-- [ ] Unsave a job
-- [ ] Check saved jobs dashboard shows correct jobs
+- [x] Save a job from job listings page
+- [x] Save a job from job detail page
+- [x] Try to save the same job twice (should work without error)
+- [x] Unsave a job
+- [x] Check saved jobs dashboard shows correct jobs
+- [ ] Add notes to saved job (temporarily disabled)
+- [ ] Edit notes on saved job (temporarily disabled)
 
 ### Saved Searches
-- [ ] Save a search with filters
-- [ ] View saved searches dashboard
-- [ ] Toggle email alerts on/off
-- [ ] View matching jobs for a search
-- [ ] Edit a saved search
-- [ ] Delete a saved search
+- [x] Save a search with filters
+- [x] View saved searches dashboard
+- [ ] Toggle email alerts on/off (temporarily disabled)
+- [x] View matching jobs for a search
+- [x] Edit a saved search
+- [x] Delete a saved search
 
 ### Job Comparison
 - [ ] Compare 2-3 jobs side by side
