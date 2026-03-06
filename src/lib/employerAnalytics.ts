@@ -47,11 +47,13 @@ export interface DemographicsData {
  * Fetch analytics summary for all jobs of an employer
  */
 export async function getEmployerAnalytics(employerId: string): Promise<JobAnalytics[]> {
-  const { data, error } = (await supabase
+  // Use type assertion to bypass type checking for materialized view
+  const supabaseAny = supabase as any;
+  const { data, error } = await supabaseAny
     .from("job_analytics_summary")
     .select("*")
     .eq("employer_id", employerId)
-    .order("posted_at", { ascending: false })) as any;
+    .order("posted_at", { ascending: false });
 
   if (error) {
     console.error("Error fetching employer analytics:", error);
@@ -65,11 +67,13 @@ export async function getEmployerAnalytics(employerId: string): Promise<JobAnaly
  * Fetch analytics for a specific job
  */
 export async function getJobAnalytics(jobId: string): Promise<JobAnalytics | null> {
-  const { data, error } = (await supabase
+  // Use type assertion to bypass type checking for materialized view
+  const supabaseAny = supabase as any;
+  const { data, error } = await supabaseAny
     .from("job_analytics_summary")
     .select("*")
     .eq("job_id", jobId)
-    .single()) as any;
+    .single();
 
   if (error) {
     console.error("Error fetching job analytics:", error);
