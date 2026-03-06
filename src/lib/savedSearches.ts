@@ -36,7 +36,10 @@ export const saveSearch = async (
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) {
+    console.error("Error saving search:", error);
+    throw new Error(error.message || "Failed to save search");
+  }
   return data as any;
 };
 

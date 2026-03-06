@@ -73,6 +73,7 @@ export const SaveSearchButton = ({ searchParams }: SaveSearchButtonProps) => {
     setIsLoading(true);
 
     try {
+      console.log("Saving search with params:", { name, searchParams, emailAlerts, alertFrequency });
       await saveSearch(name, searchParams, emailAlerts, alertFrequency);
       
       toast({
@@ -86,11 +87,12 @@ export const SaveSearchButton = ({ searchParams }: SaveSearchButtonProps) => {
       setName("");
       setEmailAlerts(false);
       setAlertFrequency('daily');
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving search:", error);
+      const errorMessage = error?.message || "Failed to save search. Please try again.";
       toast({
         title: "Error",
-        description: "Failed to save search. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
