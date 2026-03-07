@@ -267,7 +267,7 @@ export async function generateCoverLetterFromTemplate(
 
   if (error) throw error;
 
-  let content = template.template_text;
+  let content = (template as any).template_text;
   Object.entries(placeholders).forEach(([key, value]) => {
     content = content.replace(new RegExp(`{{${key}}}`, 'g'), value);
   });
