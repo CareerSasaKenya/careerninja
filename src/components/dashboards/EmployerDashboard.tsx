@@ -120,13 +120,15 @@ const EmployerDashboard = () => {
       </div>
 
       <Tabs defaultValue="jobs" className="w-full">
-        <TabsList>
-          <TabsTrigger value="jobs">My Jobs</TabsTrigger>
-          <TabsTrigger value="manage">Job Management</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="applications">Applications</TabsTrigger>
-          <TabsTrigger value="company">Company Profile</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+          <TabsList className="w-full sm:w-auto inline-flex min-w-full sm:min-w-0">
+            <TabsTrigger value="jobs" className="flex-1 sm:flex-none whitespace-nowrap">My Jobs</TabsTrigger>
+            <TabsTrigger value="manage" className="flex-1 sm:flex-none whitespace-nowrap">Job Management</TabsTrigger>
+            <TabsTrigger value="analytics" className="flex-1 sm:flex-none whitespace-nowrap">Analytics</TabsTrigger>
+            <TabsTrigger value="applications" className="flex-1 sm:flex-none whitespace-nowrap">Applications</TabsTrigger>
+            <TabsTrigger value="company" className="flex-1 sm:flex-none whitespace-nowrap">Company Profile</TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="jobs">
           <Card>
@@ -137,11 +139,12 @@ const EmployerDashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex gap-2 mb-4">
+              <div className="flex flex-wrap gap-2 mb-4">
                 <Button
                   variant={jobFilter === "all" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setJobFilter("all")}
+                  className="flex-1 sm:flex-none"
                 >
                   All ({jobs.length})
                 </Button>
@@ -149,6 +152,7 @@ const EmployerDashboard = () => {
                   variant={jobFilter === "active" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setJobFilter("active")}
+                  className="flex-1 sm:flex-none"
                 >
                   Active ({activeCount})
                 </Button>
@@ -156,6 +160,7 @@ const EmployerDashboard = () => {
                   variant={jobFilter === "draft" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setJobFilter("draft")}
+                  className="flex-1 sm:flex-none"
                 >
                   Drafts ({draftCount})
                 </Button>
@@ -171,60 +176,111 @@ const EmployerDashboard = () => {
                     : "No jobs posted yet. Create your first job posting!"}
                 </p>
               ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Title</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Education</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Applications</TableHead>
-                        <TableHead>Views</TableHead>
-                        <TableHead>Posted</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredJobs.map((job) => (
-                        <TableRow key={job.id}>
-                          <TableCell className="font-medium">
-                            <Link href={`/jobs/${job.id}`} className="hover:underline">{job.title}</Link>
-                          </TableCell>
-                          <TableCell><Badge variant="outline">{job.employment_type?.replace(/_/g, ' ')}</Badge></TableCell>
-                          <TableCell>{job.education_levels?.name || 'Not specified'}</TableCell>
-                          <TableCell>
-                            <Badge variant={job.status === 'active' ? 'default' : job.status === 'draft' ? 'secondary' : 'outline'}>
-                              {job.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{job.applications_count || 0}</TableCell>
-                          <TableCell>{job.views_count || 0}</TableCell>
-                          <TableCell>{new Date(job.created_at).toLocaleDateString()}</TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
+                <>
+                  {/* Mobile Card View */}
+                  <div className="block md:hidden space-y-4">
+                    {filteredJobs.map((job) => (
+                      <Card key={job.id} className="border">
+                        <CardContent className="p-4">
+                          <div className="space-y-3">
+                            <div>
+                              <Link href={`/jobs/${job.id}`} className="font-medium hover:underline text-lg">
+                                {job.title}
+                              </Link>
+                              <div className="flex flex-wrap gap-2 mt-2">
+                                <Badge variant="outline">{job.employment_type?.replace(/_/g, ' ')}</Badge>
+                                <Badge variant={job.status === 'active' ? 'default' : job.status === 'draft' ? 'secondary' : 'outline'}>
+                                  {job.status}
+                                </Badge>
+                              </div>
+                            </div>
+                            <div className="text-sm text-muted-foreground space-y-1">
+                              <div>Education: {job.education_levels?.name || 'Not specified'}</div>
+                              <div>Applications: {job.applications_count || 0} • Views: {job.views_count || 0}</div>
+                              <div>Posted: {new Date(job.created_at).toLocaleDateString()}</div>
+                            </div>
+                            <div className="flex flex-wrap gap-2 pt-2">
                               {job.status === "draft" && (
                                 <>
-                                  <Link href={`/post-job/${job.id}`}>
-                                    <Button variant="outline" size="sm">Edit</Button>
+                                  <Link href={`/post-job/${job.id}`} className="flex-1">
+                                    <Button variant="outline" size="sm" className="w-full">Edit</Button>
                                   </Link>
                                   <Button 
                                     variant="default" 
                                     size="sm" 
                                     onClick={() => handlePublish(job.id)}
+                                    className="flex-1"
                                   >
                                     Publish
                                   </Button>
                                 </>
                               )}
-                              <Button variant="ghost" size="sm" onClick={() => handleDelete(job.id)}>Delete</Button>
+                              <Button variant="ghost" size="sm" onClick={() => handleDelete(job.id)} className={job.status === "draft" ? "w-full" : "flex-1"}>
+                                Delete
+                              </Button>
                             </div>
-                          </TableCell>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+
+                  {/* Desktop Table View */}
+                  <div className="hidden md:block overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Title</TableHead>
+                          <TableHead>Type</TableHead>
+                          <TableHead>Education</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Applications</TableHead>
+                          <TableHead>Views</TableHead>
+                          <TableHead>Posted</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredJobs.map((job) => (
+                          <TableRow key={job.id}>
+                            <TableCell className="font-medium">
+                              <Link href={`/jobs/${job.id}`} className="hover:underline">{job.title}</Link>
+                            </TableCell>
+                            <TableCell><Badge variant="outline">{job.employment_type?.replace(/_/g, ' ')}</Badge></TableCell>
+                            <TableCell>{job.education_levels?.name || 'Not specified'}</TableCell>
+                            <TableCell>
+                              <Badge variant={job.status === 'active' ? 'default' : job.status === 'draft' ? 'secondary' : 'outline'}>
+                                {job.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>{job.applications_count || 0}</TableCell>
+                            <TableCell>{job.views_count || 0}</TableCell>
+                            <TableCell>{new Date(job.created_at).toLocaleDateString()}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                {job.status === "draft" && (
+                                  <>
+                                    <Link href={`/post-job/${job.id}`}>
+                                      <Button variant="outline" size="sm">Edit</Button>
+                                    </Link>
+                                    <Button 
+                                      variant="default" 
+                                      size="sm" 
+                                      onClick={() => handlePublish(job.id)}
+                                    >
+                                      Publish
+                                    </Button>
+                                  </>
+                                )}
+                                <Button variant="ghost" size="sm" onClick={() => handleDelete(job.id)}>Delete</Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </>
               )}
             </CardContent>
           </Card>

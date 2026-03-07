@@ -92,35 +92,40 @@ const CandidateDashboard = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-3xl font-bold">Job Seeker Dashboard</h1>
-        <div className="flex flex-col sm:flex-row gap-2">
+        <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2">
           <Link href="/dashboard/profile" className="w-full sm:w-auto">
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full whitespace-nowrap">
               <FileText className="h-4 w-4 mr-2" />
-              My Profile
+              <span className="hidden sm:inline">My Profile</span>
+              <span className="sm:hidden">Profile</span>
             </Button>
           </Link>
           <Link href="/dashboard/applications" className="w-full sm:w-auto">
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full whitespace-nowrap">
               <FileText className="h-4 w-4 mr-2" />
-              All Applications
+              <span className="hidden sm:inline">All Applications</span>
+              <span className="sm:hidden">Applications</span>
             </Button>
           </Link>
           <Link href="/dashboard/saved-jobs" className="w-full sm:w-auto">
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full whitespace-nowrap">
               <Bookmark className="h-4 w-4 mr-2" />
-              Saved Jobs
+              <span className="hidden sm:inline">Saved Jobs</span>
+              <span className="sm:hidden">Saved</span>
             </Button>
           </Link>
           <Link href="/dashboard/saved-searches" className="w-full sm:w-auto">
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full whitespace-nowrap">
               <Search className="h-4 w-4 mr-2" />
-              Saved Searches
+              <span className="hidden sm:inline">Saved Searches</span>
+              <span className="sm:hidden">Searches</span>
             </Button>
           </Link>
-          <Link href="/dashboard/compare-jobs" className="w-full sm:w-auto">
-            <Button variant="outline" className="w-full">
+          <Link href="/dashboard/compare-jobs" className="col-span-2 sm:col-span-1 w-full sm:w-auto">
+            <Button variant="outline" className="w-full whitespace-nowrap">
               <Scale className="h-4 w-4 mr-2" />
-              Compare Jobs
+              <span className="hidden sm:inline">Compare Jobs</span>
+              <span className="sm:hidden">Compare</span>
             </Button>
           </Link>
         </div>
@@ -148,7 +153,33 @@ const CandidateDashboard = () => {
             </p>
           ) : (
             <>
-              <div className="overflow-x-auto">
+              {/* Mobile Card View */}
+              <div className="block md:hidden space-y-4">
+                {applications.slice(0, 5).map((app) => (
+                  <Card key={app.id} className="border">
+                    <CardContent className="p-4">
+                      <div className="space-y-2">
+                        <Link href={`/jobs/${app.job_id}`} className="font-medium hover:underline text-lg block">
+                          {app.jobs?.title || "N/A"}
+                        </Link>
+                        <div className="text-sm text-muted-foreground space-y-1">
+                          <div>Company: {app.jobs?.company || "N/A"}</div>
+                          <div>Location: {app.jobs?.location || "N/A"}</div>
+                          <div>Applied: {new Date(app.created_at).toLocaleDateString()}</div>
+                        </div>
+                        <div>
+                          <span className="capitalize px-2 py-1 rounded-full text-xs bg-primary/10 text-primary">
+                            {app.status}
+                          </span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -212,38 +243,67 @@ const CandidateDashboard = () => {
               No saved jobs yet. <Link href="/jobs" className="text-primary underline">Browse jobs</Link> and save your favorites.
             </p>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Job Title</TableHead>
-                    <TableHead>Company</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>Saved</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {savedJobs.slice(0, 5).map((saved) => (
-                    <TableRow key={saved.id}>
-                      <TableCell className="font-medium">
-                        <Link href={`/jobs/${saved.jobs?.id}`} className="hover:underline">
+            <>
+              {/* Mobile Card View */}
+              <div className="block md:hidden space-y-4">
+                {savedJobs.slice(0, 5).map((saved) => (
+                  <Card key={saved.id} className="border">
+                    <CardContent className="p-4">
+                      <div className="space-y-2">
+                        <Link href={`/jobs/${saved.jobs?.id}`} className="font-medium hover:underline text-lg block">
                           {saved.jobs?.title || "N/A"}
                         </Link>
-                      </TableCell>
-                      <TableCell>{saved.jobs?.company || "N/A"}</TableCell>
-                      <TableCell>{saved.jobs?.location || "N/A"}</TableCell>
-                      <TableCell>{new Date(saved.created_at).toLocaleDateString()}</TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" onClick={() => handleUnsave(saved.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
+                        <div className="text-sm text-muted-foreground space-y-1">
+                          <div>Company: {saved.jobs?.company || "N/A"}</div>
+                          <div>Location: {saved.jobs?.location || "N/A"}</div>
+                          <div>Saved: {new Date(saved.created_at).toLocaleDateString()}</div>
+                        </div>
+                        <div className="pt-2">
+                          <Button variant="outline" size="sm" onClick={() => handleUnsave(saved.id)} className="w-full">
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Remove
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Job Title</TableHead>
+                      <TableHead>Company</TableHead>
+                      <TableHead>Location</TableHead>
+                      <TableHead>Saved</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {savedJobs.slice(0, 5).map((saved) => (
+                      <TableRow key={saved.id}>
+                        <TableCell className="font-medium">
+                          <Link href={`/jobs/${saved.jobs?.id}`} className="hover:underline">
+                            {saved.jobs?.title || "N/A"}
+                          </Link>
+                        </TableCell>
+                        <TableCell>{saved.jobs?.company || "N/A"}</TableCell>
+                        <TableCell>{saved.jobs?.location || "N/A"}</TableCell>
+                        <TableCell>{new Date(saved.created_at).toLocaleDateString()}</TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="icon" onClick={() => handleUnsave(saved.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
