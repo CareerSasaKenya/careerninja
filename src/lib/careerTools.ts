@@ -231,14 +231,14 @@ export async function createCoverLetter(letter: Partial<CandidateCoverLetter>) {
 
   if (error) throw error;
 
-  // Increment template usage count
-  if (letter.template_id) {
-    await supabase.rpc('increment', {
-      table_name: 'cover_letter_templates',
-      row_id: letter.template_id,
-      column_name: 'usage_count'
-    });
-  }
+  // TODO: Increment template usage count when increment function is available
+  // if (letter.template_id) {
+  //   await supabase.rpc('increment', {
+  //     table_name: 'cover_letter_templates',
+  //     row_id: letter.template_id,
+  //     column_name: 'usage_count'
+  //   });
+  // }
 
   return data as unknown as CandidateCoverLetter;
 }
