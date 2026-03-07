@@ -41,7 +41,7 @@ export default function CareerPathPlanner() {
         getUserCareerGoals(user.id)
       ]);
 
-      setSuggestedPaths(pathsData || []);
+      setSuggestedPaths(Array.isArray(pathsData) ? pathsData : []);
       setMyGoals(goalsData);
     } catch (error: any) {
       toast({
