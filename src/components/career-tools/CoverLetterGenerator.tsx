@@ -100,7 +100,7 @@ export default function CoverLetterGenerator() {
     if (!confirm('Are you sure you want to delete this cover letter?')) return;
 
     try {
-      await supabase.from('candidate_cover_letters').delete().eq('id', id);
+      await supabase.from('candidate_cover_letters' as any).delete().eq('id', id);
       setLetters(letters.filter(l => l.id !== id));
       toast({
         title: 'Success',
