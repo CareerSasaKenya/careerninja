@@ -124,7 +124,7 @@ export interface SalaryInsight {
 
 export async function getCVTemplates() {
   const { data, error } = await supabase
-    .from('cv_templates')
+    .from('cv_templates' as any)
     .select('*')
     .eq('is_active', true)
     .order('category', { ascending: true });
@@ -135,7 +135,7 @@ export async function getCVTemplates() {
 
 export async function getUserCVs(userId: string) {
   const { data, error } = await supabase
-    .from('candidate_cvs')
+    .from('candidate_cvs' as any)
     .select('*')
     .eq('user_id', userId)
     .order('is_primary', { ascending: false })
@@ -147,7 +147,7 @@ export async function getUserCVs(userId: string) {
 
 export async function createCV(cv: Partial<CandidateCV>) {
   const { data, error } = await supabase
-    .from('candidate_cvs')
+    .from('candidate_cvs' as any)
     .insert(cv)
     .select()
     .single();
@@ -158,7 +158,7 @@ export async function createCV(cv: Partial<CandidateCV>) {
 
 export async function updateCV(id: string, updates: Partial<CandidateCV>) {
   const { data, error } = await supabase
-    .from('candidate_cvs')
+    .from('candidate_cvs' as any)
     .update({ ...updates, updated_at: new Date().toISOString() })
     .eq('id', id)
     .select()
@@ -170,7 +170,7 @@ export async function updateCV(id: string, updates: Partial<CandidateCV>) {
 
 export async function deleteCV(id: string) {
   const { error } = await supabase
-    .from('candidate_cvs')
+    .from('candidate_cvs' as any)
     .delete()
     .eq('id', id);
 
@@ -180,13 +180,13 @@ export async function deleteCV(id: string) {
 export async function setPrimaryCV(userId: string, cvId: string) {
   // First, unset all primary CVs for this user
   await supabase
-    .from('candidate_cvs')
+    .from('candidate_cvs' as any)
     .update({ is_primary: false })
     .eq('user_id', userId);
 
   // Then set the selected CV as primary
   const { data, error } = await supabase
-    .from('candidate_cvs')
+    .from('candidate_cvs' as any)
     .update({ is_primary: true })
     .eq('id', cvId)
     .select()
@@ -202,7 +202,7 @@ export async function setPrimaryCV(userId: string, cvId: string) {
 
 export async function getCoverLetterTemplates() {
   const { data, error } = await supabase
-    .from('cover_letter_templates')
+    .from('cover_letter_templates' as any)
     .select('*')
     .eq('is_active', true)
     .order('usage_count', { ascending: false });
@@ -213,7 +213,7 @@ export async function getCoverLetterTemplates() {
 
 export async function getUserCoverLetters(userId: string) {
   const { data, error } = await supabase
-    .from('candidate_cover_letters')
+    .from('candidate_cover_letters' as any)
     .select('*, jobs(title, company_name)')
     .eq('user_id', userId)
     .order('updated_at', { ascending: false });
@@ -224,7 +224,7 @@ export async function getUserCoverLetters(userId: string) {
 
 export async function createCoverLetter(letter: Partial<CandidateCoverLetter>) {
   const { data, error } = await supabase
-    .from('candidate_cover_letters')
+    .from('candidate_cover_letters' as any)
     .insert(letter)
     .select()
     .single();
@@ -245,7 +245,7 @@ export async function createCoverLetter(letter: Partial<CandidateCoverLetter>) {
 
 export async function updateCoverLetter(id: string, updates: Partial<CandidateCoverLetter>) {
   const { data, error } = await supabase
-    .from('candidate_cover_letters')
+    .from('candidate_cover_letters' as any)
     .update({ ...updates, updated_at: new Date().toISOString() })
     .eq('id', id)
     .select()
@@ -260,7 +260,7 @@ export async function generateCoverLetterFromTemplate(
   placeholders: Record<string, string>
 ): Promise<string> {
   const { data: template, error } = await supabase
-    .from('cover_letter_templates')
+    .from('cover_letter_templates' as any)
     .select('template_text')
     .eq('id', templateId)
     .single();
@@ -281,7 +281,7 @@ export async function generateCoverLetterFromTemplate(
 
 export async function getSkillAssessments(category?: string) {
   let query = supabase
-    .from('skill_assessments')
+    .from('skill_assessments' as any)
     .select('*')
     .eq('is_active', true);
 
@@ -297,7 +297,7 @@ export async function getSkillAssessments(category?: string) {
 
 export async function getAssessmentById(id: string) {
   const { data, error } = await supabase
-    .from('skill_assessments')
+    .from('skill_assessments' as any)
     .select('*')
     .eq('id', id)
     .single();
@@ -308,7 +308,7 @@ export async function getAssessmentById(id: string) {
 
 export async function getUserAssessmentResults(userId: string) {
   const { data, error } = await supabase
-    .from('candidate_assessment_results')
+    .from('candidate_assessment_results' as any)
     .select('*, skill_assessments(skill_name, category, difficulty_level)')
     .eq('user_id', userId)
     .order('completed_at', { ascending: false });
@@ -319,7 +319,7 @@ export async function getUserAssessmentResults(userId: string) {
 
 export async function submitAssessment(result: Partial<AssessmentResult>) {
   const { data, error } = await supabase
-    .from('candidate_assessment_results')
+    .from('candidate_assessment_results' as any)
     .insert(result)
     .select()
     .single();
@@ -359,7 +359,7 @@ export async function calculateAssessmentScore(
 // ============================================================================
 
 export async function getCareerPaths(fromRole?: string, toRole?: string) {
-  let query = supabase.from('career_paths').select('*');
+  let query = supabase.from('career_paths' as any).select('*');
 
   if (fromRole) {
     query = query.ilike('from_role', `%${fromRole}%`);
@@ -385,7 +385,7 @@ export async function suggestCareerPaths(userId: string) {
 
 export async function getUserCareerGoals(userId: string) {
   const { data, error } = await supabase
-    .from('candidate_career_goals')
+    .from('candidate_career_goals' as any)
     .select('*, career_paths(*)')
     .eq('user_id', userId)
     .order('is_active', { ascending: false })
@@ -397,7 +397,7 @@ export async function getUserCareerGoals(userId: string) {
 
 export async function createCareerGoal(goal: Partial<CareerGoal>) {
   const { data, error } = await supabase
-    .from('candidate_career_goals')
+    .from('candidate_career_goals' as any)
     .insert(goal)
     .select()
     .single();
@@ -408,7 +408,7 @@ export async function createCareerGoal(goal: Partial<CareerGoal>) {
 
 export async function updateCareerGoal(id: string, updates: Partial<CareerGoal>) {
   const { data, error } = await supabase
-    .from('candidate_career_goals')
+    .from('candidate_career_goals' as any)
     .update({ ...updates, updated_at: new Date().toISOString() })
     .eq('id', id)
     .select()
@@ -439,7 +439,7 @@ export async function getSalaryInsights(
 
 export async function getUserSalaryExpectations(userId: string) {
   const { data, error } = await supabase
-    .from('candidate_salary_expectations')
+    .from('candidate_salary_expectations' as any)
     .select('*')
     .eq('user_id', userId);
 
@@ -457,7 +457,7 @@ export async function setSalaryExpectation(expectation: {
   preferred_benefits?: any;
 }) {
   const { data, error } = await supabase
-    .from('candidate_salary_expectations')
+    .from('candidate_salary_expectations' as any)
     .upsert(expectation)
     .select()
     .single();
