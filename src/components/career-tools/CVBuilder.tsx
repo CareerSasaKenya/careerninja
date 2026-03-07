@@ -313,22 +313,73 @@ export default function CVBuilder() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
-            {templates.map(template => (
-              <Card key={template.id} className="cursor-pointer hover:border-primary">
-                <CardHeader>
-                  <div className="aspect-[3/4] bg-muted rounded-md mb-2 flex items-center justify-center">
-                    <FileText className="h-12 w-12 text-muted-foreground" />
-                  </div>
-                  <CardTitle className="text-sm">{template.name}</CardTitle>
-                  <CardDescription className="text-xs">
-                    {template.category}
-                    {template.is_premium && (
-                      <Badge variant="secondary" className="ml-2">Premium</Badge>
-                    )}
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            ))}
+            {templates.map(template => {
+              const colors = template.template_data?.colors || { primary: '#2563eb', secondary: '#64748b' };
+              const categoryStyles = {
+                modern: 'from-blue-50 to-blue-100 border-blue-200',
+                classic: 'from-slate-50 to-slate-100 border-slate-200',
+                creative: 'from-purple-50 to-purple-100 border-purple-200',
+                professional: 'from-gray-50 to-gray-100 border-gray-200'
+              };
+              
+              return (
+                <Card 
+                  key={template.id} 
+                  className="cursor-pointer hover:border-primary hover:shadow-lg transition-all duration-200"
+                  onClick={() => {
+                    setIsCreating(true);
+                    // Could pre-select this template
+                  }}
+                >
+                  <CardHeader className="p-0">
+                    <div className={`aspect-[3/4] bg-gradient-to-br ${categoryStyles[template.category as keyof typeof categoryStyles] || categoryStyles.professional} rounded-t-lg border-b-2 p-4 flex flex-col justify-between`}>
+                      {/* Template Preview */}
+                      <div className="space-y-2">
+                        {/* Header section */}
+                        <div className="h-8 rounded" style={{ backgroundColor: colors.primary, opacity: 0.2 }}></div>
+                        {/* Content lines */}
+                        <div className="space-y-1">
+                          <div className="h-2 rounded w-3/4" style={{ backgroundColor: colors.secondary, opacity: 0.3 }}></div>
+                          <div className="h-2 rounded w-full" style={{ backgroundColor: colors.secondary, opacity: 0.2 }}></div>
+                          <div className="h-2 rounded w-5/6" style={{ backgroundColor: colors.secondary, opacity: 0.2 }}></div>
+                        </div>
+                        {/* Section divider */}
+                        <div className="h-1 rounded w-1/3 mt-3" style={{ backgroundColor: colors.primary, opacity: 0.4 }}></div>
+                        {/* More content */}
+                        <div className="space-y-1 mt-2">
+                          <div className="h-2 rounded w-full" style={{ backgroundColor: colors.secondary, opacity: 0.2 }}></div>
+                          <div className="h-2 rounded w-4/5" style={{ backgroundColor: colors.secondary, opacity: 0.2 }}></div>
+                        </div>
+                      </div>
+                      
+                      {/* Template icon */}
+                      <div className="flex justify-center mt-4">
+                        <div className="p-2 rounded-full bg-white/80 shadow-sm">
+                          <FileText className="h-6 w-6" style={{ color: colors.primary }} />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="p-4">
+                      <div className="flex items-start justify-between mb-1">
+                        <CardTitle className="text-sm font-semibold">{template.name}</CardTitle>
+                        {template.is_premium && (
+                          <Badge variant="secondary" className="text-xs">Premium</Badge>
+                        )}
+                      </div>
+                      <CardDescription className="text-xs capitalize">
+                        {template.category} style
+                      </CardDescription>
+                      {template.description && (
+                        <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
+                          {template.description}
+                        </p>
+                      )}
+                    </div>
+                  </CardHeader>
+                </Card>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
