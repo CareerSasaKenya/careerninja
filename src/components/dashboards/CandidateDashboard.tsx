@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { FileText, Bookmark, Trash2, Search, Scale } from "lucide-react";
+import { FileText, Bookmark, Trash2, Search, Scale, Briefcase } from "lucide-react";
 import { toast } from "sonner";
 import { RecommendedJobs } from "@/components/RecommendedJobs";
 import { JobAlerts } from "@/components/JobAlerts";
@@ -93,6 +93,13 @@ const CandidateDashboard = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-3xl font-bold">Job Seeker Dashboard</h1>
         <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2">
+          <Link href="/dashboard/career-tools" className="w-full sm:w-auto">
+            <Button variant="default" className="w-full whitespace-nowrap">
+              <Briefcase className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Career Tools</span>
+              <span className="sm:hidden">Tools</span>
+            </Button>
+          </Link>
           <Link href="/dashboard/profile" className="w-full sm:w-auto">
             <Button variant="outline" className="w-full whitespace-nowrap">
               <FileText className="h-4 w-4 mr-2" />
