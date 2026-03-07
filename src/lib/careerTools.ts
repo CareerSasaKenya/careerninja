@@ -130,7 +130,7 @@ export async function getCVTemplates() {
     .order('category', { ascending: true });
 
   if (error) throw error;
-  return data as CVTemplate[];
+  return data as unknown as unknown as CVTemplate[];
 }
 
 export async function getUserCVs(userId: string) {
@@ -142,7 +142,7 @@ export async function getUserCVs(userId: string) {
     .order('updated_at', { ascending: false });
 
   if (error) throw error;
-  return data as CandidateCV[];
+  return data as unknown as CandidateCV[];
 }
 
 export async function createCV(cv: Partial<CandidateCV>) {
@@ -153,7 +153,7 @@ export async function createCV(cv: Partial<CandidateCV>) {
     .single();
 
   if (error) throw error;
-  return data as CandidateCV;
+  return data as unknown as CandidateCV;
 }
 
 export async function updateCV(id: string, updates: Partial<CandidateCV>) {
@@ -165,7 +165,7 @@ export async function updateCV(id: string, updates: Partial<CandidateCV>) {
     .single();
 
   if (error) throw error;
-  return data as CandidateCV;
+  return data as unknown as CandidateCV;
 }
 
 export async function deleteCV(id: string) {
@@ -193,7 +193,7 @@ export async function setPrimaryCV(userId: string, cvId: string) {
     .single();
 
   if (error) throw error;
-  return data as CandidateCV;
+  return data as unknown as CandidateCV;
 }
 
 // ============================================================================
@@ -208,7 +208,7 @@ export async function getCoverLetterTemplates() {
     .order('usage_count', { ascending: false });
 
   if (error) throw error;
-  return data as CoverLetterTemplate[];
+  return data as unknown as CoverLetterTemplate[];
 }
 
 export async function getUserCoverLetters(userId: string) {
@@ -240,7 +240,7 @@ export async function createCoverLetter(letter: Partial<CandidateCoverLetter>) {
     });
   }
 
-  return data as CandidateCoverLetter;
+  return data as unknown as CandidateCoverLetter;
 }
 
 export async function updateCoverLetter(id: string, updates: Partial<CandidateCoverLetter>) {
@@ -252,7 +252,7 @@ export async function updateCoverLetter(id: string, updates: Partial<CandidateCo
     .single();
 
   if (error) throw error;
-  return data as CandidateCoverLetter;
+  return data as unknown as CandidateCoverLetter;
 }
 
 export async function generateCoverLetterFromTemplate(
@@ -292,7 +292,7 @@ export async function getSkillAssessments(category?: string) {
   const { data, error } = await query.order('skill_name', { ascending: true });
 
   if (error) throw error;
-  return data as SkillAssessment[];
+  return data as unknown as SkillAssessment[];
 }
 
 export async function getAssessmentById(id: string) {
@@ -303,7 +303,7 @@ export async function getAssessmentById(id: string) {
     .single();
 
   if (error) throw error;
-  return data as SkillAssessment;
+  return data as unknown as SkillAssessment;
 }
 
 export async function getUserAssessmentResults(userId: string) {
@@ -325,7 +325,7 @@ export async function submitAssessment(result: Partial<AssessmentResult>) {
     .single();
 
   if (error) throw error;
-  return data as AssessmentResult;
+  return data as unknown as AssessmentResult;
 }
 
 export async function calculateAssessmentScore(
@@ -371,7 +371,7 @@ export async function getCareerPaths(fromRole?: string, toRole?: string) {
   const { data, error } = await query.order('success_rate', { ascending: false });
 
   if (error) throw error;
-  return data as CareerPath[];
+  return data as unknown as CareerPath[];
 }
 
 export async function suggestCareerPaths(userId: string) {
@@ -403,7 +403,7 @@ export async function createCareerGoal(goal: Partial<CareerGoal>) {
     .single();
 
   if (error) throw error;
-  return data as CareerGoal;
+  return data as unknown as CareerGoal;
 }
 
 export async function updateCareerGoal(id: string, updates: Partial<CareerGoal>) {
@@ -415,7 +415,7 @@ export async function updateCareerGoal(id: string, updates: Partial<CareerGoal>)
     .single();
 
   if (error) throw error;
-  return data as CareerGoal;
+  return data as unknown as CareerGoal;
 }
 
 // ============================================================================
