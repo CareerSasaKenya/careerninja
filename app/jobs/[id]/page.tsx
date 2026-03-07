@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from '@supabase/supabase-js';
-import { Flag } from "lucide-react";
+import { Flag, TrendingUp } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -162,6 +162,23 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                 <CardHeader className="border-b bg-muted/330">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
+                      {/* Featured/Promoted Badges */}
+                      {(job.is_featured || job.is_promoted) && (
+                        <div className="mb-3 flex flex-wrap gap-2">
+                          {job.is_featured && (
+                            <Badge className="bg-yellow-500 text-white gap-1 text-sm py-1 px-3">
+                              <Star className="h-4 w-4 fill-white" />
+                              Featured Job
+                            </Badge>
+                          )}
+                          {job.is_promoted && (
+                            <Badge className="bg-blue-500 text-white gap-1 text-sm py-1 px-3">
+                              <TrendingUp className="h-4 w-4" />
+                              Promoted {job.promotion_tier && `• ${job.promotion_tier}`}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
                       {(job.valid_through || job.date_posted) && (
                         <div className="mb-2 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                           {job.date_posted && (

@@ -113,7 +113,7 @@ export default function Home() {
     }
   };
 
-  // Fetch featured jobs (most recent 6)
+  // Fetch featured jobs (prioritize featured/promoted, then most recent)
   const { data: featuredJobs = [], isLoading: loadingFeatured } = useQuery({
     queryKey: ["featured-jobs"],
     queryFn: async () => {
@@ -121,6 +121,8 @@ export default function Home() {
         .from("jobs")
         .select("*")
         .eq("status", "active")
+        .order("is_featured", { ascending: false, nullsFirst: false })
+        .order("is_promoted", { ascending: false, nullsFirst: false })
         .order("created_at", { ascending: false })
         .limit(6);
       
@@ -129,7 +131,7 @@ export default function Home() {
     },
   });
 
-  // Fetch latest jobs (most recent 6, different from featured)
+  // Fetch latest jobs (most recent 6, prioritize featured/promoted)
   const { data: latestJobs = [], isLoading: loadingLatest } = useQuery({
     queryKey: ["latest-jobs"],
     queryFn: async () => {
@@ -137,6 +139,8 @@ export default function Home() {
         .from("jobs")
         .select("*")
         .eq("status", "active")
+        .order("is_featured", { ascending: false, nullsFirst: false })
+        .order("is_promoted", { ascending: false, nullsFirst: false })
         .order("date_posted", { ascending: false })
         .limit(6);
       
@@ -256,10 +260,25 @@ export default function Home() {
                 <CarouselContent className="-ml-2 md:-ml-4">
                   {featuredJobs.map((job) => (
                     <CarouselItem key={job.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
-                      <Card className="glass hover:shadow-xl transition-all duration-300 hover:scale-105">
+                      <Card className={`glass hover:shadow-xl transition-all duration-300 hover:scale-105 ${job.is_featured ? 'border-2 border-yellow-500/50' : ''} ${job.is_promoted ? 'border-2 border-blue-500/50' : ''}`}>
                         <CardContent className="p-6">
                           <div className="flex justify-between items-start mb-4">
-                            <Badge className="bg-gradient-primary text-primary-foreground">Featured</Badge>
+                            <div className="flex gap-2">
+                              {job.is_featured && (
+                                <Badge className="bg-yellow-500 text-white gap-1">
+                                  <Star className="h-3 w-3 fill-white" />
+                                  Featured
+                                </Badge>
+                              )}
+                              {job.is_promoted && (
+                                <Badge className="bg-blue-500 text-white">
+                                  Promoted
+                                </Badge>
+                              )}
+                              {!job.is_featured && !job.is_promoted && (
+                                <Badge className="bg-gradient-primary text-primary-foreground">New</Badge>
+                              )}
+                            </div>
                             <Clock className="h-4 w-4 text-muted-foreground" />
                           </div>
                           <h3 className="text-xl font-semibold mb-2">{job.title}</h3>
@@ -413,10 +432,25 @@ export default function Home() {
             <>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                 {latestJobs.map((job) => (
-                  <Card key={job.id} className="glass hover:shadow-xl transition-all duration-3300 hover:scale-105">
+                  <Card key={job.id} className={`glass hover:shadow-xl transition-all duration-300 hover:scale-105 ${job.is_featured ? 'border-2 border-yellow-500/50 shadow-lg' : ''} ${job.is_promoted ? 'border-2 border-blue-500/50' : ''}`}>
                     <CardContent className="p-6">
                       <div className="flex justify-between items-start mb-4">
-                        <Badge variant="secondary">New</Badge>
+                        <div className="flex gap-2">
+                          {job.is_featured && (
+                            <Badge className="bg-yellow-500 text-white gap-1">
+                              <Star className="h-3 w-3 fill-white" />
+                              Featured
+                            </Badge>
+                          )}
+                          {job.is_promoted && (
+                            <Badge className="bg-blue-500 text-white">
+                              Promoted
+                            </Badge>
+                          )}
+                          {!job.is_featured && !job.is_promoted && (
+                            <Badge variant="secondary">New</Badge>
+                          )}
+                        </div>
                         <span className="text-xs text-muted-foreground">Just posted</span>
                       </div>
                       <h3 className="text-xl font-semibold mb-2 line-clamp-1">{job.title}</h3>

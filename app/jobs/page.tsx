@@ -278,22 +278,37 @@ const Jobs = () => {
           query = query.lte("salary_max", filters.salaryMax);
         }
 
-        // Apply sorting
+        // Apply sorting with featured/promoted priority
         switch (filters.sortBy) {
           case "newest":
-            query = query.order("created_at", { ascending: false });
+            query = query
+              .order("is_featured", { ascending: false, nullsFirst: false })
+              .order("is_promoted", { ascending: false, nullsFirst: false })
+              .order("created_at", { ascending: false });
             break;
           case "oldest":
-            query = query.order("created_at", { ascending: true });
+            query = query
+              .order("is_featured", { ascending: false, nullsFirst: false })
+              .order("is_promoted", { ascending: false, nullsFirst: false })
+              .order("created_at", { ascending: true });
             break;
           case "salary_high":
-            query = query.order("salary_max", { ascending: false });
+            query = query
+              .order("is_featured", { ascending: false, nullsFirst: false })
+              .order("is_promoted", { ascending: false, nullsFirst: false })
+              .order("salary_max", { ascending: false });
             break;
           case "salary_low":
-            query = query.order("salary_min", { ascending: true });
+            query = query
+              .order("is_featured", { ascending: false, nullsFirst: false })
+              .order("is_promoted", { ascending: false, nullsFirst: false })
+              .order("salary_min", { ascending: true });
             break;
           default:
-            query = query.order("created_at", { ascending: false });
+            query = query
+              .order("is_featured", { ascending: false, nullsFirst: false })
+              .order("is_promoted", { ascending: false, nullsFirst: false })
+              .order("created_at", { ascending: false });
         }
 
         const { data, error } = await query;
@@ -756,6 +771,9 @@ const Jobs = () => {
                           department={job.job_function}
                           jobSlug={job.job_slug}
                           educationLevel=""
+                          isFeatured={job.is_featured}
+                          isPromoted={job.is_promoted}
+                          promotionTier={job.promotion_tier}
                         />
                       </div>
                     ))}
