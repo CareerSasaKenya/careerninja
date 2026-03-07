@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Building2, DollarSign, FileText, Clock, ExternalLink, Mail, Briefcase, GraduationCap } from "lucide-react";
+import { MapPin, Building2, DollarSign, FileText, Clock, ExternalLink, Mail, Briefcase, GraduationCap, Star, TrendingUp } from "lucide-react";
 import { stripHtmlTags } from "@/lib/textUtils";
 import { SaveJobButton } from "@/components/SaveJobButton";
 
@@ -37,6 +37,10 @@ interface JobCardProps {
   department?: string | null;
   jobSlug?: string | null; // SEO-friendly slug
   educationLevel?: string | null; // Education level name
+  // Featured/Promoted status
+  isFeatured?: boolean | null;
+  isPromoted?: boolean | null;
+  promotionTier?: string | null;
 }
 
 const formatCurrency = (amount?: number | null, currency?: string | null) => {
@@ -98,6 +102,9 @@ const JobCard = ({
   department,
   jobSlug,
   educationLevel,
+  isFeatured,
+  isPromoted,
+  promotionTier,
 }: JobCardProps) => {
   // Safely handle potentially undefined values
   const displayLocation = locationType
@@ -136,8 +143,26 @@ const JobCard = ({
 
   return (
     <Link href={jobUrl} className="block" prefetch={true}>
-      <Card className="group hover:shadow-xl transition-all duration-300 border-border/50 hover:border-primary/50 hover:scale-[1.02] overflow-hidden h-full">
+      <Card className={`group hover:shadow-xl transition-all duration-300 border-border/50 hover:border-primary/50 hover:scale-[1.02] overflow-hidden h-full ${isFeatured ? 'border-2 border-yellow-500/50 shadow-lg' : ''} ${isPromoted ? 'border-2 border-blue-500/50' : ''}`}>
       <CardHeader className="pb-3">
+        {/* Featured/Promoted Badges at top */}
+        {(isFeatured || isPromoted) && (
+          <div className="flex gap-2 mb-2">
+            {isFeatured && (
+              <Badge className="bg-yellow-500 text-white gap-1">
+                <Star className="h-3 w-3 fill-white" />
+                Featured
+              </Badge>
+            )}
+            {isPromoted && (
+              <Badge className="bg-blue-500 text-white gap-1">
+                <TrendingUp className="h-3 w-3" />
+                Promoted {promotionTier && `• ${promotionTier}`}
+              </Badge>
+            )}
+          </div>
+        )}
+        
         {/* Title (prominent) */}
         <CardTitle className="text-xl sm:text-2xl font-bold text-card-foreground group-hover:text-primary transition-colors line-clamp-2 sm:line-clamp-1" title={title}>
           {title}
