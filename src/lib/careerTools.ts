@@ -375,7 +375,7 @@ export async function getCareerPaths(fromRole?: string, toRole?: string) {
 }
 
 export async function suggestCareerPaths(userId: string) {
-  const { data, error } = await supabase.rpc('suggest_career_paths', {
+  const { data, error } = await (supabase.rpc as any)('suggest_career_paths', {
     p_user_id: userId
   });
 
@@ -427,7 +427,7 @@ export async function getSalaryInsights(
   location?: string,
   experienceLevel?: string
 ): Promise<SalaryInsight | null> {
-  const { data, error } = await supabase.rpc('get_salary_insights', {
+  const { data, error } = await (supabase.rpc as any)('get_salary_insights', {
     p_job_title: jobTitle,
     p_location: location || null,
     p_experience_level: experienceLevel || null
