@@ -50,13 +50,13 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
   return (
     <div className="w-[794px] h-[1123px] bg-white flex font-sans shadow-lg print:shadow-none">
       {/* Left Sidebar - 35% width */}
-      <div className="w-[278px] bg-blue-50 p-8">
+      <div className="w-[278px] bg-blue-50 p-6">
         {/* Key Skills Section */}
-        <section className="mb-6">
-          <h2 className="text-base font-bold text-blue-900 mb-3 uppercase tracking-wide">
+        <section className="mb-5">
+          <h2 className="text-base font-bold text-blue-900 mb-2 uppercase tracking-wide">
             Key Skills
           </h2>
-          <ul className="space-y-2">
+          <ul className="space-y-1.5">
             {data.skills.map((skill, index) => (
               <li key={index} className="text-sm text-gray-800 flex items-start">
                 <span className="text-blue-600 mr-2">▪</span>
@@ -68,11 +68,11 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
 
         {/* Tools & Platforms Section */}
         {data.tools && data.tools.length > 0 && (
-          <section className="mb-6">
-            <h2 className="text-base font-bold text-blue-900 mb-3 uppercase tracking-wide">
+          <section className="mb-5">
+            <h2 className="text-base font-bold text-blue-900 mb-2 uppercase tracking-wide">
               Tools & Platforms
             </h2>
-            <ul className="space-y-2">
+            <ul className="space-y-1.5">
               {data.tools.map((tool, index) => (
                 <li key={index} className="text-sm text-gray-800 flex items-start">
                   <span className="text-blue-600 mr-2">▪</span>
@@ -85,11 +85,11 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
 
         {/* Languages Section */}
         {data.languages && data.languages.length > 0 && (
-          <section className="mb-6">
-            <h2 className="text-base font-bold text-blue-900 mb-3 uppercase tracking-wide">
+          <section className="mb-5">
+            <h2 className="text-base font-bold text-blue-900 mb-2 uppercase tracking-wide">
               Languages
             </h2>
-            <ul className="space-y-2">
+            <ul className="space-y-1.5">
               {data.languages.map((language, index) => (
                 <li key={index} className="text-sm text-gray-800">
                   {language}
@@ -101,7 +101,7 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
 
         {/* Referees Section */}
         <section>
-          <h2 className="text-base font-bold text-blue-900 mb-3 uppercase tracking-wide">
+          <h2 className="text-base font-bold text-blue-900 mb-2 uppercase tracking-wide">
             Referees
           </h2>
           <p className="text-sm text-gray-800 italic">
@@ -111,9 +111,9 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
       </div>
 
       {/* Right Main Content - 65% width */}
-      <div className="flex-1 p-10">
+      <div className="flex-1 p-8">
         {/* Header Section */}
-        <header className="mb-6 pb-4 border-b-2 border-blue-600">
+        <header className="mb-5 pb-3 border-b-2 border-blue-600">
           <h1 className="text-3xl font-bold text-gray-900 mb-1">
             {data.name}
           </h1>
@@ -150,7 +150,7 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
         </header>
 
         {/* Professional Profile Section */}
-        <section className="mb-6">
+        <section className="mb-4">
           <h2 className="text-base font-bold text-blue-900 mb-2 uppercase tracking-wide">
             Professional Profile
           </h2>
@@ -160,11 +160,11 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
         </section>
 
         {/* Professional Experience Section */}
-        <section className="mb-6">
-          <h2 className="text-base font-bold text-blue-900 mb-3 uppercase tracking-wide">
+        <section className="mb-4">
+          <h2 className="text-base font-bold text-blue-900 mb-2 uppercase tracking-wide">
             Professional Experience
           </h2>
-          <div className="space-y-4">
+          <div className="space-y-3">
             {data.experience.map((job, index) => (
               <div key={index}>
                 <h3 className="text-sm font-bold text-gray-900">
@@ -190,11 +190,11 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
         </section>
 
         {/* Education Section */}
-        <section className="mb-6">
-          <h2 className="text-base font-bold text-blue-900 mb-3 uppercase tracking-wide">
+        <section className="mb-4">
+          <h2 className="text-base font-bold text-blue-900 mb-2 uppercase tracking-wide">
             Education
           </h2>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {data.education.map((edu, index) => (
               <div key={index}>
                 <h3 className="text-sm font-bold text-gray-900">
@@ -213,8 +213,8 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
 
         {/* Certifications Section */}
         {data.certifications && data.certifications.length > 0 && (
-          <section className="mb-6">
-            <h2 className="text-base font-bold text-blue-900 mb-3 uppercase tracking-wide">
+          <section className="mb-4">
+            <h2 className="text-base font-bold text-blue-900 mb-2 uppercase tracking-wide">
               Certifications
             </h2>
             <ul className="space-y-1">
@@ -231,7 +231,7 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
         {/* Professional Achievements Section */}
         {data.achievements && data.achievements.length > 0 && (
           <section>
-            <h2 className="text-base font-bold text-blue-900 mb-3 uppercase tracking-wide">
+            <h2 className="text-base font-bold text-blue-900 mb-2 uppercase tracking-wide">
               Professional Achievements
             </h2>
             <ul className="space-y-1">

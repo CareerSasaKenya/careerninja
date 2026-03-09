@@ -60,15 +60,26 @@ export default function CVTemplatePreview({ templateName }: CVTemplatePreviewPro
                   <div>• Coordinate daily office operations and administrative activities</div>
                   <div>• Prepare reports, meeting minutes, and official correspondence</div>
                   <div>• Manage document filing systems and maintain accurate records</div>
+                  <div>• Supervise office support staff and coordinate schedules</div>
                 </div>
               </div>
-              <div className="text-[3px]">
+              <div className="text-[3px] mb-1">
                 <div className="font-semibold">Office Assistant</div>
                 <div className="text-gray-700">Greenfield Solutions Ltd – Nairobi</div>
                 <div className="text-gray-500 italic mb-0.5">January 2019 – February 2021</div>
                 <div className="space-y-0.5">
                   <div>• Supported administrative tasks including data entry and scheduling</div>
                   <div>• Managed incoming calls, emails, and office correspondence</div>
+                  <div>• Assisted with event planning and coordination</div>
+                </div>
+              </div>
+              <div className="text-[3px]">
+                <div className="font-semibold">Administrative Intern</div>
+                <div className="text-gray-700">Kenya Commercial Bank – Nairobi</div>
+                <div className="text-gray-500 italic mb-0.5">June 2018 – December 2018</div>
+                <div className="space-y-0.5">
+                  <div>• Assisted with filing, data entry, and document management</div>
+                  <div>• Supported customer service and front desk operations</div>
                 </div>
               </div>
             </div>
@@ -76,10 +87,20 @@ export default function CVTemplatePreview({ templateName }: CVTemplatePreviewPro
             {/* Education */}
             <div className="mb-1">
               <div className="font-bold text-[4px] uppercase border-b-[0.5px] border-gray-300 mb-0.5">Education</div>
-              <div className="text-[3px]">
+              <div className="text-[3px] mb-0.5">
                 <div className="font-semibold">Bachelor of Business Administration</div>
                 <div>University of Nairobi</div>
                 <div className="text-gray-500 italic">2014 – 2018</div>
+              </div>
+              <div className="text-[3px] mb-0.5">
+                <div className="font-semibold">Diploma in Business Management</div>
+                <div>Kenya Institute of Management</div>
+                <div className="text-gray-500 italic">2012 – 2014</div>
+              </div>
+              <div className="text-[3px]">
+                <div className="font-semibold">Kenya Certificate of Secondary Education</div>
+                <div>Starehe Boys Centre</div>
+                <div className="text-gray-500 italic">2008 – 2011</div>
               </div>
             </div>
             
@@ -99,6 +120,8 @@ export default function CVTemplatePreview({ templateName }: CVTemplatePreviewPro
                 <div>• Streamlined office filing system, reducing document retrieval time by 40%</div>
                 <div>• Successfully coordinated 15+ company events with 100% attendance</div>
                 <div>• Implemented digital record-keeping improving efficiency by 30%</div>
+                <div>• Reduced office supply costs by 25% through strategic vendor negotiations</div>
+                <div>• Trained and mentored 5 new administrative staff members</div>
               </div>
             </div>
             
@@ -183,7 +206,7 @@ export default function CVTemplatePreview({ templateName }: CVTemplatePreviewPro
                     <div>▪ Develop and execute digital marketing campaigns</div>
                     <div>▪ Increased social media engagement by 45%</div>
                     <div>▪ Analyze campaign performance and prepare reports</div>
-                    <div>▪ Coordinate content production</div>
+                    <div>▪ Coordinate content production and brand messaging</div>
                   </div>
                 </div>
                 <div className="mb-0.5">
@@ -191,9 +214,9 @@ export default function CVTemplatePreview({ templateName }: CVTemplatePreviewPro
                   <div className="text-[2.5px] text-blue-700 font-medium">Skyline Retail Group – Nairobi</div>
                   <div className="text-[2.2px] text-gray-500 italic mb-0.5">Jan 2019 – Mar 2021</div>
                   <div className="space-y-0.5 text-[2.5px]">
-                    <div>▪ Assisted with promotional campaigns</div>
+                    <div>▪ Assisted with promotional campaigns and events</div>
                     <div>▪ Managed customer engagement on social media</div>
-                    <div>▪ Supported market research initiatives</div>
+                    <div>▪ Supported market research and competitor analysis</div>
                   </div>
                 </div>
                 <div>
@@ -202,7 +225,7 @@ export default function CVTemplatePreview({ templateName }: CVTemplatePreviewPro
                   <div className="text-[2.2px] text-gray-500 italic mb-0.5">Jun 2018 – Dec 2018</div>
                   <div className="space-y-0.5 text-[2.5px]">
                     <div>▪ Assisted in social media content creation</div>
-                    <div>▪ Conducted market research</div>
+                    <div>▪ Conducted market research and data analysis</div>
                   </div>
                 </div>
               </div>
@@ -214,6 +237,11 @@ export default function CVTemplatePreview({ templateName }: CVTemplatePreviewPro
                   <div className="font-bold text-[2.5px]">Bachelor of Commerce (Marketing Option)</div>
                   <div className="text-[2.5px]">Kenyatta University</div>
                   <div className="text-[2.2px] text-gray-500 italic">2014 – 2018</div>
+                </div>
+                <div className="mb-0.5">
+                  <div className="font-bold text-[2.5px]">Diploma in Marketing</div>
+                  <div className="text-[2.5px]">Kenya Institute of Marketing</div>
+                  <div className="text-[2.2px] text-gray-500 italic">2012 – 2014</div>
                 </div>
                 <div>
                   <div className="font-bold text-[2.5px]">Kenya Certificate of Secondary Education</div>
@@ -239,6 +267,8 @@ export default function CVTemplatePreview({ templateName }: CVTemplatePreviewPro
                   <div>▪ Increased social media engagement by 45% in 12 months</div>
                   <div>▪ Successfully launched 20+ digital campaigns with 95% success rate</div>
                   <div>▪ Grew email subscriber base from 5,000 to 15,000 in 18 months</div>
+                  <div>▪ Achieved 30% increase in website traffic through SEO optimization</div>
+                  <div>▪ Won Best Digital Campaign Award at Kenya Marketing Awards 2023</div>
                 </div>
               </div>
             </div>

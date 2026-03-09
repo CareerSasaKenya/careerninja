@@ -46,9 +46,9 @@ interface ClassicTemplateProps {
 
 export default function ClassicTemplate({ data }: ClassicTemplateProps) {
   return (
-    <div className="w-[794px] h-[1123px] bg-white p-12 text-gray-900 font-sans shadow-lg print:shadow-none">
+    <div className="w-[794px] h-[1123px] bg-white p-8 text-gray-900 font-sans shadow-lg print:shadow-none">
       {/* Header Section */}
-      <header className="mb-8 border-b-2 border-gray-800 pb-4">
+      <header className="mb-5 border-b-2 border-gray-800 pb-3">
         <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-2">
           {data.name}
         </h1>
@@ -85,8 +85,8 @@ export default function ClassicTemplate({ data }: ClassicTemplateProps) {
       </header>
 
       {/* Professional Summary Section */}
-      <section className="mb-7">
-        <h2 className="text-lg font-bold text-gray-900 mb-3 uppercase tracking-wide border-b border-gray-300 pb-1">
+      <section className="mb-4">
+        <h2 className="text-lg font-bold text-gray-900 mb-2 uppercase tracking-wide border-b border-gray-300 pb-1">
           Professional Summary
         </h2>
         <p className="text-sm text-gray-700 leading-relaxed text-justify">
@@ -95,8 +95,8 @@ export default function ClassicTemplate({ data }: ClassicTemplateProps) {
       </section>
 
       {/* Key Skills Section */}
-      <section className="mb-7">
-        <h2 className="text-lg font-bold text-gray-900 mb-3 uppercase tracking-wide border-b border-gray-300 pb-1">
+      <section className="mb-4">
+        <h2 className="text-lg font-bold text-gray-900 mb-2 uppercase tracking-wide border-b border-gray-300 pb-1">
           Key Skills
         </h2>
         <ul className="grid grid-cols-2 gap-x-4 gap-y-2">
@@ -110,11 +110,11 @@ export default function ClassicTemplate({ data }: ClassicTemplateProps) {
       </section>
 
       {/* Professional Experience Section */}
-      <section className="mb-7">
-        <h2 className="text-lg font-bold text-gray-900 mb-3 uppercase tracking-wide border-b border-gray-300 pb-1">
+      <section className="mb-4">
+        <h2 className="text-lg font-bold text-gray-900 mb-2 uppercase tracking-wide border-b border-gray-300 pb-1">
           Professional Experience
         </h2>
-        <div className="space-y-5">
+        <div className="space-y-4">
           {data.experience.map((job, index) => (
             <div key={index}>
               <div className="mb-2">
@@ -128,7 +128,7 @@ export default function ClassicTemplate({ data }: ClassicTemplateProps) {
                   {job.dates}
                 </p>
               </div>
-              <ul className="space-y-1.5 ml-1">
+              <ul className="space-y-1 ml-1">
                 {job.details.map((detail, i) => (
                   <li key={i} className="text-sm text-gray-700 flex items-start leading-relaxed">
                     <span className="mr-2 text-gray-500 mt-0.5">•</span>
@@ -142,11 +142,11 @@ export default function ClassicTemplate({ data }: ClassicTemplateProps) {
       </section>
 
       {/* Education Section */}
-      <section className="mb-7">
-        <h2 className="text-lg font-bold text-gray-900 mb-3 uppercase tracking-wide border-b border-gray-300 pb-1">
+      <section className="mb-4">
+        <h2 className="text-lg font-bold text-gray-900 mb-2 uppercase tracking-wide border-b border-gray-300 pb-1">
           Education
         </h2>
-        <div className="space-y-3">
+        <div className="space-y-2">
           {data.education.map((edu, index) => (
             <div key={index}>
               <h3 className="text-sm font-bold text-gray-900">
@@ -165,11 +165,11 @@ export default function ClassicTemplate({ data }: ClassicTemplateProps) {
 
       {/* Professional Certifications Section (Optional) */}
       {data.certifications && data.certifications.length > 0 && (
-        <section className="mb-7">
-          <h2 className="text-lg font-bold text-gray-900 mb-3 uppercase tracking-wide border-b border-gray-300 pb-1">
+        <section className="mb-4">
+          <h2 className="text-lg font-bold text-gray-900 mb-2 uppercase tracking-wide border-b border-gray-300 pb-1">
             Professional Certifications
           </h2>
-          <ul className="space-y-1.5">
+          <ul className="space-y-1">
             {data.certifications.map((cert, index) => (
               <li key={index} className="text-sm text-gray-700 flex items-start">
                 <span className="mr-2 text-gray-500">•</span>
@@ -182,11 +182,11 @@ export default function ClassicTemplate({ data }: ClassicTemplateProps) {
 
       {/* Professional Achievements Section (Optional) */}
       {data.achievements && data.achievements.length > 0 && (
-        <section className="mb-7">
-          <h2 className="text-lg font-bold text-gray-900 mb-3 uppercase tracking-wide border-b border-gray-300 pb-1">
+        <section className="mb-4">
+          <h2 className="text-lg font-bold text-gray-900 mb-2 uppercase tracking-wide border-b border-gray-300 pb-1">
             Professional Achievements
           </h2>
-          <ul className="space-y-1.5">
+          <ul className="space-y-1">
             {data.achievements.map((achievement, index) => (
               <li key={index} className="text-sm text-gray-700 flex items-start">
                 <span className="mr-2 text-gray-500">•</span>
@@ -199,7 +199,7 @@ export default function ClassicTemplate({ data }: ClassicTemplateProps) {
 
       {/* Referees Section */}
       <section>
-        <h2 className="text-lg font-bold text-gray-900 mb-3 uppercase tracking-wide border-b border-gray-300 pb-1">
+        <h2 className="text-lg font-bold text-gray-900 mb-2 uppercase tracking-wide border-b border-gray-300 pb-1">
           Referees
         </h2>
         <p className="text-sm text-gray-700 italic">
