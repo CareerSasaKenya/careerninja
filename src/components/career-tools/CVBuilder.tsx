@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, FileText, Download, Eye, Star, Trash2, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import CVTemplatePreview from '@/components/cv/CVTemplatePreview';
 import {
   getCVTemplates,
   getUserCVs,
@@ -314,10 +315,13 @@ export default function CVBuilder() {
         <CardContent>
           <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
             {templates.map(template => (
-              <Card key={template.id} className="cursor-pointer hover:border-primary">
-                <CardHeader>
-                  <div className="aspect-[3/4] bg-muted rounded-md mb-2 flex items-center justify-center">
-                    <FileText className="h-12 w-12 text-muted-foreground" />
+              <Card key={template.id} className="cursor-pointer hover:border-primary transition-colors">
+                <CardHeader className="p-3">
+                  <div className="mb-2 flex items-center justify-center bg-gray-50 rounded-md overflow-hidden">
+                    <CVTemplatePreview 
+                      templateName={template.name}
+                      scale={0.2}
+                    />
                   </div>
                   <CardTitle className="text-sm">{template.name}</CardTitle>
                   <CardDescription className="text-xs">

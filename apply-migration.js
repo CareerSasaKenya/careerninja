@@ -11,7 +11,7 @@ const supabase = createClient(
 
 async function applyMigration() {
   try {
-    const sql = readFileSync('./supabase/migrations/20260227_fix_candidate_documents_column_sizes.sql', 'utf8');
+    const sql = readFileSync('./supabase/migrations/20260309_add_classic_professional_cv_template.sql', 'utf8');
     
     console.log('Applying migration...');
     console.log(sql);
