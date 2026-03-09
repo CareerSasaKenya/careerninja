@@ -1,6 +1,6 @@
 /**
  * Modern Professional CV Template
- * Two-column layout with color accents for Kenyan candidates
+ * Two-column grid layout with subtle styling for Kenyan candidates
  * A4 size: 794px × 1123px
  */
 
@@ -47,186 +47,122 @@ interface ModernTemplateProps {
 
 export default function ModernTemplate({ data }: ModernTemplateProps) {
   return (
-    <div className="w-[794px] h-[1123px] bg-white flex font-sans shadow-lg print:shadow-none">
-      {/* Left Sidebar - 35% width */}
-      <div className="w-[278px] bg-blue-50 p-8">
-        {/* Key Skills Section */}
+    <div className="w-[794px] h-[1123px] bg-white grid grid-cols-3 font-sans text-gray-800 shadow-lg print:shadow-none">
+      {/* LEFT SIDEBAR */}
+      <aside className="col-span-1 bg-gray-100 p-6">
+        <h1 className="text-xl font-bold mb-1">{data.name}</h1>
+        <p className="text-sm text-gray-700 mb-4">{data.title}</p>
+        
+        <div className="text-sm mb-6 space-y-1">
+          <p>{data.contact.location}</p>
+          <p>{data.contact.phone}</p>
+          <p className="break-words">{data.contact.email}</p>
+          {data.contact.linkedin && (
+            <p className="text-blue-600 break-words">{data.contact.linkedin}</p>
+          )}
+        </div>
+
+        {/* Skills */}
         <section className="mb-6">
-          <h2 className="text-base font-bold text-blue-900 mb-3 uppercase tracking-wide">
-            Key Skills
-          </h2>
-          <ul className="space-y-2">
+          <h2 className="font-semibold mb-2 text-base">Key Skills</h2>
+          <ul className="text-sm space-y-1">
             {data.skills.map((skill, index) => (
-              <li key={index} className="text-sm text-gray-800 flex items-start">
-                <span className="text-blue-600 mr-2">▪</span>
-                <span>{skill}</span>
-              </li>
+              <li key={index}>• {skill}</li>
             ))}
           </ul>
         </section>
 
-        {/* Tools & Platforms Section */}
+        {/* Tools */}
         {data.tools && data.tools.length > 0 && (
           <section className="mb-6">
-            <h2 className="text-base font-bold text-blue-900 mb-3 uppercase tracking-wide">
-              Tools & Platforms
-            </h2>
-            <ul className="space-y-2">
+            <h2 className="font-semibold mb-2 text-base">Tools & Platforms</h2>
+            <ul className="text-sm space-y-1">
               {data.tools.map((tool, index) => (
-                <li key={index} className="text-sm text-gray-800 flex items-start">
-                  <span className="text-blue-600 mr-2">▪</span>
-                  <span>{tool}</span>
-                </li>
+                <li key={index}>• {tool}</li>
               ))}
             </ul>
           </section>
         )}
 
-        {/* Languages Section */}
+        {/* Languages */}
         {data.languages && data.languages.length > 0 && (
           <section className="mb-6">
-            <h2 className="text-base font-bold text-blue-900 mb-3 uppercase tracking-wide">
-              Languages
-            </h2>
-            <ul className="space-y-2">
-              {data.languages.map((language, index) => (
-                <li key={index} className="text-sm text-gray-800">
-                  {language}
-                </li>
+            <h2 className="font-semibold mb-2 text-base">Languages</h2>
+            <ul className="text-sm space-y-1">
+              {data.languages.map((lang, index) => (
+                <li key={index}>• {lang}</li>
               ))}
             </ul>
           </section>
         )}
 
-        {/* Referees Section */}
+        {/* Referees */}
         <section>
-          <h2 className="text-base font-bold text-blue-900 mb-3 uppercase tracking-wide">
-            Referees
-          </h2>
-          <p className="text-sm text-gray-800 italic">
-            {data.referees || 'Available upon request.'}
-          </p>
+          <h2 className="font-semibold mb-2 text-base">Referees</h2>
+          <p className="text-sm italic">{data.referees || 'Available upon request.'}</p>
         </section>
-      </div>
+      </aside>
 
-      {/* Right Main Content - 65% width */}
-      <div className="flex-1 p-10">
-        {/* Header Section */}
-        <header className="mb-6 pb-4 border-b-2 border-blue-600">
-          <h1 className="text-3xl font-bold text-gray-900 mb-1">
-            {data.name}
-          </h1>
-          <p className="text-lg text-blue-700 font-medium mb-3">
-            {data.title}
-          </p>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600">
-            <span className="flex items-center">
-              <span className="mr-1">📍</span>
-              {data.contact.location}
-            </span>
-            <span className="flex items-center">
-              <span className="mr-1">📞</span>
-              {data.contact.phone}
-            </span>
-            <span className="flex items-center">
-              <span className="mr-1">✉️</span>
-              {data.contact.email}
-            </span>
-            {data.contact.linkedin && (
-              <span className="flex items-center">
-                <span className="mr-1">🔗</span>
-                <a
-                  href={`https://${data.contact.linkedin}`}
-                  className="text-blue-700 hover:underline"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {data.contact.linkedin}
-                </a>
-              </span>
-            )}
-          </div>
-        </header>
-
-        {/* Professional Profile Section */}
+      {/* MAIN CONTENT */}
+      <main className="col-span-2 p-8">
+        {/* Profile */}
         <section className="mb-6">
-          <h2 className="text-base font-bold text-blue-900 mb-2 uppercase tracking-wide">
+          <h2 className="text-lg font-semibold border-b border-gray-300 pb-1 mb-2">
             Professional Profile
           </h2>
-          <p className="text-sm text-gray-700 leading-relaxed text-justify">
-            {data.profile}
-          </p>
+          <p className="text-sm leading-relaxed">{data.profile}</p>
         </section>
 
-        {/* Professional Experience Section */}
+        {/* Experience */}
         <section className="mb-6">
-          <h2 className="text-base font-bold text-blue-900 mb-3 uppercase tracking-wide">
+          <h2 className="text-lg font-semibold border-b border-gray-300 pb-1 mb-2">
             Professional Experience
           </h2>
-          <div className="space-y-4">
-            {data.experience.map((job, index) => (
-              <div key={index}>
-                <h3 className="text-sm font-bold text-gray-900">
-                  {job.jobTitle}
-                </h3>
-                <p className="text-sm text-blue-700 font-medium">
-                  {job.company} – {job.location}
-                </p>
-                <p className="text-xs text-gray-500 italic mb-2">
-                  {job.dates}
-                </p>
-                <ul className="space-y-1">
-                  {job.details.map((detail, i) => (
-                    <li key={i} className="text-sm text-gray-700 flex items-start leading-relaxed">
-                      <span className="text-blue-600 mr-2 mt-0.5">▪</span>
-                      <span>{detail}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
+          {data.experience.map((job, index) => (
+            <div key={index} className="mb-4">
+              <p className="text-sm font-semibold">
+                {job.jobTitle} — {job.company}
+              </p>
+              <p className="text-xs text-gray-500">
+                {job.location} | {job.dates}
+              </p>
+              <ul className="list-disc list-inside text-sm mt-1 space-y-1">
+                {job.details.map((point, i) => (
+                  <li key={i}>{point}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </section>
 
-        {/* Education Section */}
+        {/* Education */}
         <section className="mb-6">
-          <h2 className="text-base font-bold text-blue-900 mb-3 uppercase tracking-wide">
+          <h2 className="text-lg font-semibold border-b border-gray-300 pb-1 mb-2">
             Education
           </h2>
-          <div className="space-y-3">
-            {data.education.map((edu, index) => (
-              <div key={index}>
-                <h3 className="text-sm font-bold text-gray-900">
-                  {edu.degree}
-                </h3>
-                <p className="text-sm text-gray-700">
-                  {edu.institution}
-                </p>
-                <p className="text-xs text-gray-500 italic">
-                  {edu.dates}
-                </p>
-              </div>
-            ))}
-          </div>
+          {data.education.map((edu, index) => (
+            <div key={index} className="mb-3">
+              <p className="text-sm font-semibold">{edu.degree}</p>
+              <p className="text-sm">{edu.institution}</p>
+              <p className="text-xs text-gray-500">{edu.dates}</p>
+            </div>
+          ))}
         </section>
 
-        {/* Certifications Section */}
+        {/* Certifications */}
         {data.certifications && data.certifications.length > 0 && (
           <section>
-            <h2 className="text-base font-bold text-blue-900 mb-3 uppercase tracking-wide">
+            <h2 className="text-lg font-semibold border-b border-gray-300 pb-1 mb-2">
               Certifications
             </h2>
-            <ul className="space-y-1">
+            <ul className="list-disc list-inside text-sm space-y-1">
               {data.certifications.map((cert, index) => (
-                <li key={index} className="text-sm text-gray-700 flex items-start">
-                  <span className="text-blue-600 mr-2">▪</span>
-                  <span>{cert}</span>
-                </li>
+                <li key={index}>{cert}</li>
               ))}
             </ul>
           </section>
         )}
-      </div>
+      </main>
     </div>
   );
 }
