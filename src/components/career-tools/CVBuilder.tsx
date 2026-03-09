@@ -313,9 +313,24 @@ export default function CVBuilder() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {templates.map(template => (
-              <Card key={template.id} className="cursor-pointer hover:border-primary transition-colors">
+              <Card 
+                key={template.id} 
+                className="cursor-pointer hover:border-primary hover:shadow-md transition-all"
+                onClick={() => {
+                  // Open the create CV dialog with this template pre-selected
+                  setIsCreating(true);
+                  // Store selected template in a way the form can access it
+                  setTimeout(() => {
+                    const selectElement = document.querySelector('select[name="template_id"]') as HTMLSelectElement;
+                    if (selectElement) {
+                      selectElement.value = template.id;
+                      selectElement.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                  }, 100);
+                }}
+              >
                 <CardHeader className="p-3">
                   <CVTemplatePreview templateName={template.name} />
                   <CardTitle className="text-sm mt-3">{template.name}</CardTitle>
