@@ -1,120 +1,111 @@
 /**
  * CV Template Preview Component
- * Renders a scaled-down preview of CV templates
+ * Renders a thumbnail preview of CV templates
  */
 
 import React from 'react';
-import ClassicTemplate from './templates/ClassicTemplate';
 
 interface CVTemplatePreviewProps {
   templateName: string;
-  scale?: number;
 }
 
-// Sample data for preview
-const sampleData = {
-  name: "John Mwangi Kariuki",
-  title: "Administrative Officer",
-  contact: {
-    phone: "+254712345678",
-    email: "john.mwangi@email.com",
-    linkedin: "linkedin.com/in/johnmwangi",
-    location: "Nairobi, Kenya"
-  },
-  profile: "Results-driven administrative professional with 5+ years of experience in office management and records administration.",
-  skills: [
-    "Office Administration",
-    "Records Management",
-    "Customer Service",
-    "Microsoft Office Suite",
-    "Report Preparation",
-    "Team Coordination"
-  ],
-  experience: [
-    {
-      jobTitle: "Administrative Officer",
-      company: "ABC Logistics Ltd",
-      location: "Nairobi",
-      dates: "March 2021 – Present",
-      details: [
-        "Coordinate daily office operations and administrative activities",
-        "Prepare reports, meeting minutes, and official correspondence",
-        "Manage document filing systems and maintain accurate records"
-      ]
-    }
-  ],
-  education: [
-    {
-      degree: "Bachelor of Business Administration",
-      institution: "University of Nairobi",
-      dates: "2014 – 2018"
-    }
-  ],
-  certifications: [
-    "Certificate in Project Management – Kenya Institute of Management, 2020"
-  ]
-};
-
-export default function CVTemplatePreview({ templateName, scale = 0.25 }: CVTemplatePreviewProps) {
-  const renderTemplate = () => {
+export default function CVTemplatePreview({ templateName }: CVTemplatePreviewProps) {
+  const renderPreview = () => {
     switch (templateName) {
       case 'Classic Professional':
-      case 'ClassicTemplate':
-        return <ClassicTemplate data={sampleData} />;
+        return (
+          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded p-2 text-[4px] leading-tight">
+            {/* Header */}
+            <div className="border-b border-gray-800 pb-1 mb-1">
+              <div className="font-bold text-[6px] mb-0.5">JOHN MWANGI KARIUKI</div>
+              <div className="text-[5px] text-gray-700">Administrative Officer</div>
+              <div className="text-[3px] text-gray-600 mt-0.5">Nairobi • +254712345678 • email@example.com</div>
+            </div>
+            
+            {/* Professional Summary */}
+            <div className="mb-1">
+              <div className="font-bold text-[4px] uppercase border-b border-gray-300 mb-0.5">Professional Summary</div>
+              <div className="text-[3px] text-gray-700">Results-driven professional with 5+ years experience in office management...</div>
+            </div>
+            
+            {/* Skills */}
+            <div className="mb-1">
+              <div className="font-bold text-[4px] uppercase border-b border-gray-300 mb-0.5">Key Skills</div>
+              <div className="grid grid-cols-2 gap-x-1 text-[3px]">
+                <div>• Office Administration</div>
+                <div>• Records Management</div>
+                <div>• Customer Service</div>
+                <div>• Microsoft Office</div>
+              </div>
+            </div>
+            
+            {/* Experience */}
+            <div className="mb-1">
+              <div className="font-bold text-[4px] uppercase border-b border-gray-300 mb-0.5">Experience</div>
+              <div className="text-[3px]">
+                <div className="font-semibold">Administrative Officer</div>
+                <div className="text-gray-600">ABC Logistics Ltd, Nairobi</div>
+                <div className="text-gray-500 italic">March 2021 – Present</div>
+                <div className="mt-0.5 space-y-0.5">
+                  <div>• Coordinate daily operations</div>
+                  <div>• Prepare reports and minutes</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Education */}
+            <div className="mb-1">
+              <div className="font-bold text-[4px] uppercase border-b border-gray-300 mb-0.5">Education</div>
+              <div className="text-[3px]">
+                <div className="font-semibold">Bachelor of Business Admin</div>
+                <div>University of Nairobi</div>
+                <div className="text-gray-500 italic">2014 – 2018</div>
+              </div>
+            </div>
+          </div>
+        );
       
-      // Add more templates here as they're created
       case 'Modern Professional':
         return (
-          <div className="w-[794px] h-[1123px] bg-white p-12 flex items-center justify-center text-gray-400">
-            <div className="text-center">
-              <p className="text-sm">Modern Professional Template</p>
-              <p className="text-xs mt-2">Coming Soon</p>
+          <div className="w-full aspect-[3/4] bg-gradient-to-br from-blue-50 to-white border border-gray-200 rounded p-2 flex items-center justify-center">
+            <div className="text-center text-gray-400">
+              <div className="text-[6px] font-semibold">Modern Professional</div>
+              <div className="text-[4px] mt-1">Coming Soon</div>
             </div>
           </div>
         );
       
       case 'Classic Executive':
         return (
-          <div className="w-[794px] h-[1123px] bg-white p-12 flex items-center justify-center text-gray-400">
-            <div className="text-center">
-              <p className="text-sm">Classic Executive Template</p>
-              <p className="text-xs mt-2">Coming Soon</p>
+          <div className="w-full aspect-[3/4] bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded p-2 flex items-center justify-center">
+            <div className="text-center text-gray-400">
+              <div className="text-[6px] font-semibold">Classic Executive</div>
+              <div className="text-[4px] mt-1">Coming Soon</div>
             </div>
           </div>
         );
       
       case 'Creative Designer':
         return (
-          <div className="w-[794px] h-[1123px] bg-white p-12 flex items-center justify-center text-gray-400">
-            <div className="text-center">
-              <p className="text-sm">Creative Designer Template</p>
-              <p className="text-xs mt-2">Coming Soon</p>
+          <div className="w-full aspect-[3/4] bg-gradient-to-br from-purple-50 to-white border border-gray-200 rounded p-2 flex items-center justify-center">
+            <div className="text-center text-gray-400">
+              <div className="text-[6px] font-semibold">Creative Designer</div>
+              <div className="text-[4px] mt-1">Coming Soon</div>
             </div>
           </div>
         );
       
       default:
         return (
-          <div className="w-[794px] h-[1123px] bg-gray-100 flex items-center justify-center text-gray-400">
-            <div className="text-center">
-              <p className="text-sm">Template Preview</p>
-              <p className="text-xs mt-2">Not Available</p>
+          <div className="w-full aspect-[3/4] bg-gray-100 border border-gray-200 rounded flex items-center justify-center">
+            <div className="text-center text-gray-400">
+              <div className="text-[6px]">Template Preview</div>
+              <div className="text-[4px] mt-1">Not Available</div>
             </div>
           </div>
         );
     }
   };
 
-  return (
-    <div 
-      className="origin-top-left overflow-hidden rounded-md border border-gray-200 shadow-sm"
-      style={{
-        transform: `scale(${scale})`,
-        width: `${794 * scale}px`,
-        height: `${1123 * scale}px`
-      }}
-    >
-      {renderTemplate()}
-    </div>
-  );
+  return renderPreview();
 }

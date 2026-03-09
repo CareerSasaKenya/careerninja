@@ -317,13 +317,8 @@ export default function CVBuilder() {
             {templates.map(template => (
               <Card key={template.id} className="cursor-pointer hover:border-primary transition-colors">
                 <CardHeader className="p-3">
-                  <div className="mb-2 flex items-center justify-center bg-gray-50 rounded-md overflow-hidden">
-                    <CVTemplatePreview 
-                      templateName={template.name}
-                      scale={0.2}
-                    />
-                  </div>
-                  <CardTitle className="text-sm">{template.name}</CardTitle>
+                  <CVTemplatePreview templateName={template.name} />
+                  <CardTitle className="text-sm mt-3">{template.name}</CardTitle>
                   <CardDescription className="text-xs">
                     {template.category}
                     {template.is_premium && (
