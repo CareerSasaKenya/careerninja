@@ -332,14 +332,11 @@ export default function CVBuilder() {
                 }}
               >
                 <CardHeader className="p-3">
-                  <CVTemplatePreview templateName={template.name} />
+                  <CVTemplatePreview templateName={template.name} showDescription={true} />
                   <CardTitle className="text-sm mt-3">{template.name}</CardTitle>
-                  <CardDescription className="text-xs">
-                    {template.category}
-                    {template.is_premium && (
-                      <Badge variant="secondary" className="ml-2">Premium</Badge>
-                    )}
-                  </CardDescription>
+                  {template.is_premium && (
+                    <Badge variant="secondary" className="mt-1">Premium</Badge>
+                  )}
                 </CardHeader>
               </Card>
             ))}

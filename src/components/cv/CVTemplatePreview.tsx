@@ -8,9 +8,16 @@ import React from 'react';
 
 interface CVTemplatePreviewProps {
   templateName: string;
+  showDescription?: boolean;
 }
 
-export default function CVTemplatePreview({ templateName }: CVTemplatePreviewProps) {
+const templateDescriptions: Record<string, string> = {
+  'Classic Professional': 'A clean, ATS-friendly single-column layout perfect for entry to mid-level professionals. Emphasizes clarity and readability.',
+  'Modern Professional': 'A stylized two-column design with blue accents and modern aesthetics. Ideal for corporate roles and marketing positions.',
+  'Executive Leadership': 'A premium serif layout emphasizing leadership achievements and strategic impact. Perfect for directors, CEOs, and senior management.'
+};
+
+export default function CVTemplatePreview({ templateName, showDescription = false }: CVTemplatePreviewProps) {
   const renderPreview = () => {
     switch (templateName) {
       case 'Classic Professional':
@@ -275,7 +282,135 @@ export default function CVTemplatePreview({ templateName }: CVTemplatePreviewPro
           </div>
         );
       
+      case 'Executive Leadership':
+        return (
+          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded overflow-hidden text-[3px] leading-[1.3]">
+            {/* Header */}
+            <div className="border-b-[0.5px] border-gray-900 pb-0.5 mb-1 px-1.5 pt-1.5">
+              <div className="font-bold text-[7px] mb-0.5">DAVID OCHIENG OTIENO</div>
+              <div className="text-[5px] text-gray-700 mb-0.5">Chief Operations Officer (COO)</div>
+              <div className="text-[2.5px] text-gray-600">
+                Nairobi, Kenya • +254 711 234 567 • david.otieno@email.com • linkedin.com/in/david-otieno
+              </div>
+            </div>
+            
+            <div className="px-1.5">
+              {/* Leadership Profile */}
+              <div className="mb-1">
+                <div className="font-bold text-[4px] uppercase mb-0.5">Leadership Profile</div>
+                <div className="text-[2.8px] text-gray-700">Strategic operations executive with over 15 years of leadership experience driving operational efficiency, business growth, and organizational transformation across East Africa.</div>
+              </div>
+              
+              {/* Key Achievements */}
+              <div className="mb-1">
+                <div className="font-bold text-[4px] uppercase mb-0.5">Key Leadership Achievements</div>
+                <div className="space-y-0.5 text-[2.8px]">
+                  <div>▪ Led operational restructuring reducing costs by 28% within two years</div>
+                  <div>▪ Oversaw expansion into three East African markets</div>
+                  <div>▪ Implemented digital transformation improving efficiency by 35%</div>
+                  <div>▪ Managed cross-functional teams of over 250 employees</div>
+                  <div>▪ Achieved 40% revenue growth through strategic initiatives</div>
+                </div>
+              </div>
+              
+              {/* Experience */}
+              <div className="mb-1">
+                <div className="font-bold text-[4px] uppercase mb-0.5">Strategic Leadership Experience</div>
+                <div className="mb-0.5">
+                  <div className="font-semibold text-[2.8px]">Chief Operations Officer</div>
+                  <div className="text-[2.8px] text-gray-700">EastAfrica Logistics Group — Nairobi</div>
+                  <div className="text-[2.5px] text-gray-500 italic mb-0.5">2019 – Present</div>
+                  <div className="space-y-0.5 text-[2.8px]">
+                    <div>• Lead operational strategy for regional company with 300+ staff</div>
+                    <div>• Drive business growth and operational excellence initiatives</div>
+                    <div>• Implement performance improvement across supply chain</div>
+                  </div>
+                </div>
+                <div className="mb-0.5">
+                  <div className="font-semibold text-[2.8px]">Operations Director</div>
+                  <div className="text-[2.8px] text-gray-700">TransGlobal Supply Chain Ltd — Nairobi</div>
+                  <div className="text-[2.5px] text-gray-500 italic mb-0.5">2015 – 2019</div>
+                  <div className="space-y-0.5 text-[2.8px]">
+                    <div>• Managed nationwide logistics and distribution network</div>
+                    <div>• Introduced automation improving efficiency by 22%</div>
+                    <div>• Led strategic planning and operational budgeting</div>
+                  </div>
+                </div>
+                <div>
+                  <div className="font-semibold text-[2.8px]">Regional Operations Manager</div>
+                  <div className="text-[2.8px] text-gray-700">Kenya Freight Services — Nairobi</div>
+                  <div className="text-[2.5px] text-gray-500 italic mb-0.5">2011 – 2015</div>
+                  <div className="space-y-0.5 text-[2.8px]">
+                    <div>• Oversaw operations for 5 regional branches</div>
+                    <div>• Reduced operational costs by 18% through process optimization</div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Board Memberships */}
+              <div className="mb-1">
+                <div className="font-bold text-[4px] uppercase mb-0.5">Board Memberships</div>
+                <div className="space-y-0.5 text-[2.8px]">
+                  <div>• Board Member — Kenya Transport & Logistics Association</div>
+                  <div>• Advisory Board — East Africa Supply Chain Council</div>
+                  <div>• Board Member — Kenya Institute of Supply Management</div>
+                </div>
+              </div>
+              
+              {/* Strategic Initiatives */}
+              <div className="mb-1">
+                <div className="font-bold text-[4px] uppercase mb-0.5">Strategic Initiatives</div>
+                <div className="space-y-0.5 text-[2.8px]">
+                  <div>• Digital transformation program across all operations</div>
+                  <div>• Regional expansion strategy into Tanzania and Uganda</div>
+                  <div>• Sustainability initiative reducing carbon footprint by 30%</div>
+                </div>
+              </div>
+              
+              {/* Education */}
+              <div className="mb-1">
+                <div className="font-bold text-[4px] uppercase mb-0.5">Education</div>
+                <div className="mb-0.5">
+                  <div className="font-semibold text-[2.8px]">Master of Business Administration (MBA)</div>
+                  <div className="text-[2.8px]">Strathmore Business School</div>
+                  <div className="text-[2.5px] text-gray-500 italic">2012 – 2014</div>
+                </div>
+                <div className="mb-0.5">
+                  <div className="font-semibold text-[2.8px]">Bachelor of Commerce (Operations Management)</div>
+                  <div className="text-[2.8px]">University of Nairobi</div>
+                  <div className="text-[2.5px] text-gray-500 italic">2004 – 2008</div>
+                </div>
+                <div>
+                  <div className="font-semibold text-[2.8px]">Diploma in Business Management</div>
+                  <div className="text-[2.8px]">Kenya Institute of Management</div>
+                  <div className="text-[2.5px] text-gray-500 italic">2002 – 2004</div>
+                </div>
+              </div>
+              
+              {/* Certifications */}
+              <div>
+                <div className="font-bold text-[4px] uppercase mb-0.5">Certifications</div>
+                <div className="space-y-0.5 text-[2.8px]">
+                  <div>• Certified Supply Chain Professional (CSCP)</div>
+                  <div>• Strategic Leadership — Harvard Business School</div>
+                  <div>• Project Management Professional (PMP)</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      
       case 'Classic Executive':
+        return (
+          <div className="w-full aspect-[3/4] bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded p-2 flex items-center justify-center">
+            <div className="text-center text-gray-400">
+              <div className="text-[6px] font-semibold">Classic Executive</div>
+              <div className="text-[4px] mt-1">Coming Soon</div>
+            </div>
+          </div>
+        );
+      
+      case 'Creative Designer':
         return (
           <div className="w-full aspect-[3/4] bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded p-2 flex items-center justify-center">
             <div className="text-center text-gray-400">
@@ -307,5 +442,14 @@ export default function CVTemplatePreview({ templateName }: CVTemplatePreviewPro
     }
   };
 
-  return renderPreview();
+  return (
+    <div className="space-y-2">
+      {renderPreview()}
+      {showDescription && templateDescriptions[templateName] && (
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          {templateDescriptions[templateName]}
+        </p>
+      )}
+    </div>
+  );
 }
