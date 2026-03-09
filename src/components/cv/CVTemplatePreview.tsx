@@ -101,125 +101,123 @@ export default function CVTemplatePreview({ templateName }: CVTemplatePreviewPro
       
       case 'Modern Professional':
         return (
-          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded overflow-hidden grid grid-cols-3 text-[2.8px] leading-[1.3]">
+          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded overflow-hidden flex text-[2.8px] leading-[1.3]">
             {/* Left Sidebar */}
-            <div className="bg-gray-100 p-1.5">
-              <div className="font-bold text-[5px] mb-0.5">GRACE WANJIKU NJOROGE</div>
-              <div className="text-[3.5px] text-gray-700 mb-1">Digital Marketing Specialist</div>
-              
-              <div className="text-[2.5px] mb-1 space-y-0.5">
-                <div>Nairobi, Kenya</div>
-                <div>+254 723 456 789</div>
-                <div>grace.njoroge@email.com</div>
-                <div className="text-blue-600">linkedin.com/in/grace-njoroge</div>
-              </div>
-
+            <div className="w-[35%] bg-blue-50 p-1.5">
               <div className="mb-1">
-                <div className="font-semibold text-[3.5px] mb-0.5">Key Skills</div>
+                <div className="font-bold text-[3.5px] text-blue-900 uppercase mb-0.5">Key Skills</div>
                 <div className="space-y-0.5 text-[2.5px]">
-                  <div>• Digital Marketing Strategy</div>
-                  <div>• Social Media Management</div>
-                  <div>• Content Marketing</div>
-                  <div>• SEO Optimization</div>
-                  <div>• Campaign Analytics</div>
-                  <div>• Brand Communication</div>
-                  <div>• Email Marketing</div>
-                  <div>• Copywriting</div>
+                  <div>▪ Digital Marketing Strategy</div>
+                  <div>▪ Social Media Management</div>
+                  <div>▪ Content Marketing</div>
+                  <div>▪ SEO Optimization</div>
+                  <div>▪ Campaign Analytics</div>
+                  <div>▪ Brand Communication</div>
+                  <div>▪ Email Marketing</div>
+                  <div>▪ Copywriting</div>
                 </div>
               </div>
-
               <div className="mb-1">
-                <div className="font-semibold text-[3.5px] mb-0.5">Tools & Platforms</div>
+                <div className="font-bold text-[3.5px] text-blue-900 uppercase mb-0.5">Tools & Platforms</div>
                 <div className="space-y-0.5 text-[2.5px]">
-                  <div>• Google Analytics</div>
-                  <div>• Meta Ads Manager</div>
-                  <div>• Canva</div>
-                  <div>• Mailchimp</div>
-                  <div>• Hootsuite</div>
-                  <div>• Microsoft Office</div>
-                  <div>• WordPress</div>
+                  <div>▪ Google Analytics</div>
+                  <div>▪ Meta Ads Manager</div>
+                  <div>▪ Canva</div>
+                  <div>▪ Mailchimp</div>
+                  <div>▪ Hootsuite</div>
+                  <div>▪ Microsoft Office</div>
+                  <div>▪ WordPress</div>
                 </div>
               </div>
-
               <div className="mb-1">
-                <div className="font-semibold text-[3.5px] mb-0.5">Languages</div>
+                <div className="font-bold text-[3.5px] text-blue-900 uppercase mb-0.5">Languages</div>
                 <div className="space-y-0.5 text-[2.5px]">
-                  <div>• English – Fluent</div>
-                  <div>• Swahili – Fluent</div>
+                  <div>English – Fluent</div>
+                  <div>Swahili – Fluent</div>
                 </div>
               </div>
-
               <div>
-                <div className="font-semibold text-[3.5px] mb-0.5">Referees</div>
+                <div className="font-bold text-[3.5px] text-blue-900 uppercase mb-0.5">Referees</div>
                 <div className="text-[2.5px] italic">Available upon request.</div>
               </div>
             </div>
             
             {/* Right Main Content */}
-            <div className="col-span-2 p-1.5">
+            <div className="flex-1 p-1.5">
+              {/* Header */}
+              <div className="border-b-[0.5px] border-blue-600 pb-0.5 mb-1">
+                <div className="font-bold text-[6px] mb-0.5">GRACE WANJIKU NJOROGE</div>
+                <div className="text-[4px] text-blue-700 font-medium mb-0.5">Digital Marketing Specialist</div>
+                <div className="text-[2.2px] text-gray-600 space-y-0.5">
+                  <div>📍 Nairobi, Kenya 📞 +254 723 456 789</div>
+                  <div>✉ grace.njoroge@email.com</div>
+                  <div>🔗 linkedin.com/in/grace-njoroge</div>
+                </div>
+              </div>
+              
               {/* Professional Profile */}
               <div className="mb-1">
-                <div className="font-semibold text-[3.5px] border-b border-gray-300 pb-0.5 mb-0.5">Professional Profile</div>
-                <div className="text-[2.5px]">Results-driven digital marketing specialist with over 6 years of experience developing and executing marketing campaigns that increase brand visibility and drive customer engagement. Skilled in digital strategy, social media management, and marketing analytics.</div>
+                <div className="font-bold text-[3.5px] text-blue-900 uppercase mb-0.5">Professional Profile</div>
+                <div className="text-[2.5px] text-gray-700">Results-driven digital marketing specialist with over 6 years of experience developing and executing marketing campaigns that increase brand visibility and drive customer engagement. Skilled in digital strategy, social media management, and marketing analytics.</div>
               </div>
               
               {/* Experience */}
               <div className="mb-1">
-                <div className="font-semibold text-[3.5px] border-b border-gray-300 pb-0.5 mb-0.5">Professional Experience</div>
-                
-                <div className="mb-1">
-                  <div className="font-semibold text-[2.5px]">Digital Marketing Officer — BrightWave Communications Ltd</div>
-                  <div className="text-[2.2px] text-gray-500">Nairobi | April 2021 – Present</div>
-                  <div className="text-[2.5px] space-y-0.5 mt-0.5">
-                    <div>• Develop and execute digital marketing campaigns across social media and email platforms</div>
-                    <div>• Increased social media engagement by 45% through targeted content strategies</div>
-                    <div>• Analyze campaign performance and prepare marketing reports for senior management</div>
-                    <div>• Coordinate content production including blog articles and promotional graphics</div>
+                <div className="font-bold text-[3.5px] text-blue-900 uppercase mb-0.5">Professional Experience</div>
+                <div className="mb-0.5">
+                  <div className="font-bold text-[2.5px]">Digital Marketing Officer</div>
+                  <div className="text-[2.5px] text-blue-700 font-medium">BrightWave Communications Ltd – Nairobi</div>
+                  <div className="text-[2.2px] text-gray-500 italic mb-0.5">April 2021 – Present</div>
+                  <div className="space-y-0.5 text-[2.5px]">
+                    <div>▪ Develop and execute digital marketing campaigns</div>
+                    <div>▪ Increased social media engagement by 45%</div>
+                    <div>▪ Analyze campaign performance and prepare reports</div>
+                    <div>▪ Coordinate content production</div>
                   </div>
                 </div>
-
-                <div className="mb-1">
-                  <div className="font-semibold text-[2.5px]">Marketing Assistant — Skyline Retail Group</div>
-                  <div className="text-[2.2px] text-gray-500">Nairobi | Jan 2019 – Mar 2021</div>
-                  <div className="text-[2.5px] space-y-0.5 mt-0.5">
-                    <div>• Assisted with planning promotional campaigns and marketing events</div>
-                    <div>• Managed customer engagement on social media platforms</div>
-                    <div>• Supported market research and competitor analysis initiatives</div>
+                <div className="mb-0.5">
+                  <div className="font-bold text-[2.5px]">Marketing Assistant</div>
+                  <div className="text-[2.5px] text-blue-700 font-medium">Skyline Retail Group – Nairobi</div>
+                  <div className="text-[2.2px] text-gray-500 italic mb-0.5">Jan 2019 – Mar 2021</div>
+                  <div className="space-y-0.5 text-[2.5px]">
+                    <div>▪ Assisted with promotional campaigns</div>
+                    <div>▪ Managed customer engagement on social media</div>
+                    <div>▪ Supported market research initiatives</div>
                   </div>
                 </div>
-
                 <div>
-                  <div className="font-semibold text-[2.5px]">Marketing Intern — Creative Hub Agency</div>
-                  <div className="text-[2.2px] text-gray-500">Nairobi | Jun 2018 – Dec 2018</div>
-                  <div className="text-[2.5px] space-y-0.5 mt-0.5">
-                    <div>• Assisted in social media content creation and scheduling</div>
-                    <div>• Conducted market research and prepared presentation materials</div>
+                  <div className="font-bold text-[2.5px]">Marketing Intern</div>
+                  <div className="text-[2.5px] text-blue-700 font-medium">Creative Hub Agency – Nairobi</div>
+                  <div className="text-[2.2px] text-gray-500 italic mb-0.5">Jun 2018 – Dec 2018</div>
+                  <div className="space-y-0.5 text-[2.5px]">
+                    <div>▪ Assisted in social media content creation</div>
+                    <div>▪ Conducted market research</div>
                   </div>
                 </div>
               </div>
               
               {/* Education */}
               <div className="mb-1">
-                <div className="font-semibold text-[3.5px] border-b border-gray-300 pb-0.5 mb-0.5">Education</div>
+                <div className="font-bold text-[3.5px] text-blue-900 uppercase mb-0.5">Education</div>
                 <div className="mb-0.5">
-                  <div className="font-semibold text-[2.5px]">Bachelor of Commerce (Marketing Option)</div>
+                  <div className="font-bold text-[2.5px]">Bachelor of Commerce (Marketing Option)</div>
                   <div className="text-[2.5px]">Kenyatta University</div>
-                  <div className="text-[2.2px] text-gray-500">2014 – 2018</div>
+                  <div className="text-[2.2px] text-gray-500 italic">2014 – 2018</div>
                 </div>
                 <div>
-                  <div className="font-semibold text-[2.5px]">Kenya Certificate of Secondary Education</div>
+                  <div className="font-bold text-[2.5px]">Kenya Certificate of Secondary Education</div>
                   <div className="text-[2.5px]">Alliance Girls High School</div>
-                  <div className="text-[2.2px] text-gray-500">2010 – 2013</div>
+                  <div className="text-[2.2px] text-gray-500 italic">2010 – 2013</div>
                 </div>
               </div>
               
               {/* Certifications */}
               <div>
-                <div className="font-semibold text-[3.5px] border-b border-gray-300 pb-0.5 mb-0.5">Certifications</div>
-                <div className="text-[2.5px] space-y-0.5">
-                  <div>• Digital Marketing Certification – Google Digital Skills for Africa (2022)</div>
-                  <div>• Content Marketing Certification – HubSpot Academy (2021)</div>
-                  <div>• Social Media Marketing – Meta Blueprint (2020)</div>
+                <div className="font-bold text-[3.5px] text-blue-900 uppercase mb-0.5">Certifications</div>
+                <div className="space-y-0.5 text-[2.5px]">
+                  <div>▪ Digital Marketing – Google (2022)</div>
+                  <div>▪ Content Marketing – HubSpot (2021)</div>
+                  <div>▪ Social Media Marketing – Meta (2020)</div>
                 </div>
               </div>
             </div>
