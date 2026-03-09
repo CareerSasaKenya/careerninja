@@ -412,16 +412,6 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
       
       case 'Creative Designer':
         return (
-          <div className="w-full aspect-[3/4] bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded p-2 flex items-center justify-center">
-            <div className="text-center text-gray-400">
-              <div className="text-[6px] font-semibold">Classic Executive</div>
-              <div className="text-[4px] mt-1">Coming Soon</div>
-            </div>
-          </div>
-        );
-      
-      case 'Creative Designer':
-        return (
           <div className="w-full aspect-[3/4] bg-gradient-to-br from-purple-50 to-white border border-gray-200 rounded p-2 flex items-center justify-center">
             <div className="text-center text-gray-400">
               <div className="text-[6px] font-semibold">Creative Designer</div>
