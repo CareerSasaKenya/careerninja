@@ -5,14 +5,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, FileText, Download, Eye, Star, Trash2, Copy } from 'lucide-react';
+import { Plus, FileText, Download, Eye, Star, Trash2, Copy, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import CVTemplatePreview from '@/components/cv/CVTemplatePreview';
+import CVEditor from '@/components/cv/CVEditor';
 import {
   getCVTemplates,
   getUserCVs,
@@ -29,6 +29,7 @@ export default function CVBuilder() {
   const [templates, setTemplates] = useState<CVTemplate[]>([]);
   const [selectedCV, setSelectedCV] = useState<CandidateCV | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -162,6 +163,22 @@ export default function CVBuilder() {
     }
   }
 
+  function handleEditCV(cv: CandidateCV) {
+    setSelectedCV(cv);
+    setIsEditing(true);
+  }
+
+  function handleEditorSave() {
+    setIsEditing(false);
+    setSelectedCV(null);
+    loadData();
+  }
+
+  function handleEditorCancel() {
+    setIsEditing(false);
+    setSelectedCV(null);
+  }
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -261,8 +278,8 @@ export default function CVBuilder() {
                   </CardHeader>
                   <CardContent>
                     <div className="flex flex-wrap gap-2">
-                      <Button size="sm" variant="outline" onClick={() => setSelectedCV(cv)}>
-                        <Eye className="h-4 w-4 mr-1" />
+                      <Button size="sm" variant="outline" onClick={() => handleEditCV(cv)}>
+                        <Edit className="h-4 w-4 mr-1" />
                         Edit
                       </Button>
                       <Button size="sm" variant="outline">
@@ -343,6 +360,25 @@ export default function CVBuilder() {
           </div>
         </CardContent>
       </Card>
+
+      {/* CV Editor Dialog */}
+      <Dialog open={isEditing} onOpenChange={setIsEditing}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle>Edit CV: {selectedCV?.title}</DialogTitle>
+            <DialogDescription>
+              Add, remove, or edit your CV sections and content
+            </DialogDescription>
+          </DialogHeader>
+          {selectedCV && (
+            <CVEditor
+              cv={selectedCV}
+              onSave={handleEditorSave}
+              onCancel={handleEditorCancel}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
