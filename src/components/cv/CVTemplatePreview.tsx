@@ -86,8 +86,19 @@ export default function CVTemplatePreview({ templateName }: CVTemplatePreviewPro
             {/* Certifications */}
             <div className="mb-1">
               <div className="font-bold text-[4px] uppercase border-b-[0.5px] border-gray-300 mb-0.5">Professional Certifications</div>
-              <div className="text-[3px]">
+              <div className="text-[3px] space-y-0.5">
                 <div>• Certificate in Project Management – Kenya Institute of Management 2020</div>
+                <div>• Advanced Microsoft Excel Training – Strathmore University 2019</div>
+              </div>
+            </div>
+            
+            {/* Achievements */}
+            <div className="mb-1">
+              <div className="font-bold text-[4px] uppercase border-b-[0.5px] border-gray-300 mb-0.5">Professional Achievements</div>
+              <div className="text-[3px] space-y-0.5">
+                <div>• Streamlined office filing system, reducing document retrieval time by 40%</div>
+                <div>• Successfully coordinated 15+ company events with 100% attendance</div>
+                <div>• Implemented digital record-keeping improving efficiency by 30%</div>
               </div>
             </div>
             
@@ -212,12 +223,22 @@ export default function CVTemplatePreview({ templateName }: CVTemplatePreviewPro
               </div>
               
               {/* Certifications */}
-              <div>
+              <div className="mb-1">
                 <div className="font-bold text-[3.5px] text-blue-900 uppercase mb-0.5">Certifications</div>
                 <div className="space-y-0.5 text-[2.5px]">
                   <div>▪ Digital Marketing – Google (2022)</div>
                   <div>▪ Content Marketing – HubSpot (2021)</div>
                   <div>▪ Social Media Marketing – Meta (2020)</div>
+                </div>
+              </div>
+              
+              {/* Achievements */}
+              <div>
+                <div className="font-bold text-[3.5px] text-blue-900 uppercase mb-0.5">Professional Achievements</div>
+                <div className="space-y-0.5 text-[2.5px]">
+                  <div>▪ Increased social media engagement by 45% in 12 months</div>
+                  <div>▪ Successfully launched 20+ digital campaigns with 95% success rate</div>
+                  <div>▪ Grew email subscriber base from 5,000 to 15,000 in 18 months</div>
                 </div>
               </div>
             </div>

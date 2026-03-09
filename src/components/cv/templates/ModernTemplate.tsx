@@ -38,6 +38,7 @@ interface CVData {
   experience: Experience[];
   education: Education[];
   certifications?: string[];
+  achievements?: string[];
   referees?: string;
 }
 
@@ -212,7 +213,7 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
 
         {/* Certifications Section */}
         {data.certifications && data.certifications.length > 0 && (
-          <section>
+          <section className="mb-6">
             <h2 className="text-base font-bold text-blue-900 mb-3 uppercase tracking-wide">
               Certifications
             </h2>
@@ -221,6 +222,23 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
                 <li key={index} className="text-sm text-gray-700 flex items-start">
                   <span className="text-blue-600 mr-2">▪</span>
                   <span>{cert}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* Professional Achievements Section */}
+        {data.achievements && data.achievements.length > 0 && (
+          <section>
+            <h2 className="text-base font-bold text-blue-900 mb-3 uppercase tracking-wide">
+              Professional Achievements
+            </h2>
+            <ul className="space-y-1">
+              {data.achievements.map((achievement, index) => (
+                <li key={index} className="text-sm text-gray-700 flex items-start">
+                  <span className="text-blue-600 mr-2">▪</span>
+                  <span>{achievement}</span>
                 </li>
               ))}
             </ul>

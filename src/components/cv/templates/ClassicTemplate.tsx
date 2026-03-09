@@ -36,6 +36,7 @@ interface CVData {
   experience: Experience[];
   education: Education[];
   certifications?: string[];
+  achievements?: string[];
   referees?: string;
 }
 
@@ -173,6 +174,23 @@ export default function ClassicTemplate({ data }: ClassicTemplateProps) {
               <li key={index} className="text-sm text-gray-700 flex items-start">
                 <span className="mr-2 text-gray-500">•</span>
                 <span>{cert}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* Professional Achievements Section (Optional) */}
+      {data.achievements && data.achievements.length > 0 && (
+        <section className="mb-7">
+          <h2 className="text-lg font-bold text-gray-900 mb-3 uppercase tracking-wide border-b border-gray-300 pb-1">
+            Professional Achievements
+          </h2>
+          <ul className="space-y-1.5">
+            {data.achievements.map((achievement, index) => (
+              <li key={index} className="text-sm text-gray-700 flex items-start">
+                <span className="mr-2 text-gray-500">•</span>
+                <span>{achievement}</span>
               </li>
             ))}
           </ul>
