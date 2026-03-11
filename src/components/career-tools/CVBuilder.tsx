@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import CVTemplatePreview from '@/components/cv/CVTemplatePreview';
 import CVEditor from '@/components/cv/CVEditor';
+import CVDownloadDialog from '@/components/cv/CVDownloadDialog';
 import {
   getCVTemplates,
   getUserCVs,
@@ -30,6 +31,8 @@ export default function CVBuilder() {
   const [selectedCV, setSelectedCV] = useState<CandidateCV | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadCV, setDownloadCV] = useState<CandidateCV | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -179,6 +182,17 @@ export default function CVBuilder() {
     setSelectedCV(null);
   }
 
+  function handleDownload(cv: CandidateCV) {
+    setDownloadCV(cv);
+    setIsDownloading(true);
+  }
+
+  function getTemplateName(templateId: string | null): string {
+    if (!templateId) return 'Classic Professional';
+    const template = templates.find(t => t.id === templateId);
+    return template?.name || 'Classic Professional';
+  }
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -282,9 +296,9 @@ export default function CVBuilder() {
                         <Edit className="h-4 w-4 mr-1" />
                         Edit
                       </Button>
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" onClick={() => handleDownload(cv)}>
                         <Download className="h-4 w-4 mr-1" />
-                        Export
+                        Download
                       </Button>
                       {!cv.is_primary && (
                         <Button
@@ -379,6 +393,16 @@ export default function CVBuilder() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* CV Download Dialog */}
+      {downloadCV && (
+        <CVDownloadDialog
+          open={isDownloading}
+          onOpenChange={setIsDownloading}
+          cv={downloadCV}
+          templateName={getTemplateName(downloadCV.template_id)}
+        />
+      )}
     </div>
   );
 }
