@@ -364,13 +364,14 @@ export default function CVBuilder() {
                 }}
               >
                 <CardHeader className="p-4">
-                  <div className="transform scale-110 origin-top">
-                    <CVTemplatePreview templateName={template.name} showDescription={true} />
+                  <CVTemplatePreview templateName={template.name} showDescription={false} />
+                  <div className="mt-4 space-y-2">
+                    <CardTitle className="text-base">{template.name}</CardTitle>
+                    <CVTemplatePreview templateName={template.name} showDescription={true} descriptionOnly={true} />
+                    {template.is_premium && (
+                      <Badge variant="secondary" className="w-fit">Premium</Badge>
+                    )}
                   </div>
-                  <CardTitle className="text-base mt-4">{template.name}</CardTitle>
-                  {template.is_premium && (
-                    <Badge variant="secondary" className="mt-2 w-fit">Premium</Badge>
-                  )}
                 </CardHeader>
               </Card>
             ))}
