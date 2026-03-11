@@ -337,18 +337,19 @@ export default function CVBuilder() {
 
       {/* CV Templates Gallery */}
       <Card>
-        <CardHeader>
-          <CardTitle>Available Templates</CardTitle>
-          <CardDescription>
-            Choose from professional templates to create your CV
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl">Professional CV Templates</CardTitle>
+          <CardDescription className="text-base mt-2 max-w-3xl mx-auto">
+            Choose from our expertly designed templates tailored for the Kenyan job market. 
+            Each template is ATS-friendly and crafted to help you stand out to employers.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
             {templates.map(template => (
               <Card 
                 key={template.id} 
-                className="cursor-pointer hover:border-primary hover:shadow-md transition-all"
+                className="cursor-pointer hover:border-primary hover:shadow-lg transition-all transform hover:scale-105"
                 onClick={() => {
                   // Open the create CV dialog with this template pre-selected
                   setIsCreating(true);
@@ -362,11 +363,13 @@ export default function CVBuilder() {
                   }, 100);
                 }}
               >
-                <CardHeader className="p-3">
-                  <CVTemplatePreview templateName={template.name} showDescription={true} />
-                  <CardTitle className="text-sm mt-3">{template.name}</CardTitle>
+                <CardHeader className="p-4">
+                  <div className="transform scale-110 origin-top">
+                    <CVTemplatePreview templateName={template.name} showDescription={true} />
+                  </div>
+                  <CardTitle className="text-base mt-4">{template.name}</CardTitle>
                   {template.is_premium && (
-                    <Badge variant="secondary" className="mt-1">Premium</Badge>
+                    <Badge variant="secondary" className="mt-2 w-fit">Premium</Badge>
                   )}
                 </CardHeader>
               </Card>

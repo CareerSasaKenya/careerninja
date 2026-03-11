@@ -22,12 +22,12 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
     switch (templateName) {
       case 'Classic Professional':
         return (
-          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded p-2 text-[3.5px] leading-[1.3] overflow-hidden">
+          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded p-3 text-[5px] leading-[1.4] overflow-hidden shadow-sm">
             {/* Header */}
-            <div className="border-b-[0.5px] border-gray-800 pb-0.5 mb-1">
-              <div className="font-bold text-[7px] mb-0.5">JOHN MWANGI KARIUKI</div>
-              <div className="text-[5px] text-gray-700 mb-0.5">Administrative Officer</div>
-              <div className="text-[3px] text-gray-600 space-y-0.5">
+            <div className="border-b-[0.5px] border-gray-800 pb-1 mb-1.5">
+              <div className="font-bold text-[9px] mb-0.5">JOHN MWANGI KARIUKI</div>
+              <div className="text-[6.5px] text-gray-700 mb-0.5">Administrative Officer</div>
+              <div className="text-[4.5px] text-gray-600 space-y-0.5">
                 <div>📍 Nairobi, Kenya</div>
                 <div>📞 +254 712 345 678</div>
                 <div>✉ johnmwangi@email.com</div>
@@ -36,15 +36,15 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             </div>
             
             {/* Professional Summary */}
-            <div className="mb-1">
-              <div className="font-bold text-[4px] uppercase border-b-[0.5px] border-gray-300 mb-0.5">Professional Summary</div>
-              <div className="text-[3px] text-gray-700">Results-driven administrative and operations professional with over 5 years of experience supporting organizational efficiency, office coordination, and project administration.</div>
+            <div className="mb-1.5">
+              <div className="font-bold text-[5.5px] uppercase border-b-[0.5px] border-gray-300 mb-0.5">Professional Summary</div>
+              <div className="text-[4.5px] text-gray-700">Results-driven administrative and operations professional with over 5 years of experience supporting organizational efficiency, office coordination, and project administration.</div>
             </div>
             
             {/* Skills */}
-            <div className="mb-1">
-              <div className="font-bold text-[4px] uppercase border-b-[0.5px] border-gray-300 mb-0.5">Key Skills</div>
-              <div className="grid grid-cols-2 gap-x-1 text-[3px]">
+            <div className="mb-1.5">
+              <div className="font-bold text-[5.5px] uppercase border-b-[0.5px] border-gray-300 mb-0.5">Key Skills</div>
+              <div className="grid grid-cols-2 gap-x-1 text-[4.5px]">
                 <div>• Office Administration</div>
                 <div>• Records Management</div>
                 <div>• Customer Service</div>
