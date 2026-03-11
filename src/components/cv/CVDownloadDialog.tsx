@@ -146,8 +146,12 @@ export default function CVDownloadDialog({ open, onOpenChange, cv, templateName 
                   text: `${exp.company} - ${exp.location}`,
                 }),
                 new Paragraph({
-                  text: exp.dates,
-                  italics: true,
+                  children: [
+                    new TextRun({
+                      text: exp.dates,
+                      italics: true,
+                    }),
+                  ],
                   spacing: { after: 50 },
                 }),
                 ...exp.details.map(detail => 
@@ -179,8 +183,12 @@ export default function CVDownloadDialog({ open, onOpenChange, cv, templateName 
                   text: edu.institution,
                 }),
                 new Paragraph({
-                  text: edu.dates,
-                  italics: true,
+                  children: [
+                    new TextRun({
+                      text: edu.dates,
+                      italics: true,
+                    }),
+                  ],
                   spacing: { after: 100 },
                 }),
               ]),
