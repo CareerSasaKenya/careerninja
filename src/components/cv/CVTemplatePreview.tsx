@@ -15,7 +15,8 @@ interface CVTemplatePreviewProps {
 const templateDescriptions: Record<string, string> = {
   'Classic Professional': 'A clean, ATS-friendly single-column layout perfect for entry to mid-level professionals. Emphasizes clarity and readability.',
   'Modern Professional': 'A stylized two-column design with blue accents and modern aesthetics. Ideal for corporate roles and marketing positions.',
-  'Executive Leadership': 'A premium serif layout emphasizing leadership achievements and strategic impact. Perfect for directors, CEOs, and senior management.'
+  'Executive Leadership': 'A premium serif layout emphasizing leadership achievements and strategic impact. Perfect for directors, CEOs, and senior management.',
+  'Graduate Starter CV': 'Education-focused layout prioritizing academic projects, internships, and extracurricular activities. Perfect for fresh graduates and students.'
 };
 
 export default function CVTemplatePreview({ templateName, showDescription = false, descriptionOnly = false }: CVTemplatePreviewProps) {
@@ -406,6 +407,93 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                   <div>• Project Management Professional (PMP)</div>
                 </div>
               </div>
+            </div>
+          </div>
+        );
+      
+      case 'Graduate Starter CV':
+        return (
+          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded p-2 text-[5px] leading-[1.3] overflow-hidden shadow-sm">
+            {/* Header */}
+            <div className="border-b border-gray-300 pb-1 mb-1.5">
+              <div className="font-bold text-[8px] text-gray-900">BRIAN KIPRONO CHEBET</div>
+              <div className="text-[5.5px] text-gray-700 mt-0.5">Recent Graduate – Mechanical Engineering</div>
+              <div className="text-[4px] text-gray-600 mt-0.5">
+                Nakuru, Kenya | +254 712 987 654 | brian.chebet@email.com | linkedin.com/in/brian-chebet
+              </div>
+            </div>
+            
+            {/* Career Objective */}
+            <div className="mb-1.5">
+              <div className="font-semibold text-[5.5px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Career Objective</div>
+              <div className="text-[4.2px] text-gray-700">Motivated mechanical engineering graduate seeking an entry-level engineering role where I can apply technical knowledge and problem-solving skills.</div>
+            </div>
+            
+            {/* Education */}
+            <div className="mb-1.5">
+              <div className="font-semibold text-[5.5px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Education</div>
+              <div className="text-[4.2px]">
+                <div className="font-semibold text-gray-900">Bachelor of Science in Mechanical Engineering</div>
+                <div className="text-gray-700">Jomo Kenyatta University of Agriculture and Technology</div>
+                <div className="text-gray-500 text-[3.8px]">2019 – 2023</div>
+              </div>
+            </div>
+            
+            {/* Academic Projects */}
+            <div className="mb-1.5">
+              <div className="font-semibold text-[5.5px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Academic Projects</div>
+              <div className="mb-1">
+                <div className="font-semibold text-[4.2px] text-gray-900">Automated Irrigation System</div>
+                <div className="text-[3.8px] text-gray-500 mb-0.5">Final Year Project – 2023</div>
+                <div className="text-[4.2px] text-gray-700">Designed and built an automated irrigation system using sensors to regulate water flow based on soil moisture levels.</div>
+              </div>
+              <div>
+                <div className="font-semibold text-[4.2px] text-gray-900">Solar Water Heater Design</div>
+                <div className="text-[3.8px] text-gray-500 mb-0.5">2022</div>
+                <div className="text-[4.2px] text-gray-700">Developed a prototype solar-powered water heater aimed at improving energy efficiency in rural households.</div>
+              </div>
+            </div>
+            
+            {/* Internship */}
+            <div className="mb-1.5">
+              <div className="font-semibold text-[5.5px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Internship / Industrial Attachment</div>
+              <div>
+                <div className="font-semibold text-[4.2px] text-gray-900">Engineering Intern — KenGen</div>
+                <div className="text-[3.8px] text-gray-500 mb-0.5">Naivasha | May 2022 – Aug 2022</div>
+                <div className="space-y-0.5 text-[4.2px]">
+                  <div>• Assisted engineers with maintenance and inspection of turbine systems</div>
+                  <div>• Participated in safety audits and plant operations monitoring</div>
+                  <div>• Prepared technical reports on equipment performance</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Skills */}
+            <div className="mb-1.5">
+              <div className="font-semibold text-[5.5px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Key Skills</div>
+              <div className="grid grid-cols-2 gap-x-1 text-[4.2px]">
+                <div>• AutoCAD</div>
+                <div>• Microsoft Excel</div>
+                <div>• Engineering Drawing</div>
+                <div>• Team Collaboration</div>
+                <div>• Technical Problem Solving</div>
+                <div>• Technical Report Writing</div>
+              </div>
+            </div>
+            
+            {/* Extracurricular */}
+            <div className="mb-1.5">
+              <div className="font-semibold text-[5.5px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Extracurricular Activities</div>
+              <div className="space-y-0.5 text-[4.2px]">
+                <div>• Member – Engineering Students Association</div>
+                <div>• Volunteer – Community STEM Mentorship Program</div>
+              </div>
+            </div>
+            
+            {/* Referees */}
+            <div>
+              <div className="font-semibold text-[5.5px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Referees</div>
+              <div className="text-[4.2px] text-gray-700">Available upon request.</div>
             </div>
           </div>
         );

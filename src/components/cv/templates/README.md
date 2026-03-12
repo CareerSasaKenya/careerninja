@@ -4,7 +4,7 @@ Professional CV templates for Kenyan job seekers, designed to be ATS-friendly an
 
 ## Available Templates
 
-### Classic Professional Template
+### 1. Classic Professional Template
 
 A clean, single-column CV template suitable for most professional roles in Kenya.
 
@@ -23,6 +23,60 @@ A clean, single-column CV template suitable for most professional roles in Kenya
 - Corporate jobs
 - Government applications
 - Entry to mid-level positions
+
+### 2. Modern Professional Template
+
+A stylized two-column design with blue accents and modern aesthetics.
+
+**Features:**
+- ✅ Two-column layout (sidebar + main content)
+- ✅ Color accents for visual appeal
+- ✅ Skills and tools sidebar
+- ✅ Modern typography
+- ✅ ATS-friendly structure
+
+**Best for:**
+- Marketing positions
+- Corporate roles
+- Creative industries
+- Mid-level professionals
+
+### 3. Executive Leadership Template
+
+A premium layout emphasizing leadership achievements and strategic impact.
+
+**Features:**
+- ✅ Leadership-focused sections
+- ✅ Board memberships section
+- ✅ Strategic initiatives highlight
+- ✅ Professional serif typography
+- ✅ Executive-level presentation
+
+**Best for:**
+- Directors and C-level executives
+- Senior management
+- Board positions
+- Strategic leadership roles
+
+### 4. Graduate Starter CV Template
+
+Education-focused layout prioritizing academic projects, internships, and extracurricular activities.
+
+**Features:**
+- ✅ Education-first structure
+- ✅ Academic projects section
+- ✅ Internship/industrial attachment section
+- ✅ Extracurricular activities
+- ✅ Career objective statement
+- ✅ Skills showcase
+- ✅ ATS-friendly
+
+**Best for:**
+- Fresh graduates
+- University students
+- Internship applicants
+- Entry-level job seekers
+- Recent diploma holders
 
 ## Usage
 

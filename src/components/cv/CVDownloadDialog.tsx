@@ -426,6 +426,7 @@ async function renderCVTemplate(cv: CandidateCV, templateName: string): Promise<
       location: cv.content.personal?.location || '',
     },
     profile: cv.content.personal?.profile || '',
+    objective: cv.content.personal?.objective || cv.content.personal?.profile || '',
     skills: cv.content.skills || [],
     experience: cv.content.experience || [],
     education: cv.content.education || [],
@@ -433,6 +434,9 @@ async function renderCVTemplate(cv: CandidateCV, templateName: string): Promise<
     achievements: cv.content.achievements || [],
     languages: cv.content.languages || [],
     tools: cv.content.tools || [],
+    projects: cv.content.projects || [],
+    internships: cv.content.internships || [],
+    activities: cv.content.activities || [],
   };
   
   // Import the appropriate template dynamically
@@ -446,6 +450,9 @@ async function renderCVTemplate(cv: CandidateCV, templateName: string): Promise<
       break;
     case 'Executive Leadership':
       TemplateComponent = (await import('./templates/ExecutiveTemplate')).default;
+      break;
+    case 'Graduate Starter CV':
+      TemplateComponent = (await import('./templates/GraduateTemplate')).default;
       break;
     default:
       TemplateComponent = (await import('./templates/ClassicTemplate')).default;
