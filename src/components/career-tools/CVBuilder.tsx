@@ -359,7 +359,7 @@ export default function CVBuilder() {
                 .map(template => (
                   <Card 
                     key={template.id} 
-                    className="cursor-pointer hover:border-primary hover:shadow-lg transition-all transform hover:scale-105"
+                    className="cursor-pointer hover:border-primary hover:shadow-lg transition-all transform hover:scale-105 group relative"
                     onClick={() => {
                       setIsCreating(true);
                       setTimeout(() => {
@@ -371,8 +371,16 @@ export default function CVBuilder() {
                       }, 100);
                     }}
                   >
-                    <CardHeader className="p-4">
-                      <CVTemplatePreview templateName={template.name} showDescription={false} />
+                    <CardHeader className="p-4 relative">
+                      <div className="relative">
+                        <CVTemplatePreview templateName={template.name} showDescription={false} />
+                        {/* Hover Overlay */}
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center rounded">
+                          <div className="bg-orange-500 text-white px-6 py-3 rounded-full font-semibold text-sm shadow-lg">
+                            Use This Template
+                          </div>
+                        </div>
+                      </div>
                       <div className="mt-4 space-y-2">
                         <CardTitle className="text-base text-[#0A66C2]">{template.name}</CardTitle>
                         <CVTemplatePreview templateName={template.name} showDescription={true} descriptionOnly={true} />
@@ -401,7 +409,7 @@ export default function CVBuilder() {
                 .map(template => (
                   <Card 
                     key={template.id} 
-                    className="cursor-pointer hover:border-primary hover:shadow-lg transition-all transform hover:scale-105"
+                    className="cursor-pointer hover:border-primary hover:shadow-lg transition-all transform hover:scale-105 group relative"
                     onClick={() => {
                       setIsCreating(true);
                       setTimeout(() => {
@@ -413,8 +421,16 @@ export default function CVBuilder() {
                       }, 100);
                     }}
                   >
-                    <CardHeader className="p-4">
-                      <CVTemplatePreview templateName={template.name} showDescription={false} />
+                    <CardHeader className="p-4 relative">
+                      <div className="relative">
+                        <CVTemplatePreview templateName={template.name} showDescription={false} />
+                        {/* Hover Overlay */}
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center rounded">
+                          <div className="bg-orange-500 text-white px-6 py-3 rounded-full font-semibold text-sm shadow-lg">
+                            Use This Template
+                          </div>
+                        </div>
+                      </div>
                       <div className="mt-4 space-y-2">
                         <CardTitle className="text-base text-[#0A66C2]">{template.name}</CardTitle>
                         <CVTemplatePreview templateName={template.name} showDescription={true} descriptionOnly={true} />
