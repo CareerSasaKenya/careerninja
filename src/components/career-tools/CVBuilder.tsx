@@ -344,37 +344,88 @@ export default function CVBuilder() {
             Each template is ATS-friendly and crafted to help you stand out to employers.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
-            {templates.map(template => (
-              <Card 
-                key={template.id} 
-                className="cursor-pointer hover:border-primary hover:shadow-lg transition-all transform hover:scale-105"
-                onClick={() => {
-                  // Open the create CV dialog with this template pre-selected
-                  setIsCreating(true);
-                  // Store selected template in a way the form can access it
-                  setTimeout(() => {
-                    const selectElement = document.querySelector('select[name="template_id"]') as HTMLSelectElement;
-                    if (selectElement) {
-                      selectElement.value = template.id;
-                      selectElement.dispatchEvent(new Event('change', { bubbles: true }));
-                    }
-                  }, 100);
-                }}
-              >
-                <CardHeader className="p-4">
-                  <CVTemplatePreview templateName={template.name} showDescription={false} />
-                  <div className="mt-4 space-y-2">
-                    <CardTitle className="text-base">{template.name}</CardTitle>
-                    <CVTemplatePreview templateName={template.name} showDescription={true} descriptionOnly={true} />
-                    {template.is_premium && (
-                      <Badge variant="secondary" className="w-fit">Premium</Badge>
-                    )}
-                  </div>
-                </CardHeader>
-              </Card>
-            ))}
+        <CardContent className="space-y-8">
+          {/* Professional CV Templates Section */}
+          <div>
+            <div className="mb-4">
+              <h3 className="text-xl font-semibold text-gray-900">Professional CV Templates</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Designed for experienced professionals with established careers, emphasizing work history, achievements, and leadership.
+              </p>
+            </div>
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+              {templates
+                .filter(t => ['Classic Professional', 'Modern Professional', 'Executive Leadership'].includes(t.name))
+                .map(template => (
+                  <Card 
+                    key={template.id} 
+                    className="cursor-pointer hover:border-primary hover:shadow-lg transition-all transform hover:scale-105"
+                    onClick={() => {
+                      setIsCreating(true);
+                      setTimeout(() => {
+                        const selectElement = document.querySelector('select[name="template_id"]') as HTMLSelectElement;
+                        if (selectElement) {
+                          selectElement.value = template.id;
+                          selectElement.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                      }, 100);
+                    }}
+                  >
+                    <CardHeader className="p-4">
+                      <CVTemplatePreview templateName={template.name} showDescription={false} />
+                      <div className="mt-4 space-y-2">
+                        <CardTitle className="text-base">{template.name}</CardTitle>
+                        <CVTemplatePreview templateName={template.name} showDescription={true} descriptionOnly={true} />
+                        {template.is_premium && (
+                          <Badge variant="secondary" className="w-fit">Premium</Badge>
+                        )}
+                      </div>
+                    </CardHeader>
+                  </Card>
+                ))}
+            </div>
+          </div>
+
+          {/* Entry-Level / Graduate CV Templates Section */}
+          <div>
+            <div className="mb-4">
+              <h3 className="text-xl font-semibold text-gray-900">Entry-Level / Graduate CV Templates</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Specifically designed for students, fresh graduates, and entry-level candidates with limited work experience. 
+                These templates emphasize education, skills, potential, and transferable competencies.
+              </p>
+            </div>
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+              {templates
+                .filter(t => ['Graduate Starter CV', 'Skills-Based (Functional)', 'Internship / Industrial Attachment'].includes(t.name))
+                .map(template => (
+                  <Card 
+                    key={template.id} 
+                    className="cursor-pointer hover:border-primary hover:shadow-lg transition-all transform hover:scale-105"
+                    onClick={() => {
+                      setIsCreating(true);
+                      setTimeout(() => {
+                        const selectElement = document.querySelector('select[name="template_id"]') as HTMLSelectElement;
+                        if (selectElement) {
+                          selectElement.value = template.id;
+                          selectElement.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                      }, 100);
+                    }}
+                  >
+                    <CardHeader className="p-4">
+                      <CVTemplatePreview templateName={template.name} showDescription={false} />
+                      <div className="mt-4 space-y-2">
+                        <CardTitle className="text-base">{template.name}</CardTitle>
+                        <CVTemplatePreview templateName={template.name} showDescription={true} descriptionOnly={true} />
+                        {template.is_premium && (
+                          <Badge variant="secondary" className="w-fit">Premium</Badge>
+                        )}
+                      </div>
+                    </CardHeader>
+                  </Card>
+                ))}
+            </div>
           </div>
         </CardContent>
       </Card>
