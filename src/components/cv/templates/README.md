@@ -4,7 +4,11 @@ Professional CV templates for Kenyan job seekers, designed to be ATS-friendly an
 
 ## Available Templates
 
-### 1. Classic Professional Template
+### Professional CV Templates
+
+These templates are designed for experienced professionals with established careers, emphasizing work history, achievements, and leadership.
+
+#### 1. Classic Professional Template
 
 A clean, single-column CV template suitable for most professional roles in Kenya.
 
@@ -24,7 +28,7 @@ A clean, single-column CV template suitable for most professional roles in Kenya
 - Government applications
 - Entry to mid-level positions
 
-### 2. Modern Professional Template
+#### 2. Modern Professional Template
 
 A stylized two-column design with blue accents and modern aesthetics.
 
@@ -41,7 +45,7 @@ A stylized two-column design with blue accents and modern aesthetics.
 - Creative industries
 - Mid-level professionals
 
-### 3. Executive Leadership Template
+#### 3. Executive Leadership Template
 
 A premium layout emphasizing leadership achievements and strategic impact.
 
@@ -58,7 +62,13 @@ A premium layout emphasizing leadership achievements and strategic impact.
 - Board positions
 - Strategic leadership roles
 
-### 4. Graduate Starter CV Template
+---
+
+### Entry-Level / Graduate CV Templates
+
+These templates are specifically designed for students, fresh graduates, and entry-level candidates with limited work experience. They emphasize education, skills, potential, and transferable competencies rather than extensive work history.
+
+#### 4. Graduate Starter CV Template
 
 Education-focused layout prioritizing academic projects, internships, and extracurricular activities.
 
@@ -78,7 +88,7 @@ Education-focused layout prioritizing academic projects, internships, and extrac
 - Entry-level job seekers
 - Recent diploma holders
 
-### 5. Skills-Based (Functional) Template
+#### 5. Skills-Based (Functional) Template
 
 Emphasizes skills and competencies instead of chronological work history.
 
@@ -97,7 +107,7 @@ Emphasizes skills and competencies instead of chronological work history.
 - People transitioning industries
 - Those with diverse experience backgrounds
 
-### 6. Internship / Industrial Attachment Template
+#### 6. Internship / Industrial Attachment Template
 
 Student-focused template emphasizing education, technical skills, and potential over work experience.
 
