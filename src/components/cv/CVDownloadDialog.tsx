@@ -454,6 +454,9 @@ async function renderCVTemplate(cv: CandidateCV, templateName: string): Promise<
     case 'Graduate Starter CV':
       TemplateComponent = (await import('./templates/GraduateTemplate')).default;
       break;
+    case 'Skills-Based (Functional)':
+      TemplateComponent = (await import('./templates/FunctionalTemplate')).default;
+      break;
     default:
       TemplateComponent = (await import('./templates/ClassicTemplate')).default;
   }

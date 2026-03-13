@@ -16,7 +16,8 @@ const templateDescriptions: Record<string, string> = {
   'Classic Professional': 'A clean, ATS-friendly single-column layout perfect for entry to mid-level professionals. Emphasizes clarity and readability.',
   'Modern Professional': 'A stylized two-column design with blue accents and modern aesthetics. Ideal for corporate roles and marketing positions.',
   'Executive Leadership': 'A premium serif layout emphasizing leadership achievements and strategic impact. Perfect for directors, CEOs, and senior management.',
-  'Graduate Starter CV': 'Education-focused layout prioritizing academic projects, internships, and extracurricular activities. Perfect for fresh graduates and students.'
+  'Graduate Starter CV': 'Education-focused layout prioritizing academic projects, internships, and extracurricular activities. Perfect for fresh graduates and students.',
+  'Skills-Based (Functional)': 'Emphasizes skills and competencies over chronological work history. Perfect for career changers, candidates with employment gaps, or those with strong transferable skills.'
 };
 
 export default function CVTemplatePreview({ templateName, showDescription = false, descriptionOnly = false }: CVTemplatePreviewProps) {
@@ -494,6 +495,135 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             <div>
               <div className="font-semibold text-[5.5px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Referees</div>
               <div className="text-[4.2px] text-gray-700">Available upon request.</div>
+            </div>
+          </div>
+        );
+      
+      case 'Skills-Based (Functional)':
+        return (
+          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded p-2 text-[5px] leading-[1.3] overflow-hidden shadow-sm">
+            {/* Header */}
+            <div className="border-b-2 border-gray-300 pb-1 mb-1.5">
+              <div className="font-bold text-[8px] text-gray-900">MARY ACHIENG ODHIAMBO</div>
+              <div className="text-[5.5px] text-blue-700 font-medium mt-0.5">Customer Service Specialist</div>
+              <div className="flex flex-wrap gap-x-1 text-[3.8px] text-gray-600 mt-0.5">
+                <span>📍 Kisumu, Kenya</span>
+                <span>📞 +254 710 234 567</span>
+                <span>✉ mary.odhiambo@email.com</span>
+                <span>🔗 linkedin.com/in/mary-odhiambo</span>
+              </div>
+            </div>
+            
+            {/* Professional Summary */}
+            <div className="mb-1.5">
+              <div className="font-bold text-[5px] text-gray-900 uppercase border-b border-gray-300 pb-0.5 mb-0.5">Professional Summary</div>
+              <div className="text-[4px] text-gray-700">Customer-focused professional with strong communication and problem-solving skills developed through experience in retail, community service, and administrative roles.</div>
+            </div>
+            
+            {/* Core Competencies */}
+            <div className="mb-1.5">
+              <div className="font-bold text-[5px] text-gray-900 uppercase border-b border-gray-300 pb-0.5 mb-0.5">Core Competencies</div>
+              <div className="grid grid-cols-2 gap-x-1 gap-y-0.5">
+                <div className="flex items-start text-[4px]">
+                  <span className="text-blue-600 mr-0.5">▪</span>
+                  <span>Customer Support</span>
+                </div>
+                <div className="flex items-start text-[4px]">
+                  <span className="text-blue-600 mr-0.5">▪</span>
+                  <span>Communication</span>
+                </div>
+                <div className="flex items-start text-[4px]">
+                  <span className="text-blue-600 mr-0.5">▪</span>
+                  <span>Conflict Resolution</span>
+                </div>
+                <div className="flex items-start text-[4px]">
+                  <span className="text-blue-600 mr-0.5">▪</span>
+                  <span>Team Collaboration</span>
+                </div>
+                <div className="flex items-start text-[4px]">
+                  <span className="text-blue-600 mr-0.5">▪</span>
+                  <span>Problem Solving</span>
+                </div>
+                <div className="flex items-start text-[4px]">
+                  <span className="text-blue-600 mr-0.5">▪</span>
+                  <span>Data Entry</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Professional Skills */}
+            <div className="mb-1.5">
+              <div className="font-bold text-[5px] text-gray-900 uppercase border-b border-gray-300 pb-0.5 mb-0.5">Professional Skills</div>
+              <div className="space-y-1">
+                <div>
+                  <div className="text-[4.2px] font-bold text-blue-700">Customer Service Skills</div>
+                  <div className="space-y-0.5 ml-1 text-[3.8px]">
+                    <div className="flex items-start">
+                      <span className="text-gray-400 mr-0.5">•</span>
+                      <span>Handling customer inquiries and complaints</span>
+                    </div>
+                    <div className="flex items-start">
+                      <span className="text-gray-400 mr-0.5">•</span>
+                      <span>Providing product information</span>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[4.2px] font-bold text-blue-700">Administrative Skills</div>
+                  <div className="space-y-0.5 ml-1 text-[3.8px]">
+                    <div className="flex items-start">
+                      <span className="text-gray-400 mr-0.5">•</span>
+                      <span>Document management</span>
+                    </div>
+                    <div className="flex items-start">
+                      <span className="text-gray-400 mr-0.5">•</span>
+                      <span>Data entry and reporting</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Work Experience */}
+            <div className="mb-1.5">
+              <div className="font-bold text-[5px] text-gray-900 uppercase border-b border-gray-300 pb-0.5 mb-0.5">Relevant Work Experience</div>
+              <div className="space-y-0.5 text-[4px]">
+                <div>
+                  <span className="font-semibold">Retail Assistant</span>
+                  <span className="text-gray-600"> — QuickMart Supermarket</span>
+                  <span className="text-gray-500 italic"> (2021 – 2023)</span>
+                </div>
+                <div>
+                  <span className="font-semibold">Volunteer Admin Assistant</span>
+                  <span className="text-gray-600"> — Community Development Initiative</span>
+                  <span className="text-gray-500 italic"> (2020 – 2021)</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Education */}
+            <div className="mb-1.5">
+              <div className="font-bold text-[5px] text-gray-900 uppercase border-b border-gray-300 pb-0.5 mb-0.5">Education</div>
+              <div className="text-[4px]">
+                <div className="font-semibold">Diploma in Business Administration</div>
+                <div className="text-gray-700">Kisumu National Polytechnic</div>
+                <div className="text-[3.5px] text-gray-500 italic">2018 – 2020</div>
+              </div>
+            </div>
+            
+            {/* Certifications */}
+            <div>
+              <div className="font-bold text-[5px] text-gray-900 uppercase border-b border-gray-300 pb-0.5 mb-0.5">Certifications</div>
+              <div className="space-y-0.5 text-[4px]">
+                <div className="flex items-start">
+                  <span className="text-blue-600 mr-0.5">✓</span>
+                  <span>Customer Service Excellence – Alison</span>
+                </div>
+                <div className="flex items-start">
+                  <span className="text-blue-600 mr-0.5">✓</span>
+                  <span>Basic Computer Applications – Kenya ICT</span>
+                </div>
+              </div>
             </div>
           </div>
         );

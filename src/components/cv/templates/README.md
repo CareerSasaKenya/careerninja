@@ -78,6 +78,25 @@ Education-focused layout prioritizing academic projects, internships, and extrac
 - Entry-level job seekers
 - Recent diploma holders
 
+### 5. Skills-Based (Functional) Template
+
+Emphasizes skills and competencies instead of chronological work history.
+
+**Features:**
+- ✅ Skills-first structure
+- ✅ Core competencies section
+- ✅ Professional skills categories
+- ✅ Brief work experience summary
+- ✅ Transferable skills focus
+- ✅ ATS-friendly
+
+**Best for:**
+- Career changers
+- Candidates with employment gaps
+- Entry-level candidates with transferable skills
+- People transitioning industries
+- Those with diverse experience backgrounds
+
 ## Usage
 
 ### Basic Implementation
