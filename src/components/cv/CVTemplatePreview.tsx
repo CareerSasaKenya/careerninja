@@ -415,99 +415,108 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
       
       case 'Graduate Starter CV':
         return (
-          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded p-2 text-[5px] leading-[1.3] overflow-hidden shadow-sm">
+          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded p-2 text-[5.5px] leading-[1.35] overflow-hidden shadow-sm">
             {/* Header */}
             <div className="border-b border-gray-300 pb-1 mb-1.5">
-              <div className="font-bold text-[8px] text-gray-900">BRIAN KIPRONO CHEBET</div>
-              <div className="text-[5.5px] text-gray-700 mt-0.5">Recent Graduate – Mechanical Engineering</div>
-              <div className="text-[4px] text-gray-600 mt-0.5">
+              <div className="font-bold text-[9px] text-gray-900">BRIAN KIPRONO CHEBET</div>
+              <div className="text-[6px] text-gray-700 mt-0.5">Recent Graduate – Mechanical Engineering</div>
+              <div className="text-[4.5px] text-gray-600 mt-0.5">
                 Nakuru, Kenya | +254 712 987 654 | brian.chebet@email.com | linkedin.com/in/brian-chebet
               </div>
             </div>
             
             {/* Career Objective */}
             <div className="mb-1.5">
-              <div className="font-semibold text-[5.5px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Career Objective</div>
-              <div className="text-[4.2px] text-gray-700">Motivated mechanical engineering graduate seeking an entry-level engineering role where I can apply technical knowledge and problem-solving skills.</div>
+              <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Career Objective</div>
+              <div className="text-[4.8px] text-gray-700">Motivated mechanical engineering graduate seeking an entry-level engineering role where I can apply technical knowledge, problem-solving skills, and hands-on experience to contribute to innovative engineering solutions.</div>
             </div>
             
             {/* Education */}
             <div className="mb-1.5">
-              <div className="font-semibold text-[5.5px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Education</div>
-              <div className="text-[4.2px]">
+              <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Education</div>
+              <div className="text-[4.8px] mb-1">
                 <div className="font-semibold text-gray-900">Bachelor of Science in Mechanical Engineering</div>
                 <div className="text-gray-700">Jomo Kenyatta University of Agriculture and Technology</div>
-                <div className="text-gray-500 text-[3.8px]">2019 – 2023</div>
+                <div className="text-gray-500 text-[4.2px]">2019 – 2023 | Second Class Honours (Upper Division)</div>
+              </div>
+              <div className="text-[4.8px]">
+                <div className="font-semibold text-gray-900">Kenya Certificate of Secondary Education</div>
+                <div className="text-gray-700">Nakuru High School</div>
+                <div className="text-gray-500 text-[4.2px]">2015 – 2018 | Grade A-</div>
               </div>
             </div>
             
             {/* Academic Projects */}
             <div className="mb-1.5">
-              <div className="font-semibold text-[5.5px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Academic Projects</div>
+              <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Academic Projects</div>
               <div className="mb-1">
-                <div className="font-semibold text-[4.2px] text-gray-900">Automated Irrigation System</div>
-                <div className="text-[3.8px] text-gray-500 mb-0.5">Final Year Project – 2023</div>
-                <div className="text-[4.2px] text-gray-700">Designed and built an automated irrigation system using sensors to regulate water flow based on soil moisture levels.</div>
+                <div className="font-semibold text-[4.8px] text-gray-900">Automated Irrigation System</div>
+                <div className="text-[4.2px] text-gray-500 mb-0.5">Final Year Project – 2023</div>
+                <div className="text-[4.8px] text-gray-700">Designed and built an automated irrigation system using sensors to regulate water flow based on soil moisture levels. Achieved 40% water savings in test trials.</div>
               </div>
               <div>
-                <div className="font-semibold text-[4.2px] text-gray-900">Solar Water Heater Design</div>
-                <div className="text-[3.8px] text-gray-500 mb-0.5">2022</div>
-                <div className="text-[4.2px] text-gray-700">Developed a prototype solar-powered water heater aimed at improving energy efficiency in rural households.</div>
+                <div className="font-semibold text-[4.8px] text-gray-900">Solar Water Heater Design</div>
+                <div className="text-[4.2px] text-gray-500 mb-0.5">Third Year Project – 2022</div>
+                <div className="text-[4.8px] text-gray-700">Developed a prototype solar-powered water heater aimed at improving energy efficiency in rural households. Presented at university innovation fair.</div>
               </div>
             </div>
             
             {/* Internship */}
             <div className="mb-1.5">
-              <div className="font-semibold text-[5.5px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Internship / Industrial Attachment</div>
+              <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Internship / Industrial Attachment</div>
               <div>
-                <div className="font-semibold text-[4.2px] text-gray-900">Engineering Intern — KenGen</div>
-                <div className="text-[3.8px] text-gray-500 mb-0.5">Naivasha | May 2022 – Aug 2022</div>
-                <div className="space-y-0.5 text-[4.2px]">
+                <div className="font-semibold text-[4.8px] text-gray-900">Engineering Intern — KenGen</div>
+                <div className="text-[4.2px] text-gray-500 mb-0.5">Naivasha | May 2022 – Aug 2022</div>
+                <div className="space-y-0.5 text-[4.8px]">
                   <div>• Assisted engineers with maintenance and inspection of turbine systems</div>
                   <div>• Participated in safety audits and plant operations monitoring</div>
                   <div>• Prepared technical reports on equipment performance</div>
+                  <div>• Gained hands-on experience with geothermal power generation</div>
                 </div>
               </div>
             </div>
             
             {/* Skills */}
             <div className="mb-1.5">
-              <div className="font-semibold text-[5.5px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Key Skills</div>
-              <div className="grid grid-cols-2 gap-x-1 text-[4.2px]">
-                <div>• AutoCAD</div>
-                <div>• Microsoft Excel</div>
+              <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Key Skills</div>
+              <div className="grid grid-cols-2 gap-x-1 gap-y-0.5 text-[4.8px]">
+                <div>• AutoCAD & SolidWorks</div>
+                <div>• Microsoft Excel & Word</div>
                 <div>• Engineering Drawing</div>
                 <div>• Team Collaboration</div>
                 <div>• Technical Problem Solving</div>
                 <div>• Technical Report Writing</div>
+                <div>• MATLAB Programming</div>
+                <div>• Project Management</div>
               </div>
             </div>
             
             {/* Extracurricular */}
             <div className="mb-1.5">
-              <div className="font-semibold text-[5.5px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Extracurricular Activities</div>
-              <div className="space-y-0.5 text-[4.2px]">
-                <div>• Member – Engineering Students Association</div>
+              <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Extracurricular Activities</div>
+              <div className="space-y-0.5 text-[4.8px]">
+                <div>• Member – Engineering Students Association (2020-2023)</div>
                 <div>• Volunteer – Community STEM Mentorship Program</div>
+                <div>• Participant – National Engineering Innovation Competition 2022</div>
               </div>
             </div>
             
             {/* Referees */}
             <div>
-              <div className="font-semibold text-[5.5px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Referees</div>
-              <div className="text-[4.2px] text-gray-700">Available upon request.</div>
+              <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Referees</div>
+              <div className="text-[4.8px] text-gray-700">Available upon request.</div>
             </div>
           </div>
         );
       
       case 'Skills-Based (Functional)':
         return (
-          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded p-2 text-[5px] leading-[1.3] overflow-hidden shadow-sm">
+          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded p-2 text-[5.5px] leading-[1.35] overflow-hidden shadow-sm">
             {/* Header */}
             <div className="border-b-2 border-gray-300 pb-1 mb-1.5">
-              <div className="font-bold text-[8px] text-gray-900">MARY ACHIENG ODHIAMBO</div>
-              <div className="text-[5.5px] text-blue-700 font-medium mt-0.5">Customer Service Specialist</div>
-              <div className="flex flex-wrap gap-x-1 text-[3.8px] text-gray-600 mt-0.5">
+              <div className="font-bold text-[9px] text-gray-900">MARY ACHIENG ODHIAMBO</div>
+              <div className="text-[6px] text-blue-700 font-medium mt-0.5">Customer Service Specialist</div>
+              <div className="flex flex-wrap gap-x-1 text-[4.5px] text-gray-600 mt-0.5">
                 <span>📍 Kisumu, Kenya</span>
                 <span>📞 +254 710 234 567</span>
                 <span>✉ mary.odhiambo@email.com</span>
@@ -517,68 +526,76 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             
             {/* Professional Summary */}
             <div className="mb-1.5">
-              <div className="font-bold text-[5px] text-gray-900 uppercase border-b border-gray-300 pb-0.5 mb-0.5">Professional Summary</div>
-              <div className="text-[4px] text-gray-700">Customer-focused professional with strong communication and problem-solving skills developed through experience in retail, community service, and administrative roles.</div>
+              <div className="font-bold text-[6px] text-gray-900 uppercase border-b border-gray-300 pb-0.5 mb-0.5">Professional Summary</div>
+              <div className="text-[4.8px] text-gray-700">Customer-focused professional with strong communication and problem-solving skills developed through experience in retail, community service, and administrative roles. Proven ability to build positive relationships and deliver excellent service.</div>
             </div>
             
             {/* Core Competencies */}
             <div className="mb-1.5">
-              <div className="font-bold text-[5px] text-gray-900 uppercase border-b border-gray-300 pb-0.5 mb-0.5">Core Competencies</div>
+              <div className="font-bold text-[6px] text-gray-900 uppercase border-b border-gray-300 pb-0.5 mb-0.5">Core Competencies</div>
               <div className="grid grid-cols-2 gap-x-1 gap-y-0.5">
-                <div className="flex items-start text-[4px]">
+                <div className="flex items-start text-[4.8px]">
                   <span className="text-blue-600 mr-0.5">▪</span>
                   <span>Customer Support</span>
                 </div>
-                <div className="flex items-start text-[4px]">
+                <div className="flex items-start text-[4.8px]">
                   <span className="text-blue-600 mr-0.5">▪</span>
                   <span>Communication</span>
                 </div>
-                <div className="flex items-start text-[4px]">
+                <div className="flex items-start text-[4.8px]">
                   <span className="text-blue-600 mr-0.5">▪</span>
                   <span>Conflict Resolution</span>
                 </div>
-                <div className="flex items-start text-[4px]">
+                <div className="flex items-start text-[4.8px]">
                   <span className="text-blue-600 mr-0.5">▪</span>
                   <span>Team Collaboration</span>
                 </div>
-                <div className="flex items-start text-[4px]">
+                <div className="flex items-start text-[4.8px]">
                   <span className="text-blue-600 mr-0.5">▪</span>
                   <span>Problem Solving</span>
                 </div>
-                <div className="flex items-start text-[4px]">
+                <div className="flex items-start text-[4.8px]">
                   <span className="text-blue-600 mr-0.5">▪</span>
-                  <span>Data Entry</span>
+                  <span>Data Entry & MS Office</span>
                 </div>
               </div>
             </div>
             
             {/* Professional Skills */}
             <div className="mb-1.5">
-              <div className="font-bold text-[5px] text-gray-900 uppercase border-b border-gray-300 pb-0.5 mb-0.5">Professional Skills</div>
+              <div className="font-bold text-[6px] text-gray-900 uppercase border-b border-gray-300 pb-0.5 mb-0.5">Professional Skills</div>
               <div className="space-y-1">
                 <div>
-                  <div className="text-[4.2px] font-bold text-blue-700">Customer Service Skills</div>
-                  <div className="space-y-0.5 ml-1 text-[3.8px]">
+                  <div className="text-[4.8px] font-bold text-blue-700">Customer Service Skills</div>
+                  <div className="space-y-0.5 ml-1 text-[4.5px]">
                     <div className="flex items-start">
                       <span className="text-gray-400 mr-0.5">•</span>
-                      <span>Handling customer inquiries and complaints</span>
+                      <span>Handling customer inquiries and complaints professionally</span>
                     </div>
                     <div className="flex items-start">
                       <span className="text-gray-400 mr-0.5">•</span>
-                      <span>Providing product information</span>
+                      <span>Providing accurate product information and recommendations</span>
+                    </div>
+                    <div className="flex items-start">
+                      <span className="text-gray-400 mr-0.5">•</span>
+                      <span>Building rapport and maintaining customer relationships</span>
                     </div>
                   </div>
                 </div>
                 <div>
-                  <div className="text-[4.2px] font-bold text-blue-700">Administrative Skills</div>
-                  <div className="space-y-0.5 ml-1 text-[3.8px]">
+                  <div className="text-[4.8px] font-bold text-blue-700">Administrative Skills</div>
+                  <div className="space-y-0.5 ml-1 text-[4.5px]">
                     <div className="flex items-start">
                       <span className="text-gray-400 mr-0.5">•</span>
-                      <span>Document management</span>
+                      <span>Document management and filing systems</span>
                     </div>
                     <div className="flex items-start">
                       <span className="text-gray-400 mr-0.5">•</span>
-                      <span>Data entry and reporting</span>
+                      <span>Data entry and reporting with high accuracy</span>
+                    </div>
+                    <div className="flex items-start">
+                      <span className="text-gray-400 mr-0.5">•</span>
+                      <span>Scheduling and calendar management</span>
                     </div>
                   </div>
                 </div>
@@ -587,11 +604,11 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             
             {/* Work Experience */}
             <div className="mb-1.5">
-              <div className="font-bold text-[5px] text-gray-900 uppercase border-b border-gray-300 pb-0.5 mb-0.5">Relevant Work Experience</div>
-              <div className="space-y-0.5 text-[4px]">
+              <div className="font-bold text-[6px] text-gray-900 uppercase border-b border-gray-300 pb-0.5 mb-0.5">Relevant Work Experience</div>
+              <div className="space-y-0.5 text-[4.8px]">
                 <div>
                   <span className="font-semibold">Retail Assistant</span>
-                  <span className="text-gray-600"> — QuickMart Supermarket</span>
+                  <span className="text-gray-600"> — QuickMart Supermarket, Kisumu</span>
                   <span className="text-gray-500 italic"> (2021 – 2023)</span>
                 </div>
                 <div>
@@ -599,32 +616,48 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                   <span className="text-gray-600"> — Community Development Initiative</span>
                   <span className="text-gray-500 italic"> (2020 – 2021)</span>
                 </div>
+                <div>
+                  <span className="font-semibold">Sales Intern</span>
+                  <span className="text-gray-600"> — Tuskys Supermarket, Kisumu</span>
+                  <span className="text-gray-500 italic"> (2019 – 2020)</span>
+                </div>
               </div>
             </div>
             
             {/* Education */}
             <div className="mb-1.5">
-              <div className="font-bold text-[5px] text-gray-900 uppercase border-b border-gray-300 pb-0.5 mb-0.5">Education</div>
-              <div className="text-[4px]">
+              <div className="font-bold text-[6px] text-gray-900 uppercase border-b border-gray-300 pb-0.5 mb-0.5">Education</div>
+              <div className="text-[4.8px] mb-1">
                 <div className="font-semibold">Diploma in Business Administration</div>
                 <div className="text-gray-700">Kisumu National Polytechnic</div>
-                <div className="text-[3.5px] text-gray-500 italic">2018 – 2020</div>
+                <div className="text-[4.2px] text-gray-500 italic">2018 – 2020 | Credit Pass</div>
+              </div>
+              <div className="text-[4.8px]">
+                <div className="font-semibold">Kenya Certificate of Secondary Education</div>
+                <div className="text-gray-700">Kisumu Girls High School</div>
+                <div className="text-[4.2px] text-gray-500 italic">2014 – 2017 | Grade C+</div>
               </div>
             </div>
             
             {/* Certifications */}
-            <div>
-              <div className="font-bold text-[5px] text-gray-900 uppercase border-b border-gray-300 pb-0.5 mb-0.5">Certifications</div>
-              <div className="space-y-0.5 text-[4px]">
+            <div className="mb-1.5">
+              <div className="font-bold text-[6px] text-gray-900 uppercase border-b border-gray-300 pb-0.5 mb-0.5">Certifications</div>
+              <div className="space-y-0.5 text-[4.8px]">
                 <div className="flex items-start">
                   <span className="text-blue-600 mr-0.5">✓</span>
-                  <span>Customer Service Excellence – Alison</span>
+                  <span>Customer Service Excellence – Alison (2022)</span>
                 </div>
                 <div className="flex items-start">
                   <span className="text-blue-600 mr-0.5">✓</span>
-                  <span>Basic Computer Applications – Kenya ICT</span>
+                  <span>Basic Computer Applications – Kenya ICT Board (2020)</span>
                 </div>
               </div>
+            </div>
+            
+            {/* Referees */}
+            <div>
+              <div className="font-bold text-[6px] text-gray-900 uppercase border-b border-gray-300 pb-0.5 mb-0.5">Referees</div>
+              <div className="text-[4.8px] text-gray-700">Available upon request.</div>
             </div>
           </div>
         );
@@ -641,80 +674,100 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
       
       case 'Internship / Industrial Attachment':
         return (
-          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded p-2 text-[5px] leading-[1.3] overflow-hidden shadow-sm">
+          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded p-2 text-[5.5px] leading-[1.35] overflow-hidden shadow-sm">
             {/* Header */}
             <div className="border-b border-gray-800 pb-1 mb-1.5">
-              <div className="font-bold text-[8px] text-gray-900">KEVIN MUTUA MULI</div>
-              <div className="text-[5.5px] text-gray-700 mt-0.5">Student – Diploma in Electrical Engineering</div>
-              <div className="text-[3.8px] text-gray-600 mt-0.5">
+              <div className="font-bold text-[9px] text-gray-900">KEVIN MUTUA MULI</div>
+              <div className="text-[6px] text-gray-700 mt-0.5">Student – Diploma in Electrical Engineering</div>
+              <div className="text-[4.5px] text-gray-600 mt-0.5">
                 Machakos, Kenya | +254 712 345 901 | kevin.mutua@email.com | linkedin.com/in/kevin-mutua
               </div>
             </div>
             
             {/* Career Objective */}
             <div className="mb-1.5">
-              <div className="font-semibold text-[5.5px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Career Objective</div>
-              <div className="text-[4.2px] text-gray-700">Motivated electrical engineering student seeking an industrial attachment opportunity to gain hands-on experience in electrical systems, maintenance, and engineering operations.</div>
+              <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Career Objective</div>
+              <div className="text-[4.8px] text-gray-700">Motivated electrical engineering student seeking an industrial attachment opportunity to gain hands-on experience in electrical systems, maintenance, and engineering operations while applying classroom knowledge to real-world challenges.</div>
             </div>
             
             {/* Education */}
             <div className="mb-1.5">
-              <div className="font-semibold text-[5.5px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Education</div>
-              <div className="text-[4.2px]">
+              <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Education</div>
+              <div className="text-[4.8px] mb-1">
                 <div className="font-semibold text-gray-900">Diploma in Electrical and Electronic Engineering</div>
                 <div className="text-gray-700">Machakos Technical Institute</div>
-                <div className="text-gray-500 text-[3.8px]">2022 – Present</div>
+                <div className="text-gray-500 text-[4.2px]">2022 – Present | Current GPA: 3.5/4.0</div>
+              </div>
+              <div className="text-[4.8px]">
+                <div className="font-semibold text-gray-900">Kenya Certificate of Secondary Education</div>
+                <div className="text-gray-700">Machakos Boys High School</div>
+                <div className="text-gray-500 text-[4.2px]">2018 – 2021 | Grade B+</div>
               </div>
             </div>
             
             {/* Technical Skills */}
             <div className="mb-1.5">
-              <div className="font-semibold text-[5.5px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Technical Skills</div>
-              <div className="grid grid-cols-2 gap-x-1 gap-y-0.5 text-[4.2px]">
+              <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Technical Skills</div>
+              <div className="grid grid-cols-2 gap-x-1 gap-y-0.5 text-[4.8px]">
                 <div>• Electrical Installation</div>
                 <div>• Circuit Analysis</div>
                 <div>• Basic PLC Programming</div>
-                <div>• Electrical Safety</div>
+                <div>• Electrical Safety Procedures</div>
                 <div>• Technical Drawing</div>
-                <div>• Microsoft Office</div>
+                <div>• Microsoft Office Suite</div>
+                <div>• Wiring & Troubleshooting</div>
+                <div>• Equipment Maintenance</div>
               </div>
             </div>
             
             {/* Academic Projects */}
             <div className="mb-1.5">
-              <div className="font-semibold text-[5.5px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Academic Projects</div>
+              <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Academic Projects</div>
+              <div className="mb-1">
+                <div className="font-semibold text-[4.8px] text-gray-900">Automatic Street Lighting System</div>
+                <div className="text-[4.2px] text-gray-500 mb-0.5">Final Year Project – 2023</div>
+                <div className="text-[4.8px] text-gray-700">Designed a light-dependent resistor system that automatically switches street lights on and off based on ambient light. Reduced energy consumption by 35% in test environment.</div>
+              </div>
               <div>
-                <div className="font-semibold text-[4.2px] text-gray-900">Automatic Street Lighting System</div>
-                <div className="text-[3.8px] text-gray-500 mb-0.5">2023</div>
-                <div className="text-[4.2px] text-gray-700">Designed a light-dependent resistor system that automatically switches street lights on and off based on ambient light.</div>
+                <div className="font-semibold text-[4.8px] text-gray-900">Home Electrical Wiring Simulation</div>
+                <div className="text-[4.2px] text-gray-500 mb-0.5">Second Year Project – 2023</div>
+                <div className="text-[4.8px] text-gray-700">Created a complete residential wiring diagram and simulation demonstrating proper electrical installation standards and safety protocols.</div>
               </div>
             </div>
             
             {/* Industrial Attachment */}
             <div className="mb-1.5">
-              <div className="font-semibold text-[5.5px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Industrial Attachment</div>
+              <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Industrial Attachment</div>
               <div>
-                <div className="font-semibold text-[4.2px] text-gray-900">Industrial Attachment Trainee — Kenya Power</div>
-                <div className="text-[3.8px] text-gray-500 mb-0.5">Machakos | May 2024 – Aug 2024</div>
-                <div className="space-y-0.5 text-[4.2px]">
+                <div className="font-semibold text-[4.8px] text-gray-900">Industrial Attachment Trainee — Kenya Power</div>
+                <div className="text-[4.2px] text-gray-500 mb-0.5">Machakos | May 2024 – Aug 2024</div>
+                <div className="space-y-0.5 text-[4.8px]">
                   <div>• Assisted technicians with electrical line inspection and maintenance</div>
-                  <div>• Observed transformer servicing procedures</div>
+                  <div>• Observed transformer servicing procedures and safety protocols</div>
                   <div>• Participated in installation of electrical wiring systems</div>
+                  <div>• Learned meter reading and customer service procedures</div>
                 </div>
               </div>
             </div>
             
             {/* Extracurricular Activities */}
             <div className="mb-1.5">
-              <div className="font-semibold text-[5.5px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Extracurricular Activities</div>
-              <div className="space-y-0.5 text-[4.2px]">
-                <div>• Member – Engineering Students Association</div>
+              <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Extracurricular Activities</div>
+              <div className="space-y-0.5 text-[4.8px]">
+                <div>• Member – Engineering Students Association (2022-Present)</div>
                 <div>• Volunteer – Local Community Electrical Repairs Initiative</div>
+                <div>• Participant – Technical Skills Competition 2023</div>
               </div>
             </div>
             
             {/* Referees */}
             <div>
+              <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Referees</div>
+              <div className="text-[4.8px] text-gray-700">Available upon request.</div>
+            </div>
+          </div>
+        );
+      
               <div className="font-semibold text-[5.5px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Referees</div>
               <div className="text-[4.2px] text-gray-700">Available upon request.</div>
             </div>
