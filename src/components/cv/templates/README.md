@@ -97,6 +97,28 @@ Emphasizes skills and competencies instead of chronological work history.
 - People transitioning industries
 - Those with diverse experience backgrounds
 
+### 6. Internship / Industrial Attachment Template
+
+Student-focused template emphasizing education, technical skills, and potential over work experience.
+
+**Features:**
+- ✅ Education-first layout
+- ✅ Career objective section
+- ✅ Technical skills showcase
+- ✅ Academic projects section
+- ✅ Industrial attachment/internship section
+- ✅ Extracurricular activities
+- ✅ Referees section
+- ✅ ATS-friendly
+
+**Best for:**
+- Students seeking industrial attachment
+- Internship applicants
+- Technical college students
+- Diploma students
+- TVET graduates
+- Entry-level candidates with limited work experience
+
 ## Usage
 
 ### Basic Implementation
