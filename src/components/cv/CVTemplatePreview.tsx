@@ -17,7 +17,8 @@ const templateDescriptions: Record<string, string> = {
   'Modern Professional': 'A stylized two-column design with blue accents and modern aesthetics. Ideal for corporate roles and marketing positions.',
   'Executive Leadership': 'A premium serif layout emphasizing leadership achievements and strategic impact. Perfect for directors, CEOs, and senior management.',
   'Graduate Starter CV': 'Education-focused layout prioritizing academic projects, internships, and extracurricular activities. Perfect for fresh graduates and students.',
-  'Skills-Based (Functional)': 'Emphasizes skills and competencies over chronological work history. Perfect for career changers, candidates with employment gaps, or those with strong transferable skills.'
+  'Skills-Based (Functional)': 'Emphasizes skills and competencies over chronological work history. Perfect for career changers, candidates with employment gaps, or those with strong transferable skills.',
+  'Internship / Industrial Attachment': 'Student-focused template emphasizing education, technical skills, and potential. Perfect for students seeking industrial attachment or internship opportunities.'
 };
 
 export default function CVTemplatePreview({ templateName, showDescription = false, descriptionOnly = false }: CVTemplatePreviewProps) {
@@ -634,6 +635,88 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             <div className="text-center text-gray-400">
               <div className="text-[6px] font-semibold">Classic Executive</div>
               <div className="text-[4px] mt-1">Coming Soon</div>
+            </div>
+          </div>
+        );
+      
+      case 'Internship / Industrial Attachment':
+        return (
+          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded p-2 text-[5px] leading-[1.3] overflow-hidden shadow-sm">
+            {/* Header */}
+            <div className="border-b border-gray-800 pb-1 mb-1.5">
+              <div className="font-bold text-[8px] text-gray-900">KEVIN MUTUA MULI</div>
+              <div className="text-[5.5px] text-gray-700 mt-0.5">Student – Diploma in Electrical Engineering</div>
+              <div className="text-[3.8px] text-gray-600 mt-0.5">
+                Machakos, Kenya | +254 712 345 901 | kevin.mutua@email.com | linkedin.com/in/kevin-mutua
+              </div>
+            </div>
+            
+            {/* Career Objective */}
+            <div className="mb-1.5">
+              <div className="font-semibold text-[5.5px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Career Objective</div>
+              <div className="text-[4.2px] text-gray-700">Motivated electrical engineering student seeking an industrial attachment opportunity to gain hands-on experience in electrical systems, maintenance, and engineering operations.</div>
+            </div>
+            
+            {/* Education */}
+            <div className="mb-1.5">
+              <div className="font-semibold text-[5.5px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Education</div>
+              <div className="text-[4.2px]">
+                <div className="font-semibold text-gray-900">Diploma in Electrical and Electronic Engineering</div>
+                <div className="text-gray-700">Machakos Technical Institute</div>
+                <div className="text-gray-500 text-[3.8px]">2022 – Present</div>
+              </div>
+            </div>
+            
+            {/* Technical Skills */}
+            <div className="mb-1.5">
+              <div className="font-semibold text-[5.5px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Technical Skills</div>
+              <div className="grid grid-cols-2 gap-x-1 gap-y-0.5 text-[4.2px]">
+                <div>• Electrical Installation</div>
+                <div>• Circuit Analysis</div>
+                <div>• Basic PLC Programming</div>
+                <div>• Electrical Safety</div>
+                <div>• Technical Drawing</div>
+                <div>• Microsoft Office</div>
+              </div>
+            </div>
+            
+            {/* Academic Projects */}
+            <div className="mb-1.5">
+              <div className="font-semibold text-[5.5px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Academic Projects</div>
+              <div>
+                <div className="font-semibold text-[4.2px] text-gray-900">Automatic Street Lighting System</div>
+                <div className="text-[3.8px] text-gray-500 mb-0.5">2023</div>
+                <div className="text-[4.2px] text-gray-700">Designed a light-dependent resistor system that automatically switches street lights on and off based on ambient light.</div>
+              </div>
+            </div>
+            
+            {/* Industrial Attachment */}
+            <div className="mb-1.5">
+              <div className="font-semibold text-[5.5px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Industrial Attachment</div>
+              <div>
+                <div className="font-semibold text-[4.2px] text-gray-900">Industrial Attachment Trainee — Kenya Power</div>
+                <div className="text-[3.8px] text-gray-500 mb-0.5">Machakos | May 2024 – Aug 2024</div>
+                <div className="space-y-0.5 text-[4.2px]">
+                  <div>• Assisted technicians with electrical line inspection and maintenance</div>
+                  <div>• Observed transformer servicing procedures</div>
+                  <div>• Participated in installation of electrical wiring systems</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Extracurricular Activities */}
+            <div className="mb-1.5">
+              <div className="font-semibold text-[5.5px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Extracurricular Activities</div>
+              <div className="space-y-0.5 text-[4.2px]">
+                <div>• Member – Engineering Students Association</div>
+                <div>• Volunteer – Local Community Electrical Repairs Initiative</div>
+              </div>
+            </div>
+            
+            {/* Referees */}
+            <div>
+              <div className="font-semibold text-[5.5px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Referees</div>
+              <div className="text-[4.2px] text-gray-700">Available upon request.</div>
             </div>
           </div>
         );
