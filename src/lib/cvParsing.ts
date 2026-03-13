@@ -212,3 +212,37 @@ export async function extractTextFromPDF(file: File): Promise<string> {
   // For now, we'll return a message to use the API route
   throw new Error('PDF text extraction should be done server-side');
 }
+
+// Parse CV from file (PDF, Word, or text)
+export async function parseCVFile(file: File): Promise<ParsedCVData> {
+  let cvText = '';
+
+  if (file.type === 'text/plain') {
+    // Read text file directly
+    cvText = await file.text();
+  } else if (file.type === 'application/pdf' || 
+             file.type === 'application/msword' || 
+             file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+    // For PDF and Word files, we need to use the API route
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch('/api/parse-cv', {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to parse CV file');
+    }
+
+    const result = await response.json();
+    return result.data;
+  } else {
+    throw new Error('Unsupported file type');
+  }
+
+  // Parse the text
+  const { response } = await parseCVText(cvText);
+  return response;
+}

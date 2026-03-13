@@ -12,6 +12,7 @@ import { Plus, FileText, Download, Eye, Star, Trash2, Copy, Edit } from 'lucide-
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import CVTemplatePreview from '@/components/cv/CVTemplatePreview';
+import CVTemplateSelectionDialog from '@/components/cv/CVTemplateSelectionDialog';
 import CVEditor from '@/components/cv/CVEditor';
 import CVDownloadDialog from '@/components/cv/CVDownloadDialog';
 import {
@@ -29,7 +30,9 @@ export default function CVBuilder() {
   const [cvs, setCvs] = useState<CandidateCV[]>([]);
   const [templates, setTemplates] = useState<CVTemplate[]>([]);
   const [selectedCV, setSelectedCV] = useState<CandidateCV | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<CVTemplate | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [showTemplateDialog, setShowTemplateDialog] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadCV, setDownloadCV] = useState<CandidateCV | null>(null);
@@ -185,6 +188,107 @@ export default function CVBuilder() {
   function handleDownload(cv: CandidateCV) {
     setDownloadCV(cv);
     setIsDownloading(true);
+  }
+
+  function handleTemplateClick(template: CVTemplate) {
+    setSelectedTemplate(template);
+    setShowTemplateDialog(true);
+  }
+
+  async function handleCreateNewCV(cvName: string) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !selectedTemplate) return;
+
+      const newCV = await createCV({
+        user_id: user.id,
+        template_id: selectedTemplate.id,
+        title: cvName,
+        content: {
+          personal: {},
+          experience: [],
+          education: [],
+          skills: [],
+          certifications: []
+        },
+        is_primary: cvs.length === 0
+      });
+
+      setCvs([newCV, ...cvs]);
+      setSelectedCV(newCV);
+      setIsEditing(true);
+      
+      toast({
+        title: 'Success',
+        description: 'CV created successfully. You can now edit it.'
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  }
+
+  async function handleUploadExistingCV(cvName: string, parsedData: any) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !selectedTemplate) return;
+
+      // Map parsed data to CV content structure
+      const cvContent = {
+        personal: {
+          name: parsedData.basicInfo?.full_name || '',
+          title: parsedData.professional?.current_title || '',
+          phone: parsedData.basicInfo?.phone || '',
+          email: '', // Not typically in CV
+          linkedin: parsedData.basicInfo?.linkedin_url || '',
+          location: parsedData.basicInfo?.location || '',
+          profile: parsedData.basicInfo?.bio || ''
+        },
+        experience: parsedData.workExperience?.map((exp: any) => ({
+          jobTitle: exp.job_title,
+          company: exp.company_name,
+          location: exp.location || '',
+          dates: `${exp.start_date} – ${exp.end_date || 'Present'}`,
+          details: exp.achievements || [exp.description || '']
+        })) || [],
+        education: parsedData.education?.map((edu: any) => ({
+          degree: `${edu.degree_type} in ${edu.field_of_study}`,
+          institution: edu.institution_name,
+          dates: `${edu.start_date} – ${edu.end_date || 'Present'}`
+        })) || [],
+        skills: parsedData.skills?.map((skill: any) => skill.skill_name) || [],
+        certifications: [],
+        achievements: [],
+        languages: [],
+        tools: []
+      };
+
+      const newCV = await createCV({
+        user_id: user.id,
+        template_id: selectedTemplate.id,
+        title: cvName,
+        content: cvContent,
+        is_primary: cvs.length === 0
+      });
+
+      setCvs([newCV, ...cvs]);
+      setSelectedCV(newCV);
+      setIsEditing(true);
+      
+      toast({
+        title: 'Success',
+        description: 'CV imported and mapped to template. You can now edit it.'
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
   }
 
   function getTemplateName(templateId: string | null): string {
@@ -360,16 +464,7 @@ export default function CVBuilder() {
                   <Card 
                     key={template.id} 
                     className="cursor-pointer hover:border-primary hover:shadow-lg transition-all transform hover:scale-105 group relative"
-                    onClick={() => {
-                      setIsCreating(true);
-                      setTimeout(() => {
-                        const selectElement = document.querySelector('select[name="template_id"]') as HTMLSelectElement;
-                        if (selectElement) {
-                          selectElement.value = template.id;
-                          selectElement.dispatchEvent(new Event('change', { bubbles: true }));
-                        }
-                      }, 100);
-                    }}
+                    onClick={() => handleTemplateClick(template)}
                   >
                     <CardHeader className="p-4 relative">
                       <div className="relative">
@@ -410,16 +505,7 @@ export default function CVBuilder() {
                   <Card 
                     key={template.id} 
                     className="cursor-pointer hover:border-primary hover:shadow-lg transition-all transform hover:scale-105 group relative"
-                    onClick={() => {
-                      setIsCreating(true);
-                      setTimeout(() => {
-                        const selectElement = document.querySelector('select[name="template_id"]') as HTMLSelectElement;
-                        if (selectElement) {
-                          selectElement.value = template.id;
-                          selectElement.dispatchEvent(new Event('change', { bubbles: true }));
-                        }
-                      }, 100);
-                    }}
+                    onClick={() => handleTemplateClick(template)}
                   >
                     <CardHeader className="p-4 relative">
                       <div className="relative">
@@ -472,6 +558,18 @@ export default function CVBuilder() {
           onOpenChange={setIsDownloading}
           cv={downloadCV}
           templateName={getTemplateName(downloadCV.template_id)}
+        />
+      )}
+
+      {/* CV Template Selection Dialog */}
+      {selectedTemplate && (
+        <CVTemplateSelectionDialog
+          open={showTemplateDialog}
+          onOpenChange={setShowTemplateDialog}
+          templateId={selectedTemplate.id}
+          templateName={selectedTemplate.name}
+          onCreateNew={handleCreateNewCV}
+          onUploadExisting={handleUploadExistingCV}
         />
       )}
     </div>
