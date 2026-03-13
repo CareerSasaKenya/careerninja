@@ -768,12 +768,6 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
           </div>
         );
       
-              <div className="font-semibold text-[5.5px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Referees</div>
-              <div className="text-[4.2px] text-gray-700">Available upon request.</div>
-            </div>
-          </div>
-        );
-      
       case 'Creative Designer':
         return (
           <div className="w-full aspect-[3/4] bg-gradient-to-br from-purple-50 to-white border border-gray-200 rounded p-2 flex items-center justify-center">
