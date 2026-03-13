@@ -338,7 +338,7 @@ export default function CVBuilder() {
       {/* CV Templates Gallery */}
       <Card>
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Expertly-Designed CV Templates</CardTitle>
+          <CardTitle className="text-2xl text-[#0A66C2]">Expertly-Designed CV Templates</CardTitle>
           <CardDescription className="text-base mt-2 max-w-3xl mx-auto">
             Choose from our expertly designed templates tailored for the Kenyan job market. 
             Each template is ATS-friendly and crafted to help you stand out to employers.
@@ -348,7 +348,7 @@ export default function CVBuilder() {
           {/* Professional CV Templates Section */}
           <div>
             <div className="mb-4 text-center">
-              <h3 className="text-xl font-semibold text-gray-900">Professional CV Templates</h3>
+              <h3 className="text-xl font-semibold text-[#0A66C2]">Professional CV Templates</h3>
               <p className="text-sm text-muted-foreground mt-1 max-w-3xl mx-auto">
                 Designed for experienced professionals with established careers, emphasizing work history, achievements, and leadership.
               </p>
@@ -374,7 +374,7 @@ export default function CVBuilder() {
                     <CardHeader className="p-4">
                       <CVTemplatePreview templateName={template.name} showDescription={false} />
                       <div className="mt-4 space-y-2">
-                        <CardTitle className="text-base">{template.name}</CardTitle>
+                        <CardTitle className="text-base text-[#0A66C2]">{template.name}</CardTitle>
                         <CVTemplatePreview templateName={template.name} showDescription={true} descriptionOnly={true} />
                         {template.is_premium && (
                           <Badge variant="secondary" className="w-fit">Premium</Badge>
@@ -389,7 +389,7 @@ export default function CVBuilder() {
           {/* Entry-Level / Graduate CV Templates Section */}
           <div>
             <div className="mb-4 text-center">
-              <h3 className="text-xl font-semibold text-gray-900">Entry-Level / Graduate CV Templates</h3>
+              <h3 className="text-xl font-semibold text-[#0A66C2]">Entry-Level / Graduate CV Templates</h3>
               <p className="text-sm text-muted-foreground mt-1 max-w-3xl mx-auto">
                 Specifically designed for students, fresh graduates, and entry-level candidates with limited work experience. 
                 These templates emphasize education, skills, potential, and transferable competencies.
@@ -416,7 +416,7 @@ export default function CVBuilder() {
                     <CardHeader className="p-4">
                       <CVTemplatePreview templateName={template.name} showDescription={false} />
                       <div className="mt-4 space-y-2">
-                        <CardTitle className="text-base">{template.name}</CardTitle>
+                        <CardTitle className="text-base text-[#0A66C2]">{template.name}</CardTitle>
                         <CVTemplatePreview templateName={template.name} showDescription={true} descriptionOnly={true} />
                         {template.is_premium && (
                           <Badge variant="secondary" className="w-fit">Premium</Badge>
