@@ -374,8 +374,8 @@ export default function CVBuilder() {
                     <CardHeader className="p-4 relative">
                       <div className="relative">
                         <CVTemplatePreview templateName={template.name} showDescription={false} />
-                        {/* Hover Overlay */}
-                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center rounded">
+                        {/* Hover Button */}
+                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center rounded pointer-events-none">
                           <div className="bg-orange-500 text-white px-6 py-3 rounded-full font-semibold text-sm shadow-lg">
                             Use This Template
                           </div>
@@ -424,8 +424,8 @@ export default function CVBuilder() {
                     <CardHeader className="p-4 relative">
                       <div className="relative">
                         <CVTemplatePreview templateName={template.name} showDescription={false} />
-                        {/* Hover Overlay */}
-                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center rounded">
+                        {/* Hover Button */}
+                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center rounded pointer-events-none">
                           <div className="bg-orange-500 text-white px-6 py-3 rounded-full font-semibold text-sm shadow-lg">
                             Use This Template
                           </div>
