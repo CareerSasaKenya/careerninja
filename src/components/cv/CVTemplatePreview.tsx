@@ -20,7 +20,8 @@ const templateDescriptions: Record<string, string> = {
   'Skills-Based (Functional)': 'Emphasizes skills and competencies over chronological work history. Perfect for career changers, candidates with employment gaps, or those with strong transferable skills.',
   'Internship / Industrial Attachment': 'Student-focused template emphasizing education, technical skills, and potential. Perfect for students seeking industrial attachment or internship opportunities.',
   'Creative Portfolio': 'Eye-catching template with bold sidebar design showcasing portfolio projects prominently. Perfect for graphic designers, UI/UX designers, photographers, and creative professionals.',
-  'Digital Professional': 'Tech-focused template with dark sidebar highlighting tech stack, tools, and certifications. Perfect for software developers, data scientists, IT professionals, and digital specialists.'
+  'Digital Professional': 'Tech-focused template with dark sidebar highlighting tech stack, tools, and certifications. Perfect for software developers, data scientists, IT professionals, and digital specialists.',
+  'Personal Brand CV': 'Designed for professionals whose reputation and public presence matter. Perfect for consultants, marketing professionals, speakers, influencers, coaches, and content creators. Highlights personal tagline, online presence, media features, and speaking engagements.'
 };
 
 export default function CVTemplatePreview({ templateName, showDescription = false, descriptionOnly = false }: CVTemplatePreviewProps) {
@@ -995,6 +996,125 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                   <div className="font-semibold text-[3.5px]">BSc Computer Science</div>
                   <div className="text-[3.5px]">University of Nairobi</div>
                   <div className="text-[3px] text-gray-600">2016 – 2020</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      
+      case 'Personal Brand CV':
+        return (
+          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded overflow-hidden flex text-[4px] leading-[1.3]">
+            {/* Left Sidebar */}
+            <div className="w-[35%] bg-gray-100 p-2">
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5px] text-indigo-700 mb-0.5">CONTACT</div>
+                <div className="text-[3.5px] space-y-0.5">
+                  <div>Nairobi, Kenya</div>
+                  <div>+254 712 555 444</div>
+                  <div>grace@email.com</div>
+                </div>
+              </div>
+              
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5px] text-indigo-700 mb-0.5">ONLINE PRESENCE</div>
+                <div className="text-[3.5px] space-y-0.5">
+                  <div>LinkedIn: /gracemwangi</div>
+                  <div>Twitter: @gracebrands</div>
+                  <div>Website: gracemwangi.co.ke</div>
+                </div>
+              </div>
+              
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5px] text-indigo-700 mb-0.5">KEY SKILLS</div>
+                <div className="text-[3.5px] space-y-0.5">
+                  <div>• Brand Strategy</div>
+                  <div>• Digital Marketing</div>
+                  <div>• Public Speaking</div>
+                  <div>• Content Marketing</div>
+                  <div>• Personal Branding</div>
+                  <div>• Social Media</div>
+                </div>
+              </div>
+              
+              <div>
+                <div className="font-semibold text-[5px] text-indigo-700 mb-0.5">CERTIFICATIONS</div>
+                <div className="text-[3.5px] space-y-0.5">
+                  <div>• Google Digital Marketing</div>
+                  <div>• HubSpot Content</div>
+                  <div>• Facebook Blueprint</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Right Main Content */}
+            <div className="flex-1 p-2">
+              {/* Header */}
+              <div className="bg-indigo-600 text-white p-1.5 mb-1.5 -mx-2 -mt-2">
+                <div className="font-bold text-[7px]">GRACE WANJIKU MWANGI</div>
+                <div className="text-[4.5px]">Marketing Strategist | Brand Storyteller</div>
+              </div>
+              
+              {/* Profile */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[4.5px] border-b-2 border-indigo-600 pb-0.5 mb-0.5">PERSONAL PROFILE</div>
+                <div className="text-[3.5px] text-gray-700">Award-winning marketing strategist with 8+ years helping brands build connections through storytelling and digital marketing.</div>
+              </div>
+              
+              {/* Publications */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[4.5px] border-b-2 border-indigo-600 pb-0.5 mb-0.5">PUBLICATIONS & MEDIA</div>
+                <div className="space-y-0.5 text-[3.5px]">
+                  <div>
+                    <div className="font-semibold">Building Authentic Brands in Africa</div>
+                    <div className="text-gray-600">Marketing Africa Magazine | 2024</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold">SME Digital Marketing Guide</div>
+                    <div className="text-gray-600">Business Daily Kenya | 2023</div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Speaking */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[4.5px] border-b-2 border-indigo-600 pb-0.5 mb-0.5">SPEAKING ENGAGEMENTS</div>
+                <div className="space-y-0.5 text-[3.5px]">
+                  <div>
+                    <div className="font-semibold">Nairobi Digital Marketing Summit</div>
+                    <div className="text-gray-600">Nairobi | 2024</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold">Kenya SME Growth Forum</div>
+                    <div className="text-gray-600">Nairobi | 2023</div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Experience */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[4.5px] border-b-2 border-indigo-600 pb-0.5 mb-0.5">EXPERIENCE</div>
+                <div className="space-y-1">
+                  <div>
+                    <div className="font-semibold text-[3.5px]">Marketing Consultant — BrandGrow</div>
+                    <div className="text-[3px] text-gray-600">Nairobi | 2021 – Present</div>
+                    <div className="text-[3.5px]">Lead brand strategy for 20+ clients. 150% ROI improvement.</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-[3.5px]">Marketing Manager — BrightWave</div>
+                    <div className="text-[3px] text-gray-600">Nairobi | 2018 – 2021</div>
+                    <div className="text-[3.5px]">Managed campaigns for major brands. Led team of 8.</div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Education */}
+              <div>
+                <div className="font-semibold text-[4.5px] border-b-2 border-indigo-600 pb-0.5 mb-0.5">EDUCATION</div>
+                <div>
+                  <div className="font-semibold text-[3.5px]">BCom Marketing - First Class</div>
+                  <div className="text-[3.5px]">Kenyatta University</div>
+                  <div className="text-[3px] text-gray-600">2013 – 2017</div>
                 </div>
               </div>
             </div>
