@@ -18,7 +18,8 @@ const templateDescriptions: Record<string, string> = {
   'Executive Leadership': 'A premium serif layout emphasizing leadership achievements and strategic impact. Perfect for directors, CEOs, and senior management.',
   'Graduate Starter CV': 'Education-focused layout prioritizing academic projects, internships, and extracurricular activities. Perfect for fresh graduates and students.',
   'Skills-Based (Functional)': 'Emphasizes skills and competencies over chronological work history. Perfect for career changers, candidates with employment gaps, or those with strong transferable skills.',
-  'Internship / Industrial Attachment': 'Student-focused template emphasizing education, technical skills, and potential. Perfect for students seeking industrial attachment or internship opportunities.'
+  'Internship / Industrial Attachment': 'Student-focused template emphasizing education, technical skills, and potential. Perfect for students seeking industrial attachment or internship opportunities.',
+  'Creative Portfolio': 'Eye-catching template with bold sidebar design showcasing portfolio projects prominently. Perfect for graphic designers, UI/UX designers, photographers, and creative professionals.'
 };
 
 export default function CVTemplatePreview({ templateName, showDescription = false, descriptionOnly = false }: CVTemplatePreviewProps) {
@@ -764,6 +765,98 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             <div>
               <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Referees</div>
               <div className="text-[4.8px] text-gray-700">Available upon request.</div>
+            </div>
+          </div>
+        );
+      
+      case 'Creative Portfolio':
+        return (
+          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded overflow-hidden flex text-[4.5px] leading-[1.3]">
+            {/* Left Sidebar */}
+            <div className="w-[33%] bg-indigo-600 text-white p-2">
+              <div className="font-bold text-[7px] mb-1">BRIAN MWANGI KIMANI</div>
+              <div className="text-[5px] opacity-90 mb-1.5">Graphic Designer | Brand Identity</div>
+              
+              <div className="text-[4px] mb-1.5 space-y-0.5">
+                <div>📍 Nairobi, Kenya</div>
+                <div>📞 +254 712 567 890</div>
+                <div>✉ brian.kimani@email.com</div>
+                <div>🌐 briankimani.design</div>
+              </div>
+              
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5px] mb-1">Core Skills</div>
+                <div className="space-y-0.5 text-[4px]">
+                  <div>• Brand Identity Design</div>
+                  <div>• Logo Design</div>
+                  <div>• Typography</div>
+                  <div>• Social Media Graphics</div>
+                  <div>• Illustration</div>
+                  <div>• Visual Storytelling</div>
+                </div>
+              </div>
+              
+              <div>
+                <div className="font-semibold text-[5px] mb-1">Design Tools</div>
+                <div className="space-y-0.5 text-[4px]">
+                  <div>• Adobe Photoshop</div>
+                  <div>• Adobe Illustrator</div>
+                  <div>• Figma</div>
+                  <div>• Canva</div>
+                  <div>• After Effects</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Right Main Content */}
+            <div className="flex-1 p-2">
+              {/* Creative Profile */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5.5px] border-b-2 border-indigo-600 pb-0.5 mb-1">Creative Profile</div>
+                <div className="text-[4px] text-gray-700">Creative graphic designer with over 5 years of experience creating brand identities, digital marketing visuals, and social media campaigns.</div>
+              </div>
+              
+              {/* Portfolio Projects */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5.5px] border-b-2 border-indigo-600 pb-0.5 mb-1">Portfolio Projects</div>
+                <div className="space-y-1">
+                  <div>
+                    <div className="font-semibold text-[4px]">Brand Identity – Nairobi Coffee Co.</div>
+                    <div className="text-[3.5px] text-gray-500">Nairobi Coffee Co. | 2024</div>
+                    <div className="text-[4px]">Designed full brand identity including logo, packaging, and social media visuals for local coffee startup.</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-[4px]">Digital Campaign Graphics</div>
+                    <div className="text-[3.5px] text-gray-500">Safaricom SME Campaign | 2023</div>
+                    <div className="text-[4px]">Created marketing graphics used across social media ads and digital platforms.</div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Work Experience */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5.5px] border-b-2 border-indigo-600 pb-0.5 mb-1">Work Experience</div>
+                <div className="space-y-1">
+                  <div>
+                    <div className="font-semibold text-[4px]">Senior Graphic Designer — Creative Edge Agency</div>
+                    <div className="text-[3.5px] text-gray-500">Nairobi | 2022 – Present</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-[4px]">Graphic Designer — Pixel Studio</div>
+                    <div className="text-[3.5px] text-gray-500">Nairobi | 2020 – 2022</div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Education */}
+              <div>
+                <div className="font-semibold text-[5.5px] border-b-2 border-indigo-600 pb-0.5 mb-1">Education</div>
+                <div>
+                  <div className="font-semibold text-[4px]">Diploma in Graphic Design</div>
+                  <div className="text-[4px]">Nairobi Institute of Technology</div>
+                  <div className="text-[3.5px] text-gray-500">2017 – 2019</div>
+                </div>
+              </div>
             </div>
           </div>
         );

@@ -489,6 +489,47 @@ export default function CVBuilder() {
             </div>
           </div>
 
+          {/* Creative CV Templates Section */}
+          <div>
+            <div className="mb-4 text-center">
+              <h3 className="text-xl font-semibold text-[#0A66C2]">Creative CV Templates</h3>
+              <p className="text-sm text-muted-foreground mt-1 max-w-3xl mx-auto">
+                Designed for creative professionals who want to showcase their portfolio work and personality. 
+                These templates emphasize visual impact and creative projects.
+              </p>
+            </div>
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+              {templates
+                .filter(t => ['Creative Portfolio'].includes(t.name))
+                .map(template => (
+                  <Card 
+                    key={template.id} 
+                    className="cursor-pointer hover:border-primary hover:shadow-lg transition-all transform hover:scale-105 group relative"
+                    onClick={() => handleTemplateClick(template)}
+                  >
+                    <CardHeader className="p-4 relative">
+                      <div className="relative">
+                        <CVTemplatePreview templateName={template.name} showDescription={false} />
+                        {/* Hover Button */}
+                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center rounded pointer-events-none">
+                          <div className="bg-orange-500 text-white px-6 py-3 rounded-full font-semibold text-sm shadow-lg">
+                            Use This Template
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-4 space-y-2">
+                        <CardTitle className="text-base text-[#0A66C2]">{template.name}</CardTitle>
+                        <CVTemplatePreview templateName={template.name} showDescription={true} descriptionOnly={true} />
+                        {template.is_premium && (
+                          <Badge variant="secondary" className="w-fit">Premium</Badge>
+                        )}
+                      </div>
+                    </CardHeader>
+                  </Card>
+                ))}
+            </div>
+          </div>
+
           {/* Entry-Level / Graduate CV Templates Section */}
           <div>
             <div className="mb-4 text-center">
