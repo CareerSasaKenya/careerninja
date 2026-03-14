@@ -2,21 +2,21 @@
 -- Description: Template designed for professionals whose reputation and public presence matter
 -- Typical users: Consultants, Marketing professionals, Speakers, Influencers, Coaches, Content creators
 
+-- First, check if the template already exists and delete it if it does
+DELETE FROM cv_templates WHERE name = 'Personal Brand CV';
+
+-- Insert the new Personal Brand CV template
 INSERT INTO cv_templates (
   name,
   description,
   category,
-  preview_image_url,
+  template_data,
   is_premium,
-  sort_order,
-  template_data
+  is_active
 ) VALUES (
   'Personal Brand CV',
   'Designed for professionals whose reputation, voice, and public presence matter as much as their work history. Perfect for consultants, marketing professionals, public speakers, influencers, coaches, and content creators. Highlights personal tagline, online presence, media features, speaking engagements, and publications.',
   'creative_digital',
-  '/templates/personal-brand-preview.png',
-  false,
-  109,
   jsonb_build_object(
     'component', 'PersonalBrandTemplate',
     'sections', jsonb_build_array(
@@ -160,21 +160,10 @@ INSERT INTO cv_templates (
         'Professional Speaker Certification'
       )
     )
-  )
+  ),
+  false,
+  true
 );
 
--- Verify the template was created
-DO $$
-DECLARE
-  template_count INTEGER;
-BEGIN
-  SELECT COUNT(*) INTO template_count
-  FROM cv_templates
-  WHERE name = 'Personal Brand CV';
-  
-  IF template_count = 0 THEN
-    RAISE EXCEPTION 'Failed to create Personal Brand CV template';
-  ELSE
-    RAISE NOTICE 'Personal Brand CV template created successfully';
-  END IF;
-END $$;
+-- Add comment for documentation
+COMMENT ON TABLE cv_templates IS 'Stores CV template definitions with metadata and configuration';
