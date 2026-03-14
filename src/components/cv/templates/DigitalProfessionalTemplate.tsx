@@ -35,6 +35,9 @@ interface DigitalProfessionalData {
   }>;
   achievements?: string[];
   languages?: string[];
+  openSource?: string[];
+  technicalWriting?: string[];
+  volunteerWork?: string[];
 }
 
 interface DigitalProfessionalTemplateProps {
@@ -195,7 +198,7 @@ export default function DigitalProfessionalTemplate({ data }: DigitalProfessiona
 
         {/* Achievements */}
         {data.achievements && data.achievements.length > 0 && (
-          <section>
+          <section className="mb-5">
             <h2 className="text-base font-semibold border-b-2 border-gray-900 pb-1 mb-2">
               Key Achievements
             </h2>
@@ -203,6 +206,54 @@ export default function DigitalProfessionalTemplate({ data }: DigitalProfessiona
               {data.achievements.map((achievement, index) => (
                 <li key={index} className="leading-relaxed">
                   • {achievement}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* Open Source Contributions */}
+        {data.openSource && data.openSource.length > 0 && (
+          <section className="mb-5">
+            <h2 className="text-base font-semibold border-b-2 border-gray-900 pb-1 mb-2">
+              Open Source Contributions
+            </h2>
+            <ul className="text-xs space-y-1">
+              {data.openSource.map((contribution, index) => (
+                <li key={index} className="leading-relaxed">
+                  • {contribution}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* Technical Writing */}
+        {data.technicalWriting && data.technicalWriting.length > 0 && (
+          <section className="mb-5">
+            <h2 className="text-base font-semibold border-b-2 border-gray-900 pb-1 mb-2">
+              Technical Writing & Publications
+            </h2>
+            <ul className="text-xs space-y-1">
+              {data.technicalWriting.map((article, index) => (
+                <li key={index} className="leading-relaxed">
+                  • {article}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* Volunteer Work */}
+        {data.volunteerWork && data.volunteerWork.length > 0 && (
+          <section>
+            <h2 className="text-base font-semibold border-b-2 border-gray-900 pb-1 mb-2">
+              Volunteer & Community Work
+            </h2>
+            <ul className="text-xs space-y-1">
+              {data.volunteerWork.map((work, index) => (
+                <li key={index} className="leading-relaxed">
+                  • {work}
                 </li>
               ))}
             </ul>

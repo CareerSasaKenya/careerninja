@@ -147,5 +147,23 @@ export const digitalProfessionalPreviewData = {
     "Swahili – Fluent",
     "JavaScript – Native",
     "Python – Proficient"
+  ],
+
+  openSource: [
+    "React Admin Dashboard - 250+ stars on GitHub",
+    "Kenya Payment Gateway SDK - 180+ stars",
+    "East Africa Timezone Library - 120+ stars"
+  ],
+
+  technicalWriting: [
+    "Building Scalable APIs with Node.js - Dev.to (5K+ views)",
+    "React Performance Optimization Guide - Medium (3K+ views)",
+    "Database Design Best Practices - Personal Blog"
+  ],
+
+  volunteerWork: [
+    "Code Mentor - Moringa School (2022-Present)",
+    "Tech Workshop Facilitator - iHub Nairobi",
+    "Open Source Contributor - Various Projects"
   ]
 };

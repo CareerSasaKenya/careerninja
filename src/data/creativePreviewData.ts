@@ -119,5 +119,25 @@ export const creativePreviewData = {
     "Photography",
     "African Art & Culture",
     "Sustainable Design"
+  ],
+
+  clients: [
+    "Safaricom Limited",
+    "Kenya Commercial Bank (KCB)",
+    "Nairobi Coffee Co.",
+    "Zuri Fashion Boutique",
+    "Kenya Wildlife Foundation",
+    "Mama Oliech's Restaurant",
+    "Nairobi Jazz Festival",
+    "East African Breweries",
+    "Tusker Project Fame",
+    "Equity Bank Kenya"
+  ],
+
+  professionalMemberships: [
+    "Member - Kenya Institute of Marketing (KIM)",
+    "Member - Design Society of Kenya",
+    "Member - African Creative Network",
+    "Volunteer Mentor - Nairobi Design Week"
   ]
 };

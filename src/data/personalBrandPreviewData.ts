@@ -176,5 +176,17 @@ export const personalBrandPreviewData = {
     "Guest Columnist - Business Daily Kenya (Monthly, 2023-Present)",
     "Podcast Interview - The Marketing Show Africa (2023)",
     "Profile Feature - Marketing Africa Magazine (2022)"
+  ],
+
+  clientTestimonials: [
+    "Grace transformed our brand identity and helped us secure major retail partnerships. Her strategic approach delivered results beyond our expectations. - CEO, Nairobi Coffee Co.",
+    "Working with Grace was a game-changer for our digital presence. She increased our social media engagement by 300% in just 6 months. - Marketing Director, Safaricom SME"
+  ],
+
+  professionalAffiliations: [
+    "Member - Marketing Society of Kenya (MSK)",
+    "Member - Kenya Speakers Association",
+    "Board Member - Young Marketing Professionals Network",
+    "Mentor - Women in Marketing Initiative"
   ]
 };

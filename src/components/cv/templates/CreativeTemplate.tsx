@@ -34,6 +34,8 @@ interface CreativeTemplateProps {
     awards?: string[];
     languages?: string[];
     interests?: string[];
+    clients?: string[];
+    professionalMemberships?: string[];
   };
 }
 
@@ -162,13 +164,41 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
 
         {/* Awards */}
         {data.awards && data.awards.length > 0 && (
-          <section>
+          <section className="mb-6">
             <h2 className="text-lg font-semibold border-b-2 border-indigo-600 pb-1 mb-2">
               Awards & Recognition
             </h2>
             <ul className="text-sm space-y-1">
               {data.awards.map((award, index) => (
                 <li key={index}>• {award}</li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* Notable Clients */}
+        {data.clients && data.clients.length > 0 && (
+          <section className="mb-6">
+            <h2 className="text-lg font-semibold border-b-2 border-indigo-600 pb-1 mb-2">
+              Notable Clients
+            </h2>
+            <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
+              {data.clients.map((client, index) => (
+                <div key={index}>• {client}</div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Professional Memberships */}
+        {data.professionalMemberships && data.professionalMemberships.length > 0 && (
+          <section>
+            <h2 className="text-lg font-semibold border-b-2 border-indigo-600 pb-1 mb-2">
+              Professional Memberships
+            </h2>
+            <ul className="text-sm space-y-1">
+              {data.professionalMemberships.map((membership, index) => (
+                <li key={index}>• {membership}</li>
               ))}
             </ul>
           </section>

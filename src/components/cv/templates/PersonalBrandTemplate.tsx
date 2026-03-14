@@ -36,6 +36,8 @@ interface PersonalBrandData {
   certifications?: string[];
   awards?: string[];
   mediaFeatures?: string[];
+  clientTestimonials?: string[];
+  professionalAffiliations?: string[];
 }
 
 interface PersonalBrandTemplateProps {
@@ -181,13 +183,41 @@ export default function PersonalBrandTemplate({ data }: PersonalBrandTemplatePro
 
           {/* Media Features */}
           {data.mediaFeatures && data.mediaFeatures.length > 0 && (
-            <section>
+            <section className="mb-5">
               <h2 className="text-base font-semibold border-b-2 border-indigo-600 pb-1 mb-2">
                 MEDIA FEATURES
               </h2>
               <ul className="text-xs space-y-1">
                 {data.mediaFeatures.map((feature, index) => (
                   <li key={index} className="leading-relaxed">• {feature}</li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {/* Client Testimonials */}
+          {data.clientTestimonials && data.clientTestimonials.length > 0 && (
+            <section className="mb-5">
+              <h2 className="text-base font-semibold border-b-2 border-indigo-600 pb-1 mb-2">
+                CLIENT TESTIMONIALS
+              </h2>
+              {data.clientTestimonials.map((testimonial, index) => (
+                <p key={index} className="text-xs leading-relaxed mb-2 italic">
+                  "{testimonial}"
+                </p>
+              ))}
+            </section>
+          )}
+
+          {/* Professional Affiliations */}
+          {data.professionalAffiliations && data.professionalAffiliations.length > 0 && (
+            <section>
+              <h2 className="text-base font-semibold border-b-2 border-indigo-600 pb-1 mb-2">
+                PROFESSIONAL AFFILIATIONS
+              </h2>
+              <ul className="text-xs space-y-1">
+                {data.professionalAffiliations.map((affiliation, index) => (
+                  <li key={index} className="leading-relaxed">• {affiliation}</li>
                 ))}
               </ul>
             </section>
