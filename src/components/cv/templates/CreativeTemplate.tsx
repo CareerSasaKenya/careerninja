@@ -24,6 +24,7 @@ interface CreativeTemplateProps {
       company: string;
       location: string;
       dates: string;
+      description?: string;
     }>;
     education: Array<{
       degree: string;
@@ -134,9 +135,12 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
               <p className="text-sm font-semibold">
                 {job.role} — {job.company}
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500 mb-1">
                 {job.location} | {job.dates}
               </p>
+              {job.description && (
+                <p className="text-sm leading-relaxed">{job.description}</p>
+              )}
             </div>
           ))}
         </section>

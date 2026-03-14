@@ -69,19 +69,22 @@ export const creativePreviewData = {
       role: "Senior Graphic Designer",
       company: "Creative Edge Agency",
       location: "Nairobi",
-      dates: "2022 – Present"
+      dates: "2022 – Present",
+      description: "Lead designer for major client accounts including Safaricom, KCB Bank, and Equity Bank. Manage design projects from concept to delivery, supervise junior designers, and present creative concepts to clients. Increased client retention rate by 35% through exceptional design quality and client service."
     },
     {
       role: "Graphic Designer",
       company: "Pixel Studio",
       location: "Nairobi",
-      dates: "2020 – 2022"
+      dates: "2020 – 2022",
+      description: "Created brand identities, marketing materials, and digital designs for 30+ clients across retail, hospitality, and tech sectors. Collaborated with marketing teams to develop integrated campaigns. Won 'Best Brand Identity' award at Kenya Design Awards 2021 for Nairobi Coffee Co. project."
     },
     {
       role: "Junior Designer",
       company: "Design Hub Kenya",
       location: "Nairobi",
-      dates: "2019 – 2020"
+      dates: "2019 – 2020",
+      description: "Assisted senior designers with logo design, social media graphics, and print materials. Learned industry-standard design processes and client management. Contributed to over 50 successful projects and developed strong foundation in Adobe Creative Suite."
     }
   ],
 
@@ -90,13 +93,20 @@ export const creativePreviewData = {
       degree: "Diploma in Graphic Design",
       institution: "Nairobi Institute of Technology",
       dates: "2017 – 2019"
+    },
+    {
+      degree: "Certificate in Digital Marketing",
+      institution: "Strathmore University",
+      dates: "2020"
     }
   ],
 
   awards: [
     "Best Brand Identity Design – Kenya Design Awards 2023",
     "Creative Excellence Award – East Africa Advertising Summit 2022",
-    "Rising Designer of the Year – Nairobi Creative Week 2021"
+    "Rising Designer of the Year – Nairobi Creative Week 2021",
+    "Gold Award for Print Design – Nairobi Design Festival 2022",
+    "People's Choice Award – Kenya Creative Showcase 2021"
   ],
 
   languages: [
