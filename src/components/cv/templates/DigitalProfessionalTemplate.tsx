@@ -33,6 +33,8 @@ interface DigitalProfessionalData {
     dates: string;
     gpa?: string;
   }>;
+  achievements?: string[];
+  languages?: string[];
 }
 
 interface DigitalProfessionalTemplateProps {
@@ -86,7 +88,7 @@ export default function DigitalProfessionalTemplate({ data }: DigitalProfessiona
         </section>
 
         {/* Certifications */}
-        <section>
+        <section className="mb-5">
           <h2 className="font-semibold mb-2 text-sm border-b border-gray-700 pb-1">
             Certifications
           </h2>
@@ -98,6 +100,22 @@ export default function DigitalProfessionalTemplate({ data }: DigitalProfessiona
             ))}
           </ul>
         </section>
+
+        {/* Languages */}
+        {data.languages && data.languages.length > 0 && (
+          <section>
+            <h2 className="font-semibold mb-2 text-sm border-b border-gray-700 pb-1">
+              Languages
+            </h2>
+            <ul className="text-xs space-y-1">
+              {data.languages.map((lang, index) => (
+                <li key={index} className="leading-relaxed">
+                  {lang}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </aside>
 
       {/* Main Content */}
@@ -158,7 +176,7 @@ export default function DigitalProfessionalTemplate({ data }: DigitalProfessiona
         </section>
 
         {/* Education */}
-        <section>
+        <section className="mb-5">
           <h2 className="text-base font-semibold border-b-2 border-gray-900 pb-1 mb-2">
             Education
           </h2>
@@ -174,6 +192,22 @@ export default function DigitalProfessionalTemplate({ data }: DigitalProfessiona
             </div>
           ))}
         </section>
+
+        {/* Achievements */}
+        {data.achievements && data.achievements.length > 0 && (
+          <section>
+            <h2 className="text-base font-semibold border-b-2 border-gray-900 pb-1 mb-2">
+              Key Achievements
+            </h2>
+            <ul className="text-xs space-y-1">
+              {data.achievements.map((achievement, index) => (
+                <li key={index} className="leading-relaxed">
+                  • {achievement}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </main>
     </div>
   );

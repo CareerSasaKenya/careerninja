@@ -91,5 +91,23 @@ export const creativePreviewData = {
       institution: "Nairobi Institute of Technology",
       dates: "2017 – 2019"
     }
+  ],
+
+  awards: [
+    "Best Brand Identity Design – Kenya Design Awards 2023",
+    "Creative Excellence Award – East Africa Advertising Summit 2022",
+    "Rising Designer of the Year – Nairobi Creative Week 2021"
+  ],
+
+  languages: [
+    "English – Fluent",
+    "Swahili – Fluent"
+  ],
+
+  interests: [
+    "Typography & Lettering",
+    "Photography",
+    "African Art & Culture",
+    "Sustainable Design"
   ]
 };

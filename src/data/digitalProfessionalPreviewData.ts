@@ -117,5 +117,20 @@ export const digitalProfessionalPreviewData = {
       dates: "2016 – 2020",
       gpa: "3.7/4.0"
     }
+  ],
+
+  achievements: [
+    "Led migration of legacy system to microservices architecture, improving scalability by 300%",
+    "Reduced API response time from 2s to 200ms through optimization and caching strategies",
+    "Mentored 5 junior developers who were promoted to mid-level positions",
+    "Contributed to 3 open-source projects with 500+ GitHub stars combined",
+    "Implemented automated testing suite increasing code coverage from 40% to 85%"
+  ],
+
+  languages: [
+    "English – Fluent",
+    "Swahili – Fluent",
+    "JavaScript – Native",
+    "Python – Proficient"
   ]
 };

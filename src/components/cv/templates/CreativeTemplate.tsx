@@ -30,6 +30,9 @@ interface CreativeTemplateProps {
       institution: string;
       dates: string;
     }>;
+    awards?: string[];
+    languages?: string[];
+    interests?: string[];
   };
 }
 
@@ -59,7 +62,7 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
         </section>
 
         {/* Tools */}
-        <section>
+        <section className="mb-6">
           <h2 className="font-semibold mb-2 text-base">Design Tools</h2>
           <ul className="text-sm space-y-1">
             {data.tools.map((tool, index) => (
@@ -67,6 +70,30 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
             ))}
           </ul>
         </section>
+
+        {/* Languages */}
+        {data.languages && data.languages.length > 0 && (
+          <section className="mb-6">
+            <h2 className="font-semibold mb-2 text-base">Languages</h2>
+            <ul className="text-sm space-y-1">
+              {data.languages.map((lang, index) => (
+                <li key={index}>{lang}</li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* Interests */}
+        {data.interests && data.interests.length > 0 && (
+          <section>
+            <h2 className="font-semibold mb-2 text-base">Interests</h2>
+            <ul className="text-sm space-y-1">
+              {data.interests.map((interest, index) => (
+                <li key={index}>• {interest}</li>
+              ))}
+            </ul>
+          </section>
+        )}
       </aside>
 
       {/* Main Content */}
@@ -115,7 +142,7 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
         </section>
 
         {/* Education */}
-        <section>
+        <section className="mb-6">
           <h2 className="text-lg font-semibold border-b-2 border-indigo-600 pb-1 mb-2">
             Education
           </h2>
@@ -128,6 +155,20 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
             </div>
           ))}
         </section>
+
+        {/* Awards */}
+        {data.awards && data.awards.length > 0 && (
+          <section>
+            <h2 className="text-lg font-semibold border-b-2 border-indigo-600 pb-1 mb-2">
+              Awards & Recognition
+            </h2>
+            <ul className="text-sm space-y-1">
+              {data.awards.map((award, index) => (
+                <li key={index}>• {award}</li>
+              ))}
+            </ul>
+          </section>
+        )}
       </main>
     </div>
   );
