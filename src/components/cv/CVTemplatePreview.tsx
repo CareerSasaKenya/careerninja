@@ -793,10 +793,12 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                   <div>• Social Media Graphics</div>
                   <div>• Illustration</div>
                   <div>• Visual Storytelling</div>
+                  <div>• Print Design</div>
+                  <div>• Digital Marketing</div>
                 </div>
               </div>
               
-              <div>
+              <div className="mb-1.5">
                 <div className="font-semibold text-[5px] mb-1">Design Tools</div>
                 <div className="space-y-0.5 text-[4px]">
                   <div>• Adobe Photoshop</div>
@@ -804,6 +806,16 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                   <div>• Figma</div>
                   <div>• Canva</div>
                   <div>• After Effects</div>
+                  <div>• InDesign</div>
+                  <div>• Sketch</div>
+                </div>
+              </div>
+              
+              <div>
+                <div className="font-semibold text-[5px] mb-1">Languages</div>
+                <div className="space-y-0.5 text-[4px]">
+                  <div>• English - Fluent</div>
+                  <div>• Swahili - Native</div>
                 </div>
               </div>
             </div>
@@ -813,7 +825,7 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               {/* Creative Profile */}
               <div className="mb-1.5">
                 <div className="font-semibold text-[5.5px] border-b-2 border-indigo-600 pb-0.5 mb-1">Creative Profile</div>
-                <div className="text-[4px] text-gray-700">Creative graphic designer with over 5 years of experience creating brand identities, digital marketing visuals, and social media campaigns.</div>
+                <div className="text-[4px] text-gray-700">Creative graphic designer with over 5 years of experience creating brand identities, digital marketing visuals, and social media campaigns. Passionate about crafting designs that communicate brand stories effectively and resonate with target audiences.</div>
               </div>
               
               {/* Portfolio Projects */}
@@ -823,12 +835,17 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                   <div>
                     <div className="font-semibold text-[4px]">Brand Identity – Nairobi Coffee Co.</div>
                     <div className="text-[3.5px] text-gray-500">Nairobi Coffee Co. | 2024</div>
-                    <div className="text-[4px]">Designed full brand identity including logo, packaging, and social media visuals for local coffee startup.</div>
+                    <div className="text-[4px]">Designed full brand identity including logo, packaging, and social media visuals for local coffee startup. Created warm, approachable brand celebrating Kenyan coffee culture.</div>
                   </div>
                   <div>
                     <div className="font-semibold text-[4px]">Digital Campaign Graphics</div>
                     <div className="text-[3.5px] text-gray-500">Safaricom SME Campaign | 2023</div>
-                    <div className="text-[4px]">Created marketing graphics used across social media ads and digital platforms.</div>
+                    <div className="text-[4px]">Created marketing graphics used across social media ads and digital platforms. Developed over 50 unique assets increasing engagement by 40%.</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-[4px]">E-commerce Website Design</div>
+                    <div className="text-[3.5px] text-gray-500">Zuri Fashion Boutique | 2023</div>
+                    <div className="text-[4px]">Designed complete UI/UX for online fashion store including product photography direction and promotional materials.</div>
                   </div>
                 </div>
               </div>
@@ -845,16 +862,29 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                     <div className="font-semibold text-[4px]">Graphic Designer — Pixel Studio</div>
                     <div className="text-[3.5px] text-gray-500">Nairobi | 2020 – 2022</div>
                   </div>
+                  <div>
+                    <div className="font-semibold text-[4px]">Junior Designer — Design Hub Kenya</div>
+                    <div className="text-[3.5px] text-gray-500">Nairobi | 2019 – 2020</div>
+                  </div>
                 </div>
               </div>
               
               {/* Education */}
-              <div>
+              <div className="mb-1.5">
                 <div className="font-semibold text-[5.5px] border-b-2 border-indigo-600 pb-0.5 mb-1">Education</div>
                 <div>
                   <div className="font-semibold text-[4px]">Diploma in Graphic Design</div>
                   <div className="text-[4px]">Nairobi Institute of Technology</div>
                   <div className="text-[3.5px] text-gray-500">2017 – 2019</div>
+                </div>
+              </div>
+              
+              {/* Awards */}
+              <div>
+                <div className="font-semibold text-[5.5px] border-b-2 border-indigo-600 pb-0.5 mb-1">Awards & Recognition</div>
+                <div className="space-y-0.5 text-[4px]">
+                  <div>• Best Brand Identity - Kenya Design Awards 2023</div>
+                  <div>• Creative Excellence Award - Nairobi Creative Week 2022</div>
                 </div>
               </div>
             </div>

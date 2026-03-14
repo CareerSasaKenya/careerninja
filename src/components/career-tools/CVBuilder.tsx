@@ -489,18 +489,18 @@ export default function CVBuilder() {
             </div>
           </div>
 
-          {/* Creative CV Templates Section */}
+          {/* Entry-Level / Graduate CV Templates Section */}
           <div>
             <div className="mb-4 text-center">
-              <h3 className="text-xl font-semibold text-[#0A66C2]">Creative CV Templates</h3>
+              <h3 className="text-xl font-semibold text-[#0A66C2]">Entry-Level / Graduate CV Templates</h3>
               <p className="text-sm text-muted-foreground mt-1 max-w-3xl mx-auto">
-                Designed for creative professionals who want to showcase their portfolio work and personality. 
-                These templates emphasize visual impact and creative projects.
+                Specifically designed for students, fresh graduates, and entry-level candidates with limited work experience. 
+                These templates emphasize education, skills, potential, and transferable competencies.
               </p>
             </div>
             <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
               {templates
-                .filter(t => ['Creative Portfolio'].includes(t.name))
+                .filter(t => ['Graduate Starter CV', 'Skills-Based (Functional)', 'Internship / Industrial Attachment'].includes(t.name))
                 .map(template => (
                   <Card 
                     key={template.id} 
@@ -530,18 +530,19 @@ export default function CVBuilder() {
             </div>
           </div>
 
-          {/* Entry-Level / Graduate CV Templates Section */}
+          {/* Creative & Digital Industry CV Templates Section */}
           <div>
             <div className="mb-4 text-center">
-              <h3 className="text-xl font-semibold text-[#0A66C2]">Entry-Level / Graduate CV Templates</h3>
+              <h3 className="text-xl font-semibold text-[#0A66C2]">Creative & Digital Industry CV Templates</h3>
               <p className="text-sm text-muted-foreground mt-1 max-w-3xl mx-auto">
-                Specifically designed for students, fresh graduates, and entry-level candidates with limited work experience. 
-                These templates emphasize education, skills, potential, and transferable competencies.
+                Stand out in the creative and digital space with visually striking templates that showcase your portfolio, 
+                artistic vision, and creative projects. Perfect for designers, content creators, and digital professionals 
+                who want their CV to reflect their creative flair and make a memorable first impression.
               </p>
             </div>
             <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
               {templates
-                .filter(t => ['Graduate Starter CV', 'Skills-Based (Functional)', 'Internship / Industrial Attachment'].includes(t.name))
+                .filter(t => ['Creative Portfolio'].includes(t.name))
                 .map(template => (
                   <Card 
                     key={template.id} 
