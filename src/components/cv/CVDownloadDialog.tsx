@@ -457,6 +457,15 @@ async function renderCVTemplate(cv: CandidateCV, templateName: string): Promise<
     case 'Skills-Based (Functional)':
       TemplateComponent = (await import('./templates/FunctionalTemplate')).default;
       break;
+    case 'Internship / Industrial Attachment':
+      TemplateComponent = (await import('./templates/InternshipTemplate')).default;
+      break;
+    case 'Creative Portfolio':
+      TemplateComponent = (await import('./templates/CreativeTemplate')).default;
+      break;
+    case 'Digital Professional':
+      TemplateComponent = (await import('./templates/DigitalProfessionalTemplate')).default;
+      break;
     default:
       TemplateComponent = (await import('./templates/ClassicTemplate')).default;
   }

@@ -19,7 +19,8 @@ const templateDescriptions: Record<string, string> = {
   'Graduate Starter CV': 'Education-focused layout prioritizing academic projects, internships, and extracurricular activities. Perfect for fresh graduates and students.',
   'Skills-Based (Functional)': 'Emphasizes skills and competencies over chronological work history. Perfect for career changers, candidates with employment gaps, or those with strong transferable skills.',
   'Internship / Industrial Attachment': 'Student-focused template emphasizing education, technical skills, and potential. Perfect for students seeking industrial attachment or internship opportunities.',
-  'Creative Portfolio': 'Eye-catching template with bold sidebar design showcasing portfolio projects prominently. Perfect for graphic designers, UI/UX designers, photographers, and creative professionals.'
+  'Creative Portfolio': 'Eye-catching template with bold sidebar design showcasing portfolio projects prominently. Perfect for graphic designers, UI/UX designers, photographers, and creative professionals.',
+  'Digital Professional': 'Tech-focused template with dark sidebar highlighting tech stack, tools, and certifications. Perfect for software developers, data scientists, IT professionals, and digital specialists.'
 };
 
 export default function CVTemplatePreview({ templateName, showDescription = false, descriptionOnly = false }: CVTemplatePreviewProps) {
@@ -885,6 +886,115 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                 <div className="space-y-0.5 text-[4px]">
                   <div>• Best Brand Identity - Kenya Design Awards 2023</div>
                   <div>• Creative Excellence Award - Nairobi Creative Week 2022</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      
+      case 'Digital Professional':
+        return (
+          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded overflow-hidden flex text-[4px] leading-[1.3]">
+            {/* Left Sidebar */}
+            <div className="w-[33%] bg-gray-900 text-white p-2">
+              <div className="font-bold text-[6px] mb-0.5">KEVIN OTIENO</div>
+              <div className="text-[4.5px] text-gray-300 mb-1">Full Stack Developer</div>
+              
+              <div className="text-[3.5px] mb-1.5 space-y-0.5">
+                <div>Nairobi, Kenya</div>
+                <div>+254 712 888 999</div>
+                <div>kevin@email.com</div>
+                <div>github.com/kevin</div>
+              </div>
+              
+              <div className="mb-1.5">
+                <div className="font-semibold text-[4.5px] border-b border-gray-700 pb-0.5 mb-0.5">Tech Stack</div>
+                <div className="space-y-0.5 text-[3.5px]">
+                  <div>• JavaScript / TypeScript</div>
+                  <div>• React / Next.js</div>
+                  <div>• Node.js / Express</div>
+                  <div>• PostgreSQL</div>
+                  <div>• Tailwind CSS</div>
+                  <div>• GraphQL / REST</div>
+                </div>
+              </div>
+              
+              <div className="mb-1.5">
+                <div className="font-semibold text-[4.5px] border-b border-gray-700 pb-0.5 mb-0.5">Tools</div>
+                <div className="space-y-0.5 text-[3.5px]">
+                  <div>• Git / GitHub</div>
+                  <div>• Docker</div>
+                  <div>• AWS / Vercel</div>
+                  <div>• VS Code</div>
+                  <div>• Figma</div>
+                </div>
+              </div>
+              
+              <div>
+                <div className="font-semibold text-[4.5px] border-b border-gray-700 pb-0.5 mb-0.5">Certifications</div>
+                <div className="space-y-0.5 text-[3.5px]">
+                  <div>• AWS Developer</div>
+                  <div>• Google Analytics</div>
+                  <div>• Meta Front-End</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Right Main Content */}
+            <div className="flex-1 p-2">
+              {/* Summary */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5px] border-b-2 border-gray-900 pb-0.5 mb-0.5">Professional Summary</div>
+                <div className="text-[3.5px] text-gray-700">Full stack developer with 4+ years building scalable web applications using modern JavaScript frameworks and cloud technologies.</div>
+              </div>
+              
+              {/* Projects */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5px] border-b-2 border-gray-900 pb-0.5 mb-0.5">Key Projects</div>
+                <div className="space-y-1">
+                  <div>
+                    <div className="font-semibold text-[3.5px]">E-Commerce Platform</div>
+                    <div className="text-[3px] text-gray-600 italic">Next.js, Supabase, Stripe</div>
+                    <div className="text-[3.5px]">Built full-stack platform with payment integration and admin dashboard. Handled 10K+ monthly transactions.</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-[3.5px]">Job Board Application</div>
+                    <div className="text-[3px] text-gray-600 italic">React, Node.js, PostgreSQL</div>
+                    <div className="text-[3.5px]">Developed job board with advanced search and application tracking. Serves 500+ employers.</div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Experience */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5px] border-b-2 border-gray-900 pb-0.5 mb-0.5">Experience</div>
+                <div className="space-y-1">
+                  <div>
+                    <div className="font-semibold text-[3.5px]">Senior Developer — TechNova</div>
+                    <div className="text-[3px] text-gray-600">Nairobi | 2022 – Present</div>
+                    <div className="space-y-0.5 text-[3.5px] ml-1">
+                      <div>• Lead development of web apps</div>
+                      <div>• Reduced load time by 40%</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-[3.5px]">Developer — Digital Edge</div>
+                    <div className="text-[3px] text-gray-600">Nairobi | 2020 – 2022</div>
+                    <div className="space-y-0.5 text-[3.5px] ml-1">
+                      <div>• Built MERN stack projects</div>
+                      <div>• Implemented CI/CD pipelines</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Education */}
+              <div>
+                <div className="font-semibold text-[5px] border-b-2 border-gray-900 pb-0.5 mb-0.5">Education</div>
+                <div>
+                  <div className="font-semibold text-[3.5px]">BSc Computer Science</div>
+                  <div className="text-[3.5px]">University of Nairobi</div>
+                  <div className="text-[3px] text-gray-600">2016 – 2020</div>
                 </div>
               </div>
             </div>
