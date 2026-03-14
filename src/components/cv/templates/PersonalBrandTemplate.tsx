@@ -34,6 +34,8 @@ interface PersonalBrandData {
     dates: string;
   }>;
   certifications?: string[];
+  awards?: string[];
+  mediaFeatures?: string[];
 }
 
 interface PersonalBrandTemplateProps {
@@ -150,7 +152,7 @@ export default function PersonalBrandTemplate({ data }: PersonalBrandTemplatePro
           </section>
 
           {/* Education */}
-          <section>
+          <section className="mb-5">
             <h2 className="text-base font-semibold border-b-2 border-indigo-600 pb-1 mb-2">
               EDUCATION
             </h2>
@@ -162,6 +164,34 @@ export default function PersonalBrandTemplate({ data }: PersonalBrandTemplatePro
               </div>
             ))}
           </section>
+
+          {/* Awards */}
+          {data.awards && data.awards.length > 0 && (
+            <section className="mb-5">
+              <h2 className="text-base font-semibold border-b-2 border-indigo-600 pb-1 mb-2">
+                AWARDS & RECOGNITION
+              </h2>
+              <ul className="text-xs space-y-1">
+                {data.awards.map((award, index) => (
+                  <li key={index} className="leading-relaxed">• {award}</li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {/* Media Features */}
+          {data.mediaFeatures && data.mediaFeatures.length > 0 && (
+            <section>
+              <h2 className="text-base font-semibold border-b-2 border-indigo-600 pb-1 mb-2">
+                MEDIA FEATURES
+              </h2>
+              <ul className="text-xs space-y-1">
+                {data.mediaFeatures.map((feature, index) => (
+                  <li key={index} className="leading-relaxed">• {feature}</li>
+                ))}
+              </ul>
+            </section>
+          )}
         </main>
       </div>
     </div>

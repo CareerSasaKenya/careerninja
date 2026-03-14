@@ -34,81 +34,116 @@ export const personalBrandPreviewData = {
   
   publications: [
     {
-      title: "Building Authentic Brands in Africa: A Strategic Guide",
-      platform: "Marketing Africa Magazine",
+      title: "Building Authentic Brands in Africa: A Strategic Guide for Modern Marketers",
+      platform: "Marketing Africa Magazine (Cover Story)",
       year: "2024"
     },
     {
-      title: "How SMEs Can Win With Digital Marketing on Limited Budgets",
+      title: "How SMEs Can Win With Digital Marketing on Limited Budgets: A Practical Framework",
       platform: "Business Daily Kenya",
       year: "2023"
     },
     {
-      title: "The Power of Storytelling in Modern Marketing",
+      title: "The Power of Storytelling in Modern Marketing: Connecting with African Audiences",
       platform: "The Standard Digital",
       year: "2023"
     },
     {
-      title: "Personal Branding for African Professionals",
-      platform: "Medium (Featured Article)",
+      title: "Personal Branding for African Professionals: Building Your Digital Presence",
+      platform: "Medium (Featured Article - 50K+ views)",
       year: "2022"
     },
     {
-      title: "Social Media Strategies That Actually Work",
+      title: "Social Media Strategies That Actually Work for Kenyan Businesses",
       platform: "Nation Media Group",
       year: "2022"
+    },
+    {
+      title: "Content Marketing in the Age of Short Attention Spans",
+      platform: "Marketing Week Africa",
+      year: "2022"
+    },
+    {
+      title: "Influencer Marketing: Navigating the East African Landscape",
+      platform: "Business Today Magazine",
+      year: "2021"
+    },
+    {
+      title: "Brand Positioning Strategies for Emerging Markets",
+      platform: "African Business Review",
+      year: "2021"
     }
   ],
   
   speaking: [
     {
-      event: "Nairobi Digital Marketing Summit - Keynote Speaker",
-      location: "Nairobi, Kenya",
+      event: "Nairobi Digital Marketing Summit - Keynote: 'The Future of Brand Storytelling in Africa'",
+      location: "Nairobi, Kenya (500+ attendees)",
       year: "2024"
     },
     {
-      event: "Kenya SME Growth Forum - Panel Discussion",
+      event: "Kenya SME Growth Forum - Panel: 'Scaling Your Business Through Digital Marketing'",
       location: "Nairobi, Kenya",
       year: "2023"
     },
     {
-      event: "East Africa Marketing Conference",
+      event: "East Africa Marketing Conference - Workshop: 'Building Brands That Resonate'",
       location: "Kampala, Uganda",
       year: "2023"
     },
     {
-      event: "Women in Business Leadership Summit",
+      event: "Women in Business Leadership Summit - Keynote: 'Personal Branding for Female Leaders'",
+      location: "Nairobi, Kenya (300+ attendees)",
+      year: "2023"
+    },
+    {
+      event: "Digital Transformation Workshop Series - 3-Day Training Program",
+      location: "Mombasa, Kenya",
+      year: "2022"
+    },
+    {
+      event: "Strathmore Business School - Guest Lecture: 'Modern Marketing Strategies'",
       location: "Nairobi, Kenya",
       year: "2022"
     },
     {
-      event: "Digital Transformation Workshop Series",
-      location: "Mombasa, Kenya",
+      event: "Social Media Marketing Masterclass - Full-Day Workshop",
+      location: "Nairobi, Kenya (150+ participants)",
       year: "2022"
+    },
+    {
+      event: "Kenya Marketing Society Annual Conference - Panel Discussion",
+      location: "Nairobi, Kenya",
+      year: "2021"
+    },
+    {
+      event: "Startup Grind Nairobi - Talk: 'Marketing on a Shoestring Budget'",
+      location: "Nairobi, Kenya",
+      year: "2021"
     }
   ],
   
   experience: [
     {
       role: "Marketing Consultant & Brand Strategist",
-      company: "BrandGrow Africa",
+      company: "BrandGrow Africa (Independent Consultancy)",
       location: "Nairobi, Kenya",
       dates: "2021 – Present",
-      description: "Lead brand strategy development for 20+ clients across East Africa. Delivered 150% average ROI improvement through integrated marketing campaigns."
+      description: "Lead comprehensive brand strategy development for 20+ clients across East Africa including startups, SMEs, and established corporations. Delivered 150% average ROI improvement through integrated marketing campaigns combining digital marketing, content strategy, and brand positioning. Developed go-to-market strategies for 5 product launches generating KES 50M+ in first-year revenue. Conducted brand audits and repositioning projects for clients in fintech, retail, hospitality, and professional services sectors. Managed marketing budgets ranging from KES 500K to KES 5M monthly."
     },
     {
       role: "Senior Marketing Manager",
       company: "BrightWave Agency",
       location: "Nairobi, Kenya",
       dates: "2018 – 2021",
-      description: "Managed marketing campaigns for major brands including Safaricom, KCB, and Equity Bank. Led team of 8 marketing professionals."
+      description: "Managed end-to-end marketing campaigns for major brands including Safaricom, KCB Bank, and Equity Bank with combined annual budgets exceeding KES 100M. Led team of 8 marketing professionals including content creators, social media managers, and graphic designers. Developed and executed 360-degree campaigns across TV, radio, print, digital, and outdoor media. Increased client retention rate from 60% to 85% through exceptional campaign performance and client service. Spearheaded agency's digital transformation initiative, implementing new marketing automation tools and analytics platforms."
     },
     {
       role: "Marketing Specialist",
       company: "Creative Hub Kenya",
       location: "Nairobi, Kenya",
       dates: "2016 – 2018",
-      description: "Developed and executed digital marketing strategies for SME clients. Increased client social media engagement by average of 300%."
+      description: "Developed and executed comprehensive digital marketing strategies for 15+ SME clients across diverse industries. Increased average client social media engagement by 300% and website traffic by 250% through targeted content marketing and SEO optimization. Managed social media accounts with combined following of 500K+. Created content calendars, wrote copy, designed graphics, and analyzed campaign performance. Conducted market research and competitor analysis to inform marketing strategies. Trained clients on digital marketing best practices and social media management."
     }
   ],
   
@@ -121,9 +156,25 @@ export const personalBrandPreviewData = {
   ],
   
   certifications: [
-    "Google Digital Marketing Certification",
-    "HubSpot Content Marketing",
-    "Facebook Blueprint Certified",
-    "Professional Speaker Certification"
+    "Google Digital Marketing & E-Commerce Professional Certificate (2023)",
+    "HubSpot Content Marketing Certification (2022)",
+    "Facebook Blueprint Certified Digital Marketing Associate (2022)",
+    "Professional Speaker Certification - Kenya Speakers Association (2021)",
+    "Google Analytics Individual Qualification (2021)",
+    "Hootsuite Social Marketing Certification (2020)"
+  ],
+
+  awards: [
+    "Marketing Professional of the Year - Kenya Marketing Awards 2023",
+    "Best Digital Campaign - East Africa Advertising Awards 2022",
+    "Top 40 Under 40 Marketing Leaders - Business Daily 2022",
+    "Excellence in Brand Strategy - Marketing Society of Kenya 2021"
+  ],
+
+  mediaFeatures: [
+    "Featured Expert - Citizen TV Business Today (2024)",
+    "Guest Columnist - Business Daily Kenya (Monthly, 2023-Present)",
+    "Podcast Interview - The Marketing Show Africa (2023)",
+    "Profile Feature - Marketing Africa Magazine (2022)"
   ]
 };
