@@ -882,11 +882,40 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               </div>
               
               {/* Awards */}
-              <div>
+              <div className="mb-1.5">
                 <div className="font-semibold text-[5.5px] border-b-2 border-indigo-600 pb-0.5 mb-1">Awards & Recognition</div>
                 <div className="space-y-0.5 text-[4px]">
                   <div>• Best Brand Identity - Kenya Design Awards 2023</div>
-                  <div>• Creative Excellence Award - Nairobi Creative Week 2022</div>
+                  <div>• Creative Excellence Award - East Africa Advertising Summit 2022</div>
+                  <div>• Rising Designer of the Year - Nairobi Creative Week 2021</div>
+                  <div>• Gold Award for Print Design - Nairobi Design Festival 2022</div>
+                  <div>• Best Packaging Design - East Africa Brand Awards 2021</div>
+                </div>
+              </div>
+
+              {/* Notable Clients */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5.5px] border-b-2 border-indigo-600 pb-0.5 mb-1">Notable Clients</div>
+                <div className="grid grid-cols-2 gap-x-1 gap-y-0.5 text-[4px]">
+                  <div>• Safaricom Limited</div>
+                  <div>• KCB Bank</div>
+                  <div>• Nairobi Coffee Co.</div>
+                  <div>• Zuri Fashion</div>
+                  <div>• Kenya Wildlife Foundation</div>
+                  <div>• East African Breweries</div>
+                  <div>• Nairobi Jazz Festival</div>
+                  <div>• Equity Bank Kenya</div>
+                </div>
+              </div>
+
+              {/* Memberships */}
+              <div>
+                <div className="font-semibold text-[5.5px] border-b-2 border-indigo-600 pb-0.5 mb-1">Professional Memberships</div>
+                <div className="space-y-0.5 text-[4px]">
+                  <div>• Member - Design Society of Kenya</div>
+                  <div>• Member - African Creative Network</div>
+                  <div>• Member - Graphic Design Association of East Africa</div>
+                  <div>• Volunteer Mentor - Nairobi Design Week</div>
                 </div>
               </div>
             </div>
@@ -990,12 +1019,54 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               </div>
               
               {/* Education */}
-              <div>
+              <div className="mb-1.5">
                 <div className="font-semibold text-[5px] border-b-2 border-gray-900 pb-0.5 mb-0.5">Education</div>
                 <div>
                   <div className="font-semibold text-[3.5px]">BSc Computer Science</div>
                   <div className="text-[3.5px]">University of Nairobi</div>
-                  <div className="text-[3px] text-gray-600">2016 – 2020</div>
+                  <div className="text-[3px] text-gray-600">2016 – 2020 | GPA: 3.7/4.0</div>
+                </div>
+              </div>
+
+              {/* Achievements */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5px] border-b-2 border-gray-900 pb-0.5 mb-0.5">Key Achievements</div>
+                <div className="space-y-0.5 text-[3.5px]">
+                  <div>• Migrated monolith to microservices, improving scalability by 300%</div>
+                  <div>• Reduced API response time from 2s to 200ms via Redis caching</div>
+                  <div>• Mentored 5 junior devs, all promoted within 18 months</div>
+                  <div>• Increased test coverage from 40% to 85%, cutting bugs by 60%</div>
+                  <div>• Saved KES 200K/month through database query optimisation</div>
+                </div>
+              </div>
+
+              {/* Open Source */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5px] border-b-2 border-gray-900 pb-0.5 mb-0.5">Open Source</div>
+                <div className="space-y-0.5 text-[3.5px]">
+                  <div>• React Admin Dashboard – 250+ GitHub stars</div>
+                  <div>• Kenya Payment Gateway SDK – 180+ stars</div>
+                  <div>• East Africa Timezone Library – 120+ stars</div>
+                </div>
+              </div>
+
+              {/* Technical Writing */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5px] border-b-2 border-gray-900 pb-0.5 mb-0.5">Technical Writing</div>
+                <div className="space-y-0.5 text-[3.5px]">
+                  <div>• Building Scalable APIs with Node.js – Dev.to (5K+ views)</div>
+                  <div>• React Performance Optimization Guide – Medium (3K+ views)</div>
+                  <div>• Database Design Best Practices – Personal Blog</div>
+                </div>
+              </div>
+
+              {/* Volunteer */}
+              <div>
+                <div className="font-semibold text-[5px] border-b-2 border-gray-900 pb-0.5 mb-0.5">Volunteer & Community</div>
+                <div className="space-y-0.5 text-[3.5px]">
+                  <div>• Code Mentor – Moringa School (2022–Present)</div>
+                  <div>• Tech Workshop Facilitator – iHub Nairobi</div>
+                  <div>• Guest Lecturer – University of Nairobi CS Dept (2023)</div>
                 </div>
               </div>
             </div>
@@ -1109,12 +1180,45 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               </div>
               
               {/* Education */}
-              <div>
+              <div className="mb-1.5">
                 <div className="font-semibold text-[4.5px] border-b-2 border-indigo-600 pb-0.5 mb-0.5">EDUCATION</div>
                 <div>
-                  <div className="font-semibold text-[3.5px]">BCom Marketing - First Class</div>
+                  <div className="font-semibold text-[3.5px]">BCom Marketing - First Class Honours</div>
                   <div className="text-[3.5px]">Kenyatta University</div>
                   <div className="text-[3px] text-gray-600">2013 – 2017</div>
+                </div>
+              </div>
+
+              {/* Awards */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[4.5px] border-b-2 border-indigo-600 pb-0.5 mb-0.5">AWARDS & RECOGNITION</div>
+                <div className="space-y-0.5 text-[3.5px]">
+                  <div>• Marketing Professional of the Year – Kenya Marketing Awards 2023</div>
+                  <div>• Best Digital Campaign – East Africa Advertising Awards 2022</div>
+                  <div>• Top 40 Under 40 Marketing Leaders – Business Daily 2022</div>
+                  <div>• Excellence in Brand Strategy – Marketing Society of Kenya 2021</div>
+                </div>
+              </div>
+
+              {/* Media Features */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[4.5px] border-b-2 border-indigo-600 pb-0.5 mb-0.5">MEDIA FEATURES</div>
+                <div className="space-y-0.5 text-[3.5px]">
+                  <div>• Featured Expert – Citizen TV Business Today (2024)</div>
+                  <div>• Guest Columnist – Business Daily Kenya (Monthly, 2023–Present)</div>
+                  <div>• Podcast Interview – The Marketing Show Africa (2023)</div>
+                  <div>• Radio Interview – Capital FM Business Breakfast (2023)</div>
+                </div>
+              </div>
+
+              {/* Affiliations */}
+              <div>
+                <div className="font-semibold text-[4.5px] border-b-2 border-indigo-600 pb-0.5 mb-0.5">PROFESSIONAL AFFILIATIONS</div>
+                <div className="space-y-0.5 text-[3.5px]">
+                  <div>• Member – Marketing Society of Kenya (MSK)</div>
+                  <div>• Member – Kenya Speakers Association</div>
+                  <div>• Board Member – Young Marketing Professionals Network</div>
+                  <div>• Mentor – Women in Marketing Initiative</div>
                 </div>
               </div>
             </div>
