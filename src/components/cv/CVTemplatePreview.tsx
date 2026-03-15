@@ -1228,71 +1228,113 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
       
       case 'Academic / Research CV':
         return (
-          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded p-3 text-[4px] leading-[1.4] overflow-hidden shadow-sm font-serif">
+          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded p-2.5 text-[3.5px] leading-[1.35] overflow-hidden shadow-sm font-serif">
             {/* Header */}
-            <div className="border-b-2 border-gray-800 pb-1 mb-1.5">
-              <div className="font-bold text-[7px]">Dr. Daniel Mwangi Njoroge</div>
-              <div className="text-[4.5px] text-gray-700 italic mb-0.5">Senior Lecturer – Department of Environmental Science</div>
-              <div className="flex flex-wrap gap-x-2 text-[3.5px] text-gray-600">
+            <div className="border-b-2 border-gray-800 pb-0.5 mb-1">
+              <div className="font-bold text-[6.5px]">Dr. Daniel Mwangi Njoroge</div>
+              <div className="text-[4px] text-gray-700 italic mb-0.5">Senior Lecturer – Department of Environmental Science</div>
+              <div className="flex flex-wrap gap-x-2 text-[3px] text-gray-600">
                 <span>University of Nairobi</span>
                 <span>Nairobi, Kenya</span>
                 <span>daniel.njoroge@uonbi.ac.ke</span>
+                <span>ORCID: 0000-0002-1234-5678</span>
               </div>
             </div>
             {/* Profile */}
-            <div className="mb-1">
-              <div className="font-bold text-[4px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Academic Profile</div>
-              <div className="text-[3.5px] text-gray-700">Environmental scientist with 12+ years of research and teaching experience focusing on climate change adaptation and sustainable land management in East Africa.</div>
+            <div className="mb-0.5">
+              <div className="font-bold text-[3.5px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Academic Profile</div>
+              <div className="text-[3px] text-gray-700">Environmental scientist with 12+ years of research and teaching experience focusing on climate change adaptation, sustainable land management, and environmental policy in East Africa. Published author of 15+ peer-reviewed articles and recipient of three national research grants.</div>
             </div>
             {/* Research Interests */}
-            <div className="mb-1">
-              <div className="font-bold text-[4px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Research Interests</div>
-              <div className="grid grid-cols-2 gap-x-1 text-[3.5px]">
+            <div className="mb-0.5">
+              <div className="font-bold text-[3.5px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Research Interests</div>
+              <div className="grid grid-cols-2 gap-x-1 text-[3px]">
                 <div>• Climate Change Adaptation</div>
-                <div>• Sustainable Agriculture</div>
-                <div>• Environmental Policy</div>
-                <div>• Land Degradation</div>
+                <div>• Sustainable Agriculture & Food Security</div>
+                <div>• Environmental Policy & Governance</div>
+                <div>• Land Degradation & Restoration</div>
+                <div>• Community-Based NRM</div>
+                <div>• Dryland Ecology</div>
               </div>
             </div>
             {/* Positions */}
-            <div className="mb-1">
-              <div className="font-bold text-[4px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Academic Positions</div>
-              <div className="flex justify-between text-[3.5px] mb-0.5">
-                <div><span className="font-semibold">Senior Lecturer</span> – University of Nairobi</div>
-                <div className="text-gray-600">2018–Present</div>
+            <div className="mb-0.5">
+              <div className="font-bold text-[3.5px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Academic Positions</div>
+              <div className="flex justify-between text-[3px] mb-0.5">
+                <div><span className="font-semibold">Senior Lecturer</span>, Dept. of Environmental Science – University of Nairobi</div>
+                <div className="text-gray-600 ml-1 shrink-0">2018–Present</div>
               </div>
-              <div className="flex justify-between text-[3.5px]">
-                <div><span className="font-semibold">Lecturer</span> – Egerton University</div>
-                <div className="text-gray-600">2014–2018</div>
+              <div className="flex justify-between text-[3px] mb-0.5">
+                <div><span className="font-semibold">Lecturer</span>, Dept. of Natural Resources – Egerton University</div>
+                <div className="text-gray-600 ml-1 shrink-0">2014–2018</div>
+              </div>
+              <div className="flex justify-between text-[3px] mb-0.5">
+                <div><span className="font-semibold">Research Associate</span>, Environment & Society Programme – ILRI</div>
+                <div className="text-gray-600 ml-1 shrink-0">2012–2014</div>
+              </div>
+              <div className="flex justify-between text-[3px]">
+                <div><span className="font-semibold">Graduate Teaching Assistant</span> – University of Nairobi</div>
+                <div className="text-gray-600 ml-1 shrink-0">2010–2012</div>
               </div>
             </div>
             {/* Publications */}
-            <div className="mb-1">
-              <div className="font-bold text-[4px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Selected Publications</div>
-              <ol className="list-decimal ml-3 text-[3.5px] space-y-0.5">
-                <li>Njoroge, D.M. (2023). Climate Adaptation Strategies. Journal of Environmental Studies.</li>
-                <li>Njoroge, D.M. & Kamau, P. (2021). Land Restoration in East Africa. African Environmental Review.</li>
-                <li>Njoroge, D.M. (2019). Sustainable Agriculture in Kenya. Int. Journal of Climate Research.</li>
+            <div className="mb-0.5">
+              <div className="font-bold text-[3.5px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Selected Publications</div>
+              <ol className="list-decimal ml-3 text-[3px] space-y-0.5">
+                <li>Njoroge, D.M. (2023). Climate Adaptation Strategies for Smallholder Farmers. Journal of Environmental Studies, 45(3), 112–128.</li>
+                <li>Njoroge, D.M. & Kamau, P. (2021). Land Restoration in Semi-Arid East Africa. African Environmental Review, 18(2), 45–62.</li>
+                <li>Njoroge, D.M. et al. (2020). Community Participation in Environmental Governance. Ecology & Society, 25(1), 34.</li>
+                <li>Njoroge, D.M. (2019). Sustainable Agriculture Practices in Kenya. Int. Journal of Climate Research, 12(4), 78–95.</li>
+                <li>Njoroge, D.M. & Muthoni, L. (2018). Soil Carbon Sequestration in Degraded Rangelands. Land Degradation & Development, 29(8).</li>
+                <li>Njoroge, D.M. (2016). Pastoral Adaptation to Climate Variability in Northern Kenya. African Studies, 75(2), 201–218.</li>
               </ol>
             </div>
-            {/* Education */}
-            <div className="mb-1">
-              <div className="font-bold text-[4px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Education</div>
-              <div className="flex justify-between text-[3.5px] mb-0.5">
-                <div><span className="font-semibold">PhD Environmental Science</span> – University of Nairobi</div>
-                <div className="text-gray-600">2010–2014</div>
+            {/* Conferences */}
+            <div className="mb-0.5">
+              <div className="font-bold text-[3.5px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Conferences & Presentations</div>
+              <div className="text-[3px] space-y-0.5">
+                <div>• Int. Climate Change Conference – Nairobi, Kenya (2024) – Keynote Presenter</div>
+                <div>• African Environmental Research Forum – Kigali, Rwanda (2022) – Paper Presenter</div>
+                <div>• World Congress of Soil Science – Glasgow, UK (2022) – Poster Presentation</div>
+                <div>• Sustainable Agriculture Summit – Addis Ababa, Ethiopia (2021) – Panel Discussant</div>
+                <div>• East Africa Climate Adaptation Forum – Dar es Salaam (2020) – Paper Presenter</div>
+                <div>• Int. Society for Ecological Economics – Washington DC (2019) – Paper Presenter</div>
               </div>
-              <div className="flex justify-between text-[3.5px]">
+            </div>
+            {/* Education */}
+            <div className="mb-0.5">
+              <div className="font-bold text-[3.5px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Education</div>
+              <div className="flex justify-between text-[3px] mb-0.5">
+                <div><span className="font-semibold">PhD Environmental Science</span> – University of Nairobi <span className="italic text-gray-600">(Thesis: Climate Variability & Pastoral Adaptation)</span></div>
+                <div className="text-gray-600 ml-1 shrink-0">2010–2014</div>
+              </div>
+              <div className="flex justify-between text-[3px] mb-0.5">
                 <div><span className="font-semibold">MSc Environmental Management</span> – Kenyatta University</div>
-                <div className="text-gray-600">2007–2009</div>
+                <div className="text-gray-600 ml-1 shrink-0">2007–2009</div>
+              </div>
+              <div className="flex justify-between text-[3px]">
+                <div><span className="font-semibold">BSc Environmental Science (First Class Honours)</span> – University of Nairobi</div>
+                <div className="text-gray-600 ml-1 shrink-0">2003–2007</div>
               </div>
             </div>
             {/* Grants */}
+            <div className="mb-0.5">
+              <div className="font-bold text-[3.5px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Grants & Funding</div>
+              <div className="text-[3px] space-y-0.5">
+                <div>• Principal Investigator – NEMA Research Grant: Ecosystem Restoration in Degraded Drylands (KES 4.5M, 2022–2024)</div>
+                <div>• Co-Investigator – IDRC Climate Adaptation Fund: Smallholder Farmer Resilience in East Africa (USD 120K, 2020–2022)</div>
+                <div>• Principal Investigator – UoN Research Fund: Land Use Change & Carbon Stocks (KES 1.2M, 2019–2020)</div>
+                <div>• Research Fellow – British Council Climate Research Programme (GBP 15K, 2017–2018)</div>
+              </div>
+            </div>
+            {/* Awards */}
             <div>
-              <div className="font-bold text-[4px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Grants & Awards</div>
-              <div className="text-[3.5px] space-y-0.5">
-                <div>• NEMA Research Grant – Ecosystem Restoration (KES 4.5M, 2022–2024)</div>
-                <div>• Best Research Paper – African Environmental Forum (2022)</div>
+              <div className="font-bold text-[3.5px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Awards & Honours</div>
+              <div className="text-[3px] space-y-0.5">
+                <div>• Best Research Paper Award – African Environmental Research Forum (2022)</div>
+                <div>• Excellence in Teaching Award – University of Nairobi (2021)</div>
+                <div>• Young Scientist Award – Kenya National Academy of Sciences (2018)</div>
+                <div>• Outstanding Doctoral Thesis Prize – University of Nairobi (2014)</div>
               </div>
             </div>
           </div>
