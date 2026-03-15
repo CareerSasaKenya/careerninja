@@ -168,25 +168,34 @@ export const personalBrandPreviewData = {
     "Marketing Professional of the Year - Kenya Marketing Awards 2023",
     "Best Digital Campaign - East Africa Advertising Awards 2022",
     "Top 40 Under 40 Marketing Leaders - Business Daily 2022",
-    "Excellence in Brand Strategy - Marketing Society of Kenya 2021"
+    "Excellence in Brand Strategy - Marketing Society of Kenya 2021",
+    "Best Content Marketing Campaign - Digital Marketing Awards Kenya 2021",
+    "Outstanding Contribution to Marketing Education - KIM 2020"
   ],
 
   mediaFeatures: [
     "Featured Expert - Citizen TV Business Today (2024)",
-    "Guest Columnist - Business Daily Kenya (Monthly, 2023-Present)",
+    "Guest Columnist - Business Daily Kenya (Monthly, 2023–Present)",
     "Podcast Interview - The Marketing Show Africa (2023)",
-    "Profile Feature - Marketing Africa Magazine (2022)"
+    "Profile Feature - Marketing Africa Magazine (2022)",
+    "Radio Interview - Capital FM Business Breakfast (2023)",
+    "Panel Expert - NTV Kenya Business Weekly (2022)",
+    "Featured Interview - The Standard Digital (2022)"
   ],
 
   clientTestimonials: [
-    "Grace transformed our brand identity and helped us secure major retail partnerships. Her strategic approach delivered results beyond our expectations. - CEO, Nairobi Coffee Co.",
-    "Working with Grace was a game-changer for our digital presence. She increased our social media engagement by 300% in just 6 months. - Marketing Director, Safaricom SME"
+    "Grace transformed our brand identity and helped us secure major retail partnerships. Her strategic approach delivered results beyond our expectations. — CEO, Nairobi Coffee Co.",
+    "Working with Grace was a game-changer for our digital presence. She increased our social media engagement by 300% in just 6 months. — Marketing Director, Safaricom SME",
+    "Grace's brand strategy workshop gave our team the clarity and tools we needed to grow. Highly recommended for any business serious about marketing. — Founder, Zuri Fashion Boutique",
+    "Her ability to translate complex marketing concepts into actionable steps is unmatched. Our campaign ROI doubled within the first quarter. — Head of Marketing, Equity Bank Kenya"
   ],
 
   professionalAffiliations: [
     "Member - Marketing Society of Kenya (MSK)",
     "Member - Kenya Speakers Association",
     "Board Member - Young Marketing Professionals Network",
-    "Mentor - Women in Marketing Initiative"
+    "Mentor - Women in Marketing Initiative",
+    "Member - African Marketing Confederation",
+    "Advisory Board - Nairobi Digital Marketing Summit"
   ]
 };

@@ -61,6 +61,20 @@ export const creativePreviewData = {
       year: "2022",
       description:
         "Created a 40-page annual report combining infographics, photography, and compelling layouts to showcase conservation impact and financial transparency."
+    },
+    {
+      title: "Event Branding – Nairobi Jazz Festival",
+      client: "Nairobi Jazz Festival",
+      year: "2022",
+      description:
+        "Developed full event branding including posters, stage backdrops, merchandise, and digital assets. The vibrant visual identity was praised by attendees and featured in local media."
+    },
+    {
+      title: "Packaging Design – Tusker Craft Series",
+      client: "East African Breweries",
+      year: "2021",
+      description:
+        "Conceptualised and designed limited-edition packaging for a craft beer series celebrating Kenyan heritage. Illustrations drew on traditional Kenyan motifs, earning a Gold Award at the Nairobi Design Festival."
     }
   ],
 
@@ -106,7 +120,9 @@ export const creativePreviewData = {
     "Creative Excellence Award – East Africa Advertising Summit 2022",
     "Rising Designer of the Year – Nairobi Creative Week 2021",
     "Gold Award for Print Design – Nairobi Design Festival 2022",
-    "People's Choice Award – Kenya Creative Showcase 2021"
+    "People's Choice Award – Kenya Creative Showcase 2021",
+    "Best Packaging Design – East Africa Brand Awards 2021",
+    "Outstanding Visual Identity – Nairobi Business Awards 2020"
   ],
 
   languages: [
@@ -131,13 +147,17 @@ export const creativePreviewData = {
     "Nairobi Jazz Festival",
     "East African Breweries",
     "Tusker Project Fame",
-    "Equity Bank Kenya"
+    "Equity Bank Kenya",
+    "Nation Media Group",
+    "Strathmore University"
   ],
 
   professionalMemberships: [
     "Member - Kenya Institute of Marketing (KIM)",
     "Member - Design Society of Kenya",
     "Member - African Creative Network",
-    "Volunteer Mentor - Nairobi Design Week"
+    "Volunteer Mentor - Nairobi Design Week",
+    "Member - Graphic Design Association of East Africa",
+    "Contributor - Creative Africa Network"
   ]
 };

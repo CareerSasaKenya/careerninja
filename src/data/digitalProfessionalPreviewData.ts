@@ -152,18 +152,27 @@ export const digitalProfessionalPreviewData = {
   openSource: [
     "React Admin Dashboard - 250+ stars on GitHub",
     "Kenya Payment Gateway SDK - 180+ stars",
-    "East Africa Timezone Library - 120+ stars"
+    "East Africa Timezone Library - 120+ stars",
+    "Node.js Rate Limiter Middleware - 95+ stars",
+    "Supabase Auth Helpers for Next.js - 80+ stars",
+    "M-Pesa REST Client Library - 70+ stars"
   ],
 
   technicalWriting: [
     "Building Scalable APIs with Node.js - Dev.to (5K+ views)",
     "React Performance Optimization Guide - Medium (3K+ views)",
-    "Database Design Best Practices - Personal Blog"
+    "Database Design Best Practices - Personal Blog (2K+ views)",
+    "Microservices vs Monolith: A Practical Comparison - Dev.to (1.8K+ views)",
+    "Securing REST APIs with JWT and Refresh Tokens - Hashnode (1.5K+ views)",
+    "Getting Started with Supabase and Next.js - Medium (1.2K+ views)"
   ],
 
   volunteerWork: [
-    "Code Mentor - Moringa School (2022-Present)",
-    "Tech Workshop Facilitator - iHub Nairobi",
-    "Open Source Contributor - Various Projects"
+    "Code Mentor - Moringa School (2022–Present)",
+    "Tech Workshop Facilitator - iHub Nairobi (2022–Present)",
+    "Open Source Contributor - Various Projects",
+    "Guest Lecturer - University of Nairobi CS Department (2023)",
+    "Hackathon Judge - Nairobi Tech Week 2023",
+    "Coding Bootcamp Instructor - ALX Africa (2022)"
   ]
 };
