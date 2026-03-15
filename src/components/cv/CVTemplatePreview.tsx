@@ -22,7 +22,8 @@ const templateDescriptions: Record<string, string> = {
   'Creative Portfolio': 'Eye-catching template with bold sidebar design showcasing portfolio projects prominently. Perfect for graphic designers, UI/UX designers, photographers, and creative professionals.',
   'Digital Professional': 'Tech-focused template with dark sidebar highlighting tech stack, tools, and certifications. Perfect for software developers, data scientists, IT professionals, and digital specialists.',
   'Personal Brand CV': 'Designed for professionals whose reputation and public presence matter. Perfect for consultants, marketing professionals, speakers, influencers, coaches, and content creators. Highlights personal tagline, online presence, media features, and speaking engagements.',
-  'Academic / Research CV': 'Single-column serif layout designed for academics, researchers, PhD applicants, and fellowship seekers. Highlights research interests, publications, conferences, teaching positions, grants, and academic achievements.'
+  'Academic / Research CV': 'Single-column serif layout designed for academics, researchers, PhD applicants, and fellowship seekers. Highlights research interests, publications, conferences, teaching positions, grants, and academic achievements.',
+  'Technical / Engineering CV': 'Two-column layout with sidebar for technical skills, tools, and certifications. Main section highlights engineering projects with measurable outcomes and structured work experience. Ideal for mechanical, electrical, civil, and process engineers.'
 };
 
 export default function CVTemplatePreview({ templateName, showDescription = false, descriptionOnly = false }: CVTemplatePreviewProps) {
@@ -1349,7 +1350,96 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             </div>
           </div>
         );
-      
+
+      case 'Technical / Engineering CV':
+        return (
+          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded overflow-hidden flex text-[4px] leading-[1.3] shadow-sm">
+            {/* Sidebar */}
+            <div className="w-[33%] bg-gray-100 p-2">
+              <div className="font-bold text-[6px] mb-0.5">SAMUEL K. CHERUIYOT</div>
+              <div className="text-[4px] text-gray-600 mb-1.5">Mechanical Engineer</div>
+              <div className="text-[3.8px] text-gray-700 space-y-0.5 mb-1.5">
+                <div>Nairobi, Kenya</div>
+                <div>+254 712 333 777</div>
+                <div>samuel@email.com</div>
+              </div>
+              <div className="mb-1.5">
+                <div className="font-bold text-[4.5px] uppercase border-b border-gray-400 pb-0.5 mb-0.5">Technical Skills</div>
+                <div className="space-y-0.5 text-[3.8px] text-gray-700">
+                  <div>• Mechanical Maintenance</div>
+                  <div>• Preventive Maintenance</div>
+                  <div>• Production Optimization</div>
+                  <div>• Root Cause Analysis</div>
+                  <div>• Safety Compliance</div>
+                  <div>• Process Improvement</div>
+                </div>
+              </div>
+              <div className="mb-1.5">
+                <div className="font-bold text-[4.5px] uppercase border-b border-gray-400 pb-0.5 mb-0.5">Tools & Systems</div>
+                <div className="space-y-0.5 text-[3.8px] text-gray-700">
+                  <div>• AutoCAD</div>
+                  <div>• SolidWorks</div>
+                  <div>• SAP PM</div>
+                  <div>• PLC Systems</div>
+                  <div>• Microsoft Excel</div>
+                </div>
+              </div>
+              <div>
+                <div className="font-bold text-[4.5px] uppercase border-b border-gray-400 pb-0.5 mb-0.5">Certifications</div>
+                <div className="space-y-0.5 text-[3.8px] text-gray-700">
+                  <div>• Certified Maintenance Professional</div>
+                  <div>• OSH Certificate</div>
+                </div>
+              </div>
+            </div>
+            {/* Main */}
+            <div className="flex-1 p-2">
+              <div className="mb-1.5">
+                <div className="font-bold text-[4.5px] uppercase border-b-2 border-gray-800 pb-0.5 mb-0.5">Professional Summary</div>
+                <div className="text-[3.8px] text-gray-700">Mechanical engineer with 6 years of experience in manufacturing operations, equipment maintenance, and process optimization within large-scale production facilities.</div>
+              </div>
+              <div className="mb-1.5">
+                <div className="font-bold text-[4.5px] uppercase border-b-2 border-gray-800 pb-0.5 mb-1">Key Engineering Projects</div>
+                <div className="mb-1">
+                  <div className="font-bold text-[3.8px]">Production Line Efficiency Improvement</div>
+                  <div className="text-[3.5px] text-gray-500">East Africa Packaging Ltd | 2023</div>
+                  <div className="text-[3.8px] text-gray-700">Increased production efficiency by 18% through equipment optimization and preventive maintenance scheduling.</div>
+                </div>
+                <div>
+                  <div className="font-bold text-[3.8px]">Machine Maintenance Program Overhaul</div>
+                  <div className="text-[3.5px] text-gray-500">Nairobi Steel Manufacturing | 2022</div>
+                  <div className="text-[3.8px] text-gray-700">Implemented preventive maintenance program reducing equipment downtime by 25%.</div>
+                </div>
+              </div>
+              <div className="mb-1.5">
+                <div className="font-bold text-[4.5px] uppercase border-b-2 border-gray-800 pb-0.5 mb-1">Professional Experience</div>
+                <div className="mb-1">
+                  <div className="font-bold text-[3.8px]">Mechanical Engineer — East Africa Packaging Ltd</div>
+                  <div className="text-[3.5px] text-gray-500">Nairobi | 2022 – Present</div>
+                  <div className="space-y-0.5 text-[3.8px] text-gray-700 mt-0.5">
+                    <div>• Oversee maintenance of 40+ production machines</div>
+                    <div>• Develop preventive maintenance schedules using SAP PM</div>
+                  </div>
+                </div>
+                <div>
+                  <div className="font-bold text-[3.8px]">Maintenance Engineer — Nairobi Steel Manufacturing</div>
+                  <div className="text-[3.5px] text-gray-500">Nairobi | 2019 – 2022</div>
+                  <div className="space-y-0.5 text-[3.8px] text-gray-700 mt-0.5">
+                    <div>• Managed mechanical maintenance for steel equipment</div>
+                    <div>• Supervised team of 6 technicians</div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div className="font-bold text-[4.5px] uppercase border-b-2 border-gray-800 pb-0.5 mb-1">Education</div>
+                <div className="font-bold text-[3.8px]">BSc Mechanical Engineering</div>
+                <div className="text-[3.8px] text-gray-700">Jomo Kenyatta University of Agriculture & Technology</div>
+                <div className="text-[3.5px] text-gray-500">2014 – 2018</div>
+              </div>
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="w-full aspect-[3/4] bg-gray-100 border border-gray-200 rounded flex items-center justify-center">
