@@ -41,9 +41,9 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
           <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded p-4 text-[8px] leading-[1.4] overflow-hidden shadow-sm">
             {/* Header */}
             <div className="border-b border-gray-800 pb-1.5 mb-2">
-              <div className="font-bold text-[14px] mb-1">JOHN MWANGI KARIUKI</div>
-              <div className="text-[10px] text-gray-700 mb-1">Administrative Officer</div>
-              <div className="text-[7px] text-gray-600 space-y-0.5">
+              <div className="font-bold text-[8px] mb-0.5">JOHN MWANGI KARIUKI</div>
+              <div className="text-[5.5px] text-gray-700 mb-0.5">Administrative Officer</div>
+              <div className="text-[4px] text-gray-600 space-y-0.5">
                 <div>📍 Nairobi, Kenya</div>
                 <div>📞 +254 712 345 678</div>
                 <div>✉ johnmwangi@email.com</div>
@@ -52,15 +52,15 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             </div>
             
             {/* Professional Summary */}
-            <div className="mb-2">
-              <div className="font-bold text-[8.5px] uppercase border-b border-gray-300 mb-1">Professional Summary</div>
-              <div className="text-[7px] text-gray-700">Results-driven administrative and operations professional with over 5 years of experience supporting organizational efficiency, office coordination, and project administration.</div>
+            <div className="mb-1.5">
+              <div className="font-bold text-[5px] uppercase border-b border-gray-300 mb-0.5">Professional Summary</div>
+              <div className="text-[4px] text-gray-700">Results-driven administrative and operations professional with over 5 years of experience supporting organizational efficiency, office coordination, and project administration.</div>
             </div>
             
             {/* Skills */}
-            <div className="mb-2">
-              <div className="font-bold text-[8.5px] uppercase border-b border-gray-300 mb-1">Key Skills</div>
-              <div className="grid grid-cols-2 gap-x-2 text-[7px]">
+            <div className="mb-1.5">
+              <div className="font-bold text-[5px] uppercase border-b border-gray-300 mb-0.5">Key Skills</div>
+              <div className="grid grid-cols-2 gap-x-2 text-[4px]">
                 <div>• Office Administration</div>
                 <div>• Records Management</div>
                 <div>• Customer Service</div>
@@ -74,8 +74,8 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             
             {/* Experience */}
             <div className="mb-1.5">
-              <div className="font-bold text-[6.5px] uppercase border-b border-gray-300 mb-1">Professional Experience</div>
-              <div className="text-[5.5px] mb-1.5">
+              <div className="font-bold text-[5px] uppercase border-b border-gray-300 mb-0.5">Professional Experience</div>
+              <div className="text-[4px] mb-1">
                 <div className="font-semibold">Administrative Officer</div>
                 <div className="text-gray-700">ABC Logistics Ltd – Nairobi</div>
                 <div className="text-gray-500 italic mb-0.5">March 2021 – Present</div>
@@ -86,7 +86,7 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                   <div>• Supervise office support staff and coordinate schedules</div>
                 </div>
               </div>
-              <div className="text-[5.5px] mb-1.5">
+              <div className="text-[4px] mb-1">
                 <div className="font-semibold">Office Assistant</div>
                 <div className="text-gray-700">Greenfield Solutions Ltd – Nairobi</div>
                 <div className="text-gray-500 italic mb-0.5">January 2019 – February 2021</div>
@@ -96,7 +96,7 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                   <div>• Assisted with event planning and coordination</div>
                 </div>
               </div>
-              <div className="text-[5.5px]">
+              <div className="text-[4px]">
                 <div className="font-semibold">Administrative Intern</div>
                 <div className="text-gray-700">Kenya Commercial Bank – Nairobi</div>
                 <div className="text-gray-500 italic mb-0.5">June 2018 – December 2018</div>
@@ -109,18 +109,18 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             
             {/* Education */}
             <div className="mb-1.5">
-              <div className="font-bold text-[6.5px] uppercase border-b border-gray-300 mb-1">Education</div>
-              <div className="text-[5.5px] mb-1">
+              <div className="font-bold text-[5px] uppercase border-b border-gray-300 mb-0.5">Education</div>
+              <div className="text-[4px] mb-0.5">
                 <div className="font-semibold">Bachelor of Business Administration</div>
                 <div>University of Nairobi</div>
                 <div className="text-gray-500 italic">2014 – 2018</div>
               </div>
-              <div className="text-[5.5px] mb-1">
+              <div className="text-[4px] mb-0.5">
                 <div className="font-semibold">Diploma in Business Management</div>
                 <div>Kenya Institute of Management</div>
                 <div className="text-gray-500 italic">2012 – 2014</div>
               </div>
-              <div className="text-[5.5px]">
+              <div className="text-[4px]">
                 <div className="font-semibold">Kenya Certificate of Secondary Education</div>
                 <div>Starehe Boys Centre</div>
                 <div className="text-gray-500 italic">2008 – 2011</div>
@@ -129,8 +129,8 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             
             {/* Certifications */}
             <div className="mb-1.5">
-              <div className="font-bold text-[6.5px] uppercase border-b border-gray-300 mb-1">Professional Certifications</div>
-              <div className="text-[5.5px] space-y-0.5">
+              <div className="font-bold text-[5px] uppercase border-b border-gray-300 mb-0.5">Professional Certifications</div>
+              <div className="text-[4px] space-y-0.5">
                 <div>• Certificate in Project Management – Kenya Institute of Management 2020</div>
                 <div>• Advanced Microsoft Excel Training – Strathmore University 2019</div>
               </div>
@@ -138,8 +138,8 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             
             {/* Achievements */}
             <div className="mb-1.5">
-              <div className="font-bold text-[6.5px] uppercase border-b border-gray-300 mb-1">Professional Achievements</div>
-              <div className="text-[5.5px] space-y-0.5">
+              <div className="font-bold text-[5px] uppercase border-b border-gray-300 mb-0.5">Professional Achievements</div>
+              <div className="text-[4px] space-y-0.5">
                 <div>• Streamlined office filing system, reducing document retrieval time by 40%</div>
                 <div>• Successfully coordinated 15+ company events with 100% attendance</div>
                 <div>• Implemented digital record-keeping improving efficiency by 30%</div>
@@ -150,8 +150,8 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             
             {/* Referees */}
             <div>
-              <div className="font-bold text-[6.5px] uppercase border-b border-gray-300 mb-1">Referees</div>
-              <div className="text-[5.5px] italic">Available upon request.</div>
+              <div className="font-bold text-[5px] uppercase border-b border-gray-300 mb-0.5">Referees</div>
+              <div className="text-[4px] italic">Available upon request.</div>
             </div>
           </div>
         );
