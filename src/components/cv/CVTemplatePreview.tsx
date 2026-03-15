@@ -1,0 +1,1333 @@
+﻿/**
+ * CV Template Preview Component
+ * Renders a thumbnail preview of CV templates with full content
+ * SAME SIZE ON ALL DEVICES
+ */
+
+import React from 'react';
+
+interface CVTemplatePreviewProps {
+  templateName: string;
+  showDescription?: boolean;
+  descriptionOnly?: boolean;
+}
+
+const templateDescriptions: Record<string, string> = {
+  'Classic Professional': 'A clean, ATS-friendly single-column layout perfect for entry to mid-level professionals. Emphasizes clarity and readability.',
+  'Modern Professional': 'A stylized two-column design with blue accents and modern aesthetics. Ideal for corporate roles and marketing positions.',
+  'Executive Leadership': 'A premium serif layout emphasizing leadership achievements and strategic impact. Perfect for directors, CEOs, and senior management.',
+  'Graduate Starter CV': 'Education-focused layout prioritizing academic projects, internships, and extracurricular activities. Perfect for fresh graduates and students.',
+  'Skills-Based (Functional)': 'Emphasizes skills and competencies over chronological work history. Perfect for career changers, candidates with employment gaps, or those with strong transferable skills.',
+  'Internship / Industrial Attachment': 'Student-focused template emphasizing education, technical skills, and potential. Perfect for students seeking industrial attachment or internship opportunities.',
+  'Creative Portfolio': 'Eye-catching template with bold sidebar design showcasing portfolio projects prominently. Perfect for graphic designers, UI/UX designers, photographers, and creative professionals.',
+  'Digital Professional': 'Tech-focused template with dark sidebar highlighting tech stack, tools, and certifications. Perfect for software developers, data scientists, IT professionals, and digital specialists.',
+  'Personal Brand CV': 'Designed for professionals whose reputation and public presence matter. Perfect for consultants, marketing professionals, speakers, influencers, coaches, and content creators. Highlights personal tagline, online presence, media features, and speaking engagements.',
+  'Academic / Research CV': 'Single-column serif layout designed for academics, researchers, PhD applicants, and fellowship seekers. Highlights research interests, publications, conferences, teaching positions, grants, and academic achievements.'
+};
+
+export default function CVTemplatePreview({ templateName, showDescription = false, descriptionOnly = false }: CVTemplatePreviewProps) {
+  // If only showing description, return just that
+  if (descriptionOnly && templateDescriptions[templateName]) {
+    return (
+      <p className="text-xs text-muted-foreground leading-relaxed">
+        {templateDescriptions[templateName]}
+      </p>
+    );
+  }
+
+  const renderPreview = () => {
+    switch (templateName) {
+      case 'Classic Professional':
+        return (
+          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded p-4 text-[8px] leading-[1.4] overflow-hidden shadow-sm">
+            {/* Header */}
+            <div className="border-b border-gray-800 pb-1.5 mb-2">
+              <div className="font-bold text-[8px] mb-0.5">JOHN MWANGI KARIUKI</div>
+              <div className="text-[5.5px] text-gray-700 mb-0.5">Administrative Officer</div>
+              <div className="text-[4px] text-gray-600 space-y-0.5">
+                <div>≡ƒôì Nairobi, Kenya</div>
+                <div>≡ƒô₧ +254 712 345 678</div>
+                <div>Γ£ë johnmwangi@email.com</div>
+                <div>≡ƒöù linkedin.com/in/johnmwangi</div>
+              </div>
+            </div>
+            
+            {/* Professional Summary */}
+            <div className="mb-1.5">
+              <div className="font-bold text-[5px] uppercase border-b border-gray-300 mb-0.5">Professional Summary</div>
+              <div className="text-[4px] text-gray-700">Results-driven administrative and operations professional with over 5 years of experience supporting organizational efficiency, office coordination, and project administration.</div>
+            </div>
+            
+            {/* Skills */}
+            <div className="mb-1.5">
+              <div className="font-bold text-[5px] uppercase border-b border-gray-300 mb-0.5">Key Skills</div>
+              <div className="grid grid-cols-2 gap-x-2 text-[4px]">
+                <div>ΓÇó Office Administration</div>
+                <div>ΓÇó Records Management</div>
+                <div>ΓÇó Customer Service</div>
+                <div>ΓÇó Scheduling & Calendar</div>
+                <div>ΓÇó Report Preparation</div>
+                <div>ΓÇó Microsoft Office</div>
+                <div>ΓÇó Problem Solving</div>
+                <div>ΓÇó Team Collaboration</div>
+              </div>
+            </div>
+            
+            {/* Experience */}
+            <div className="mb-1.5">
+              <div className="font-bold text-[5px] uppercase border-b border-gray-300 mb-0.5">Professional Experience</div>
+              <div className="text-[4px] mb-1">
+                <div className="font-semibold">Administrative Officer</div>
+                <div className="text-gray-700">ABC Logistics Ltd ΓÇô Nairobi</div>
+                <div className="text-gray-500 italic mb-0.5">March 2021 ΓÇô Present</div>
+                <div className="space-y-0.5">
+                  <div>ΓÇó Coordinate daily office operations and administrative activities</div>
+                  <div>ΓÇó Prepare reports, meeting minutes, and official correspondence</div>
+                  <div>ΓÇó Manage document filing systems and maintain accurate records</div>
+                  <div>ΓÇó Supervise office support staff and coordinate schedules</div>
+                </div>
+              </div>
+              <div className="text-[4px] mb-1">
+                <div className="font-semibold">Office Assistant</div>
+                <div className="text-gray-700">Greenfield Solutions Ltd ΓÇô Nairobi</div>
+                <div className="text-gray-500 italic mb-0.5">January 2019 ΓÇô February 2021</div>
+                <div className="space-y-0.5">
+                  <div>ΓÇó Supported administrative tasks including data entry and scheduling</div>
+                  <div>ΓÇó Managed incoming calls, emails, and office correspondence</div>
+                  <div>ΓÇó Assisted with event planning and coordination</div>
+                </div>
+              </div>
+              <div className="text-[4px]">
+                <div className="font-semibold">Administrative Intern</div>
+                <div className="text-gray-700">Kenya Commercial Bank ΓÇô Nairobi</div>
+                <div className="text-gray-500 italic mb-0.5">June 2018 ΓÇô December 2018</div>
+                <div className="space-y-0.5">
+                  <div>ΓÇó Assisted with filing, data entry, and document management</div>
+                  <div>ΓÇó Supported customer service and front desk operations</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Education */}
+            <div className="mb-1.5">
+              <div className="font-bold text-[5px] uppercase border-b border-gray-300 mb-0.5">Education</div>
+              <div className="text-[4px] mb-0.5">
+                <div className="font-semibold">Bachelor of Business Administration</div>
+                <div>University of Nairobi</div>
+                <div className="text-gray-500 italic">2014 ΓÇô 2018</div>
+              </div>
+              <div className="text-[4px] mb-0.5">
+                <div className="font-semibold">Diploma in Business Management</div>
+                <div>Kenya Institute of Management</div>
+                <div className="text-gray-500 italic">2012 ΓÇô 2014</div>
+              </div>
+              <div className="text-[4px]">
+                <div className="font-semibold">Kenya Certificate of Secondary Education</div>
+                <div>Starehe Boys Centre</div>
+                <div className="text-gray-500 italic">2008 ΓÇô 2011</div>
+              </div>
+            </div>
+            
+            {/* Certifications */}
+            <div className="mb-1.5">
+              <div className="font-bold text-[5px] uppercase border-b border-gray-300 mb-0.5">Professional Certifications</div>
+              <div className="text-[4px] space-y-0.5">
+                <div>ΓÇó Certificate in Project Management ΓÇô Kenya Institute of Management 2020</div>
+                <div>ΓÇó Advanced Microsoft Excel Training ΓÇô Strathmore University 2019</div>
+              </div>
+            </div>
+            
+            {/* Achievements */}
+            <div className="mb-1.5">
+              <div className="font-bold text-[5px] uppercase border-b border-gray-300 mb-0.5">Professional Achievements</div>
+              <div className="text-[4px] space-y-0.5">
+                <div>ΓÇó Streamlined office filing system, reducing document retrieval time by 40%</div>
+                <div>ΓÇó Successfully coordinated 15+ company events with 100% attendance</div>
+                <div>ΓÇó Implemented digital record-keeping improving efficiency by 30%</div>
+                <div>ΓÇó Reduced office supply costs by 25% through strategic vendor negotiations</div>
+                <div>ΓÇó Trained and mentored 5 new administrative staff members</div>
+              </div>
+            </div>
+            
+            {/* Referees */}
+            <div>
+              <div className="font-bold text-[5px] uppercase border-b border-gray-300 mb-0.5">Referees</div>
+              <div className="text-[4px] italic">Available upon request.</div>
+            </div>
+          </div>
+        );
+      
+      case 'Modern Professional':
+        return (
+          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded overflow-hidden flex text-[4.5px] leading-[1.3]">
+            {/* Left Sidebar */}
+            <div className="w-[35%] bg-blue-50 p-2">
+              <div className="mb-1.5">
+                <div className="font-bold text-[6px] text-blue-900 uppercase mb-1">Key Skills</div>
+                <div className="space-y-0.5 text-[4.2px]">
+                  <div>Γû¬ Digital Marketing Strategy</div>
+                  <div>Γû¬ Social Media Management</div>
+                  <div>Γû¬ Content Marketing</div>
+                  <div>Γû¬ SEO Optimization</div>
+                  <div>Γû¬ Campaign Analytics</div>
+                  <div>Γû¬ Brand Communication</div>
+                  <div>Γû¬ Email Marketing</div>
+                  <div>Γû¬ Copywriting</div>
+                </div>
+              </div>
+              <div className="mb-1.5">
+                <div className="font-bold text-[6px] text-blue-900 uppercase mb-1">Tools & Platforms</div>
+                <div className="space-y-0.5 text-[4.2px]">
+                  <div>Γû¬ Google Analytics</div>
+                  <div>Γû¬ Meta Ads Manager</div>
+                  <div>Γû¬ Canva</div>
+                  <div>Γû¬ Mailchimp</div>
+                  <div>Γû¬ Hootsuite</div>
+                  <div>Γû¬ Microsoft Office</div>
+                  <div>Γû¬ WordPress</div>
+                </div>
+              </div>
+              <div className="mb-1.5">
+                <div className="font-bold text-[6px] text-blue-900 uppercase mb-1">Languages</div>
+                <div className="space-y-0.5 text-[4.2px]">
+                  <div>English ΓÇô Fluent</div>
+                  <div>Swahili ΓÇô Fluent</div>
+                </div>
+              </div>
+              <div>
+                <div className="font-bold text-[6px] text-blue-900 uppercase mb-1">Referees</div>
+                <div className="text-[4.2px] italic">Available upon request.</div>
+              </div>
+            </div>
+            
+            {/* Right Main Content */}
+            <div className="flex-1 p-2">
+              {/* Header */}
+              <div className="border-b border-blue-600 pb-1 mb-1.5">
+                <div className="font-bold text-[9px] mb-1">GRACE WANJIKU NJOROGE</div>
+                <div className="text-[6.5px] text-blue-700 font-medium mb-1">Digital Marketing Specialist</div>
+                <div className="text-[4px] text-gray-600 space-y-0.5">
+                  <div>≡ƒôì Nairobi, Kenya ≡ƒô₧ +254 723 456 789</div>
+                  <div>Γ£ë grace.njoroge@email.com</div>
+                  <div>≡ƒöù linkedin.com/in/grace-njoroge</div>
+                </div>
+              </div>
+              
+              {/* Professional Profile */}
+              <div className="mb-1.5">
+                <div className="font-bold text-[6px] text-blue-900 uppercase mb-1">Professional Profile</div>
+                <div className="text-[4.2px] text-gray-700">Results-driven digital marketing specialist with over 6 years of experience developing and executing marketing campaigns that increase brand visibility and drive customer engagement. Skilled in digital strategy, social media management, and marketing analytics.</div>
+              </div>
+              
+              {/* Experience */}
+              <div className="mb-1.5">
+                <div className="font-bold text-[6px] text-blue-900 uppercase mb-1">Professional Experience</div>
+                <div className="mb-1">
+                  <div className="font-bold text-[4.2px]">Digital Marketing Officer</div>
+                  <div className="text-[4.2px] text-blue-700 font-medium">BrightWave Communications Ltd ΓÇô Nairobi</div>
+                  <div className="text-[3.8px] text-gray-500 italic mb-0.5">April 2021 ΓÇô Present</div>
+                  <div className="space-y-0.5 text-[4.2px]">
+                    <div>Γû¬ Develop and execute digital marketing campaigns</div>
+                    <div>Γû¬ Increased social media engagement by 45%</div>
+                    <div>Γû¬ Analyze campaign performance and prepare reports</div>
+                    <div>Γû¬ Coordinate content production and brand messaging</div>
+                  </div>
+                </div>
+                <div className="mb-1">
+                  <div className="font-bold text-[4.2px]">Marketing Assistant</div>
+                  <div className="text-[4.2px] text-blue-700 font-medium">Skyline Retail Group ΓÇô Nairobi</div>
+                  <div className="text-[3.8px] text-gray-500 italic mb-0.5">Jan 2019 ΓÇô Mar 2021</div>
+                  <div className="space-y-0.5 text-[4.2px]">
+                    <div>Γû¬ Assisted with promotional campaigns and events</div>
+                    <div>Γû¬ Managed customer engagement on social media</div>
+                    <div>Γû¬ Supported market research and competitor analysis</div>
+                  </div>
+                </div>
+                <div>
+                  <div className="font-bold text-[4.2px]">Marketing Intern</div>
+                  <div className="text-[4.2px] text-blue-700 font-medium">Creative Hub Agency ΓÇô Nairobi</div>
+                  <div className="text-[3.8px] text-gray-500 italic mb-0.5">Jun 2018 ΓÇô Dec 2018</div>
+                  <div className="space-y-0.5 text-[4.2px]">
+                    <div>Γû¬ Assisted in social media content creation</div>
+                    <div>Γû¬ Conducted market research and data analysis</div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Education */}
+              <div className="mb-1.5">
+                <div className="font-bold text-[6px] text-blue-900 uppercase mb-1">Education</div>
+                <div className="mb-1">
+                  <div className="font-bold text-[4.2px]">Bachelor of Commerce (Marketing Option)</div>
+                  <div className="text-[4.2px]">Kenyatta University</div>
+                  <div className="text-[3.8px] text-gray-500 italic">2014 ΓÇô 2018</div>
+                </div>
+                <div className="mb-1">
+                  <div className="font-bold text-[4.2px]">Diploma in Marketing</div>
+                  <div className="text-[4.2px]">Kenya Institute of Marketing</div>
+                  <div className="text-[3.8px] text-gray-500 italic">2012 ΓÇô 2014</div>
+                </div>
+                <div>
+                  <div className="font-bold text-[4.2px]">Kenya Certificate of Secondary Education</div>
+                  <div className="text-[4.2px]">Alliance Girls High School</div>
+                  <div className="text-[3.8px] text-gray-500 italic">2010 ΓÇô 2013</div>
+                </div>
+              </div>
+              
+              {/* Certifications */}
+              <div className="mb-1.5">
+                <div className="font-bold text-[6px] text-blue-900 uppercase mb-1">Certifications</div>
+                <div className="space-y-0.5 text-[4.2px]">
+                  <div>Γû¬ Digital Marketing ΓÇô Google (2022)</div>
+                  <div>Γû¬ Content Marketing ΓÇô HubSpot (2021)</div>
+                  <div>Γû¬ Social Media Marketing ΓÇô Meta (2020)</div>
+                </div>
+              </div>
+              
+              {/* Achievements */}
+              <div>
+                <div className="font-bold text-[6px] text-blue-900 uppercase mb-1">Professional Achievements</div>
+                <div className="space-y-0.5 text-[4.2px]">
+                  <div>Γû¬ Increased social media engagement by 45% in 12 months</div>
+                  <div>Γû¬ Successfully launched 20+ digital campaigns with 95% success rate</div>
+                  <div>Γû¬ Grew email subscriber base from 5,000 to 15,000 in 18 months</div>
+                  <div>Γû¬ Achieved 30% increase in website traffic through SEO optimization</div>
+                  <div>Γû¬ Won Best Digital Campaign Award at Kenya Marketing Awards 2023</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      
+      case 'Executive Leadership':
+        return (
+          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded overflow-hidden text-[5px] leading-[1.3]">
+            {/* Header */}
+            <div className="border-b border-gray-900 pb-1 mb-1.5 px-2 pt-2">
+              <div className="font-bold text-[10px] mb-1">DAVID OCHIENG OTIENO</div>
+              <div className="text-[7.5px] text-gray-700 mb-1">Chief Operations Officer (COO)</div>
+              <div className="text-[4.2px] text-gray-600">
+                Nairobi, Kenya ΓÇó +254 711 234 567 ΓÇó david.otieno@email.com ΓÇó linkedin.com/in/david-otieno
+              </div>
+            </div>
+            
+            <div className="px-2">
+              {/* Leadership Profile */}
+              <div className="mb-1.5">
+                <div className="font-bold text-[6.5px] uppercase mb-1">Leadership Profile</div>
+                <div className="text-[4.5px] text-gray-700">Strategic operations executive with over 15 years of leadership experience driving operational efficiency, business growth, and organizational transformation across East Africa.</div>
+              </div>
+              
+              {/* Key Achievements */}
+              <div className="mb-1.5">
+                <div className="font-bold text-[6.5px] uppercase mb-1">Key Leadership Achievements</div>
+                <div className="space-y-0.5 text-[4.5px]">
+                  <div>Γû¬ Led operational restructuring reducing costs by 28% within two years</div>
+                  <div>Γû¬ Oversaw expansion into three East African markets</div>
+                  <div>Γû¬ Implemented digital transformation improving efficiency by 35%</div>
+                  <div>Γû¬ Managed cross-functional teams of over 250 employees</div>
+                  <div>Γû¬ Achieved 40% revenue growth through strategic initiatives</div>
+                </div>
+              </div>
+              
+              {/* Experience */}
+              <div className="mb-1.5">
+                <div className="font-bold text-[6.5px] uppercase mb-1">Strategic Leadership Experience</div>
+                <div className="mb-1">
+                  <div className="font-semibold text-[4.5px]">Chief Operations Officer</div>
+                  <div className="text-[4.5px] text-gray-700">EastAfrica Logistics Group ΓÇö Nairobi</div>
+                  <div className="text-[4px] text-gray-500 italic mb-0.5">2019 ΓÇô Present</div>
+                  <div className="space-y-0.5 text-[4.5px]">
+                    <div>ΓÇó Lead operational strategy for regional company with 300+ staff</div>
+                    <div>ΓÇó Drive business growth and operational excellence initiatives</div>
+                    <div>ΓÇó Implement performance improvement across supply chain</div>
+                  </div>
+                </div>
+                <div className="mb-1">
+                  <div className="font-semibold text-[4.5px]">Operations Director</div>
+                  <div className="text-[4.5px] text-gray-700">TransGlobal Supply Chain Ltd ΓÇö Nairobi</div>
+                  <div className="text-[4px] text-gray-500 italic mb-0.5">2015 ΓÇô 2019</div>
+                  <div className="space-y-0.5 text-[4.5px]">
+                    <div>ΓÇó Managed nationwide logistics and distribution network</div>
+                    <div>ΓÇó Introduced automation improving efficiency by 22%</div>
+                    <div>ΓÇó Led strategic planning and operational budgeting</div>
+                  </div>
+                </div>
+                <div>
+                  <div className="font-semibold text-[4.5px]">Regional Operations Manager</div>
+                  <div className="text-[4.5px] text-gray-700">Kenya Freight Services ΓÇö Nairobi</div>
+                  <div className="text-[4px] text-gray-500 italic mb-0.5">2011 ΓÇô 2015</div>
+                  <div className="space-y-0.5 text-[4.5px]">
+                    <div>ΓÇó Oversaw operations for 5 regional branches</div>
+                    <div>ΓÇó Reduced operational costs by 18% through process optimization</div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Board Memberships */}
+              <div className="mb-1.5">
+                <div className="font-bold text-[6.5px] uppercase mb-1">Board Memberships</div>
+                <div className="space-y-0.5 text-[4.5px]">
+                  <div>ΓÇó Board Member ΓÇö Kenya Transport & Logistics Association</div>
+                  <div>ΓÇó Advisory Board ΓÇö East Africa Supply Chain Council</div>
+                  <div>ΓÇó Board Member ΓÇö Kenya Institute of Supply Management</div>
+                </div>
+              </div>
+              
+              {/* Strategic Initiatives */}
+              <div className="mb-1.5">
+                <div className="font-bold text-[6.5px] uppercase mb-1">Strategic Initiatives</div>
+                <div className="space-y-0.5 text-[4.5px]">
+                  <div>ΓÇó Digital transformation program across all operations</div>
+                  <div>ΓÇó Regional expansion strategy into Tanzania and Uganda</div>
+                  <div>ΓÇó Sustainability initiative reducing carbon footprint by 30%</div>
+                </div>
+              </div>
+              
+              {/* Education */}
+              <div className="mb-1.5">
+                <div className="font-bold text-[6.5px] uppercase mb-1">Education</div>
+                <div className="mb-1">
+                  <div className="font-semibold text-[4.5px]">Master of Business Administration (MBA)</div>
+                  <div className="text-[4.5px]">Strathmore Business School</div>
+                  <div className="text-[4px] text-gray-500 italic">2012 ΓÇô 2014</div>
+                </div>
+                <div className="mb-1">
+                  <div className="font-semibold text-[4.5px]">Bachelor of Commerce (Operations Management)</div>
+                  <div className="text-[4.5px]">University of Nairobi</div>
+                  <div className="text-[4px] text-gray-500 italic">2004 ΓÇô 2008</div>
+                </div>
+                <div>
+                  <div className="font-semibold text-[4.5px]">Diploma in Business Management</div>
+                  <div className="text-[4.5px]">Kenya Institute of Management</div>
+                  <div className="text-[4px] text-gray-500 italic">2002 ΓÇô 2004</div>
+                </div>
+              </div>
+              
+              {/* Certifications */}
+              <div>
+                <div className="font-bold text-[6.5px] uppercase mb-1">Certifications</div>
+                <div className="space-y-0.5 text-[4.5px]">
+                  <div>ΓÇó Certified Supply Chain Professional (CSCP)</div>
+                  <div>ΓÇó Strategic Leadership ΓÇö Harvard Business School</div>
+                  <div>ΓÇó Project Management Professional (PMP)</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      
+      case 'Graduate Starter CV':
+        return (
+          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded p-2 text-[5.5px] leading-[1.35] overflow-hidden shadow-sm">
+            {/* Header */}
+            <div className="border-b border-gray-300 pb-1 mb-1.5">
+              <div className="font-bold text-[9px] text-gray-900">BRIAN KIPRONO CHEBET</div>
+              <div className="text-[6px] text-gray-700 mt-0.5">Recent Graduate ΓÇô Mechanical Engineering</div>
+              <div className="text-[4.5px] text-gray-600 mt-0.5">
+                Nakuru, Kenya | +254 712 987 654 | brian.chebet@email.com | linkedin.com/in/brian-chebet
+              </div>
+            </div>
+            
+            {/* Career Objective */}
+            <div className="mb-1.5">
+              <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Career Objective</div>
+              <div className="text-[4.8px] text-gray-700">Motivated mechanical engineering graduate seeking an entry-level engineering role where I can apply technical knowledge, problem-solving skills, and hands-on experience to contribute to innovative engineering solutions.</div>
+            </div>
+            
+            {/* Education */}
+            <div className="mb-1.5">
+              <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Education</div>
+              <div className="text-[4.8px] mb-1">
+                <div className="font-semibold text-gray-900">Bachelor of Science in Mechanical Engineering</div>
+                <div className="text-gray-700">Jomo Kenyatta University of Agriculture and Technology</div>
+                <div className="text-gray-500 text-[4.2px]">2019 ΓÇô 2023 | Second Class Honours (Upper Division)</div>
+              </div>
+              <div className="text-[4.8px]">
+                <div className="font-semibold text-gray-900">Kenya Certificate of Secondary Education</div>
+                <div className="text-gray-700">Nakuru High School</div>
+                <div className="text-gray-500 text-[4.2px]">2015 ΓÇô 2018 | Grade A-</div>
+              </div>
+            </div>
+            
+            {/* Academic Projects */}
+            <div className="mb-1.5">
+              <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Academic Projects</div>
+              <div className="mb-1">
+                <div className="font-semibold text-[4.8px] text-gray-900">Automated Irrigation System</div>
+                <div className="text-[4.2px] text-gray-500 mb-0.5">Final Year Project ΓÇô 2023</div>
+                <div className="text-[4.8px] text-gray-700">Designed and built an automated irrigation system using sensors to regulate water flow based on soil moisture levels. Achieved 40% water savings in test trials.</div>
+              </div>
+              <div>
+                <div className="font-semibold text-[4.8px] text-gray-900">Solar Water Heater Design</div>
+                <div className="text-[4.2px] text-gray-500 mb-0.5">Third Year Project ΓÇô 2022</div>
+                <div className="text-[4.8px] text-gray-700">Developed a prototype solar-powered water heater aimed at improving energy efficiency in rural households. Presented at university innovation fair.</div>
+              </div>
+            </div>
+            
+            {/* Internship */}
+            <div className="mb-1.5">
+              <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Internship / Industrial Attachment</div>
+              <div>
+                <div className="font-semibold text-[4.8px] text-gray-900">Engineering Intern ΓÇö KenGen</div>
+                <div className="text-[4.2px] text-gray-500 mb-0.5">Naivasha | May 2022 ΓÇô Aug 2022</div>
+                <div className="space-y-0.5 text-[4.8px]">
+                  <div>ΓÇó Assisted engineers with maintenance and inspection of turbine systems</div>
+                  <div>ΓÇó Participated in safety audits and plant operations monitoring</div>
+                  <div>ΓÇó Prepared technical reports on equipment performance</div>
+                  <div>ΓÇó Gained hands-on experience with geothermal power generation</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Skills */}
+            <div className="mb-1.5">
+              <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Key Skills</div>
+              <div className="grid grid-cols-2 gap-x-1 gap-y-0.5 text-[4.8px]">
+                <div>ΓÇó AutoCAD & SolidWorks</div>
+                <div>ΓÇó Microsoft Excel & Word</div>
+                <div>ΓÇó Engineering Drawing</div>
+                <div>ΓÇó Team Collaboration</div>
+                <div>ΓÇó Technical Problem Solving</div>
+                <div>ΓÇó Technical Report Writing</div>
+                <div>ΓÇó MATLAB Programming</div>
+                <div>ΓÇó Project Management</div>
+              </div>
+            </div>
+            
+            {/* Extracurricular */}
+            <div className="mb-1.5">
+              <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Extracurricular Activities</div>
+              <div className="space-y-0.5 text-[4.8px]">
+                <div>ΓÇó Member ΓÇô Engineering Students Association (2020-2023)</div>
+                <div>ΓÇó Volunteer ΓÇô Community STEM Mentorship Program</div>
+                <div>ΓÇó Participant ΓÇô National Engineering Innovation Competition 2022</div>
+              </div>
+            </div>
+            
+            {/* Referees */}
+            <div>
+              <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Referees</div>
+              <div className="text-[4.8px] text-gray-700">Available upon request.</div>
+            </div>
+          </div>
+        );
+      
+      case 'Skills-Based (Functional)':
+        return (
+          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded p-2 text-[5.5px] leading-[1.35] overflow-hidden shadow-sm">
+            {/* Header */}
+            <div className="border-b-2 border-gray-300 pb-1 mb-1.5">
+              <div className="font-bold text-[9px] text-gray-900">MARY ACHIENG ODHIAMBO</div>
+              <div className="text-[6px] text-blue-700 font-medium mt-0.5">Customer Service Specialist</div>
+              <div className="flex flex-wrap gap-x-1 text-[4.5px] text-gray-600 mt-0.5">
+                <span>≡ƒôì Kisumu, Kenya</span>
+                <span>≡ƒô₧ +254 710 234 567</span>
+                <span>Γ£ë mary.odhiambo@email.com</span>
+                <span>≡ƒöù linkedin.com/in/mary-odhiambo</span>
+              </div>
+            </div>
+            
+            {/* Professional Summary */}
+            <div className="mb-1.5">
+              <div className="font-bold text-[6px] text-gray-900 uppercase border-b border-gray-300 pb-0.5 mb-0.5">Professional Summary</div>
+              <div className="text-[4.8px] text-gray-700">Customer-focused professional with strong communication and problem-solving skills developed through experience in retail, community service, and administrative roles. Proven ability to build positive relationships and deliver excellent service.</div>
+            </div>
+            
+            {/* Core Competencies */}
+            <div className="mb-1.5">
+              <div className="font-bold text-[6px] text-gray-900 uppercase border-b border-gray-300 pb-0.5 mb-0.5">Core Competencies</div>
+              <div className="grid grid-cols-2 gap-x-1 gap-y-0.5">
+                <div className="flex items-start text-[4.8px]">
+                  <span className="text-blue-600 mr-0.5">Γû¬</span>
+                  <span>Customer Support</span>
+                </div>
+                <div className="flex items-start text-[4.8px]">
+                  <span className="text-blue-600 mr-0.5">Γû¬</span>
+                  <span>Communication</span>
+                </div>
+                <div className="flex items-start text-[4.8px]">
+                  <span className="text-blue-600 mr-0.5">Γû¬</span>
+                  <span>Conflict Resolution</span>
+                </div>
+                <div className="flex items-start text-[4.8px]">
+                  <span className="text-blue-600 mr-0.5">Γû¬</span>
+                  <span>Team Collaboration</span>
+                </div>
+                <div className="flex items-start text-[4.8px]">
+                  <span className="text-blue-600 mr-0.5">Γû¬</span>
+                  <span>Problem Solving</span>
+                </div>
+                <div className="flex items-start text-[4.8px]">
+                  <span className="text-blue-600 mr-0.5">Γû¬</span>
+                  <span>Data Entry & MS Office</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Professional Skills */}
+            <div className="mb-1.5">
+              <div className="font-bold text-[6px] text-gray-900 uppercase border-b border-gray-300 pb-0.5 mb-0.5">Professional Skills</div>
+              <div className="space-y-1">
+                <div>
+                  <div className="text-[4.8px] font-bold text-blue-700">Customer Service Skills</div>
+                  <div className="space-y-0.5 ml-1 text-[4.5px]">
+                    <div className="flex items-start">
+                      <span className="text-gray-400 mr-0.5">ΓÇó</span>
+                      <span>Handling customer inquiries and complaints professionally</span>
+                    </div>
+                    <div className="flex items-start">
+                      <span className="text-gray-400 mr-0.5">ΓÇó</span>
+                      <span>Providing accurate product information and recommendations</span>
+                    </div>
+                    <div className="flex items-start">
+                      <span className="text-gray-400 mr-0.5">ΓÇó</span>
+                      <span>Building rapport and maintaining customer relationships</span>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[4.8px] font-bold text-blue-700">Administrative Skills</div>
+                  <div className="space-y-0.5 ml-1 text-[4.5px]">
+                    <div className="flex items-start">
+                      <span className="text-gray-400 mr-0.5">ΓÇó</span>
+                      <span>Document management and filing systems</span>
+                    </div>
+                    <div className="flex items-start">
+                      <span className="text-gray-400 mr-0.5">ΓÇó</span>
+                      <span>Data entry and reporting with high accuracy</span>
+                    </div>
+                    <div className="flex items-start">
+                      <span className="text-gray-400 mr-0.5">ΓÇó</span>
+                      <span>Scheduling and calendar management</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Work Experience */}
+            <div className="mb-1.5">
+              <div className="font-bold text-[6px] text-gray-900 uppercase border-b border-gray-300 pb-0.5 mb-0.5">Relevant Work Experience</div>
+              <div className="space-y-0.5 text-[4.8px]">
+                <div>
+                  <span className="font-semibold">Retail Assistant</span>
+                  <span className="text-gray-600"> ΓÇö QuickMart Supermarket, Kisumu</span>
+                  <span className="text-gray-500 italic"> (2021 ΓÇô 2023)</span>
+                </div>
+                <div>
+                  <span className="font-semibold">Volunteer Admin Assistant</span>
+                  <span className="text-gray-600"> ΓÇö Community Development Initiative</span>
+                  <span className="text-gray-500 italic"> (2020 ΓÇô 2021)</span>
+                </div>
+                <div>
+                  <span className="font-semibold">Sales Intern</span>
+                  <span className="text-gray-600"> ΓÇö Tuskys Supermarket, Kisumu</span>
+                  <span className="text-gray-500 italic"> (2019 ΓÇô 2020)</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Education */}
+            <div className="mb-1.5">
+              <div className="font-bold text-[6px] text-gray-900 uppercase border-b border-gray-300 pb-0.5 mb-0.5">Education</div>
+              <div className="text-[4.8px] mb-1">
+                <div className="font-semibold">Diploma in Business Administration</div>
+                <div className="text-gray-700">Kisumu National Polytechnic</div>
+                <div className="text-[4.2px] text-gray-500 italic">2018 ΓÇô 2020 | Credit Pass</div>
+              </div>
+              <div className="text-[4.8px]">
+                <div className="font-semibold">Kenya Certificate of Secondary Education</div>
+                <div className="text-gray-700">Kisumu Girls High School</div>
+                <div className="text-[4.2px] text-gray-500 italic">2014 ΓÇô 2017 | Grade C+</div>
+              </div>
+            </div>
+            
+            {/* Certifications */}
+            <div className="mb-1.5">
+              <div className="font-bold text-[6px] text-gray-900 uppercase border-b border-gray-300 pb-0.5 mb-0.5">Certifications</div>
+              <div className="space-y-0.5 text-[4.8px]">
+                <div className="flex items-start">
+                  <span className="text-blue-600 mr-0.5">Γ£ô</span>
+                  <span>Customer Service Excellence ΓÇô Alison (2022)</span>
+                </div>
+                <div className="flex items-start">
+                  <span className="text-blue-600 mr-0.5">Γ£ô</span>
+                  <span>Basic Computer Applications ΓÇô Kenya ICT Board (2020)</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Referees */}
+            <div>
+              <div className="font-bold text-[6px] text-gray-900 uppercase border-b border-gray-300 pb-0.5 mb-0.5">Referees</div>
+              <div className="text-[4.8px] text-gray-700">Available upon request.</div>
+            </div>
+          </div>
+        );
+      
+      case 'Classic Executive':
+        return (
+          <div className="w-full aspect-[3/4] bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded p-2 flex items-center justify-center">
+            <div className="text-center text-gray-400">
+              <div className="text-[6px] font-semibold">Classic Executive</div>
+              <div className="text-[4px] mt-1">Coming Soon</div>
+            </div>
+          </div>
+        );
+      
+      case 'Internship / Industrial Attachment':
+        return (
+          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded p-2 text-[5.5px] leading-[1.35] overflow-hidden shadow-sm">
+            {/* Header */}
+            <div className="border-b border-gray-800 pb-1 mb-1.5">
+              <div className="font-bold text-[9px] text-gray-900">KEVIN MUTUA MULI</div>
+              <div className="text-[6px] text-gray-700 mt-0.5">Student ΓÇô Diploma in Electrical Engineering</div>
+              <div className="text-[4.5px] text-gray-600 mt-0.5">
+                Machakos, Kenya | +254 712 345 901 | kevin.mutua@email.com | linkedin.com/in/kevin-mutua
+              </div>
+            </div>
+            
+            {/* Career Objective */}
+            <div className="mb-1.5">
+              <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Career Objective</div>
+              <div className="text-[4.8px] text-gray-700">Motivated electrical engineering student seeking an industrial attachment opportunity to gain hands-on experience in electrical systems, maintenance, and engineering operations while applying classroom knowledge to real-world challenges.</div>
+            </div>
+            
+            {/* Education */}
+            <div className="mb-1.5">
+              <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Education</div>
+              <div className="text-[4.8px] mb-1">
+                <div className="font-semibold text-gray-900">Diploma in Electrical and Electronic Engineering</div>
+                <div className="text-gray-700">Machakos Technical Institute</div>
+                <div className="text-gray-500 text-[4.2px]">2022 ΓÇô Present | Current GPA: 3.5/4.0</div>
+              </div>
+              <div className="text-[4.8px]">
+                <div className="font-semibold text-gray-900">Kenya Certificate of Secondary Education</div>
+                <div className="text-gray-700">Machakos Boys High School</div>
+                <div className="text-gray-500 text-[4.2px]">2018 ΓÇô 2021 | Grade B+</div>
+              </div>
+            </div>
+            
+            {/* Technical Skills */}
+            <div className="mb-1.5">
+              <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Technical Skills</div>
+              <div className="grid grid-cols-2 gap-x-1 gap-y-0.5 text-[4.8px]">
+                <div>ΓÇó Electrical Installation</div>
+                <div>ΓÇó Circuit Analysis</div>
+                <div>ΓÇó Basic PLC Programming</div>
+                <div>ΓÇó Electrical Safety Procedures</div>
+                <div>ΓÇó Technical Drawing</div>
+                <div>ΓÇó Microsoft Office Suite</div>
+                <div>ΓÇó Wiring & Troubleshooting</div>
+                <div>ΓÇó Equipment Maintenance</div>
+              </div>
+            </div>
+            
+            {/* Academic Projects */}
+            <div className="mb-1.5">
+              <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Academic Projects</div>
+              <div className="mb-1">
+                <div className="font-semibold text-[4.8px] text-gray-900">Automatic Street Lighting System</div>
+                <div className="text-[4.2px] text-gray-500 mb-0.5">Final Year Project ΓÇô 2023</div>
+                <div className="text-[4.8px] text-gray-700">Designed a light-dependent resistor system that automatically switches street lights on and off based on ambient light. Reduced energy consumption by 35% in test environment.</div>
+              </div>
+              <div>
+                <div className="font-semibold text-[4.8px] text-gray-900">Home Electrical Wiring Simulation</div>
+                <div className="text-[4.2px] text-gray-500 mb-0.5">Second Year Project ΓÇô 2023</div>
+                <div className="text-[4.8px] text-gray-700">Created a complete residential wiring diagram and simulation demonstrating proper electrical installation standards and safety protocols.</div>
+              </div>
+            </div>
+            
+            {/* Industrial Attachment */}
+            <div className="mb-1.5">
+              <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Industrial Attachment</div>
+              <div>
+                <div className="font-semibold text-[4.8px] text-gray-900">Industrial Attachment Trainee ΓÇö Kenya Power</div>
+                <div className="text-[4.2px] text-gray-500 mb-0.5">Machakos | May 2024 ΓÇô Aug 2024</div>
+                <div className="space-y-0.5 text-[4.8px]">
+                  <div>ΓÇó Assisted technicians with electrical line inspection and maintenance</div>
+                  <div>ΓÇó Observed transformer servicing procedures and safety protocols</div>
+                  <div>ΓÇó Participated in installation of electrical wiring systems</div>
+                  <div>ΓÇó Learned meter reading and customer service procedures</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Extracurricular Activities */}
+            <div className="mb-1.5">
+              <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Extracurricular Activities</div>
+              <div className="space-y-0.5 text-[4.8px]">
+                <div>ΓÇó Member ΓÇô Engineering Students Association (2022-Present)</div>
+                <div>ΓÇó Volunteer ΓÇô Local Community Electrical Repairs Initiative</div>
+                <div>ΓÇó Participant ΓÇô Technical Skills Competition 2023</div>
+              </div>
+            </div>
+            
+            {/* Referees */}
+            <div>
+              <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Referees</div>
+              <div className="text-[4.8px] text-gray-700">Available upon request.</div>
+            </div>
+          </div>
+        );
+      
+      case 'Creative Portfolio':
+        return (
+          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded overflow-hidden flex text-[4.5px] leading-[1.3]">
+            {/* Left Sidebar */}
+            <div className="w-[33%] bg-indigo-600 text-white p-2">
+              <div className="font-bold text-[7px] mb-1">BRIAN MWANGI KIMANI</div>
+              <div className="text-[5px] opacity-90 mb-1.5">Graphic Designer | Brand Identity</div>
+              
+              <div className="text-[4px] mb-1.5 space-y-0.5">
+                <div>≡ƒôì Nairobi, Kenya</div>
+                <div>≡ƒô₧ +254 712 567 890</div>
+                <div>Γ£ë brian.kimani@email.com</div>
+                <div>≡ƒîÉ briankimani.design</div>
+              </div>
+              
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5px] mb-1">Core Skills</div>
+                <div className="space-y-0.5 text-[4px]">
+                  <div>ΓÇó Brand Identity Design</div>
+                  <div>ΓÇó Logo Design</div>
+                  <div>ΓÇó Typography</div>
+                  <div>ΓÇó Social Media Graphics</div>
+                  <div>ΓÇó Illustration</div>
+                  <div>ΓÇó Visual Storytelling</div>
+                  <div>ΓÇó Print Design</div>
+                  <div>ΓÇó Digital Marketing</div>
+                </div>
+              </div>
+              
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5px] mb-1">Design Tools</div>
+                <div className="space-y-0.5 text-[4px]">
+                  <div>ΓÇó Adobe Photoshop</div>
+                  <div>ΓÇó Adobe Illustrator</div>
+                  <div>ΓÇó Figma</div>
+                  <div>ΓÇó Canva</div>
+                  <div>ΓÇó After Effects</div>
+                  <div>ΓÇó InDesign</div>
+                  <div>ΓÇó Sketch</div>
+                </div>
+              </div>
+              
+              <div>
+                <div className="font-semibold text-[5px] mb-1">Languages</div>
+                <div className="space-y-0.5 text-[4px]">
+                  <div>ΓÇó English - Fluent</div>
+                  <div>ΓÇó Swahili - Native</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Right Main Content */}
+            <div className="flex-1 p-2">
+              {/* Creative Profile */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5.5px] border-b-2 border-indigo-600 pb-0.5 mb-1">Creative Profile</div>
+                <div className="text-[4px] text-gray-700">Creative graphic designer with over 5 years of experience creating brand identities, digital marketing visuals, and social media campaigns. Passionate about crafting designs that communicate brand stories effectively and resonate with target audiences.</div>
+              </div>
+              
+              {/* Portfolio Projects */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5.5px] border-b-2 border-indigo-600 pb-0.5 mb-1">Portfolio Projects</div>
+                <div className="space-y-1">
+                  <div>
+                    <div className="font-semibold text-[4px]">Brand Identity ΓÇô Nairobi Coffee Co.</div>
+                    <div className="text-[3.5px] text-gray-500">Nairobi Coffee Co. | 2024</div>
+                    <div className="text-[4px]">Designed full brand identity including logo, packaging, and social media visuals for local coffee startup. Created warm, approachable brand celebrating Kenyan coffee culture.</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-[4px]">Digital Campaign Graphics</div>
+                    <div className="text-[3.5px] text-gray-500">Safaricom SME Campaign | 2023</div>
+                    <div className="text-[4px]">Created marketing graphics used across social media ads and digital platforms. Developed over 50 unique assets increasing engagement by 40%.</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-[4px]">E-commerce Website Design</div>
+                    <div className="text-[3.5px] text-gray-500">Zuri Fashion Boutique | 2023</div>
+                    <div className="text-[4px]">Designed complete UI/UX for online fashion store including product photography direction and promotional materials.</div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Work Experience */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5.5px] border-b-2 border-indigo-600 pb-0.5 mb-1">Work Experience</div>
+                <div className="space-y-1">
+                  <div>
+                    <div className="font-semibold text-[4px]">Senior Graphic Designer ΓÇö Creative Edge Agency</div>
+                    <div className="text-[3.5px] text-gray-500">Nairobi | 2022 ΓÇô Present</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-[4px]">Graphic Designer ΓÇö Pixel Studio</div>
+                    <div className="text-[3.5px] text-gray-500">Nairobi | 2020 ΓÇô 2022</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-[4px]">Junior Designer ΓÇö Design Hub Kenya</div>
+                    <div className="text-[3.5px] text-gray-500">Nairobi | 2019 ΓÇô 2020</div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Education */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5.5px] border-b-2 border-indigo-600 pb-0.5 mb-1">Education</div>
+                <div>
+                  <div className="font-semibold text-[4px]">Diploma in Graphic Design</div>
+                  <div className="text-[4px]">Nairobi Institute of Technology</div>
+                  <div className="text-[3.5px] text-gray-500">2017 ΓÇô 2019</div>
+                </div>
+              </div>
+              
+              {/* Awards */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5.5px] border-b-2 border-indigo-600 pb-0.5 mb-1">Awards & Recognition</div>
+                <div className="space-y-0.5 text-[4px]">
+                  <div>ΓÇó Best Brand Identity - Kenya Design Awards 2023</div>
+                  <div>ΓÇó Creative Excellence Award - East Africa Advertising Summit 2022</div>
+                  <div>ΓÇó Rising Designer of the Year - Nairobi Creative Week 2021</div>
+                  <div>ΓÇó Gold Award for Print Design - Nairobi Design Festival 2022</div>
+                  <div>ΓÇó Best Packaging Design - East Africa Brand Awards 2021</div>
+                </div>
+              </div>
+
+              {/* Notable Clients */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5.5px] border-b-2 border-indigo-600 pb-0.5 mb-1">Notable Clients</div>
+                <div className="grid grid-cols-2 gap-x-1 gap-y-0.5 text-[4px]">
+                  <div>ΓÇó Safaricom Limited</div>
+                  <div>ΓÇó KCB Bank</div>
+                  <div>ΓÇó Nairobi Coffee Co.</div>
+                  <div>ΓÇó Zuri Fashion</div>
+                  <div>ΓÇó Kenya Wildlife Foundation</div>
+                  <div>ΓÇó East African Breweries</div>
+                  <div>ΓÇó Nairobi Jazz Festival</div>
+                  <div>ΓÇó Equity Bank Kenya</div>
+                </div>
+              </div>
+
+              {/* Memberships */}
+              <div>
+                <div className="font-semibold text-[5.5px] border-b-2 border-indigo-600 pb-0.5 mb-1">Professional Memberships</div>
+                <div className="space-y-0.5 text-[4px]">
+                  <div>ΓÇó Member - Design Society of Kenya</div>
+                  <div>ΓÇó Member - African Creative Network</div>
+                  <div>ΓÇó Member - Graphic Design Association of East Africa</div>
+                  <div>ΓÇó Volunteer Mentor - Nairobi Design Week</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      
+      case 'Digital Professional':
+        return (
+          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded overflow-hidden flex text-[4px] leading-[1.3]">
+            {/* Left Sidebar */}
+            <div className="w-[33%] bg-gray-900 text-white p-2">
+              <div className="font-bold text-[6px] mb-0.5">KEVIN OTIENO</div>
+              <div className="text-[4.5px] text-gray-300 mb-1">Full Stack Developer</div>
+              
+              <div className="text-[3.5px] mb-1.5 space-y-0.5">
+                <div>Nairobi, Kenya</div>
+                <div>+254 712 888 999</div>
+                <div>kevin@email.com</div>
+                <div>github.com/kevin</div>
+              </div>
+              
+              <div className="mb-1.5">
+                <div className="font-semibold text-[4.5px] border-b border-gray-700 pb-0.5 mb-0.5">Tech Stack</div>
+                <div className="space-y-0.5 text-[3.5px]">
+                  <div>ΓÇó JavaScript / TypeScript</div>
+                  <div>ΓÇó React / Next.js</div>
+                  <div>ΓÇó Node.js / Express</div>
+                  <div>ΓÇó PostgreSQL</div>
+                  <div>ΓÇó Tailwind CSS</div>
+                  <div>ΓÇó GraphQL / REST</div>
+                </div>
+              </div>
+              
+              <div className="mb-1.5">
+                <div className="font-semibold text-[4.5px] border-b border-gray-700 pb-0.5 mb-0.5">Tools</div>
+                <div className="space-y-0.5 text-[3.5px]">
+                  <div>ΓÇó Git / GitHub</div>
+                  <div>ΓÇó Docker</div>
+                  <div>ΓÇó AWS / Vercel</div>
+                  <div>ΓÇó VS Code</div>
+                  <div>ΓÇó Figma</div>
+                </div>
+              </div>
+              
+              <div>
+                <div className="font-semibold text-[4.5px] border-b border-gray-700 pb-0.5 mb-0.5">Certifications</div>
+                <div className="space-y-0.5 text-[3.5px]">
+                  <div>ΓÇó AWS Developer</div>
+                  <div>ΓÇó Google Analytics</div>
+                  <div>ΓÇó Meta Front-End</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Right Main Content */}
+            <div className="flex-1 p-2">
+              {/* Summary */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5px] border-b-2 border-gray-900 pb-0.5 mb-0.5">Professional Summary</div>
+                <div className="text-[3.5px] text-gray-700">Full stack developer with 4+ years building scalable web applications using modern JavaScript frameworks and cloud technologies.</div>
+              </div>
+              
+              {/* Projects */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5px] border-b-2 border-gray-900 pb-0.5 mb-0.5">Key Projects</div>
+                <div className="space-y-1">
+                  <div>
+                    <div className="font-semibold text-[3.5px]">E-Commerce Platform</div>
+                    <div className="text-[3px] text-gray-600 italic">Next.js, Supabase, Stripe</div>
+                    <div className="text-[3.5px]">Built full-stack platform with payment integration and admin dashboard. Handled 10K+ monthly transactions.</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-[3.5px]">Job Board Application</div>
+                    <div className="text-[3px] text-gray-600 italic">React, Node.js, PostgreSQL</div>
+                    <div className="text-[3.5px]">Developed job board with advanced search and application tracking. Serves 500+ employers.</div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Experience */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5px] border-b-2 border-gray-900 pb-0.5 mb-0.5">Experience</div>
+                <div className="space-y-1">
+                  <div>
+                    <div className="font-semibold text-[3.5px]">Senior Developer ΓÇö TechNova</div>
+                    <div className="text-[3px] text-gray-600">Nairobi | 2022 ΓÇô Present</div>
+                    <div className="space-y-0.5 text-[3.5px] ml-1">
+                      <div>ΓÇó Lead development of web apps</div>
+                      <div>ΓÇó Reduced load time by 40%</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-[3.5px]">Developer ΓÇö Digital Edge</div>
+                    <div className="text-[3px] text-gray-600">Nairobi | 2020 ΓÇô 2022</div>
+                    <div className="space-y-0.5 text-[3.5px] ml-1">
+                      <div>ΓÇó Built MERN stack projects</div>
+                      <div>ΓÇó Implemented CI/CD pipelines</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Education */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5px] border-b-2 border-gray-900 pb-0.5 mb-0.5">Education</div>
+                <div>
+                  <div className="font-semibold text-[3.5px]">BSc Computer Science</div>
+                  <div className="text-[3.5px]">University of Nairobi</div>
+                  <div className="text-[3px] text-gray-600">2016 ΓÇô 2020 | GPA: 3.7/4.0</div>
+                </div>
+              </div>
+
+              {/* Achievements */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5px] border-b-2 border-gray-900 pb-0.5 mb-0.5">Key Achievements</div>
+                <div className="space-y-0.5 text-[3.5px]">
+                  <div>ΓÇó Migrated monolith to microservices, improving scalability by 300%</div>
+                  <div>ΓÇó Reduced API response time from 2s to 200ms via Redis caching</div>
+                  <div>ΓÇó Mentored 5 junior devs, all promoted within 18 months</div>
+                  <div>ΓÇó Increased test coverage from 40% to 85%, cutting bugs by 60%</div>
+                  <div>ΓÇó Saved KES 200K/month through database query optimisation</div>
+                </div>
+              </div>
+
+              {/* Open Source */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5px] border-b-2 border-gray-900 pb-0.5 mb-0.5">Open Source</div>
+                <div className="space-y-0.5 text-[3.5px]">
+                  <div>ΓÇó React Admin Dashboard ΓÇô 250+ GitHub stars</div>
+                  <div>ΓÇó Kenya Payment Gateway SDK ΓÇô 180+ stars</div>
+                  <div>ΓÇó East Africa Timezone Library ΓÇô 120+ stars</div>
+                </div>
+              </div>
+
+              {/* Technical Writing */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5px] border-b-2 border-gray-900 pb-0.5 mb-0.5">Technical Writing</div>
+                <div className="space-y-0.5 text-[3.5px]">
+                  <div>ΓÇó Building Scalable APIs with Node.js ΓÇô Dev.to (5K+ views)</div>
+                  <div>ΓÇó React Performance Optimization Guide ΓÇô Medium (3K+ views)</div>
+                  <div>ΓÇó Database Design Best Practices ΓÇô Personal Blog</div>
+                </div>
+              </div>
+
+              {/* Volunteer */}
+              <div>
+                <div className="font-semibold text-[5px] border-b-2 border-gray-900 pb-0.5 mb-0.5">Volunteer & Community</div>
+                <div className="space-y-0.5 text-[3.5px]">
+                  <div>ΓÇó Code Mentor ΓÇô Moringa School (2022ΓÇôPresent)</div>
+                  <div>ΓÇó Tech Workshop Facilitator ΓÇô iHub Nairobi</div>
+                  <div>ΓÇó Guest Lecturer ΓÇô University of Nairobi CS Dept (2023)</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      
+      case 'Personal Brand CV':
+        return (
+          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded overflow-hidden flex text-[4px] leading-[1.3]">
+            {/* Left Sidebar */}
+            <div className="w-[35%] bg-gray-100 p-2">
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5px] text-indigo-700 mb-0.5">CONTACT</div>
+                <div className="text-[3.5px] space-y-0.5">
+                  <div>Nairobi, Kenya</div>
+                  <div>+254 712 555 444</div>
+                  <div>grace@email.com</div>
+                </div>
+              </div>
+              
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5px] text-indigo-700 mb-0.5">ONLINE PRESENCE</div>
+                <div className="text-[3.5px] space-y-0.5">
+                  <div>LinkedIn: /gracemwangi</div>
+                  <div>Twitter: @gracebrands</div>
+                  <div>Website: gracemwangi.co.ke</div>
+                </div>
+              </div>
+              
+              <div className="mb-1.5">
+                <div className="font-semibold text-[5px] text-indigo-700 mb-0.5">KEY SKILLS</div>
+                <div className="text-[3.5px] space-y-0.5">
+                  <div>ΓÇó Brand Strategy</div>
+                  <div>ΓÇó Digital Marketing</div>
+                  <div>ΓÇó Public Speaking</div>
+                  <div>ΓÇó Content Marketing</div>
+                  <div>ΓÇó Personal Branding</div>
+                  <div>ΓÇó Social Media</div>
+                </div>
+              </div>
+              
+              <div>
+                <div className="font-semibold text-[5px] text-indigo-700 mb-0.5">CERTIFICATIONS</div>
+                <div className="text-[3.5px] space-y-0.5">
+                  <div>ΓÇó Google Digital Marketing</div>
+                  <div>ΓÇó HubSpot Content</div>
+                  <div>ΓÇó Facebook Blueprint</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Right Main Content */}
+            <div className="flex-1 p-2">
+              {/* Header */}
+              <div className="bg-indigo-600 text-white p-1.5 mb-1.5 -mx-2 -mt-2">
+                <div className="font-bold text-[7px]">GRACE WANJIKU MWANGI</div>
+                <div className="text-[4.5px]">Marketing Strategist | Brand Storyteller</div>
+              </div>
+              
+              {/* Profile */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[4.5px] border-b-2 border-indigo-600 pb-0.5 mb-0.5">PERSONAL PROFILE</div>
+                <div className="text-[3.5px] text-gray-700">Award-winning marketing strategist with 8+ years helping brands build connections through storytelling and digital marketing.</div>
+              </div>
+              
+              {/* Publications */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[4.5px] border-b-2 border-indigo-600 pb-0.5 mb-0.5">PUBLICATIONS & MEDIA</div>
+                <div className="space-y-0.5 text-[3.5px]">
+                  <div>
+                    <div className="font-semibold">Building Authentic Brands in Africa</div>
+                    <div className="text-gray-600">Marketing Africa Magazine | 2024</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold">SME Digital Marketing Guide</div>
+                    <div className="text-gray-600">Business Daily Kenya | 2023</div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Speaking */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[4.5px] border-b-2 border-indigo-600 pb-0.5 mb-0.5">SPEAKING ENGAGEMENTS</div>
+                <div className="space-y-0.5 text-[3.5px]">
+                  <div>
+                    <div className="font-semibold">Nairobi Digital Marketing Summit</div>
+                    <div className="text-gray-600">Nairobi | 2024</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold">Kenya SME Growth Forum</div>
+                    <div className="text-gray-600">Nairobi | 2023</div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Experience */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[4.5px] border-b-2 border-indigo-600 pb-0.5 mb-0.5">EXPERIENCE</div>
+                <div className="space-y-1">
+                  <div>
+                    <div className="font-semibold text-[3.5px]">Marketing Consultant ΓÇö BrandGrow</div>
+                    <div className="text-[3px] text-gray-600">Nairobi | 2021 ΓÇô Present</div>
+                    <div className="text-[3.5px]">Lead brand strategy for 20+ clients. 150% ROI improvement.</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-[3.5px]">Marketing Manager ΓÇö BrightWave</div>
+                    <div className="text-[3px] text-gray-600">Nairobi | 2018 ΓÇô 2021</div>
+                    <div className="text-[3.5px]">Managed campaigns for major brands. Led team of 8.</div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Education */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[4.5px] border-b-2 border-indigo-600 pb-0.5 mb-0.5">EDUCATION</div>
+                <div>
+                  <div className="font-semibold text-[3.5px]">BCom Marketing - First Class Honours</div>
+                  <div className="text-[3.5px]">Kenyatta University</div>
+                  <div className="text-[3px] text-gray-600">2013 ΓÇô 2017</div>
+                </div>
+              </div>
+
+              {/* Awards */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[4.5px] border-b-2 border-indigo-600 pb-0.5 mb-0.5">AWARDS & RECOGNITION</div>
+                <div className="space-y-0.5 text-[3.5px]">
+                  <div>ΓÇó Marketing Professional of the Year ΓÇô Kenya Marketing Awards 2023</div>
+                  <div>ΓÇó Best Digital Campaign ΓÇô East Africa Advertising Awards 2022</div>
+                  <div>ΓÇó Top 40 Under 40 Marketing Leaders ΓÇô Business Daily 2022</div>
+                  <div>ΓÇó Excellence in Brand Strategy ΓÇô Marketing Society of Kenya 2021</div>
+                </div>
+              </div>
+
+              {/* Media Features */}
+              <div className="mb-1.5">
+                <div className="font-semibold text-[4.5px] border-b-2 border-indigo-600 pb-0.5 mb-0.5">MEDIA FEATURES</div>
+                <div className="space-y-0.5 text-[3.5px]">
+                  <div>ΓÇó Featured Expert ΓÇô Citizen TV Business Today (2024)</div>
+                  <div>ΓÇó Guest Columnist ΓÇô Business Daily Kenya (Monthly, 2023ΓÇôPresent)</div>
+                  <div>ΓÇó Podcast Interview ΓÇô The Marketing Show Africa (2023)</div>
+                  <div>ΓÇó Radio Interview ΓÇô Capital FM Business Breakfast (2023)</div>
+                </div>
+              </div>
+
+              {/* Affiliations */}
+              <div>
+                <div className="font-semibold text-[4.5px] border-b-2 border-indigo-600 pb-0.5 mb-0.5">PROFESSIONAL AFFILIATIONS</div>
+                <div className="space-y-0.5 text-[3.5px]">
+                  <div>ΓÇó Member ΓÇô Marketing Society of Kenya (MSK)</div>
+                  <div>ΓÇó Member ΓÇô Kenya Speakers Association</div>
+                  <div>ΓÇó Board Member ΓÇô Young Marketing Professionals Network</div>
+                  <div>ΓÇó Mentor ΓÇô Women in Marketing Initiative</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      
+      case 'Academic / Research CV':
+        return (
+          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded p-3 text-[4px] leading-[1.4] overflow-hidden shadow-sm font-serif">
+            {/* Header */}
+            <div className="border-b-2 border-gray-800 pb-1 mb-1.5">
+              <div className="font-bold text-[7px]">Dr. Daniel Mwangi Njoroge</div>
+              <div className="text-[4.5px] text-gray-700 italic mb-0.5">Senior Lecturer – Department of Environmental Science</div>
+              <div className="flex flex-wrap gap-x-2 text-[3.5px] text-gray-600">
+                <span>University of Nairobi</span>
+                <span>Nairobi, Kenya</span>
+                <span>daniel.njoroge@uonbi.ac.ke</span>
+              </div>
+            </div>
+            {/* Profile */}
+            <div className="mb-1">
+              <div className="font-bold text-[4px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Academic Profile</div>
+              <div className="text-[3.5px] text-gray-700">Environmental scientist with 12+ years of research and teaching experience focusing on climate change adaptation and sustainable land management in East Africa.</div>
+            </div>
+            {/* Research Interests */}
+            <div className="mb-1">
+              <div className="font-bold text-[4px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Research Interests</div>
+              <div className="grid grid-cols-2 gap-x-1 text-[3.5px]">
+                <div>• Climate Change Adaptation</div>
+                <div>• Sustainable Agriculture</div>
+                <div>• Environmental Policy</div>
+                <div>• Land Degradation</div>
+              </div>
+            </div>
+            {/* Positions */}
+            <div className="mb-1">
+              <div className="font-bold text-[4px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Academic Positions</div>
+              <div className="flex justify-between text-[3.5px] mb-0.5">
+                <div><span className="font-semibold">Senior Lecturer</span> – University of Nairobi</div>
+                <div className="text-gray-600">2018–Present</div>
+              </div>
+              <div className="flex justify-between text-[3.5px]">
+                <div><span className="font-semibold">Lecturer</span> – Egerton University</div>
+                <div className="text-gray-600">2014–2018</div>
+              </div>
+            </div>
+            {/* Publications */}
+            <div className="mb-1">
+              <div className="font-bold text-[4px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Selected Publications</div>
+              <ol className="list-decimal ml-3 text-[3.5px] space-y-0.5">
+                <li>Njoroge, D.M. (2023). Climate Adaptation Strategies. Journal of Environmental Studies.</li>
+                <li>Njoroge, D.M. & Kamau, P. (2021). Land Restoration in East Africa. African Environmental Review.</li>
+                <li>Njoroge, D.M. (2019). Sustainable Agriculture in Kenya. Int. Journal of Climate Research.</li>
+              </ol>
+            </div>
+            {/* Education */}
+            <div className="mb-1">
+              <div className="font-bold text-[4px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Education</div>
+              <div className="flex justify-between text-[3.5px] mb-0.5">
+                <div><span className="font-semibold">PhD Environmental Science</span> – University of Nairobi</div>
+                <div className="text-gray-600">2010–2014</div>
+              </div>
+              <div className="flex justify-between text-[3.5px]">
+                <div><span className="font-semibold">MSc Environmental Management</span> – Kenyatta University</div>
+                <div className="text-gray-600">2007–2009</div>
+              </div>
+            </div>
+            {/* Grants */}
+            <div>
+              <div className="font-bold text-[4px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Grants & Awards</div>
+              <div className="text-[3.5px] space-y-0.5">
+                <div>• NEMA Research Grant – Ecosystem Restoration (KES 4.5M, 2022–2024)</div>
+                <div>• Best Research Paper – African Environmental Forum (2022)</div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'Creative Designer':
+        return (
+          <div className="w-full aspect-[3/4] bg-gradient-to-br from-purple-50 to-white border border-gray-200 rounded p-2 flex items-center justify-center">
+            <div className="text-center text-gray-400">
+              <div className="text-[6px] font-semibold">Creative Designer</div>
+              <div className="text-[4px] mt-1">Coming Soon</div>
+            </div>
+          </div>
+        );
+      
+      default:
+        return (
+          <div className="w-full aspect-[3/4] bg-gray-100 border border-gray-200 rounded flex items-center justify-center">
+            <div className="text-center text-gray-400">
+              <div className="text-[6px]">Template Preview</div>
+              <div className="text-[4px] mt-1">Not Available</div>
+            </div>
+          </div>
+        );
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      {renderPreview()}
+      {showDescription && templateDescriptions[templateName] && (
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          {templateDescriptions[templateName]}
+        </p>
+      )}
+    </div>
+  );
+}
