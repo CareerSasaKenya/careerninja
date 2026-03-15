@@ -571,6 +571,48 @@ export default function CVBuilder() {
                 ))}
             </div>
           </div>
+
+          {/* Specialized Career CV Templates Section */}
+          <div>
+            <div className="mb-4 text-center">
+              <h3 className="text-xl font-semibold text-[#0A66C2]">Specialized Career CV Templates</h3>
+              <p className="text-sm text-muted-foreground mt-1 max-w-3xl mx-auto">
+                Not every career fits a standard template. These specialized CVs are built for specific industries, 
+                roles, and application types — from academic research to technical fields and beyond. If your career 
+                has unique requirements, this is where you'll find a template that truly fits.
+              </p>
+            </div>
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+              {templates
+                .filter(t => ['Academic / Research CV'].includes(t.name))
+                .map(template => (
+                  <Card 
+                    key={template.id} 
+                    className="cursor-pointer hover:border-primary hover:shadow-lg transition-all transform hover:scale-105 group relative"
+                    onClick={() => handleTemplateClick(template)}
+                  >
+                    <CardHeader className="p-4 relative">
+                      <div className="relative">
+                        <CVTemplatePreview templateName={template.name} showDescription={false} />
+                        {/* Hover Button */}
+                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center rounded pointer-events-none">
+                          <div className="bg-orange-500 text-white px-6 py-3 rounded-full font-semibold text-sm shadow-lg">
+                            Use This Template
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-4 space-y-2">
+                        <CardTitle className="text-base text-[#0A66C2]">{template.name}</CardTitle>
+                        <CVTemplatePreview templateName={template.name} showDescription={true} descriptionOnly={true} />
+                        {template.is_premium && (
+                          <Badge variant="secondary" className="w-fit">Premium</Badge>
+                        )}
+                      </div>
+                    </CardHeader>
+                  </Card>
+                ))}
+            </div>
+          </div>
         </CardContent>
       </Card>
 
