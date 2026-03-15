@@ -437,6 +437,13 @@ async function renderCVTemplate(cv: CandidateCV, templateName: string): Promise<
     projects: cv.content.projects || [],
     internships: cv.content.internships || [],
     activities: cv.content.activities || [],
+    // Academic-specific fields
+    researchInterests: cv.content.researchInterests || [],
+    positions: cv.content.positions || cv.content.experience || [],
+    publications: cv.content.publications || [],
+    conferences: cv.content.conferences || [],
+    grants: cv.content.grants || [],
+    awards: cv.content.awards || cv.content.achievements || [],
   };
   
   // Import the appropriate template dynamically
@@ -468,6 +475,9 @@ async function renderCVTemplate(cv: CandidateCV, templateName: string): Promise<
       break;
     case 'Personal Brand CV':
       TemplateComponent = (await import('./templates/PersonalBrandTemplate')).default;
+      break;
+    case 'Academic / Research CV':
+      TemplateComponent = (await import('./templates/AcademicTemplate')).default;
       break;
     default:
       TemplateComponent = (await import('./templates/ClassicTemplate')).default;
