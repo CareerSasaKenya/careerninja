@@ -584,7 +584,7 @@ export default function CVBuilder() {
             </div>
             <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
               {templates
-                .filter(t => ['Academic / Research CV', 'Technical / Engineering CV'].includes(t.name))
+                .filter(t => ['Academic / Research CV', 'Technical / Engineering CV', 'International / ATS Optimized CV'].includes(t.name))
                 .map(template => (
                   <Card 
                     key={template.id} 

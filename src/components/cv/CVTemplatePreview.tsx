@@ -23,7 +23,8 @@ const templateDescriptions: Record<string, string> = {
   'Digital Professional': 'Tech-focused template with dark sidebar highlighting tech stack, tools, and certifications. Perfect for software developers, data scientists, IT professionals, and digital specialists.',
   'Personal Brand CV': 'Designed for professionals whose reputation and public presence matter. Perfect for consultants, marketing professionals, speakers, influencers, coaches, and content creators. Highlights personal tagline, online presence, media features, and speaking engagements.',
   'Academic / Research CV': 'Single-column serif layout designed for academics, researchers, PhD applicants, and fellowship seekers. Highlights research interests, publications, conferences, teaching positions, grants, and academic achievements.',
-  'Technical / Engineering CV': 'Two-column layout with sidebar for technical skills, tools, and certifications. Main section highlights engineering projects with measurable outcomes and structured work experience. Ideal for mechanical, electrical, civil, and process engineers.'
+  'Technical / Engineering CV': 'Two-column layout with sidebar for technical skills, tools, and certifications. Main section highlights engineering projects with measurable outcomes and structured work experience. Ideal for mechanical, electrical, civil, and process engineers.',
+  'International / ATS Optimized CV': 'Single-column, plain-text-friendly CV built to pass Applicant Tracking Systems (ATS) like Workday, Greenhouse, Lever, and Taleo. No graphics or icons — just clean, keyword-rich content with standard headings. Essential for remote jobs, international NGOs, multinational companies, and global tech roles.'
 };
 
 export default function CVTemplatePreview({ templateName, showDescription = false, descriptionOnly = false }: CVTemplatePreviewProps) {
@@ -1357,21 +1358,26 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             {/* Sidebar */}
             <div className="w-[33%] bg-gray-100 p-2">
               <div className="font-bold text-[6px] mb-0.5">SAMUEL K. CHERUIYOT</div>
-              <div className="text-[4px] text-gray-600 mb-1.5">Mechanical Engineer</div>
+              <div className="text-[4px] text-gray-600 mb-1">Mechanical Engineer | Manufacturing</div>
               <div className="text-[3.8px] text-gray-700 space-y-0.5 mb-1.5">
                 <div>Nairobi, Kenya</div>
                 <div>+254 712 333 777</div>
                 <div>samuel@email.com</div>
+                <div>linkedin.com/in/samuel-cheruiyot</div>
               </div>
               <div className="mb-1.5">
                 <div className="font-bold text-[4.5px] uppercase border-b border-gray-400 pb-0.5 mb-0.5">Technical Skills</div>
                 <div className="space-y-0.5 text-[3.8px] text-gray-700">
-                  <div>• Mechanical Maintenance</div>
-                  <div>• Preventive Maintenance</div>
-                  <div>• Production Optimization</div>
+                  <div>• Mechanical Systems Maintenance</div>
+                  <div>• Preventive Maintenance Planning</div>
+                  <div>• Production Line Optimization</div>
                   <div>• Root Cause Analysis</div>
-                  <div>• Safety Compliance</div>
-                  <div>• Process Improvement</div>
+                  <div>• Industrial Safety Compliance</div>
+                  <div>• Process Improvement (Lean)</div>
+                  <div>• Equipment Commissioning</div>
+                  <div>• Technical Report Writing</div>
+                  <div>• Hydraulics & Pneumatics</div>
+                  <div>• Welding & Fabrication</div>
                 </div>
               </div>
               <div className="mb-1.5">
@@ -1381,7 +1387,9 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                   <div>• SolidWorks</div>
                   <div>• SAP PM</div>
                   <div>• PLC Systems</div>
+                  <div>• CMMS Software</div>
                   <div>• Microsoft Excel</div>
+                  <div>• SCADA Systems</div>
                 </div>
               </div>
               <div>
@@ -1389,6 +1397,8 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                 <div className="space-y-0.5 text-[3.8px] text-gray-700">
                   <div>• Certified Maintenance Professional</div>
                   <div>• OSH Certificate</div>
+                  <div>• Lean Manufacturing – KIM</div>
+                  <div>• First Aid & Fire Safety</div>
                 </div>
               </div>
             </div>
@@ -1396,19 +1406,24 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             <div className="flex-1 p-2">
               <div className="mb-1.5">
                 <div className="font-bold text-[4.5px] uppercase border-b-2 border-gray-800 pb-0.5 mb-0.5">Professional Summary</div>
-                <div className="text-[3.8px] text-gray-700">Mechanical engineer with 6 years of experience in manufacturing operations, equipment maintenance, and process optimization within large-scale production facilities.</div>
+                <div className="text-[3.8px] text-gray-700">Mechanical engineer with 6 years of experience in manufacturing operations, equipment maintenance, and process optimization within large-scale production facilities. Proven track record of reducing downtime and improving production efficiency through data-driven preventive maintenance strategies.</div>
               </div>
               <div className="mb-1.5">
                 <div className="font-bold text-[4.5px] uppercase border-b-2 border-gray-800 pb-0.5 mb-1">Key Engineering Projects</div>
                 <div className="mb-1">
                   <div className="font-bold text-[3.8px]">Production Line Efficiency Improvement</div>
                   <div className="text-[3.5px] text-gray-500">East Africa Packaging Ltd | 2023</div>
-                  <div className="text-[3.8px] text-gray-700">Increased production efficiency by 18% through equipment optimization and preventive maintenance scheduling.</div>
+                  <div className="text-[3.8px] text-gray-700">Increased production efficiency by 18% through equipment optimization and preventive maintenance scheduling. Coordinated a team of 8 technicians, reducing unplanned stoppages by 30%.</div>
                 </div>
-                <div>
+                <div className="mb-1">
                   <div className="font-bold text-[3.8px]">Machine Maintenance Program Overhaul</div>
                   <div className="text-[3.5px] text-gray-500">Nairobi Steel Manufacturing | 2022</div>
-                  <div className="text-[3.8px] text-gray-700">Implemented preventive maintenance program reducing equipment downtime by 25%.</div>
+                  <div className="text-[3.8px] text-gray-700">Designed and implemented a preventive maintenance program reducing equipment downtime by 25% and extending average machine lifespan by 2 years.</div>
+                </div>
+                <div>
+                  <div className="font-bold text-[3.8px]">Energy Audit & Consumption Reduction</div>
+                  <div className="text-[3.5px] text-gray-500">East Africa Packaging Ltd | 2023</div>
+                  <div className="text-[3.8px] text-gray-700">Conducted plant-wide energy audit identifying inefficiencies in compressed air and cooling systems. Reduced energy consumption by 12%, saving KES 1.8M annually.</div>
                 </div>
               </div>
               <div className="mb-1.5">
@@ -1417,24 +1432,140 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                   <div className="font-bold text-[3.8px]">Mechanical Engineer — East Africa Packaging Ltd</div>
                   <div className="text-[3.5px] text-gray-500">Nairobi | 2022 – Present</div>
                   <div className="space-y-0.5 text-[3.8px] text-gray-700 mt-0.5">
-                    <div>• Oversee maintenance of 40+ production machines</div>
-                    <div>• Develop preventive maintenance schedules using SAP PM</div>
+                    <div>• Oversee maintenance of 40+ production machines across 3 lines</div>
+                    <div>• Develop and execute preventive maintenance schedules via SAP PM</div>
+                    <div>• Lead root cause analysis for recurring equipment failures</div>
+                    <div>• Ensure compliance with OSHA and company safety standards</div>
                   </div>
                 </div>
-                <div>
+                <div className="mb-1">
                   <div className="font-bold text-[3.8px]">Maintenance Engineer — Nairobi Steel Manufacturing</div>
                   <div className="text-[3.5px] text-gray-500">Nairobi | 2019 – 2022</div>
                   <div className="space-y-0.5 text-[3.8px] text-gray-700 mt-0.5">
-                    <div>• Managed mechanical maintenance for steel equipment</div>
-                    <div>• Supervised team of 6 technicians</div>
+                    <div>• Managed mechanical maintenance for steel rolling and cutting equipment</div>
+                    <div>• Supervised a team of 6 technicians on daily maintenance activities</div>
+                    <div>• Reduced spare parts costs by 20% through improved inventory management</div>
+                  </div>
+                </div>
+                <div>
+                  <div className="font-bold text-[3.8px]">Graduate Trainee – Engineering — Kenya Breweries Ltd</div>
+                  <div className="text-[3.5px] text-gray-500">Nairobi | 2018 – 2019</div>
+                  <div className="space-y-0.5 text-[3.8px] text-gray-700 mt-0.5">
+                    <div>• Rotated across production, utilities, and maintenance departments</div>
+                    <div>• Assisted senior engineers with equipment inspections and reports</div>
                   </div>
                 </div>
               </div>
               <div>
                 <div className="font-bold text-[4.5px] uppercase border-b-2 border-gray-800 pb-0.5 mb-1">Education</div>
-                <div className="font-bold text-[3.8px]">BSc Mechanical Engineering</div>
-                <div className="text-[3.8px] text-gray-700">Jomo Kenyatta University of Agriculture & Technology</div>
-                <div className="text-[3.5px] text-gray-500">2014 – 2018</div>
+                <div className="mb-0.5">
+                  <div className="font-bold text-[3.8px]">BSc Mechanical Engineering</div>
+                  <div className="text-[3.8px] text-gray-700">Jomo Kenyatta University of Agriculture & Technology</div>
+                  <div className="text-[3.5px] text-gray-500">2014 – 2018</div>
+                </div>
+                <div>
+                  <div className="font-bold text-[3.8px]">Kenya Certificate of Secondary Education</div>
+                  <div className="text-[3.8px] text-gray-700">Moi High School Kabarak</div>
+                  <div className="text-[3.5px] text-gray-500">2010 – 2013</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'International / ATS Optimized CV':
+        return (
+          <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded p-2 text-[3.5px] leading-[1.3] overflow-hidden shadow-sm">
+            {/* Header */}
+            <div className="mb-1">
+              <div className="font-bold text-[7px] text-gray-900">DAVID OCHIENG ONYANGO</div>
+              <div className="text-[4.5px] text-gray-700 mt-0.5">Data Analyst</div>
+              <div className="text-[3.5px] text-gray-600 mt-0.5">
+                Nairobi, Kenya &nbsp;|&nbsp; +254 712 000 111 &nbsp;|&nbsp; david.onyango@email.com &nbsp;|&nbsp; linkedin.com/in/davidonyango
+              </div>
+            </div>
+            {/* Summary */}
+            <div className="mb-1">
+              <div className="font-semibold text-[4px] uppercase border-b border-gray-400 pb-0.5 mb-0.5 tracking-wide">Professional Summary</div>
+              <div className="text-[3.5px] text-gray-700">Data analyst with 5+ years of experience transforming complex datasets into actionable insights. Skilled in SQL, Python, and business intelligence tools to support data-driven decision making in fast-paced environments. Proven ability to automate reporting and build executive dashboards.</div>
+            </div>
+            {/* Skills */}
+            <div className="mb-1">
+              <div className="font-semibold text-[4px] uppercase border-b border-gray-400 pb-0.5 mb-0.5 tracking-wide">Core Skills</div>
+              <div className="grid grid-cols-2 text-[3.5px] gap-y-0.5">
+                <div>• Data Analysis</div>
+                <div>• SQL</div>
+                <div>• Python</div>
+                <div>• Power BI</div>
+                <div>• Excel (Advanced)</div>
+                <div>• Data Visualization</div>
+                <div>• Statistical Analysis</div>
+                <div>• Business Intelligence</div>
+                <div>• ETL Pipelines</div>
+                <div>• Stakeholder Reporting</div>
+              </div>
+            </div>
+            {/* Experience */}
+            <div className="mb-1">
+              <div className="font-semibold text-[4px] uppercase border-b border-gray-400 pb-0.5 mb-0.5 tracking-wide">Professional Experience</div>
+              <div className="mb-0.5">
+                <div className="font-semibold text-[3.5px]">Data Analyst — Insight Analytics Ltd</div>
+                <div className="text-[3.2px] text-gray-600 mb-0.5">Nairobi, Kenya | January 2021 – Present</div>
+                <div className="space-y-0.5 text-[3.5px] text-gray-700">
+                  <div>• Analyzed large datasets to support business decision-making across 5 departments.</div>
+                  <div>• Developed Power BI dashboards tracking 20+ KPIs for senior leadership.</div>
+                  <div>• Automated weekly reporting using Python scripts, saving 8 hours per week.</div>
+                  <div>• Collaborated with product and finance teams to deliver quarterly data insights.</div>
+                </div>
+              </div>
+              <div className="mb-0.5">
+                <div className="font-semibold text-[3.5px]">Junior Data Analyst — TechData Solutions</div>
+                <div className="text-[3.2px] text-gray-600 mb-0.5">Nairobi, Kenya | March 2019 – December 2020</div>
+                <div className="space-y-0.5 text-[3.5px] text-gray-700">
+                  <div>• Prepared reports and visualizations for management review.</div>
+                  <div>• Maintained company data warehouse and ensured data integrity.</div>
+                  <div>• Supported analytics projects across finance, sales, and operations.</div>
+                </div>
+              </div>
+              <div>
+                <div className="font-semibold text-[3.5px]">Data Intern — Kenya Revenue Authority</div>
+                <div className="text-[3.2px] text-gray-600 mb-0.5">Nairobi, Kenya | June 2018 – February 2019</div>
+                <div className="space-y-0.5 text-[3.5px] text-gray-700">
+                  <div>• Assisted with data cleaning and validation for compliance reporting.</div>
+                  <div>• Built Excel models to track revenue collection trends across regions.</div>
+                </div>
+              </div>
+            </div>
+            {/* Education */}
+            <div className="mb-1">
+              <div className="font-semibold text-[4px] uppercase border-b border-gray-400 pb-0.5 mb-0.5 tracking-wide">Education</div>
+              <div className="mb-0.5">
+                <div className="font-semibold text-[3.5px]">BSc Statistics</div>
+                <div className="text-[3.5px] text-gray-700">University of Nairobi</div>
+                <div className="text-[3.2px] text-gray-600">2015 – 2019 | Second Class Honours (Upper Division)</div>
+              </div>
+              <div>
+                <div className="font-semibold text-[3.5px]">Kenya Certificate of Secondary Education</div>
+                <div className="text-[3.5px] text-gray-700">Starehe Boys Centre, Nairobi</div>
+                <div className="text-[3.2px] text-gray-600">2011 – 2014 | Grade A-</div>
+              </div>
+            </div>
+            {/* Certifications */}
+            <div className="mb-1">
+              <div className="font-semibold text-[4px] uppercase border-b border-gray-400 pb-0.5 mb-0.5 tracking-wide">Certifications</div>
+              <div className="space-y-0.5 text-[3.5px] text-gray-700">
+                <div>• Google Data Analytics Professional Certificate – Google (2022)</div>
+                <div>• Microsoft Power BI Data Analyst Associate – Microsoft (2023)</div>
+                <div>• SQL for Data Science – Coursera / UC Davis (2021)</div>
+              </div>
+            </div>
+            {/* Additional */}
+            <div>
+              <div className="font-semibold text-[4px] uppercase border-b border-gray-400 pb-0.5 mb-0.5 tracking-wide">Additional Information</div>
+              <div className="space-y-0.5 text-[3.5px] text-gray-700">
+                <div>• Languages: English (Fluent), Swahili (Fluent), French (Basic)</div>
+                <div>• Volunteer Data Analyst – DataKind Kenya (2022 – Present)</div>
+                <div>• Member – Kenya Data Science Society</div>
               </div>
             </div>
           </div>

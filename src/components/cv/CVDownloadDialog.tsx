@@ -482,6 +482,9 @@ async function renderCVTemplate(cv: CandidateCV, templateName: string): Promise<
     case 'Technical / Engineering CV':
       TemplateComponent = (await import('./templates/TechnicalEngineeringTemplate')).default;
       break;
+    case 'International / ATS Optimized CV':
+      TemplateComponent = (await import('./templates/ATSOptimizedTemplate')).default;
+      break;
     default:
       TemplateComponent = (await import('./templates/ClassicTemplate')).default;
   }
