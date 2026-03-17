@@ -25,6 +25,7 @@ import {
   type CVTemplate,
   type CandidateCV
 } from '@/lib/careerTools';
+import { getTemplateDefaultContent } from '@/data/templateDefaultContent';
 
 export default function CVBuilder() {
   const [cvs, setCvs] = useState<CandidateCV[]>([]);
@@ -204,13 +205,7 @@ export default function CVBuilder() {
         user_id: user.id,
         template_id: selectedTemplate.id,
         title: cvName,
-        content: {
-          personal: {},
-          experience: [],
-          education: [],
-          skills: [],
-          certifications: []
-        },
+        content: getTemplateDefaultContent(selectedTemplate.name),
         is_primary: cvs.length === 0
       });
 
@@ -616,22 +611,24 @@ export default function CVBuilder() {
         </CardContent>
       </Card>
 
-      {/* CV Editor Dialog */}
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
-          <DialogHeader>
+        <DialogContent className="max-w-6xl w-[95vw] max-h-[90vh] h-[90vh] overflow-hidden flex flex-col p-0">
+          <DialogHeader className="px-6 pt-6 pb-2">
             <DialogTitle>Edit CV: {selectedCV?.title}</DialogTitle>
             <DialogDescription>
-              Add, remove, or edit your CV sections and content
+              Add, remove, or edit your CV sections. The live preview on the right shows exactly how your download will look.
             </DialogDescription>
           </DialogHeader>
-          {selectedCV && (
-            <CVEditor
-              cv={selectedCV}
-              onSave={handleEditorSave}
-              onCancel={handleEditorCancel}
-            />
-          )}
+          <div className="flex-1 overflow-hidden">
+            {selectedCV && (
+              <CVEditor
+                cv={selectedCV}
+                templateName={getTemplateName(selectedCV.template_id)}
+                onSave={handleEditorSave}
+                onCancel={handleEditorCancel}
+              />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 
