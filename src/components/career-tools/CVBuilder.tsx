@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, FileText, Download, Eye, Star, Trash2, Copy, Edit } from 'lucide-react';
+import { Plus, FileText, Download, Star, Trash2, Copy, Edit, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import CVTemplatePreview from '@/components/cv/CVTemplatePreview';
@@ -37,6 +37,8 @@ export default function CVBuilder() {
   const [isEditing, setIsEditing] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadCV, setDownloadCV] = useState<CandidateCV | null>(null);
+  const [switchTemplateCV, setSwitchTemplateCV] = useState<CandidateCV | null>(null);
+  const [isSwitchingTemplate, setIsSwitchingTemplate] = useState(false);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -189,6 +191,26 @@ export default function CVBuilder() {
   function handleDownload(cv: CandidateCV) {
     setDownloadCV(cv);
     setIsDownloading(true);
+  }
+
+  function handleSwitchTemplateClick(cv: CandidateCV) {
+    setSwitchTemplateCV(cv);
+    setIsSwitchingTemplate(true);
+  }
+
+  async function handleSwitchTemplate(newTemplateId: string) {
+    if (!switchTemplateCV) return;
+    try {
+      const updated = await updateCV(switchTemplateCV.id, { template_id: newTemplateId });
+      setCvs(cvs.map(c => c.id === updated.id ? updated : c));
+      // If this CV is currently open in the editor, refresh it
+      if (selectedCV?.id === updated.id) setSelectedCV(updated);
+      setIsSwitchingTemplate(false);
+      setSwitchTemplateCV(null);
+      toast({ title: 'Template switched', description: 'Your content is unchanged — only the design changed.' });
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    }
   }
 
   function handleTemplateClick(template: CVTemplate) {
@@ -386,7 +408,7 @@ export default function CVBuilder() {
                   <CardHeader>
                     <CardTitle className="text-lg">{cv.title}</CardTitle>
                     <CardDescription>
-                      Version {cv.version} • Updated {new Date(cv.updated_at).toLocaleDateString()}
+                      {getTemplateName(cv.template_id)} • Version {cv.version} • Updated {new Date(cv.updated_at).toLocaleDateString()}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -398,6 +420,10 @@ export default function CVBuilder() {
                       <Button size="sm" variant="outline" onClick={() => handleDownload(cv)}>
                         <Download className="h-4 w-4 mr-1" />
                         Download
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => handleSwitchTemplateClick(cv)}>
+                        <RefreshCw className="h-4 w-4 mr-1" />
+                        Switch Template
                       </Button>
                       {!cv.is_primary && (
                         <Button
@@ -653,6 +679,37 @@ export default function CVBuilder() {
           onUploadExisting={handleUploadExistingCV}
         />
       )}
+
+      {/* Switch Template Dialog */}
+      <Dialog open={isSwitchingTemplate} onOpenChange={setIsSwitchingTemplate}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Switch Template</DialogTitle>
+            <DialogDescription>
+              Choose a new design for <span className="font-medium">{switchTemplateCV?.title}</span>. Your content stays exactly the same — only the look changes.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-3 py-4 max-h-[60vh] overflow-y-auto">
+            {templates.map(template => {
+              const isCurrent = template.id === switchTemplateCV?.template_id;
+              return (
+                <button
+                  key={template.id}
+                  onClick={() => handleSwitchTemplate(template.id)}
+                  disabled={isCurrent}
+                  className={`text-left rounded-lg border-2 p-3 transition-all hover:border-primary hover:shadow-md ${
+                    isCurrent ? 'border-primary bg-primary/5 opacity-60 cursor-default' : 'border-border'
+                  }`}
+                >
+                  <div className="text-sm font-medium">{template.name}</div>
+                  {isCurrent && <div className="text-xs text-primary mt-0.5">Current template</div>}
+                  {template.is_premium && <Badge variant="secondary" className="mt-1 text-xs">Premium</Badge>}
+                </button>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
