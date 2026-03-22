@@ -38,6 +38,7 @@ interface CVData {
   education: Education[];
   certifications?: string[];
   strategicInitiatives?: string[];
+  photoUrl?: string;
 }
 
 interface ExecutiveTemplateProps {
@@ -49,31 +50,38 @@ export default function ExecutiveTemplate({ data }: ExecutiveTemplateProps) {
     <div className="w-[794px] h-[1123px] bg-white p-8 text-gray-900 font-serif shadow-lg print:shadow-none">
       {/* Header Section */}
       <header className="mb-5 pb-3 border-b-2 border-gray-900">
-        <h1 className="text-4xl font-bold tracking-wide text-gray-900 mb-1">
-          {data.name}
-        </h1>
-        <p className="text-xl text-gray-700 font-medium mb-2">
-          {data.title}
-        </p>
-        <div className="flex flex-wrap gap-x-3 text-xs text-gray-600">
-          <span>{data.contact.location}</span>
-          <span>•</span>
-          <span>{data.contact.phone}</span>
-          <span>•</span>
-          <span>{data.contact.email}</span>
-          {data.contact.linkedin && (
-            <>
-              <span>•</span>
-              <a
-                href={`https://${data.contact.linkedin}`}
-                className="text-blue-700 hover:underline"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {data.contact.linkedin}
-              </a>
-            </>
+        <div className="flex items-start gap-4">
+          {data.photoUrl && (
+            <img src={data.photoUrl} alt="Profile" className="w-20 h-20 rounded-full object-cover border border-gray-300 flex-shrink-0" />
           )}
+          <div className="flex-1">
+            <h1 className="text-4xl font-bold tracking-wide text-gray-900 mb-1">
+              {data.name}
+            </h1>
+            <p className="text-xl text-gray-700 font-medium mb-2">
+              {data.title}
+            </p>
+            <div className="flex flex-wrap gap-x-3 text-xs text-gray-600">
+              <span>{data.contact.location}</span>
+              <span>•</span>
+              <span>{data.contact.phone}</span>
+              <span>•</span>
+              <span>{data.contact.email}</span>
+              {data.contact.linkedin && (
+                <>
+                  <span>•</span>
+                  <a
+                    href={`https://${data.contact.linkedin}`}
+                    className="text-blue-700 hover:underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {data.contact.linkedin}
+                  </a>
+                </>
+              )}
+            </div>
+          </div>
         </div>
       </header>
 

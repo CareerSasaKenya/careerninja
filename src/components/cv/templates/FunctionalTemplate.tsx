@@ -34,6 +34,7 @@ interface FunctionalTemplateData {
   experience: Experience[];
   education: Education[];
   certifications?: string[];
+  photoUrl?: string;
 }
 
 interface FunctionalTemplateProps {
@@ -45,9 +46,14 @@ export default function FunctionalTemplate({ data }: FunctionalTemplateProps) {
     <div className="w-[794px] h-[1123px] bg-white p-12 font-sans text-gray-800 overflow-hidden">
       {/* Header */}
       <header className="mb-6 border-b-2 border-gray-300 pb-4">
-        <h1 className="text-4xl font-bold text-gray-900 mb-1">{data.name}</h1>
-        <p className="text-xl text-blue-700 font-medium mb-3">{data.title}</p>
-        <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm text-gray-600">
+        <div className="flex items-start gap-4">
+          {data.photoUrl && (
+            <img src={data.photoUrl} alt="Profile" className="w-20 h-20 rounded-full object-cover border border-gray-300 flex-shrink-0" />
+          )}
+          <div className="flex-1">
+            <h1 className="text-4xl font-bold text-gray-900 mb-1">{data.name}</h1>
+            <p className="text-xl text-blue-700 font-medium mb-3">{data.title}</p>
+            <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm text-gray-600">
           <span className="flex items-center">
             <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
@@ -75,6 +81,8 @@ export default function FunctionalTemplate({ data }: FunctionalTemplateProps) {
               {data.contact.linkedin}
             </span>
           )}
+        </div>
+          </div>
         </div>
       </header>
 

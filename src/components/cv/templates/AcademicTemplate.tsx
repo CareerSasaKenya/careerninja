@@ -30,6 +30,7 @@ interface AcademicData {
   }>;
   grants?: string[];
   awards?: string[];
+  photoUrl?: string;
 }
 
 interface AcademicTemplateProps {
@@ -41,8 +42,15 @@ export default function AcademicTemplate({ data }: AcademicTemplateProps) {
     <div className="w-[794px] h-[1123px] bg-white p-10 font-serif text-gray-900 overflow-hidden">
       {/* Header */}
       <header className="mb-5 border-b-2 border-gray-800 pb-4">
-        <h1 className="text-3xl font-bold tracking-tight">{data.name}</h1>
-        <p className="text-sm mt-1 text-gray-700 italic">{data.title}</p>
+        <div className="flex items-start gap-4">
+          {data.photoUrl && (
+            <img src={data.photoUrl} alt="Profile" className="w-20 h-20 rounded-full object-cover border border-gray-300 flex-shrink-0" />
+          )}
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold tracking-tight">{data.name}</h1>
+            <p className="text-sm mt-1 text-gray-700 italic">{data.title}</p>
+          </div>
+        </div>
         <div className="flex flex-wrap gap-x-6 gap-y-1 mt-2 text-xs text-gray-600">
           <span>{data.contact.institution}</span>
           <span>{data.contact.location}</span>

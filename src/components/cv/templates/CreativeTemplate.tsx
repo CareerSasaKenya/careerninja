@@ -36,6 +36,7 @@ interface CreativeTemplateProps {
     interests?: string[];
     clients?: string[];
     professionalMemberships?: string[];
+    photoUrl?: string;
   };
 }
 
@@ -44,6 +45,11 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
     <div className="w-[794px] h-[1123px] bg-white grid grid-cols-3 font-sans">
       {/* Sidebar */}
       <aside className="col-span-1 bg-indigo-600 text-white p-8">
+        {data.photoUrl && (
+          <div className="flex justify-center mb-4">
+            <img src={data.photoUrl} alt="Profile" className="w-20 h-20 rounded-full object-cover border-2 border-indigo-300" />
+          </div>
+        )}
         <h1 className="text-2xl font-bold leading-tight">{data.name}</h1>
         <p className="text-sm opacity-90 mb-6 mt-2">{data.tagline}</p>
 

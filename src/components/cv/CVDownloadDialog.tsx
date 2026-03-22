@@ -28,6 +28,7 @@ export default function CVDownloadDialog({ open, onOpenChange, cv, templateName 
       linkedin: cv.content.personal?.linkedin || '',
       location: cv.content.personal?.location || '',
     },
+    photoUrl: cv.content.personal?.photoUrl || '',
     profile: cv.content.personal?.profile || '',
     objective: cv.content.personal?.objective || cv.content.personal?.profile || '',
     summary: cv.content.personal?.profile || '',
@@ -413,9 +414,9 @@ export default function CVDownloadDialog({ open, onOpenChange, cv, templateName 
           >
             <FileType className="h-5 w-5 mr-3 text-blue-600" />
             <div className="text-left">
-              <div className="font-semibold">Word Document (.docx)</div>
+              <div className="font-semibold">Word Document (.docx) — Editable</div>
               <div className="text-xs text-muted-foreground">
-                Editable format for further customization
+                Plain structured format for editing. Does not replicate the visual template design.
               </div>
             </div>
           </Button>

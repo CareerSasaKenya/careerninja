@@ -37,6 +37,7 @@ interface GraduateTemplateData {
   internships?: Internship[];
   skills: string[];
   activities?: string[];
+  photoUrl?: string;
 }
 
 interface GraduateTemplateProps {
@@ -48,12 +49,19 @@ export default function GraduateTemplate({ data }: GraduateTemplateProps) {
     <div className="w-[794px] h-[1123px] bg-white p-10 font-sans text-gray-800 overflow-hidden">
       {/* Header */}
       <header className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">{data.name}</h1>
-        <p className="text-lg text-gray-700 mt-1">{data.title}</p>
-        <p className="text-sm text-gray-600 mt-2">
-          {data.contact.location} | {data.contact.phone} | {data.contact.email} |{" "}
-          {data.contact.linkedin}
-        </p>
+        <div className="flex items-start gap-4">
+          {data.photoUrl && (
+            <img src={data.photoUrl} alt="Profile" className="w-20 h-20 rounded-full object-cover border border-gray-300 flex-shrink-0" />
+          )}
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold text-gray-900">{data.name}</h1>
+            <p className="text-lg text-gray-700 mt-1">{data.title}</p>
+            <p className="text-sm text-gray-600 mt-2">
+              {data.contact.location} | {data.contact.phone} | {data.contact.email} |{" "}
+              {data.contact.linkedin}
+            </p>
+          </div>
+        </div>
       </header>
 
       <hr className="border-gray-300 mb-6" />

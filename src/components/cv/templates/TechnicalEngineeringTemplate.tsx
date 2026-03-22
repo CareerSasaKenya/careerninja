@@ -31,6 +31,7 @@ interface TechnicalEngineeringData {
     institution: string;
     dates: string;
   }>;
+  photoUrl?: string;
 }
 
 interface TechnicalEngineeringTemplateProps {
@@ -43,7 +44,11 @@ export default function TechnicalEngineeringTemplate({ data }: TechnicalEngineer
 
       {/* Sidebar */}
       <aside className="col-span-1 bg-gray-100 p-8 overflow-hidden">
-
+        {data.photoUrl && (
+          <div className="flex justify-center mb-4">
+            <img src={data.photoUrl} alt="Profile" className="w-20 h-20 rounded-full object-cover border-2 border-gray-300" />
+          </div>
+        )}
         <h1 className="text-xl font-bold leading-tight">{data.name}</h1>
         <p className="text-sm text-gray-600 mt-1 mb-5">{data.title}</p>
 

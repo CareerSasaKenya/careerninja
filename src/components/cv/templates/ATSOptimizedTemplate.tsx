@@ -25,6 +25,7 @@ interface ATSOptimizedData {
   }>;
   certifications: string[];
   additional: string[];
+  photoUrl?: string;
 }
 
 interface ATSOptimizedTemplateProps {
@@ -37,13 +38,20 @@ export default function ATSOptimizedTemplate({ data }: ATSOptimizedTemplateProps
 
       {/* Header */}
       <header className="mb-6">
-        <h1 className="text-3xl font-bold">{data.name}</h1>
-        <p className="text-sm mt-1 text-gray-700">{data.title}</p>
-        <div className="text-sm mt-2 text-gray-700 space-y-0.5">
-          <p>{data.contact.location}</p>
-          <p>{data.contact.phone}</p>
-          <p>{data.contact.email}</p>
-          {data.contact.linkedin && <p>{data.contact.linkedin}</p>}
+        <div className="flex items-start gap-4">
+          {data.photoUrl && (
+            <img src={data.photoUrl} alt="Profile" className="w-20 h-20 rounded-full object-cover border border-gray-300 flex-shrink-0" />
+          )}
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold">{data.name}</h1>
+            <p className="text-sm mt-1 text-gray-700">{data.title}</p>
+            <div className="text-sm mt-2 text-gray-700 space-y-0.5">
+              <p>{data.contact.location}</p>
+              <p>{data.contact.phone}</p>
+              <p>{data.contact.email}</p>
+              {data.contact.linkedin && <p>{data.contact.linkedin}</p>}
+            </div>
+          </div>
         </div>
       </header>
 

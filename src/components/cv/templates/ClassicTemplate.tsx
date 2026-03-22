@@ -38,6 +38,7 @@ interface CVData {
   certifications?: string[];
   achievements?: string[];
   referees?: string;
+  photoUrl?: string;
 }
 
 interface ClassicTemplateProps {
@@ -49,38 +50,45 @@ export default function ClassicTemplate({ data }: ClassicTemplateProps) {
     <div className="w-[794px] h-[1123px] bg-white p-8 text-gray-900 font-sans shadow-lg print:shadow-none">
       {/* Header Section */}
       <header className="mb-5 border-b-2 border-gray-800 pb-3">
-        <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-2">
-          {data.name}
-        </h1>
-        <p className="text-xl text-gray-700 font-medium mb-3">
-          {data.title}
-        </p>
-        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
-          <span className="flex items-center">
-            <span className="font-medium mr-1">📍</span>
-            {data.contact.location}
-          </span>
-          <span className="flex items-center">
-            <span className="font-medium mr-1">📞</span>
-            {data.contact.phone}
-          </span>
-          <span className="flex items-center">
-            <span className="font-medium mr-1">✉️</span>
-            {data.contact.email}
-          </span>
-          {data.contact.linkedin && (
-            <span className="flex items-center">
-              <span className="font-medium mr-1">🔗</span>
-              <a
-                href={`https://${data.contact.linkedin}`}
-                className="text-blue-700 hover:underline"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {data.contact.linkedin}
-              </a>
-            </span>
+        <div className="flex items-start gap-4">
+          {data.photoUrl && (
+            <img src={data.photoUrl} alt="Profile" className="w-20 h-20 rounded-full object-cover border border-gray-300 flex-shrink-0" />
           )}
+          <div className="flex-1">
+            <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-2">
+              {data.name}
+            </h1>
+            <p className="text-xl text-gray-700 font-medium mb-3">
+              {data.title}
+            </p>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
+              <span className="flex items-center">
+                <span className="font-medium mr-1">📍</span>
+                {data.contact.location}
+              </span>
+              <span className="flex items-center">
+                <span className="font-medium mr-1">📞</span>
+                {data.contact.phone}
+              </span>
+              <span className="flex items-center">
+                <span className="font-medium mr-1">✉️</span>
+                {data.contact.email}
+              </span>
+              {data.contact.linkedin && (
+                <span className="flex items-center">
+                  <span className="font-medium mr-1">🔗</span>
+                  <a
+                    href={`https://${data.contact.linkedin}`}
+                    className="text-blue-700 hover:underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {data.contact.linkedin}
+                  </a>
+                </span>
+              )}
+            </div>
+          </div>
         </div>
       </header>
 

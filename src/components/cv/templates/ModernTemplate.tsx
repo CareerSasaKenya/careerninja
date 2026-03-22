@@ -40,6 +40,7 @@ interface CVData {
   certifications?: string[];
   achievements?: string[];
   referees?: string;
+  photoUrl?: string;
 }
 
 interface ModernTemplateProps {
@@ -51,6 +52,12 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
     <div className="w-[794px] h-[1123px] bg-white flex font-sans shadow-lg print:shadow-none">
       {/* Left Sidebar - 35% width */}
       <div className="w-[278px] bg-blue-50 p-6">
+        {/* Photo */}
+        {data.photoUrl && (
+          <div className="flex justify-center mb-5">
+            <img src={data.photoUrl} alt="Profile" className="w-24 h-24 rounded-full object-cover border-2 border-blue-200" />
+          </div>
+        )}
         {/* Key Skills Section */}
         <section className="mb-5">
           <h2 className="text-base font-bold text-blue-900 mb-2 uppercase tracking-wide">

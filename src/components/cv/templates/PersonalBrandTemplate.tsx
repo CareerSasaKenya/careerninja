@@ -38,6 +38,7 @@ interface PersonalBrandData {
   mediaFeatures?: string[];
   clientTestimonials?: string[];
   professionalAffiliations?: string[];
+  photoUrl?: string;
 }
 
 interface PersonalBrandTemplateProps {
@@ -49,8 +50,15 @@ export default function PersonalBrandTemplate({ data }: PersonalBrandTemplatePro
     <div className="w-[794px] h-[1123px] bg-white font-sans text-gray-800 overflow-hidden">
       {/* Header */}
       <header className="bg-indigo-600 text-white p-6">
-        <h1 className="text-3xl font-bold">{data.name}</h1>
-        <p className="text-lg mt-1">{data.tagline}</p>
+        <div className="flex items-center gap-4">
+          {data.photoUrl && (
+            <img src={data.photoUrl} alt="Profile" className="w-16 h-16 rounded-full object-cover border-2 border-white flex-shrink-0" />
+          )}
+          <div>
+            <h1 className="text-3xl font-bold">{data.name}</h1>
+            <p className="text-lg mt-1">{data.tagline}</p>
+          </div>
+        </div>
       </header>
 
       <div className="grid grid-cols-3">

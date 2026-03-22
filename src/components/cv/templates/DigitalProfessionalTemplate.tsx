@@ -38,6 +38,7 @@ interface DigitalProfessionalData {
   openSource?: string[];
   technicalWriting?: string[];
   volunteerWork?: string[];
+  photoUrl?: string;
 }
 
 interface DigitalProfessionalTemplateProps {
@@ -49,6 +50,11 @@ export default function DigitalProfessionalTemplate({ data }: DigitalProfessiona
     <div className="w-[794px] h-[1123px] bg-white grid grid-cols-3 font-sans text-gray-800 overflow-hidden">
       {/* Sidebar */}
       <aside className="col-span-1 bg-gray-900 text-white p-6">
+        {data.photoUrl && (
+          <div className="flex justify-center mb-4">
+            <img src={data.photoUrl} alt="Profile" className="w-20 h-20 rounded-full object-cover border-2 border-gray-600" />
+          </div>
+        )}
         <h1 className="text-xl font-bold leading-tight">{data.name}</h1>
         <p className="text-sm text-gray-300 mb-5">{data.title}</p>
 
