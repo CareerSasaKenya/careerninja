@@ -6,6 +6,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'qxuvqrfqkdpfjfwkqatf.supabase.co',
       },
+      {
+        protocol: 'https',
+        hostname: 'api.dicebear.com',
+      },
     ],
   },
   // Enable React strict mode
