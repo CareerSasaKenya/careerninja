@@ -102,7 +102,7 @@ export default function CVEditor({ cv, templateName, onSave, onCancel }: CVEdito
   const [showCertifications, setShowCertifications] = useState((cv.content.certifications || []).length > 0);
   const [showAchievements, setShowAchievements] = useState((cv.content.achievements || []).length > 0);
 
-  const set = (setter: Function) => (i: number, field: string, value: string) => {
+  const set = (setter: React.Dispatch<React.SetStateAction<any[]>>) => (i: number, field: string, value: string) => {
     setter((prev: any[]) => { const a = [...prev]; a[i] = { ...a[i], [field]: value }; return a; });
   };
 
