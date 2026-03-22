@@ -45,7 +45,7 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             {/* Header */}
             <div className="border-b border-gray-800 pb-1.5 mb-2">
               <div className="flex items-start gap-1.5 mb-0.5">
-                <img src="https://api.dicebear.com/9.x/avataaars/png?seed=JohnKariuki&skinColor=brown&top=shortHair,shortHairShortFlat,shortHairShortRound&hairColor=black&backgroundColor=b6e3f4" className="w-7 h-7 rounded-full flex-shrink-0" alt="" />
+                <img src="https://randomuser.me/api/portraits/med/men/75.jpg" className="w-7 h-7 rounded-full flex-shrink-0 object-cover" alt="" />
                 <div>
                   <div className="font-bold text-[8px]">JOHN MWANGI KARIUKI</div>
                   <div className="text-[5.5px] text-gray-700">Administrative Officer</div>
@@ -170,7 +170,7 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             {/* Left Sidebar */}
             <div className="w-[35%] bg-blue-50 p-2">
               <div className="flex justify-center mb-1.5">
-                <img src="https://api.dicebear.com/9.x/avataaars/png?seed=GraceNjoroge&skinColor=brown&top=longHair,longHairStraight,longHairCurvy&hairColor=black&backgroundColor=bde0fe" className="w-8 h-8 rounded-full" alt="" />
+                <img src="https://randomuser.me/api/portraits/med/women/65.jpg" className="w-8 h-8 rounded-full object-cover" alt="" />
               </div>
               <div className="mb-1.5">
                 <div className="font-bold text-[6px] text-blue-900 uppercase mb-1">Key Skills</div>
@@ -315,7 +315,7 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             {/* Header */}
             <div className="border-b border-gray-900 pb-1 mb-1.5 px-2 pt-2">
               <div className="flex items-start gap-1.5 mb-0.5">
-                <img src="https://api.dicebear.com/9.x/avataaars/png?seed=DavidOtieno&skinColor=darkBrown&top=shortHair,shortHairShortFlat&hairColor=black&backgroundColor=c0c0c0" className="w-7 h-7 rounded-full flex-shrink-0" alt="" />
+                <img src="https://randomuser.me/api/portraits/med/men/83.jpg" className="w-7 h-7 rounded-full flex-shrink-0 object-cover" alt="" />
                 <div>
                   <div className="font-bold text-[10px]">DAVID OCHIENG OTIENO</div>
                   <div className="text-[7.5px] text-gray-700">Chief Operations Officer (COO)</div>
@@ -438,7 +438,7 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             {/* Header */}
             <div className="border-b border-gray-300 pb-1 mb-1.5">
               <div className="flex items-start gap-1.5 mb-0.5">
-                <img src="https://api.dicebear.com/9.x/avataaars/png?seed=BrianChebet&skinColor=brown&top=shortHair,shortHairShortWaved&hairColor=black&backgroundColor=d4edda" className="w-6 h-6 rounded-full flex-shrink-0" alt="" />
+                <img src="https://randomuser.me/api/portraits/med/men/42.jpg" className="w-6 h-6 rounded-full flex-shrink-0 object-cover" alt="" />
                 <div>
                   <div className="font-bold text-[9px] text-gray-900">BRIAN KIPRONO CHEBET</div>
                   <div className="text-[6px] text-gray-700">Recent Graduate G�� Mechanical Engineering</div>
@@ -539,7 +539,7 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             {/* Header */}
             <div className="border-b-2 border-gray-300 pb-1 mb-1.5">
               <div className="flex items-start gap-1.5 mb-0.5">
-                <img src="https://api.dicebear.com/9.x/avataaars/png?seed=MaryOdhiambo&skinColor=darkBrown&top=longHair,longHairBun,longHairCurvy&hairColor=black&backgroundColor=fce4ec" className="w-6 h-6 rounded-full flex-shrink-0" alt="" />
+                <img src="https://randomuser.me/api/portraits/med/women/44.jpg" className="w-6 h-6 rounded-full flex-shrink-0 object-cover" alt="" />
                 <div>
                   <div className="font-bold text-[9px] text-gray-900">MARY ACHIENG ODHIAMBO</div>
                   <div className="text-[6px] text-blue-700 font-medium">Customer Service Specialist</div>
@@ -707,7 +707,7 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             {/* Header */}
             <div className="border-b border-gray-800 pb-1 mb-1.5">
               <div className="flex items-start gap-1.5 mb-0.5">
-                <img src="https://api.dicebear.com/9.x/avataaars/png?seed=KevinMutua&skinColor=brown&top=shortHair,shortHairShortFlat&hairColor=black&backgroundColor=e8f5e9" className="w-6 h-6 rounded-full flex-shrink-0" alt="" />
+                <img src="https://randomuser.me/api/portraits/med/men/22.jpg" className="w-6 h-6 rounded-full flex-shrink-0 object-cover" alt="" />
                 <div>
                   <div className="font-bold text-[9px] text-gray-900">KEVIN MUTUA MULI</div>
                   <div className="text-[6px] text-gray-700">Student G�� Diploma in Electrical Engineering</div>
@@ -808,7 +808,7 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             {/* Left Sidebar */}
             <div className="w-[33%] bg-indigo-600 text-white p-2">
               <div className="flex justify-center mb-1">
-                <img src="https://api.dicebear.com/9.x/avataaars/png?seed=BrianKimani&skinColor=brown&top=shortHair,shortHairShortRound&hairColor=black&backgroundColor=7c3aed" className="w-8 h-8 rounded-full border border-indigo-300" alt="" />
+                <img src="https://randomuser.me/api/portraits/med/men/36.jpg" className="w-8 h-8 rounded-full border border-indigo-300 object-cover" alt="" />
               </div>
               <div className="font-bold text-[7px] mb-0.5 text-center">BRIAN MWANGI KIMANI</div>
               <div className="text-[5px] opacity-90 mb-1.5 text-center">Graphic Designer | Brand Identity</div>
@@ -962,7 +962,7 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             {/* Left Sidebar */}
             <div className="w-[33%] bg-gray-900 text-white p-2">
               <div className="flex justify-center mb-1">
-                <img src="https://api.dicebear.com/9.x/avataaars/png?seed=KevinOtieno&skinColor=darkBrown&top=shortHair,shortHairShortFlat&hairColor=black&backgroundColor=1f2937" className="w-8 h-8 rounded-full border border-gray-600" alt="" />
+                <img src="https://randomuser.me/api/portraits/med/men/55.jpg" className="w-8 h-8 rounded-full border border-gray-600 object-cover" alt="" />
               </div>
               <div className="font-bold text-[6px] mb-0.5 text-center">KEVIN OTIENO</div>
               <div className="text-[4.5px] text-gray-300 mb-1 text-center">Full Stack Developer</div>
@@ -1116,7 +1116,7 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             {/* Left Sidebar */}
             <div className="w-[35%] bg-gray-100 p-2">
               <div className="flex justify-center mb-1.5">
-                <img src="https://api.dicebear.com/9.x/avataaars/png?seed=GraceMwangi&skinColor=brown&top=longHair,longHairStraight2,longHairCurvy&hairColor=black&backgroundColor=e8eaf6" className="w-8 h-8 rounded-full" alt="" />
+                <img src="https://randomuser.me/api/portraits/med/women/28.jpg" className="w-8 h-8 rounded-full object-cover" alt="" />
               </div>
               <div className="mb-1.5">
                 <div className="font-semibold text-[5px] text-indigo-700 mb-0.5">CONTACT</div>
@@ -1271,7 +1271,7 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             {/* Header */}
             <div className="border-b-2 border-gray-800 pb-0.5 mb-1">
               <div className="flex items-start gap-1.5 mb-0.5">
-                <img src="https://api.dicebear.com/9.x/avataaars/png?seed=DanielNjoroge&skinColor=darkBrown&top=shortHair,shortHairShortFlat&hairColor=black&accessories=prescription02&backgroundColor=f5f5f5" className="w-6 h-6 rounded-full flex-shrink-0" alt="" />
+                <img src="https://randomuser.me/api/portraits/med/men/91.jpg" className="w-6 h-6 rounded-full flex-shrink-0 object-cover" alt="" />
                 <div>
                   <div className="font-bold text-[6.5px]">Dr. Daniel Mwangi Njoroge</div>
                   <div className="text-[4px] text-gray-700 italic">Senior Lecturer � Department of Environmental Science</div>
@@ -1420,7 +1420,7 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             {/* Sidebar */}
             <div className="w-[33%] bg-gray-100 p-2">
               <div className="flex justify-center mb-1">
-                <img src="https://api.dicebear.com/9.x/avataaars/png?seed=SamuelCheruiyot&skinColor=brown&top=shortHair,shortHairShortFlat&hairColor=black&backgroundColor=eceff1" className="w-8 h-8 rounded-full" alt="" />
+                <img src="https://randomuser.me/api/portraits/med/men/62.jpg" className="w-8 h-8 rounded-full object-cover" alt="" />
               </div>
               <div className="font-bold text-[6px] mb-0.5 text-center">SAMUEL K. CHERUIYOT</div>
               <div className="text-[4px] text-gray-600 mb-1 text-center">Mechanical Engineer | Manufacturing</div>
@@ -1561,7 +1561,7 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             {/* Header */}
             <div className="mb-1">
               <div className="flex items-start gap-1.5 mb-0.5">
-                <img src="https://api.dicebear.com/9.x/avataaars/png?seed=DavidOnyango&skinColor=darkBrown&top=shortHair,shortHairShortFlat&hairColor=black&backgroundColor=f5f5f5" className="w-6 h-6 rounded-full flex-shrink-0" alt="" />
+                <img src="https://randomuser.me/api/portraits/med/men/48.jpg" className="w-6 h-6 rounded-full flex-shrink-0 object-cover" alt="" />
                 <div>
                   <div className="font-bold text-[7px] text-gray-900">DAVID OCHIENG ONYANGO</div>
                   <div className="text-[4.5px] text-gray-700 mt-0.5">Data Analyst</div>
