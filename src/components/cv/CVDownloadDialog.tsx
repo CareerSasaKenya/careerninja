@@ -125,10 +125,23 @@ export default function CVDownloadDialog({ open, onOpenChange, cv, templateName 
         image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true, logging: false },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
       };
 
       // Capture the first child (the rendered template div)
       const templateEl = wrapper.firstElementChild as HTMLElement;
+
+      // Remove fixed height so all content renders (not clipped to 1123px)
+      // Also recursively remove overflow:hidden from all descendants
+      const unlockOverflow = (el: HTMLElement) => {
+        el.style.height = 'auto';
+        el.style.maxHeight = 'none';
+        el.style.overflow = 'visible';
+        Array.from(el.children).forEach(child => unlockOverflow(child as HTMLElement));
+      };
+      unlockOverflow(templateEl);
+      templateEl.style.minHeight = '1123px';
+
       await html2pdf().set(opt).from(templateEl).save();
 
       root.unmount();

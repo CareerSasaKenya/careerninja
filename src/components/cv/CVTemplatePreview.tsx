@@ -44,8 +44,13 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
           <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded p-4 text-[8px] leading-[1.4] overflow-hidden shadow-sm">
             {/* Header */}
             <div className="border-b border-gray-800 pb-1.5 mb-2">
-              <div className="font-bold text-[8px] mb-0.5">JOHN MWANGI KARIUKI</div>
-              <div className="text-[5.5px] text-gray-700 mb-0.5">Administrative Officer</div>
+              <div className="flex items-start gap-1.5 mb-0.5">
+                <img src="https://api.dicebear.com/9.x/avataaars/svg?seed=JohnKariuki&skinColor=brown&top=shortHair,shortHairShortFlat,shortHairShortRound&hairColor=black&backgroundColor=b6e3f4" className="w-7 h-7 rounded-full flex-shrink-0" alt="" />
+                <div>
+                  <div className="font-bold text-[8px]">JOHN MWANGI KARIUKI</div>
+                  <div className="text-[5.5px] text-gray-700">Administrative Officer</div>
+                </div>
+              </div>
               <div className="text-[4px] text-gray-600 space-y-0.5">
                 <div>≡ƒôì Nairobi, Kenya</div>
                 <div>≡ƒô₧ +254 712 345 678</div>
@@ -164,6 +169,9 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
           <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded overflow-hidden flex text-[4.5px] leading-[1.3]">
             {/* Left Sidebar */}
             <div className="w-[35%] bg-blue-50 p-2">
+              <div className="flex justify-center mb-1.5">
+                <img src="https://api.dicebear.com/9.x/avataaars/svg?seed=GraceNjoroge&skinColor=brown&top=longHair,longHairStraight,longHairCurvy&hairColor=black&backgroundColor=bde0fe" className="w-8 h-8 rounded-full" alt="" />
+              </div>
               <div className="mb-1.5">
                 <div className="font-bold text-[6px] text-blue-900 uppercase mb-1">Key Skills</div>
                 <div className="space-y-0.5 text-[4.2px]">
@@ -306,8 +314,13 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
           <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded overflow-hidden text-[5px] leading-[1.3]">
             {/* Header */}
             <div className="border-b border-gray-900 pb-1 mb-1.5 px-2 pt-2">
-              <div className="font-bold text-[10px] mb-1">DAVID OCHIENG OTIENO</div>
-              <div className="text-[7.5px] text-gray-700 mb-1">Chief Operations Officer (COO)</div>
+              <div className="flex items-start gap-1.5 mb-0.5">
+                <img src="https://api.dicebear.com/9.x/avataaars/svg?seed=DavidOtieno&skinColor=darkBrown&top=shortHair,shortHairShortFlat&hairColor=black&backgroundColor=c0c0c0" className="w-7 h-7 rounded-full flex-shrink-0" alt="" />
+                <div>
+                  <div className="font-bold text-[10px]">DAVID OCHIENG OTIENO</div>
+                  <div className="text-[7.5px] text-gray-700">Chief Operations Officer (COO)</div>
+                </div>
+              </div>
               <div className="text-[4.2px] text-gray-600">
                 Nairobi, Kenya ΓÇó +254 711 234 567 ΓÇó david.otieno@email.com ΓÇó linkedin.com/in/david-otieno
               </div>
@@ -424,8 +437,13 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
           <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded p-2 text-[5.5px] leading-[1.35] overflow-hidden shadow-sm">
             {/* Header */}
             <div className="border-b border-gray-300 pb-1 mb-1.5">
-              <div className="font-bold text-[9px] text-gray-900">BRIAN KIPRONO CHEBET</div>
-              <div className="text-[6px] text-gray-700 mt-0.5">Recent Graduate ΓÇô Mechanical Engineering</div>
+              <div className="flex items-start gap-1.5 mb-0.5">
+                <img src="https://api.dicebear.com/9.x/avataaars/svg?seed=BrianChebet&skinColor=brown&top=shortHair,shortHairShortWaved&hairColor=black&backgroundColor=d4edda" className="w-6 h-6 rounded-full flex-shrink-0" alt="" />
+                <div>
+                  <div className="font-bold text-[9px] text-gray-900">BRIAN KIPRONO CHEBET</div>
+                  <div className="text-[6px] text-gray-700">Recent Graduate ΓÇô Mechanical Engineering</div>
+                </div>
+              </div>
               <div className="text-[4.5px] text-gray-600 mt-0.5">
                 Nakuru, Kenya | +254 712 987 654 | brian.chebet@email.com | linkedin.com/in/brian-chebet
               </div>
@@ -520,8 +538,13 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
           <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded p-2 text-[5.5px] leading-[1.35] overflow-hidden shadow-sm">
             {/* Header */}
             <div className="border-b-2 border-gray-300 pb-1 mb-1.5">
-              <div className="font-bold text-[9px] text-gray-900">MARY ACHIENG ODHIAMBO</div>
-              <div className="text-[6px] text-blue-700 font-medium mt-0.5">Customer Service Specialist</div>
+              <div className="flex items-start gap-1.5 mb-0.5">
+                <img src="https://api.dicebear.com/9.x/avataaars/svg?seed=MaryOdhiambo&skinColor=darkBrown&top=longHair,longHairBun,longHairCurvy&hairColor=black&backgroundColor=fce4ec" className="w-6 h-6 rounded-full flex-shrink-0" alt="" />
+                <div>
+                  <div className="font-bold text-[9px] text-gray-900">MARY ACHIENG ODHIAMBO</div>
+                  <div className="text-[6px] text-blue-700 font-medium">Customer Service Specialist</div>
+                </div>
+              </div>
               <div className="flex flex-wrap gap-x-1 text-[4.5px] text-gray-600 mt-0.5">
                 <span>≡ƒôì Kisumu, Kenya</span>
                 <span>≡ƒô₧ +254 710 234 567</span>
@@ -683,8 +706,13 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
           <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded p-2 text-[5.5px] leading-[1.35] overflow-hidden shadow-sm">
             {/* Header */}
             <div className="border-b border-gray-800 pb-1 mb-1.5">
-              <div className="font-bold text-[9px] text-gray-900">KEVIN MUTUA MULI</div>
-              <div className="text-[6px] text-gray-700 mt-0.5">Student ΓÇô Diploma in Electrical Engineering</div>
+              <div className="flex items-start gap-1.5 mb-0.5">
+                <img src="https://api.dicebear.com/9.x/avataaars/svg?seed=KevinMutua&skinColor=brown&top=shortHair,shortHairShortFlat&hairColor=black&backgroundColor=e8f5e9" className="w-6 h-6 rounded-full flex-shrink-0" alt="" />
+                <div>
+                  <div className="font-bold text-[9px] text-gray-900">KEVIN MUTUA MULI</div>
+                  <div className="text-[6px] text-gray-700">Student ΓÇô Diploma in Electrical Engineering</div>
+                </div>
+              </div>
               <div className="text-[4.5px] text-gray-600 mt-0.5">
                 Machakos, Kenya | +254 712 345 901 | kevin.mutua@email.com | linkedin.com/in/kevin-mutua
               </div>
@@ -779,8 +807,11 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
           <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded overflow-hidden flex text-[4.5px] leading-[1.3]">
             {/* Left Sidebar */}
             <div className="w-[33%] bg-indigo-600 text-white p-2">
-              <div className="font-bold text-[7px] mb-1">BRIAN MWANGI KIMANI</div>
-              <div className="text-[5px] opacity-90 mb-1.5">Graphic Designer | Brand Identity</div>
+              <div className="flex justify-center mb-1">
+                <img src="https://api.dicebear.com/9.x/avataaars/svg?seed=BrianKimani&skinColor=brown&top=shortHair,shortHairShortRound&hairColor=black&backgroundColor=7c3aed" className="w-8 h-8 rounded-full border border-indigo-300" alt="" />
+              </div>
+              <div className="font-bold text-[7px] mb-0.5 text-center">BRIAN MWANGI KIMANI</div>
+              <div className="text-[5px] opacity-90 mb-1.5 text-center">Graphic Designer | Brand Identity</div>
               
               <div className="text-[4px] mb-1.5 space-y-0.5">
                 <div>≡ƒôì Nairobi, Kenya</div>
@@ -930,8 +961,11 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
           <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded overflow-hidden flex text-[4px] leading-[1.3]">
             {/* Left Sidebar */}
             <div className="w-[33%] bg-gray-900 text-white p-2">
-              <div className="font-bold text-[6px] mb-0.5">KEVIN OTIENO</div>
-              <div className="text-[4.5px] text-gray-300 mb-1">Full Stack Developer</div>
+              <div className="flex justify-center mb-1">
+                <img src="https://api.dicebear.com/9.x/avataaars/svg?seed=KevinOtieno&skinColor=darkBrown&top=shortHair,shortHairShortFlat&hairColor=black&backgroundColor=1f2937" className="w-8 h-8 rounded-full border border-gray-600" alt="" />
+              </div>
+              <div className="font-bold text-[6px] mb-0.5 text-center">KEVIN OTIENO</div>
+              <div className="text-[4.5px] text-gray-300 mb-1 text-center">Full Stack Developer</div>
               
               <div className="text-[3.5px] mb-1.5 space-y-0.5">
                 <div>Nairobi, Kenya</div>
@@ -1081,6 +1115,9 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
           <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded overflow-hidden flex text-[4px] leading-[1.3]">
             {/* Left Sidebar */}
             <div className="w-[35%] bg-gray-100 p-2">
+              <div className="flex justify-center mb-1.5">
+                <img src="https://api.dicebear.com/9.x/avataaars/svg?seed=GraceMwangi&skinColor=brown&top=longHair,longHairStraight2,longHairCurvy&hairColor=black&backgroundColor=e8eaf6" className="w-8 h-8 rounded-full" alt="" />
+              </div>
               <div className="mb-1.5">
                 <div className="font-semibold text-[5px] text-indigo-700 mb-0.5">CONTACT</div>
                 <div className="text-[3.5px] space-y-0.5">
@@ -1233,8 +1270,13 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
           <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded p-2.5 text-[3.5px] leading-[1.35] overflow-hidden shadow-sm font-serif">
             {/* Header */}
             <div className="border-b-2 border-gray-800 pb-0.5 mb-1">
-              <div className="font-bold text-[6.5px]">Dr. Daniel Mwangi Njoroge</div>
-              <div className="text-[4px] text-gray-700 italic mb-0.5">Senior Lecturer – Department of Environmental Science</div>
+              <div className="flex items-start gap-1.5 mb-0.5">
+                <img src="https://api.dicebear.com/9.x/avataaars/svg?seed=DanielNjoroge&skinColor=darkBrown&top=shortHair,shortHairShortFlat&hairColor=black&accessories=prescription02&backgroundColor=f5f5f5" className="w-6 h-6 rounded-full flex-shrink-0" alt="" />
+                <div>
+                  <div className="font-bold text-[6.5px]">Dr. Daniel Mwangi Njoroge</div>
+                  <div className="text-[4px] text-gray-700 italic">Senior Lecturer – Department of Environmental Science</div>
+                </div>
+              </div>
               <div className="flex flex-wrap gap-x-2 text-[3px] text-gray-600">
                 <span>University of Nairobi</span>
                 <span>Nairobi, Kenya</span>
@@ -1377,8 +1419,11 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
           <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded overflow-hidden flex text-[4px] leading-[1.3] shadow-sm">
             {/* Sidebar */}
             <div className="w-[33%] bg-gray-100 p-2">
-              <div className="font-bold text-[6px] mb-0.5">SAMUEL K. CHERUIYOT</div>
-              <div className="text-[4px] text-gray-600 mb-1">Mechanical Engineer | Manufacturing</div>
+              <div className="flex justify-center mb-1">
+                <img src="https://api.dicebear.com/9.x/avataaars/svg?seed=SamuelCheruiyot&skinColor=brown&top=shortHair,shortHairShortFlat&hairColor=black&backgroundColor=eceff1" className="w-8 h-8 rounded-full" alt="" />
+              </div>
+              <div className="font-bold text-[6px] mb-0.5 text-center">SAMUEL K. CHERUIYOT</div>
+              <div className="text-[4px] text-gray-600 mb-1 text-center">Mechanical Engineer | Manufacturing</div>
               <div className="text-[3.8px] text-gray-700 space-y-0.5 mb-1.5">
                 <div>Nairobi, Kenya</div>
                 <div>+254 712 333 777</div>
@@ -1515,10 +1560,15 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
           <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded p-2 text-[3.5px] leading-[1.3] overflow-hidden shadow-sm">
             {/* Header */}
             <div className="mb-1">
-              <div className="font-bold text-[7px] text-gray-900">DAVID OCHIENG ONYANGO</div>
-              <div className="text-[4.5px] text-gray-700 mt-0.5">Data Analyst</div>
-              <div className="text-[3.5px] text-gray-600 mt-0.5">
-                Nairobi, Kenya &nbsp;|&nbsp; +254 712 000 111 &nbsp;|&nbsp; david.onyango@email.com &nbsp;|&nbsp; linkedin.com/in/davidonyango
+              <div className="flex items-start gap-1.5 mb-0.5">
+                <img src="https://api.dicebear.com/9.x/avataaars/svg?seed=DavidOnyango&skinColor=darkBrown&top=shortHair,shortHairShortFlat&hairColor=black&backgroundColor=f5f5f5" className="w-6 h-6 rounded-full flex-shrink-0" alt="" />
+                <div>
+                  <div className="font-bold text-[7px] text-gray-900">DAVID OCHIENG ONYANGO</div>
+                  <div className="text-[4.5px] text-gray-700 mt-0.5">Data Analyst</div>
+                  <div className="text-[3.5px] text-gray-600 mt-0.5">
+                    Nairobi, Kenya &nbsp;|&nbsp; +254 712 000 111 &nbsp;|&nbsp; david.onyango@email.com &nbsp;|&nbsp; linkedin.com/in/davidonyango
+                  </div>
+                </div>
               </div>
             </div>
             {/* Summary */}
