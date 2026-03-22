@@ -18,48 +18,124 @@ export default function CVDownloadDialog({ open, onOpenChange, cv, templateName 
   const [downloading, setDownloading] = useState(false);
   const { toast } = useToast();
 
+  /** Build the data object that all template components expect */
+  const buildTemplateData = () => ({
+    name: cv.content.personal?.name || '',
+    title: cv.content.personal?.title || '',
+    contact: {
+      phone: cv.content.personal?.phone || '',
+      email: cv.content.personal?.email || '',
+      linkedin: cv.content.personal?.linkedin || '',
+      location: cv.content.personal?.location || '',
+    },
+    profile: cv.content.personal?.profile || '',
+    objective: cv.content.personal?.objective || cv.content.personal?.profile || '',
+    summary: cv.content.personal?.profile || '',
+    skills: cv.content.skills || [],
+    experience: cv.content.experience || [],
+    education: cv.content.education || [],
+    certifications: cv.content.certifications || [],
+    achievements: cv.content.achievements || [],
+    languages: cv.content.languages || [],
+    tools: cv.content.tools || [],
+    projects: cv.content.projects || [],
+    internships: cv.content.internships || cv.content.experience || [],
+    activities: cv.content.activities || [],
+    researchInterests: cv.content.researchInterests || [],
+    positions: cv.content.positions || cv.content.experience || [],
+    publications: cv.content.publications || [],
+    conferences: cv.content.conferences || [],
+    grants: cv.content.grants || [],
+    awards: cv.content.awards || cv.content.achievements || [],
+    techStack: cv.content.techStack || cv.content.skills || [],
+    coreSkills: cv.content.coreSkills || cv.content.skills || [],
+    skillCategories: cv.content.skillCategories || [],
+    tagline: cv.content.personal?.title || '',
+    social: cv.content.social || [],
+    speaking: cv.content.speaking || [],
+    mediaFeatures: cv.content.mediaFeatures || [],
+  });
+
+  /** Resolve the correct template component */
+  const resolveTemplate = async (name: string) => {
+    switch (name) {
+      case 'Classic Professional':
+        return (await import('./templates/ClassicTemplate')).default;
+      case 'Modern Professional':
+        return (await import('./templates/ModernTemplate')).default;
+      case 'Executive Leadership':
+        return (await import('./templates/ExecutiveTemplate')).default;
+      case 'Graduate Starter CV':
+        return (await import('./templates/GraduateTemplate')).default;
+      case 'Skills-Based (Functional)':
+        return (await import('./templates/FunctionalTemplate')).default;
+      case 'Internship / Industrial Attachment':
+        return (await import('./templates/InternshipTemplate')).default;
+      case 'Creative Portfolio':
+        return (await import('./templates/CreativeTemplate')).default;
+      case 'Digital Professional':
+        return (await import('./templates/DigitalProfessionalTemplate')).default;
+      case 'Personal Brand CV':
+        return (await import('./templates/PersonalBrandTemplate')).default;
+      case 'Academic / Research CV':
+        return (await import('./templates/AcademicTemplate')).default;
+      case 'Technical / Engineering CV':
+        return (await import('./templates/TechnicalEngineeringTemplate')).default;
+      case 'International / ATS Optimized CV':
+        return (await import('./templates/ATSOptimizedTemplate')).default;
+      default:
+        return (await import('./templates/ClassicTemplate')).default;
+    }
+  };
+
   const handleDownloadPDF = async () => {
     try {
       setDownloading(true);
-      
-      // Import html2pdf dynamically
-      const html2pdf = (await import('html2pdf.js')).default;
-      
-      // Create a temporary container
-      const container = document.createElement('div');
-      container.style.position = 'absolute';
-      container.style.left = '-9999px';
-      document.body.appendChild(container);
-      
-      // Render the CV template
-      const cvHTML = await renderCVTemplate(cv, templateName);
-      container.innerHTML = cvHTML;
-      
-      // Configure PDF options
+
+      const [html2pdf, { createRoot }, React, TemplateComponent] = await Promise.all([
+        import('html2pdf.js').then(m => m.default),
+        import('react-dom/client'),
+        import('react'),
+        resolveTemplate(templateName),
+      ]) as any;
+
+      const data = buildTemplateData();
+
+      // Mount into a real DOM node so Tailwind CSS applies
+      const wrapper = document.createElement('div');
+      wrapper.style.position = 'fixed';
+      wrapper.style.top = '0';
+      wrapper.style.left = '-9999px';
+      wrapper.style.width = '794px';
+      wrapper.style.zIndex = '-1';
+      document.body.appendChild(wrapper);
+
+      const root = createRoot(wrapper);
+
+      await new Promise<void>(resolve => {
+        root.render(React.createElement(TemplateComponent, { data }));
+        // Give React a tick to flush, then wait for fonts/images
+        setTimeout(() => resolve(), 300);
+      });
+
       const opt = {
         margin: 0,
         filename: `${cv.title.replace(/\s+/g, '_')}.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
       };
-      
-      // Generate and download PDF
-      await html2pdf().set(opt).from(container).save();
-      
-      // Cleanup
-      document.body.removeChild(container);
-      
-      toast({
-        title: 'Success',
-        description: 'CV downloaded as PDF'
-      });
+
+      // Capture the first child (the rendered template div)
+      const templateEl = wrapper.firstElementChild as HTMLElement;
+      await html2pdf().set(opt).from(templateEl).save();
+
+      root.unmount();
+      document.body.removeChild(wrapper);
+
+      toast({ title: 'Success', description: 'CV downloaded as PDF' });
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: 'Failed to download PDF: ' + error.message,
-        variant: 'destructive'
-      });
+      toast({ title: 'Error', description: 'Failed to download PDF: ' + error.message, variant: 'destructive' });
     } finally {
       setDownloading(false);
     }
@@ -68,166 +144,164 @@ export default function CVDownloadDialog({ open, onOpenChange, cv, templateName 
   const handleDownloadWord = async () => {
     try {
       setDownloading(true);
-      
-      // Import docx library dynamically
-      const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } = await import('docx');
-      
-      const doc = new Document({
-        sections: [{
-          properties: {},
-          children: [
-            // Header
-            new Paragraph({
-              text: cv.content.personal?.name || '',
-              heading: HeadingLevel.HEADING_1,
-              alignment: AlignmentType.CENTER,
-            }),
-            new Paragraph({
-              text: cv.content.personal?.title || '',
-              alignment: AlignmentType.CENTER,
-            }),
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: `${cv.content.personal?.location || ''} | ${cv.content.personal?.phone || ''} | ${cv.content.personal?.email || ''}`,
-                  size: 20,
-                }),
-              ],
-              alignment: AlignmentType.CENTER,
-              spacing: { after: 200 },
-            }),
-            
-            // Professional Summary
-            ...(cv.content.personal?.profile ? [
-              new Paragraph({
-                text: 'Professional Summary',
-                heading: HeadingLevel.HEADING_2,
-                spacing: { before: 200, after: 100 },
-              }),
-              new Paragraph({
-                text: cv.content.personal.profile,
-                spacing: { after: 200 },
-              }),
-            ] : []),
-            
-            // Skills
-            ...(cv.content.skills && cv.content.skills.length > 0 ? [
-              new Paragraph({
-                text: 'Key Skills',
-                heading: HeadingLevel.HEADING_2,
-                spacing: { before: 200, after: 100 },
-              }),
-              ...cv.content.skills.map(skill => 
-                new Paragraph({
-                  text: `• ${skill}`,
-                  spacing: { after: 50 },
-                })
-              ),
-            ] : []),
-            
-            // Experience
-            ...(cv.content.experience && cv.content.experience.length > 0 ? [
-              new Paragraph({
-                text: 'Professional Experience',
-                heading: HeadingLevel.HEADING_2,
-                spacing: { before: 200, after: 100 },
-              }),
-              ...cv.content.experience.flatMap(exp => [
-                new Paragraph({
-                  children: [
-                    new TextRun({
-                      text: exp.jobTitle,
-                      bold: true,
-                    }),
-                  ],
-                  spacing: { before: 100 },
-                }),
-                new Paragraph({
-                  text: `${exp.company} - ${exp.location}`,
-                }),
-                new Paragraph({
-                  children: [
-                    new TextRun({
-                      text: exp.dates,
-                      italics: true,
-                    }),
-                  ],
-                  spacing: { after: 50 },
-                }),
-                ...exp.details.map(detail => 
-                  new Paragraph({
-                    text: `• ${detail}`,
-                    spacing: { after: 50 },
-                  })
-                ),
-              ]),
-            ] : []),
-            
-            // Education
-            ...(cv.content.education && cv.content.education.length > 0 ? [
-              new Paragraph({
-                text: 'Education',
-                heading: HeadingLevel.HEADING_2,
-                spacing: { before: 200, after: 100 },
-              }),
-              ...cv.content.education.flatMap(edu => [
-                new Paragraph({
-                  children: [
-                    new TextRun({
-                      text: edu.degree,
-                      bold: true,
-                    }),
-                  ],
-                }),
-                new Paragraph({
-                  text: edu.institution,
-                }),
-                new Paragraph({
-                  children: [
-                    new TextRun({
-                      text: edu.dates,
-                      italics: true,
-                    }),
-                  ],
-                  spacing: { after: 100 },
-                }),
-              ]),
-            ] : []),
-            
-            // Certifications
-            ...(cv.content.certifications && cv.content.certifications.length > 0 ? [
-              new Paragraph({
-                text: 'Certifications',
-                heading: HeadingLevel.HEADING_2,
-                spacing: { before: 200, after: 100 },
-              }),
-              ...cv.content.certifications.map(cert => 
-                new Paragraph({
-                  text: `• ${cert}`,
-                  spacing: { after: 50 },
-                })
-              ),
-            ] : []),
-            
-            // Achievements
-            ...(cv.content.achievements && cv.content.achievements.length > 0 ? [
-              new Paragraph({
-                text: 'Professional Achievements',
-                heading: HeadingLevel.HEADING_2,
-                spacing: { before: 200, after: 100 },
-              }),
-              ...cv.content.achievements.map(achievement => 
-                new Paragraph({
-                  text: `• ${achievement}`,
-                  spacing: { after: 50 },
-                })
-              ),
-            ] : []),
-          ],
-        }],
+
+      const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle } = await import('docx');
+
+      const p = cv.content.personal || {};
+      const skills: string[] = cv.content.skills || [];
+      const experience: any[] = cv.content.experience || [];
+      const education: any[] = cv.content.education || [];
+      const certifications: string[] = cv.content.certifications || [];
+      const achievements: string[] = cv.content.achievements || [];
+      const languages: string[] = cv.content.languages || [];
+      const tools: string[] = cv.content.tools || [];
+
+      const hr = () => new Paragraph({
+        border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: '333333' } },
+        spacing: { after: 100 },
+        children: [],
       });
-      
-      // Generate and download
+
+      const sectionHeading = (text: string) => new Paragraph({
+        text,
+        heading: HeadingLevel.HEADING_2,
+        spacing: { before: 240, after: 80 },
+        border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: '888888' } },
+      });
+
+      const bullet = (text: string) => new Paragraph({
+        text: `• ${text}`,
+        spacing: { after: 40 },
+        indent: { left: 360 },
+      });
+
+      const children: any[] = [
+        // Name
+        new Paragraph({
+          children: [new TextRun({ text: p.name || '', bold: true, size: 48 })],
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 60 },
+        }),
+        // Title
+        new Paragraph({
+          children: [new TextRun({ text: p.title || '', size: 28, color: '444444' })],
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 60 },
+        }),
+        // Contact line
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: [p.location, p.phone, p.email, p.linkedin].filter(Boolean).join('  |  '),
+              size: 20,
+              color: '555555',
+            }),
+          ],
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 200 },
+        }),
+      ];
+
+      // Professional Summary
+      if (p.profile) {
+        children.push(sectionHeading('PROFESSIONAL SUMMARY'));
+        children.push(new Paragraph({ text: p.profile, spacing: { after: 120 } }));
+      }
+
+      // Skills
+      if (skills.length > 0) {
+        children.push(sectionHeading('KEY SKILLS'));
+        skills.forEach(s => children.push(bullet(s)));
+        children.push(new Paragraph({ text: '', spacing: { after: 80 } }));
+      }
+
+      // Tools & Platforms
+      if (tools.length > 0) {
+        children.push(sectionHeading('TOOLS & PLATFORMS'));
+        tools.forEach(t => children.push(bullet(t)));
+        children.push(new Paragraph({ text: '', spacing: { after: 80 } }));
+      }
+
+      // Languages
+      if (languages.length > 0) {
+        children.push(sectionHeading('LANGUAGES'));
+        languages.forEach(l => children.push(bullet(l)));
+        children.push(new Paragraph({ text: '', spacing: { after: 80 } }));
+      }
+
+      // Experience
+      if (experience.length > 0) {
+        children.push(sectionHeading('PROFESSIONAL EXPERIENCE'));
+        experience.forEach(exp => {
+          children.push(new Paragraph({
+            children: [new TextRun({ text: exp.jobTitle || '', bold: true, size: 24 })],
+            spacing: { before: 160, after: 40 },
+          }));
+          children.push(new Paragraph({
+            children: [
+              new TextRun({ text: exp.company || '', bold: true }),
+              new TextRun({ text: exp.location ? `  —  ${exp.location}` : '', color: '555555' }),
+            ],
+            spacing: { after: 40 },
+          }));
+          if (exp.dates) {
+            children.push(new Paragraph({
+              children: [new TextRun({ text: exp.dates, italics: true, color: '666666', size: 20 })],
+              spacing: { after: 60 },
+            }));
+          }
+          (exp.details || []).forEach((d: string) => children.push(bullet(d)));
+        });
+        children.push(new Paragraph({ text: '', spacing: { after: 80 } }));
+      }
+
+      // Education
+      if (education.length > 0) {
+        children.push(sectionHeading('EDUCATION'));
+        education.forEach(edu => {
+          children.push(new Paragraph({
+            children: [new TextRun({ text: edu.degree || '', bold: true, size: 24 })],
+            spacing: { before: 120, after: 40 },
+          }));
+          children.push(new Paragraph({ text: edu.institution || '', spacing: { after: 40 } }));
+          if (edu.dates) {
+            children.push(new Paragraph({
+              children: [new TextRun({ text: edu.dates, italics: true, color: '666666', size: 20 })],
+              spacing: { after: 80 },
+            }));
+          }
+        });
+      }
+
+      // Certifications
+      if (certifications.length > 0) {
+        children.push(sectionHeading('CERTIFICATIONS'));
+        certifications.forEach(c => children.push(bullet(c)));
+        children.push(new Paragraph({ text: '', spacing: { after: 80 } }));
+      }
+
+      // Achievements
+      if (achievements.length > 0) {
+        children.push(sectionHeading('PROFESSIONAL ACHIEVEMENTS'));
+        achievements.forEach(a => children.push(bullet(a)));
+        children.push(new Paragraph({ text: '', spacing: { after: 80 } }));
+      }
+
+      // Referees
+      children.push(sectionHeading('REFEREES'));
+      children.push(new Paragraph({ children: [new TextRun({ text: 'Available upon request.', italics: true })] }));
+
+      const doc = new Document({
+        styles: {
+          default: {
+            document: {
+              run: { font: 'Calibri', size: 22 },
+            },
+          },
+        },
+        sections: [{ properties: {}, children }],
+      });
+
       const blob = await Packer.toBlob(doc);
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -235,17 +309,10 @@ export default function CVDownloadDialog({ open, onOpenChange, cv, templateName 
       link.download = `${cv.title.replace(/\s+/g, '_')}.docx`;
       link.click();
       window.URL.revokeObjectURL(url);
-      
-      toast({
-        title: 'Success',
-        description: 'CV downloaded as Word document'
-      });
+
+      toast({ title: 'Success', description: 'CV downloaded as Word document' });
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: 'Failed to download Word document: ' + error.message,
-        variant: 'destructive'
-      });
+      toast({ title: 'Error', description: 'Failed to download Word document: ' + error.message, variant: 'destructive' });
     } finally {
       setDownloading(false);
     }
@@ -254,83 +321,49 @@ export default function CVDownloadDialog({ open, onOpenChange, cv, templateName 
   const handleDownloadText = () => {
     try {
       setDownloading(true);
-      
+      const p = cv.content.personal || {};
       let text = '';
-      
-      // Header
-      text += `${cv.content.personal?.name || ''}\n`;
-      text += `${cv.content.personal?.title || ''}\n`;
-      text += `${cv.content.personal?.location || ''} | ${cv.content.personal?.phone || ''} | ${cv.content.personal?.email || ''}\n`;
-      if (cv.content.personal?.linkedin) {
-        text += `${cv.content.personal.linkedin}\n`;
+
+      text += `${p.name || ''}\n${p.title || ''}\n`;
+      text += [p.location, p.phone, p.email, p.linkedin].filter(Boolean).join(' | ') + '\n\n';
+
+      if (p.profile) {
+        text += 'PROFESSIONAL SUMMARY\n' + '='.repeat(50) + '\n' + p.profile + '\n\n';
       }
-      text += '\n';
-      
-      // Professional Summary
-      if (cv.content.personal?.profile) {
-        text += 'PROFESSIONAL SUMMARY\n';
-        text += '='.repeat(50) + '\n';
-        text += `${cv.content.personal.profile}\n\n`;
-      }
-      
-      // Skills
-      if (cv.content.skills && cv.content.skills.length > 0) {
-        text += 'KEY SKILLS\n';
-        text += '='.repeat(50) + '\n';
-        cv.content.skills.forEach(skill => {
-          text += `• ${skill}\n`;
+
+      const section = (title: string, items: string[]) => {
+        if (!items.length) return;
+        text += `${title}\n` + '='.repeat(50) + '\n';
+        items.forEach(i => { text += `• ${i}\n`; });
+        text += '\n';
+      };
+
+      section('KEY SKILLS', cv.content.skills || []);
+      section('TOOLS & PLATFORMS', cv.content.tools || []);
+      section('LANGUAGES', cv.content.languages || []);
+
+      if ((cv.content.experience || []).length > 0) {
+        text += 'PROFESSIONAL EXPERIENCE\n' + '='.repeat(50) + '\n';
+        (cv.content.experience || []).forEach((exp: any) => {
+          text += `\n${exp.jobTitle}\n${exp.company}${exp.location ? ' — ' + exp.location : ''}\n${exp.dates || ''}\n`;
+          (exp.details || []).forEach((d: string) => { text += `• ${d}\n`; });
         });
         text += '\n';
       }
-      
-      // Experience
-      if (cv.content.experience && cv.content.experience.length > 0) {
-        text += 'PROFESSIONAL EXPERIENCE\n';
-        text += '='.repeat(50) + '\n';
-        cv.content.experience.forEach(exp => {
-          text += `\n${exp.jobTitle}\n`;
-          text += `${exp.company} - ${exp.location}\n`;
-          text += `${exp.dates}\n`;
-          exp.details.forEach(detail => {
-            text += `• ${detail}\n`;
-          });
+
+      if ((cv.content.education || []).length > 0) {
+        text += 'EDUCATION\n' + '='.repeat(50) + '\n';
+        (cv.content.education || []).forEach((edu: any) => {
+          text += `\n${edu.degree}\n${edu.institution}\n${edu.dates || ''}\n`;
         });
         text += '\n';
       }
-      
-      // Education
-      if (cv.content.education && cv.content.education.length > 0) {
-        text += 'EDUCATION\n';
-        text += '='.repeat(50) + '\n';
-        cv.content.education.forEach(edu => {
-          text += `\n${edu.degree}\n`;
-          text += `${edu.institution}\n`;
-          text += `${edu.dates}\n`;
-        });
-        text += '\n';
-      }
-      
-      // Certifications
-      if (cv.content.certifications && cv.content.certifications.length > 0) {
-        text += 'CERTIFICATIONS\n';
-        text += '='.repeat(50) + '\n';
-        cv.content.certifications.forEach(cert => {
-          text += `• ${cert}\n`;
-        });
-        text += '\n';
-      }
-      
-      // Achievements
-      if (cv.content.achievements && cv.content.achievements.length > 0) {
-        text += 'PROFESSIONAL ACHIEVEMENTS\n';
-        text += '='.repeat(50) + '\n';
-        cv.content.achievements.forEach(achievement => {
-          text += `• ${achievement}\n`;
-        });
-        text += '\n';
-      }
-      
-      // Create and download
+
+      section('CERTIFICATIONS', cv.content.certifications || []);
+      section('PROFESSIONAL ACHIEVEMENTS', cv.content.achievements || []);
+
+      text += 'REFEREES\n' + '='.repeat(50) + '\nAvailable upon request.\n';
+
       const blob = new Blob([text], { type: 'text/plain' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -338,17 +371,10 @@ export default function CVDownloadDialog({ open, onOpenChange, cv, templateName 
       link.download = `${cv.title.replace(/\s+/g, '_')}.txt`;
       link.click();
       window.URL.revokeObjectURL(url);
-      
-      toast({
-        title: 'Success',
-        description: 'CV downloaded as text file'
-      });
+
+      toast({ title: 'Success', description: 'CV downloaded as text file' });
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: 'Failed to download text file: ' + error.message,
-        variant: 'destructive'
-      });
+      toast({ title: 'Error', description: 'Failed to download text file: ' + error.message, variant: 'destructive' });
     } finally {
       setDownloading(false);
     }
@@ -378,7 +404,7 @@ export default function CVDownloadDialog({ open, onOpenChange, cv, templateName 
               </div>
             </div>
           </Button>
-          
+
           <Button
             className="w-full justify-start"
             variant="outline"
@@ -393,7 +419,7 @@ export default function CVDownloadDialog({ open, onOpenChange, cv, templateName 
               </div>
             </div>
           </Button>
-          
+
           <Button
             className="w-full justify-start"
             variant="outline"
@@ -411,89 +437,5 @@ export default function CVDownloadDialog({ open, onOpenChange, cv, templateName 
         </div>
       </DialogContent>
     </Dialog>
-  );
-}
-
-// Helper function to render CV template as HTML
-async function renderCVTemplate(cv: CandidateCV, templateName: string): Promise<string> {
-  const data = {
-    name: cv.content.personal?.name || '',
-    title: cv.content.personal?.title || '',
-    contact: {
-      phone: cv.content.personal?.phone || '',
-      email: cv.content.personal?.email || '',
-      linkedin: cv.content.personal?.linkedin || '',
-      location: cv.content.personal?.location || '',
-    },
-    profile: cv.content.personal?.profile || '',
-    objective: cv.content.personal?.objective || cv.content.personal?.profile || '',
-    skills: cv.content.skills || [],
-    experience: cv.content.experience || [],
-    education: cv.content.education || [],
-    certifications: cv.content.certifications || [],
-    achievements: cv.content.achievements || [],
-    languages: cv.content.languages || [],
-    tools: cv.content.tools || [],
-    projects: cv.content.projects || [],
-    internships: cv.content.internships || [],
-    activities: cv.content.activities || [],
-    // Academic-specific fields
-    researchInterests: cv.content.researchInterests || [],
-    positions: cv.content.positions || cv.content.experience || [],
-    publications: cv.content.publications || [],
-    conferences: cv.content.conferences || [],
-    grants: cv.content.grants || [],
-    awards: cv.content.awards || cv.content.achievements || [],
-  };
-  
-  // Import the appropriate template dynamically
-  let TemplateComponent;
-  switch (templateName) {
-    case 'Classic Professional':
-      TemplateComponent = (await import('./templates/ClassicTemplate')).default;
-      break;
-    case 'Modern Professional':
-      TemplateComponent = (await import('./templates/ModernTemplate')).default;
-      break;
-    case 'Executive Leadership':
-      TemplateComponent = (await import('./templates/ExecutiveTemplate')).default;
-      break;
-    case 'Graduate Starter CV':
-      TemplateComponent = (await import('./templates/GraduateTemplate')).default;
-      break;
-    case 'Skills-Based (Functional)':
-      TemplateComponent = (await import('./templates/FunctionalTemplate')).default;
-      break;
-    case 'Internship / Industrial Attachment':
-      TemplateComponent = (await import('./templates/InternshipTemplate')).default;
-      break;
-    case 'Creative Portfolio':
-      TemplateComponent = (await import('./templates/CreativeTemplate')).default;
-      break;
-    case 'Digital Professional':
-      TemplateComponent = (await import('./templates/DigitalProfessionalTemplate')).default;
-      break;
-    case 'Personal Brand CV':
-      TemplateComponent = (await import('./templates/PersonalBrandTemplate')).default;
-      break;
-    case 'Academic / Research CV':
-      TemplateComponent = (await import('./templates/AcademicTemplate')).default;
-      break;
-    case 'Technical / Engineering CV':
-      TemplateComponent = (await import('./templates/TechnicalEngineeringTemplate')).default;
-      break;
-    case 'International / ATS Optimized CV':
-      TemplateComponent = (await import('./templates/ATSOptimizedTemplate')).default;
-      break;
-    default:
-      TemplateComponent = (await import('./templates/ClassicTemplate')).default;
-  }
-  
-  // Render React component to HTML string
-  const ReactDOMServer = (await import('react-dom/server')).default;
-  const React = (await import('react')).default;
-  
-  return ReactDOMServer.renderToStaticMarkup(
-    React.createElement(TemplateComponent, { data })
   );
 }
