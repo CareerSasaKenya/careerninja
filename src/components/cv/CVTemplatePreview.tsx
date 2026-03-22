@@ -24,7 +24,7 @@ const templateDescriptions: Record<string, string> = {
   'Personal Brand CV': 'Designed for professionals whose reputation and public presence matter. Perfect for consultants, marketing professionals, speakers, influencers, coaches, and content creators. Highlights personal tagline, online presence, media features, and speaking engagements.',
   'Academic / Research CV': 'Single-column serif layout designed for academics, researchers, PhD applicants, and fellowship seekers. Highlights research interests, publications, conferences, teaching positions, grants, and academic achievements.',
   'Technical / Engineering CV': 'Two-column layout with sidebar for technical skills, tools, and certifications. Main section highlights engineering projects with measurable outcomes and structured work experience. Ideal for mechanical, electrical, civil, and process engineers.',
-  'International / ATS Optimized CV': 'Single-column, plain-text-friendly CV built to pass Applicant Tracking Systems (ATS) like Workday, Greenhouse, Lever, and Taleo. No graphics or icons — just clean, keyword-rich content with standard headings. Essential for remote jobs, international NGOs, multinational companies, and global tech roles.'
+  'International / ATS Optimized CV': 'Single-column, plain-text-friendly CV built to pass Applicant Tracking Systems (ATS) like Workday, Greenhouse, Lever, and Taleo. No graphics or icons ï¿½ just clean, keyword-rich content with standard headings. Essential for remote jobs, international NGOs, multinational companies, and global tech roles.'
 };
 
 export default function CVTemplatePreview({ templateName, showDescription = false, descriptionOnly = false }: CVTemplatePreviewProps) {
@@ -52,10 +52,10 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                 </div>
               </div>
               <div className="text-[4px] text-gray-600 space-y-0.5">
-                <div>=ƒôì Nairobi, Kenya</div>
-                <div>=ƒôP +254 712 345 678</div>
-                <div>G£ë johnmwangi@email.com</div>
-                <div>=ƒöù linkedin.com/in/johnmwangi</div>
+                <div>=ï¿½ï¿½ï¿½ Nairobi, Kenya</div>
+                <div>=ï¿½ï¿½P +254 712 345 678</div>
+                <div>Gï¿½ï¿½ johnmwangi@email.com</div>
+                <div>=ï¿½ï¿½ï¿½ linkedin.com/in/johnmwangi</div>
               </div>
             </div>
             
@@ -69,14 +69,14 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             <div className="mb-1.5">
               <div className="font-bold text-[5px] uppercase border-b border-gray-300 mb-0.5">Key Skills</div>
               <div className="grid grid-cols-2 gap-x-2 text-[4px]">
-                <div>GÇó Office Administration</div>
-                <div>GÇó Records Management</div>
-                <div>GÇó Customer Service</div>
-                <div>GÇó Scheduling & Calendar</div>
-                <div>GÇó Report Preparation</div>
-                <div>GÇó Microsoft Office</div>
-                <div>GÇó Problem Solving</div>
-                <div>GÇó Team Collaboration</div>
+                <div>Gï¿½ï¿½ Office Administration</div>
+                <div>Gï¿½ï¿½ Records Management</div>
+                <div>Gï¿½ï¿½ Customer Service</div>
+                <div>Gï¿½ï¿½ Scheduling & Calendar</div>
+                <div>Gï¿½ï¿½ Report Preparation</div>
+                <div>Gï¿½ï¿½ Microsoft Office</div>
+                <div>Gï¿½ï¿½ Problem Solving</div>
+                <div>Gï¿½ï¿½ Team Collaboration</div>
               </div>
             </div>
             
@@ -85,32 +85,32 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div className="font-bold text-[5px] uppercase border-b border-gray-300 mb-0.5">Professional Experience</div>
               <div className="text-[4px] mb-1">
                 <div className="font-semibold">Administrative Officer</div>
-                <div className="text-gray-700">ABC Logistics Ltd GÇô Nairobi</div>
-                <div className="text-gray-500 italic mb-0.5">March 2021 GÇô Present</div>
+                <div className="text-gray-700">ABC Logistics Ltd Gï¿½ï¿½ Nairobi</div>
+                <div className="text-gray-500 italic mb-0.5">March 2021 Gï¿½ï¿½ Present</div>
                 <div className="space-y-0.5">
-                  <div>GÇó Coordinate daily office operations and administrative activities</div>
-                  <div>GÇó Prepare reports, meeting minutes, and official correspondence</div>
-                  <div>GÇó Manage document filing systems and maintain accurate records</div>
-                  <div>GÇó Supervise office support staff and coordinate schedules</div>
+                  <div>Gï¿½ï¿½ Coordinate daily office operations and administrative activities</div>
+                  <div>Gï¿½ï¿½ Prepare reports, meeting minutes, and official correspondence</div>
+                  <div>Gï¿½ï¿½ Manage document filing systems and maintain accurate records</div>
+                  <div>Gï¿½ï¿½ Supervise office support staff and coordinate schedules</div>
                 </div>
               </div>
               <div className="text-[4px] mb-1">
                 <div className="font-semibold">Office Assistant</div>
-                <div className="text-gray-700">Greenfield Solutions Ltd GÇô Nairobi</div>
-                <div className="text-gray-500 italic mb-0.5">January 2019 GÇô February 2021</div>
+                <div className="text-gray-700">Greenfield Solutions Ltd Gï¿½ï¿½ Nairobi</div>
+                <div className="text-gray-500 italic mb-0.5">January 2019 Gï¿½ï¿½ February 2021</div>
                 <div className="space-y-0.5">
-                  <div>GÇó Supported administrative tasks including data entry and scheduling</div>
-                  <div>GÇó Managed incoming calls, emails, and office correspondence</div>
-                  <div>GÇó Assisted with event planning and coordination</div>
+                  <div>Gï¿½ï¿½ Supported administrative tasks including data entry and scheduling</div>
+                  <div>Gï¿½ï¿½ Managed incoming calls, emails, and office correspondence</div>
+                  <div>Gï¿½ï¿½ Assisted with event planning and coordination</div>
                 </div>
               </div>
               <div className="text-[4px]">
                 <div className="font-semibold">Administrative Intern</div>
-                <div className="text-gray-700">Kenya Commercial Bank GÇô Nairobi</div>
-                <div className="text-gray-500 italic mb-0.5">June 2018 GÇô December 2018</div>
+                <div className="text-gray-700">Kenya Commercial Bank Gï¿½ï¿½ Nairobi</div>
+                <div className="text-gray-500 italic mb-0.5">June 2018 Gï¿½ï¿½ December 2018</div>
                 <div className="space-y-0.5">
-                  <div>GÇó Assisted with filing, data entry, and document management</div>
-                  <div>GÇó Supported customer service and front desk operations</div>
+                  <div>Gï¿½ï¿½ Assisted with filing, data entry, and document management</div>
+                  <div>Gï¿½ï¿½ Supported customer service and front desk operations</div>
                 </div>
               </div>
             </div>
@@ -121,17 +121,17 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div className="text-[4px] mb-0.5">
                 <div className="font-semibold">Bachelor of Business Administration</div>
                 <div>University of Nairobi</div>
-                <div className="text-gray-500 italic">2014 GÇô 2018</div>
+                <div className="text-gray-500 italic">2014 Gï¿½ï¿½ 2018</div>
               </div>
               <div className="text-[4px] mb-0.5">
                 <div className="font-semibold">Diploma in Business Management</div>
                 <div>Kenya Institute of Management</div>
-                <div className="text-gray-500 italic">2012 GÇô 2014</div>
+                <div className="text-gray-500 italic">2012 Gï¿½ï¿½ 2014</div>
               </div>
               <div className="text-[4px]">
                 <div className="font-semibold">Kenya Certificate of Secondary Education</div>
                 <div>Starehe Boys Centre</div>
-                <div className="text-gray-500 italic">2008 GÇô 2011</div>
+                <div className="text-gray-500 italic">2008 Gï¿½ï¿½ 2011</div>
               </div>
             </div>
             
@@ -139,8 +139,8 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             <div className="mb-1.5">
               <div className="font-bold text-[5px] uppercase border-b border-gray-300 mb-0.5">Professional Certifications</div>
               <div className="text-[4px] space-y-0.5">
-                <div>GÇó Certificate in Project Management GÇô Kenya Institute of Management 2020</div>
-                <div>GÇó Advanced Microsoft Excel Training GÇô Strathmore University 2019</div>
+                <div>Gï¿½ï¿½ Certificate in Project Management Gï¿½ï¿½ Kenya Institute of Management 2020</div>
+                <div>Gï¿½ï¿½ Advanced Microsoft Excel Training Gï¿½ï¿½ Strathmore University 2019</div>
               </div>
             </div>
             
@@ -148,11 +148,11 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             <div className="mb-1.5">
               <div className="font-bold text-[5px] uppercase border-b border-gray-300 mb-0.5">Professional Achievements</div>
               <div className="text-[4px] space-y-0.5">
-                <div>GÇó Streamlined office filing system, reducing document retrieval time by 40%</div>
-                <div>GÇó Successfully coordinated 15+ company events with 100% attendance</div>
-                <div>GÇó Implemented digital record-keeping improving efficiency by 30%</div>
-                <div>GÇó Reduced office supply costs by 25% through strategic vendor negotiations</div>
-                <div>GÇó Trained and mentored 5 new administrative staff members</div>
+                <div>Gï¿½ï¿½ Streamlined office filing system, reducing document retrieval time by 40%</div>
+                <div>Gï¿½ï¿½ Successfully coordinated 15+ company events with 100% attendance</div>
+                <div>Gï¿½ï¿½ Implemented digital record-keeping improving efficiency by 30%</div>
+                <div>Gï¿½ï¿½ Reduced office supply costs by 25% through strategic vendor negotiations</div>
+                <div>Gï¿½ï¿½ Trained and mentored 5 new administrative staff members</div>
               </div>
             </div>
             
@@ -175,33 +175,33 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div className="mb-1.5">
                 <div className="font-bold text-[6px] text-blue-900 uppercase mb-1">Key Skills</div>
                 <div className="space-y-0.5 text-[4.2px]">
-                  <div>Gû¬ Digital Marketing Strategy</div>
-                  <div>Gû¬ Social Media Management</div>
-                  <div>Gû¬ Content Marketing</div>
-                  <div>Gû¬ SEO Optimization</div>
-                  <div>Gû¬ Campaign Analytics</div>
-                  <div>Gû¬ Brand Communication</div>
-                  <div>Gû¬ Email Marketing</div>
-                  <div>Gû¬ Copywriting</div>
+                  <div>Gï¿½ï¿½ Digital Marketing Strategy</div>
+                  <div>Gï¿½ï¿½ Social Media Management</div>
+                  <div>Gï¿½ï¿½ Content Marketing</div>
+                  <div>Gï¿½ï¿½ SEO Optimization</div>
+                  <div>Gï¿½ï¿½ Campaign Analytics</div>
+                  <div>Gï¿½ï¿½ Brand Communication</div>
+                  <div>Gï¿½ï¿½ Email Marketing</div>
+                  <div>Gï¿½ï¿½ Copywriting</div>
                 </div>
               </div>
               <div className="mb-1.5">
                 <div className="font-bold text-[6px] text-blue-900 uppercase mb-1">Tools & Platforms</div>
                 <div className="space-y-0.5 text-[4.2px]">
-                  <div>Gû¬ Google Analytics</div>
-                  <div>Gû¬ Meta Ads Manager</div>
-                  <div>Gû¬ Canva</div>
-                  <div>Gû¬ Mailchimp</div>
-                  <div>Gû¬ Hootsuite</div>
-                  <div>Gû¬ Microsoft Office</div>
-                  <div>Gû¬ WordPress</div>
+                  <div>Gï¿½ï¿½ Google Analytics</div>
+                  <div>Gï¿½ï¿½ Meta Ads Manager</div>
+                  <div>Gï¿½ï¿½ Canva</div>
+                  <div>Gï¿½ï¿½ Mailchimp</div>
+                  <div>Gï¿½ï¿½ Hootsuite</div>
+                  <div>Gï¿½ï¿½ Microsoft Office</div>
+                  <div>Gï¿½ï¿½ WordPress</div>
                 </div>
               </div>
               <div className="mb-1.5">
                 <div className="font-bold text-[6px] text-blue-900 uppercase mb-1">Languages</div>
                 <div className="space-y-0.5 text-[4.2px]">
-                  <div>English GÇô Fluent</div>
-                  <div>Swahili GÇô Fluent</div>
+                  <div>English Gï¿½ï¿½ Fluent</div>
+                  <div>Swahili Gï¿½ï¿½ Fluent</div>
                 </div>
               </div>
               <div>
@@ -217,9 +217,9 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                 <div className="font-bold text-[9px] mb-1">GRACE WANJIKU NJOROGE</div>
                 <div className="text-[6.5px] text-blue-700 font-medium mb-1">Digital Marketing Specialist</div>
                 <div className="text-[4px] text-gray-600 space-y-0.5">
-                  <div>=ƒôì Nairobi, Kenya =ƒôP +254 723 456 789</div>
-                  <div>G£ë grace.njoroge@email.com</div>
-                  <div>=ƒöù linkedin.com/in/grace-njoroge</div>
+                  <div>=ï¿½ï¿½ï¿½ Nairobi, Kenya =ï¿½ï¿½P +254 723 456 789</div>
+                  <div>Gï¿½ï¿½ grace.njoroge@email.com</div>
+                  <div>=ï¿½ï¿½ï¿½ linkedin.com/in/grace-njoroge</div>
                 </div>
               </div>
               
@@ -234,32 +234,32 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                 <div className="font-bold text-[6px] text-blue-900 uppercase mb-1">Professional Experience</div>
                 <div className="mb-1">
                   <div className="font-bold text-[4.2px]">Digital Marketing Officer</div>
-                  <div className="text-[4.2px] text-blue-700 font-medium">BrightWave Communications Ltd GÇô Nairobi</div>
-                  <div className="text-[3.8px] text-gray-500 italic mb-0.5">April 2021 GÇô Present</div>
+                  <div className="text-[4.2px] text-blue-700 font-medium">BrightWave Communications Ltd Gï¿½ï¿½ Nairobi</div>
+                  <div className="text-[3.8px] text-gray-500 italic mb-0.5">April 2021 Gï¿½ï¿½ Present</div>
                   <div className="space-y-0.5 text-[4.2px]">
-                    <div>Gû¬ Develop and execute digital marketing campaigns</div>
-                    <div>Gû¬ Increased social media engagement by 45%</div>
-                    <div>Gû¬ Analyze campaign performance and prepare reports</div>
-                    <div>Gû¬ Coordinate content production and brand messaging</div>
+                    <div>Gï¿½ï¿½ Develop and execute digital marketing campaigns</div>
+                    <div>Gï¿½ï¿½ Increased social media engagement by 45%</div>
+                    <div>Gï¿½ï¿½ Analyze campaign performance and prepare reports</div>
+                    <div>Gï¿½ï¿½ Coordinate content production and brand messaging</div>
                   </div>
                 </div>
                 <div className="mb-1">
                   <div className="font-bold text-[4.2px]">Marketing Assistant</div>
-                  <div className="text-[4.2px] text-blue-700 font-medium">Skyline Retail Group GÇô Nairobi</div>
-                  <div className="text-[3.8px] text-gray-500 italic mb-0.5">Jan 2019 GÇô Mar 2021</div>
+                  <div className="text-[4.2px] text-blue-700 font-medium">Skyline Retail Group Gï¿½ï¿½ Nairobi</div>
+                  <div className="text-[3.8px] text-gray-500 italic mb-0.5">Jan 2019 Gï¿½ï¿½ Mar 2021</div>
                   <div className="space-y-0.5 text-[4.2px]">
-                    <div>Gû¬ Assisted with promotional campaigns and events</div>
-                    <div>Gû¬ Managed customer engagement on social media</div>
-                    <div>Gû¬ Supported market research and competitor analysis</div>
+                    <div>Gï¿½ï¿½ Assisted with promotional campaigns and events</div>
+                    <div>Gï¿½ï¿½ Managed customer engagement on social media</div>
+                    <div>Gï¿½ï¿½ Supported market research and competitor analysis</div>
                   </div>
                 </div>
                 <div>
                   <div className="font-bold text-[4.2px]">Marketing Intern</div>
-                  <div className="text-[4.2px] text-blue-700 font-medium">Creative Hub Agency GÇô Nairobi</div>
-                  <div className="text-[3.8px] text-gray-500 italic mb-0.5">Jun 2018 GÇô Dec 2018</div>
+                  <div className="text-[4.2px] text-blue-700 font-medium">Creative Hub Agency Gï¿½ï¿½ Nairobi</div>
+                  <div className="text-[3.8px] text-gray-500 italic mb-0.5">Jun 2018 Gï¿½ï¿½ Dec 2018</div>
                   <div className="space-y-0.5 text-[4.2px]">
-                    <div>Gû¬ Assisted in social media content creation</div>
-                    <div>Gû¬ Conducted market research and data analysis</div>
+                    <div>Gï¿½ï¿½ Assisted in social media content creation</div>
+                    <div>Gï¿½ï¿½ Conducted market research and data analysis</div>
                   </div>
                 </div>
               </div>
@@ -270,17 +270,17 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                 <div className="mb-1">
                   <div className="font-bold text-[4.2px]">Bachelor of Commerce (Marketing Option)</div>
                   <div className="text-[4.2px]">Kenyatta University</div>
-                  <div className="text-[3.8px] text-gray-500 italic">2014 GÇô 2018</div>
+                  <div className="text-[3.8px] text-gray-500 italic">2014 Gï¿½ï¿½ 2018</div>
                 </div>
                 <div className="mb-1">
                   <div className="font-bold text-[4.2px]">Diploma in Marketing</div>
                   <div className="text-[4.2px]">Kenya Institute of Marketing</div>
-                  <div className="text-[3.8px] text-gray-500 italic">2012 GÇô 2014</div>
+                  <div className="text-[3.8px] text-gray-500 italic">2012 Gï¿½ï¿½ 2014</div>
                 </div>
                 <div>
                   <div className="font-bold text-[4.2px]">Kenya Certificate of Secondary Education</div>
                   <div className="text-[4.2px]">Alliance Girls High School</div>
-                  <div className="text-[3.8px] text-gray-500 italic">2010 GÇô 2013</div>
+                  <div className="text-[3.8px] text-gray-500 italic">2010 Gï¿½ï¿½ 2013</div>
                 </div>
               </div>
               
@@ -288,9 +288,9 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div className="mb-1.5">
                 <div className="font-bold text-[6px] text-blue-900 uppercase mb-1">Certifications</div>
                 <div className="space-y-0.5 text-[4.2px]">
-                  <div>Gû¬ Digital Marketing GÇô Google (2022)</div>
-                  <div>Gû¬ Content Marketing GÇô HubSpot (2021)</div>
-                  <div>Gû¬ Social Media Marketing GÇô Meta (2020)</div>
+                  <div>Gï¿½ï¿½ Digital Marketing Gï¿½ï¿½ Google (2022)</div>
+                  <div>Gï¿½ï¿½ Content Marketing Gï¿½ï¿½ HubSpot (2021)</div>
+                  <div>Gï¿½ï¿½ Social Media Marketing Gï¿½ï¿½ Meta (2020)</div>
                 </div>
               </div>
               
@@ -298,11 +298,11 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div>
                 <div className="font-bold text-[6px] text-blue-900 uppercase mb-1">Professional Achievements</div>
                 <div className="space-y-0.5 text-[4.2px]">
-                  <div>Gû¬ Increased social media engagement by 45% in 12 months</div>
-                  <div>Gû¬ Successfully launched 20+ digital campaigns with 95% success rate</div>
-                  <div>Gû¬ Grew email subscriber base from 5,000 to 15,000 in 18 months</div>
-                  <div>Gû¬ Achieved 30% increase in website traffic through SEO optimization</div>
-                  <div>Gû¬ Won Best Digital Campaign Award at Kenya Marketing Awards 2023</div>
+                  <div>Gï¿½ï¿½ Increased social media engagement by 45% in 12 months</div>
+                  <div>Gï¿½ï¿½ Successfully launched 20+ digital campaigns with 95% success rate</div>
+                  <div>Gï¿½ï¿½ Grew email subscriber base from 5,000 to 15,000 in 18 months</div>
+                  <div>Gï¿½ï¿½ Achieved 30% increase in website traffic through SEO optimization</div>
+                  <div>Gï¿½ï¿½ Won Best Digital Campaign Award at Kenya Marketing Awards 2023</div>
                 </div>
               </div>
             </div>
@@ -322,7 +322,7 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                 </div>
               </div>
               <div className="text-[4.2px] text-gray-600">
-                Nairobi, Kenya GÇó +254 711 234 567 GÇó david.otieno@email.com GÇó linkedin.com/in/david-otieno
+                Nairobi, Kenya Gï¿½ï¿½ +254 711 234 567 Gï¿½ï¿½ david.otieno@email.com Gï¿½ï¿½ linkedin.com/in/david-otieno
               </div>
             </div>
             
@@ -337,11 +337,11 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div className="mb-1.5">
                 <div className="font-bold text-[6.5px] uppercase mb-1">Key Leadership Achievements</div>
                 <div className="space-y-0.5 text-[4.5px]">
-                  <div>Gû¬ Led operational restructuring reducing costs by 28% within two years</div>
-                  <div>Gû¬ Oversaw expansion into three East African markets</div>
-                  <div>Gû¬ Implemented digital transformation improving efficiency by 35%</div>
-                  <div>Gû¬ Managed cross-functional teams of over 250 employees</div>
-                  <div>Gû¬ Achieved 40% revenue growth through strategic initiatives</div>
+                  <div>Gï¿½ï¿½ Led operational restructuring reducing costs by 28% within two years</div>
+                  <div>Gï¿½ï¿½ Oversaw expansion into three East African markets</div>
+                  <div>Gï¿½ï¿½ Implemented digital transformation improving efficiency by 35%</div>
+                  <div>Gï¿½ï¿½ Managed cross-functional teams of over 250 employees</div>
+                  <div>Gï¿½ï¿½ Achieved 40% revenue growth through strategic initiatives</div>
                 </div>
               </div>
               
@@ -350,31 +350,31 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                 <div className="font-bold text-[6.5px] uppercase mb-1">Strategic Leadership Experience</div>
                 <div className="mb-1">
                   <div className="font-semibold text-[4.5px]">Chief Operations Officer</div>
-                  <div className="text-[4.5px] text-gray-700">EastAfrica Logistics Group GÇö Nairobi</div>
-                  <div className="text-[4px] text-gray-500 italic mb-0.5">2019 GÇô Present</div>
+                  <div className="text-[4.5px] text-gray-700">EastAfrica Logistics Group Gï¿½ï¿½ Nairobi</div>
+                  <div className="text-[4px] text-gray-500 italic mb-0.5">2019 Gï¿½ï¿½ Present</div>
                   <div className="space-y-0.5 text-[4.5px]">
-                    <div>GÇó Lead operational strategy for regional company with 300+ staff</div>
-                    <div>GÇó Drive business growth and operational excellence initiatives</div>
-                    <div>GÇó Implement performance improvement across supply chain</div>
+                    <div>Gï¿½ï¿½ Lead operational strategy for regional company with 300+ staff</div>
+                    <div>Gï¿½ï¿½ Drive business growth and operational excellence initiatives</div>
+                    <div>Gï¿½ï¿½ Implement performance improvement across supply chain</div>
                   </div>
                 </div>
                 <div className="mb-1">
                   <div className="font-semibold text-[4.5px]">Operations Director</div>
-                  <div className="text-[4.5px] text-gray-700">TransGlobal Supply Chain Ltd GÇö Nairobi</div>
-                  <div className="text-[4px] text-gray-500 italic mb-0.5">2015 GÇô 2019</div>
+                  <div className="text-[4.5px] text-gray-700">TransGlobal Supply Chain Ltd Gï¿½ï¿½ Nairobi</div>
+                  <div className="text-[4px] text-gray-500 italic mb-0.5">2015 Gï¿½ï¿½ 2019</div>
                   <div className="space-y-0.5 text-[4.5px]">
-                    <div>GÇó Managed nationwide logistics and distribution network</div>
-                    <div>GÇó Introduced automation improving efficiency by 22%</div>
-                    <div>GÇó Led strategic planning and operational budgeting</div>
+                    <div>Gï¿½ï¿½ Managed nationwide logistics and distribution network</div>
+                    <div>Gï¿½ï¿½ Introduced automation improving efficiency by 22%</div>
+                    <div>Gï¿½ï¿½ Led strategic planning and operational budgeting</div>
                   </div>
                 </div>
                 <div>
                   <div className="font-semibold text-[4.5px]">Regional Operations Manager</div>
-                  <div className="text-[4.5px] text-gray-700">Kenya Freight Services GÇö Nairobi</div>
-                  <div className="text-[4px] text-gray-500 italic mb-0.5">2011 GÇô 2015</div>
+                  <div className="text-[4.5px] text-gray-700">Kenya Freight Services Gï¿½ï¿½ Nairobi</div>
+                  <div className="text-[4px] text-gray-500 italic mb-0.5">2011 Gï¿½ï¿½ 2015</div>
                   <div className="space-y-0.5 text-[4.5px]">
-                    <div>GÇó Oversaw operations for 5 regional branches</div>
-                    <div>GÇó Reduced operational costs by 18% through process optimization</div>
+                    <div>Gï¿½ï¿½ Oversaw operations for 5 regional branches</div>
+                    <div>Gï¿½ï¿½ Reduced operational costs by 18% through process optimization</div>
                   </div>
                 </div>
               </div>
@@ -383,9 +383,9 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div className="mb-1.5">
                 <div className="font-bold text-[6.5px] uppercase mb-1">Board Memberships</div>
                 <div className="space-y-0.5 text-[4.5px]">
-                  <div>GÇó Board Member GÇö Kenya Transport & Logistics Association</div>
-                  <div>GÇó Advisory Board GÇö East Africa Supply Chain Council</div>
-                  <div>GÇó Board Member GÇö Kenya Institute of Supply Management</div>
+                  <div>Gï¿½ï¿½ Board Member Gï¿½ï¿½ Kenya Transport & Logistics Association</div>
+                  <div>Gï¿½ï¿½ Advisory Board Gï¿½ï¿½ East Africa Supply Chain Council</div>
+                  <div>Gï¿½ï¿½ Board Member Gï¿½ï¿½ Kenya Institute of Supply Management</div>
                 </div>
               </div>
               
@@ -393,9 +393,9 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div className="mb-1.5">
                 <div className="font-bold text-[6.5px] uppercase mb-1">Strategic Initiatives</div>
                 <div className="space-y-0.5 text-[4.5px]">
-                  <div>GÇó Digital transformation program across all operations</div>
-                  <div>GÇó Regional expansion strategy into Tanzania and Uganda</div>
-                  <div>GÇó Sustainability initiative reducing carbon footprint by 30%</div>
+                  <div>Gï¿½ï¿½ Digital transformation program across all operations</div>
+                  <div>Gï¿½ï¿½ Regional expansion strategy into Tanzania and Uganda</div>
+                  <div>Gï¿½ï¿½ Sustainability initiative reducing carbon footprint by 30%</div>
                 </div>
               </div>
               
@@ -405,17 +405,17 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                 <div className="mb-1">
                   <div className="font-semibold text-[4.5px]">Master of Business Administration (MBA)</div>
                   <div className="text-[4.5px]">Strathmore Business School</div>
-                  <div className="text-[4px] text-gray-500 italic">2012 GÇô 2014</div>
+                  <div className="text-[4px] text-gray-500 italic">2012 Gï¿½ï¿½ 2014</div>
                 </div>
                 <div className="mb-1">
                   <div className="font-semibold text-[4.5px]">Bachelor of Commerce (Operations Management)</div>
                   <div className="text-[4.5px]">University of Nairobi</div>
-                  <div className="text-[4px] text-gray-500 italic">2004 GÇô 2008</div>
+                  <div className="text-[4px] text-gray-500 italic">2004 Gï¿½ï¿½ 2008</div>
                 </div>
                 <div>
                   <div className="font-semibold text-[4.5px]">Diploma in Business Management</div>
                   <div className="text-[4.5px]">Kenya Institute of Management</div>
-                  <div className="text-[4px] text-gray-500 italic">2002 GÇô 2004</div>
+                  <div className="text-[4px] text-gray-500 italic">2002 Gï¿½ï¿½ 2004</div>
                 </div>
               </div>
               
@@ -423,9 +423,9 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div>
                 <div className="font-bold text-[6.5px] uppercase mb-1">Certifications</div>
                 <div className="space-y-0.5 text-[4.5px]">
-                  <div>GÇó Certified Supply Chain Professional (CSCP)</div>
-                  <div>GÇó Strategic Leadership GÇö Harvard Business School</div>
-                  <div>GÇó Project Management Professional (PMP)</div>
+                  <div>Gï¿½ï¿½ Certified Supply Chain Professional (CSCP)</div>
+                  <div>Gï¿½ï¿½ Strategic Leadership Gï¿½ï¿½ Harvard Business School</div>
+                  <div>Gï¿½ï¿½ Project Management Professional (PMP)</div>
                 </div>
               </div>
             </div>
@@ -441,7 +441,7 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                 <img src="https://api.dicebear.com/9.x/avataaars/png?seed=BrianChebet&skinColor=brown&top=shortHair,shortHairShortWaved&hairColor=black&backgroundColor=d4edda" className="w-6 h-6 rounded-full flex-shrink-0" alt="" />
                 <div>
                   <div className="font-bold text-[9px] text-gray-900">BRIAN KIPRONO CHEBET</div>
-                  <div className="text-[6px] text-gray-700">Recent Graduate GÇô Mechanical Engineering</div>
+                  <div className="text-[6px] text-gray-700">Recent Graduate Gï¿½ï¿½ Mechanical Engineering</div>
                 </div>
               </div>
               <div className="text-[4.5px] text-gray-600 mt-0.5">
@@ -461,12 +461,12 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div className="text-[4.8px] mb-1">
                 <div className="font-semibold text-gray-900">Bachelor of Science in Mechanical Engineering</div>
                 <div className="text-gray-700">Jomo Kenyatta University of Agriculture and Technology</div>
-                <div className="text-gray-500 text-[4.2px]">2019 GÇô 2023 | Second Class Honours (Upper Division)</div>
+                <div className="text-gray-500 text-[4.2px]">2019 Gï¿½ï¿½ 2023 | Second Class Honours (Upper Division)</div>
               </div>
               <div className="text-[4.8px]">
                 <div className="font-semibold text-gray-900">Kenya Certificate of Secondary Education</div>
                 <div className="text-gray-700">Nakuru High School</div>
-                <div className="text-gray-500 text-[4.2px]">2015 GÇô 2018 | Grade A-</div>
+                <div className="text-gray-500 text-[4.2px]">2015 Gï¿½ï¿½ 2018 | Grade A-</div>
               </div>
             </div>
             
@@ -475,12 +475,12 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Academic Projects</div>
               <div className="mb-1">
                 <div className="font-semibold text-[4.8px] text-gray-900">Automated Irrigation System</div>
-                <div className="text-[4.2px] text-gray-500 mb-0.5">Final Year Project GÇô 2023</div>
+                <div className="text-[4.2px] text-gray-500 mb-0.5">Final Year Project Gï¿½ï¿½ 2023</div>
                 <div className="text-[4.8px] text-gray-700">Designed and built an automated irrigation system using sensors to regulate water flow based on soil moisture levels. Achieved 40% water savings in test trials.</div>
               </div>
               <div>
                 <div className="font-semibold text-[4.8px] text-gray-900">Solar Water Heater Design</div>
-                <div className="text-[4.2px] text-gray-500 mb-0.5">Third Year Project GÇô 2022</div>
+                <div className="text-[4.2px] text-gray-500 mb-0.5">Third Year Project Gï¿½ï¿½ 2022</div>
                 <div className="text-[4.8px] text-gray-700">Developed a prototype solar-powered water heater aimed at improving energy efficiency in rural households. Presented at university innovation fair.</div>
               </div>
             </div>
@@ -489,13 +489,13 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             <div className="mb-1.5">
               <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Internship / Industrial Attachment</div>
               <div>
-                <div className="font-semibold text-[4.8px] text-gray-900">Engineering Intern GÇö KenGen</div>
-                <div className="text-[4.2px] text-gray-500 mb-0.5">Naivasha | May 2022 GÇô Aug 2022</div>
+                <div className="font-semibold text-[4.8px] text-gray-900">Engineering Intern Gï¿½ï¿½ KenGen</div>
+                <div className="text-[4.2px] text-gray-500 mb-0.5">Naivasha | May 2022 Gï¿½ï¿½ Aug 2022</div>
                 <div className="space-y-0.5 text-[4.8px]">
-                  <div>GÇó Assisted engineers with maintenance and inspection of turbine systems</div>
-                  <div>GÇó Participated in safety audits and plant operations monitoring</div>
-                  <div>GÇó Prepared technical reports on equipment performance</div>
-                  <div>GÇó Gained hands-on experience with geothermal power generation</div>
+                  <div>Gï¿½ï¿½ Assisted engineers with maintenance and inspection of turbine systems</div>
+                  <div>Gï¿½ï¿½ Participated in safety audits and plant operations monitoring</div>
+                  <div>Gï¿½ï¿½ Prepared technical reports on equipment performance</div>
+                  <div>Gï¿½ï¿½ Gained hands-on experience with geothermal power generation</div>
                 </div>
               </div>
             </div>
@@ -504,14 +504,14 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             <div className="mb-1.5">
               <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Key Skills</div>
               <div className="grid grid-cols-2 gap-x-1 gap-y-0.5 text-[4.8px]">
-                <div>GÇó AutoCAD & SolidWorks</div>
-                <div>GÇó Microsoft Excel & Word</div>
-                <div>GÇó Engineering Drawing</div>
-                <div>GÇó Team Collaboration</div>
-                <div>GÇó Technical Problem Solving</div>
-                <div>GÇó Technical Report Writing</div>
-                <div>GÇó MATLAB Programming</div>
-                <div>GÇó Project Management</div>
+                <div>Gï¿½ï¿½ AutoCAD & SolidWorks</div>
+                <div>Gï¿½ï¿½ Microsoft Excel & Word</div>
+                <div>Gï¿½ï¿½ Engineering Drawing</div>
+                <div>Gï¿½ï¿½ Team Collaboration</div>
+                <div>Gï¿½ï¿½ Technical Problem Solving</div>
+                <div>Gï¿½ï¿½ Technical Report Writing</div>
+                <div>Gï¿½ï¿½ MATLAB Programming</div>
+                <div>Gï¿½ï¿½ Project Management</div>
               </div>
             </div>
             
@@ -519,9 +519,9 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             <div className="mb-1.5">
               <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Extracurricular Activities</div>
               <div className="space-y-0.5 text-[4.8px]">
-                <div>GÇó Member GÇô Engineering Students Association (2020-2023)</div>
-                <div>GÇó Volunteer GÇô Community STEM Mentorship Program</div>
-                <div>GÇó Participant GÇô National Engineering Innovation Competition 2022</div>
+                <div>Gï¿½ï¿½ Member Gï¿½ï¿½ Engineering Students Association (2020-2023)</div>
+                <div>Gï¿½ï¿½ Volunteer Gï¿½ï¿½ Community STEM Mentorship Program</div>
+                <div>Gï¿½ï¿½ Participant Gï¿½ï¿½ National Engineering Innovation Competition 2022</div>
               </div>
             </div>
             
@@ -546,10 +546,10 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                 </div>
               </div>
               <div className="flex flex-wrap gap-x-1 text-[4.5px] text-gray-600 mt-0.5">
-                <span>=ƒôì Kisumu, Kenya</span>
-                <span>=ƒôP +254 710 234 567</span>
-                <span>G£ë mary.odhiambo@email.com</span>
-                <span>=ƒöù linkedin.com/in/mary-odhiambo</span>
+                <span>=ï¿½ï¿½ï¿½ Kisumu, Kenya</span>
+                <span>=ï¿½ï¿½P +254 710 234 567</span>
+                <span>Gï¿½ï¿½ mary.odhiambo@email.com</span>
+                <span>=ï¿½ï¿½ï¿½ linkedin.com/in/mary-odhiambo</span>
               </div>
             </div>
             
@@ -564,27 +564,27 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div className="font-bold text-[6px] text-gray-900 uppercase border-b border-gray-300 pb-0.5 mb-0.5">Core Competencies</div>
               <div className="grid grid-cols-2 gap-x-1 gap-y-0.5">
                 <div className="flex items-start text-[4.8px]">
-                  <span className="text-blue-600 mr-0.5">Gû¬</span>
+                  <span className="text-blue-600 mr-0.5">Gï¿½ï¿½</span>
                   <span>Customer Support</span>
                 </div>
                 <div className="flex items-start text-[4.8px]">
-                  <span className="text-blue-600 mr-0.5">Gû¬</span>
+                  <span className="text-blue-600 mr-0.5">Gï¿½ï¿½</span>
                   <span>Communication</span>
                 </div>
                 <div className="flex items-start text-[4.8px]">
-                  <span className="text-blue-600 mr-0.5">Gû¬</span>
+                  <span className="text-blue-600 mr-0.5">Gï¿½ï¿½</span>
                   <span>Conflict Resolution</span>
                 </div>
                 <div className="flex items-start text-[4.8px]">
-                  <span className="text-blue-600 mr-0.5">Gû¬</span>
+                  <span className="text-blue-600 mr-0.5">Gï¿½ï¿½</span>
                   <span>Team Collaboration</span>
                 </div>
                 <div className="flex items-start text-[4.8px]">
-                  <span className="text-blue-600 mr-0.5">Gû¬</span>
+                  <span className="text-blue-600 mr-0.5">Gï¿½ï¿½</span>
                   <span>Problem Solving</span>
                 </div>
                 <div className="flex items-start text-[4.8px]">
-                  <span className="text-blue-600 mr-0.5">Gû¬</span>
+                  <span className="text-blue-600 mr-0.5">Gï¿½ï¿½</span>
                   <span>Data Entry & MS Office</span>
                 </div>
               </div>
@@ -598,15 +598,15 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                   <div className="text-[4.8px] font-bold text-blue-700">Customer Service Skills</div>
                   <div className="space-y-0.5 ml-1 text-[4.5px]">
                     <div className="flex items-start">
-                      <span className="text-gray-400 mr-0.5">GÇó</span>
+                      <span className="text-gray-400 mr-0.5">Gï¿½ï¿½</span>
                       <span>Handling customer inquiries and complaints professionally</span>
                     </div>
                     <div className="flex items-start">
-                      <span className="text-gray-400 mr-0.5">GÇó</span>
+                      <span className="text-gray-400 mr-0.5">Gï¿½ï¿½</span>
                       <span>Providing accurate product information and recommendations</span>
                     </div>
                     <div className="flex items-start">
-                      <span className="text-gray-400 mr-0.5">GÇó</span>
+                      <span className="text-gray-400 mr-0.5">Gï¿½ï¿½</span>
                       <span>Building rapport and maintaining customer relationships</span>
                     </div>
                   </div>
@@ -615,15 +615,15 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                   <div className="text-[4.8px] font-bold text-blue-700">Administrative Skills</div>
                   <div className="space-y-0.5 ml-1 text-[4.5px]">
                     <div className="flex items-start">
-                      <span className="text-gray-400 mr-0.5">GÇó</span>
+                      <span className="text-gray-400 mr-0.5">Gï¿½ï¿½</span>
                       <span>Document management and filing systems</span>
                     </div>
                     <div className="flex items-start">
-                      <span className="text-gray-400 mr-0.5">GÇó</span>
+                      <span className="text-gray-400 mr-0.5">Gï¿½ï¿½</span>
                       <span>Data entry and reporting with high accuracy</span>
                     </div>
                     <div className="flex items-start">
-                      <span className="text-gray-400 mr-0.5">GÇó</span>
+                      <span className="text-gray-400 mr-0.5">Gï¿½ï¿½</span>
                       <span>Scheduling and calendar management</span>
                     </div>
                   </div>
@@ -637,18 +637,18 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div className="space-y-0.5 text-[4.8px]">
                 <div>
                   <span className="font-semibold">Retail Assistant</span>
-                  <span className="text-gray-600"> GÇö QuickMart Supermarket, Kisumu</span>
-                  <span className="text-gray-500 italic"> (2021 GÇô 2023)</span>
+                  <span className="text-gray-600"> Gï¿½ï¿½ QuickMart Supermarket, Kisumu</span>
+                  <span className="text-gray-500 italic"> (2021 Gï¿½ï¿½ 2023)</span>
                 </div>
                 <div>
                   <span className="font-semibold">Volunteer Admin Assistant</span>
-                  <span className="text-gray-600"> GÇö Community Development Initiative</span>
-                  <span className="text-gray-500 italic"> (2020 GÇô 2021)</span>
+                  <span className="text-gray-600"> Gï¿½ï¿½ Community Development Initiative</span>
+                  <span className="text-gray-500 italic"> (2020 Gï¿½ï¿½ 2021)</span>
                 </div>
                 <div>
                   <span className="font-semibold">Sales Intern</span>
-                  <span className="text-gray-600"> GÇö Tuskys Supermarket, Kisumu</span>
-                  <span className="text-gray-500 italic"> (2019 GÇô 2020)</span>
+                  <span className="text-gray-600"> Gï¿½ï¿½ Tuskys Supermarket, Kisumu</span>
+                  <span className="text-gray-500 italic"> (2019 Gï¿½ï¿½ 2020)</span>
                 </div>
               </div>
             </div>
@@ -659,12 +659,12 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div className="text-[4.8px] mb-1">
                 <div className="font-semibold">Diploma in Business Administration</div>
                 <div className="text-gray-700">Kisumu National Polytechnic</div>
-                <div className="text-[4.2px] text-gray-500 italic">2018 GÇô 2020 | Credit Pass</div>
+                <div className="text-[4.2px] text-gray-500 italic">2018 Gï¿½ï¿½ 2020 | Credit Pass</div>
               </div>
               <div className="text-[4.8px]">
                 <div className="font-semibold">Kenya Certificate of Secondary Education</div>
                 <div className="text-gray-700">Kisumu Girls High School</div>
-                <div className="text-[4.2px] text-gray-500 italic">2014 GÇô 2017 | Grade C+</div>
+                <div className="text-[4.2px] text-gray-500 italic">2014 Gï¿½ï¿½ 2017 | Grade C+</div>
               </div>
             </div>
             
@@ -673,12 +673,12 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div className="font-bold text-[6px] text-gray-900 uppercase border-b border-gray-300 pb-0.5 mb-0.5">Certifications</div>
               <div className="space-y-0.5 text-[4.8px]">
                 <div className="flex items-start">
-                  <span className="text-blue-600 mr-0.5">G£ô</span>
-                  <span>Customer Service Excellence GÇô Alison (2022)</span>
+                  <span className="text-blue-600 mr-0.5">Gï¿½ï¿½</span>
+                  <span>Customer Service Excellence Gï¿½ï¿½ Alison (2022)</span>
                 </div>
                 <div className="flex items-start">
-                  <span className="text-blue-600 mr-0.5">G£ô</span>
-                  <span>Basic Computer Applications GÇô Kenya ICT Board (2020)</span>
+                  <span className="text-blue-600 mr-0.5">Gï¿½ï¿½</span>
+                  <span>Basic Computer Applications Gï¿½ï¿½ Kenya ICT Board (2020)</span>
                 </div>
               </div>
             </div>
@@ -710,7 +710,7 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                 <img src="https://api.dicebear.com/9.x/avataaars/png?seed=KevinMutua&skinColor=brown&top=shortHair,shortHairShortFlat&hairColor=black&backgroundColor=e8f5e9" className="w-6 h-6 rounded-full flex-shrink-0" alt="" />
                 <div>
                   <div className="font-bold text-[9px] text-gray-900">KEVIN MUTUA MULI</div>
-                  <div className="text-[6px] text-gray-700">Student GÇô Diploma in Electrical Engineering</div>
+                  <div className="text-[6px] text-gray-700">Student Gï¿½ï¿½ Diploma in Electrical Engineering</div>
                 </div>
               </div>
               <div className="text-[4.5px] text-gray-600 mt-0.5">
@@ -730,12 +730,12 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div className="text-[4.8px] mb-1">
                 <div className="font-semibold text-gray-900">Diploma in Electrical and Electronic Engineering</div>
                 <div className="text-gray-700">Machakos Technical Institute</div>
-                <div className="text-gray-500 text-[4.2px]">2022 GÇô Present | Current GPA: 3.5/4.0</div>
+                <div className="text-gray-500 text-[4.2px]">2022 Gï¿½ï¿½ Present | Current GPA: 3.5/4.0</div>
               </div>
               <div className="text-[4.8px]">
                 <div className="font-semibold text-gray-900">Kenya Certificate of Secondary Education</div>
                 <div className="text-gray-700">Machakos Boys High School</div>
-                <div className="text-gray-500 text-[4.2px]">2018 GÇô 2021 | Grade B+</div>
+                <div className="text-gray-500 text-[4.2px]">2018 Gï¿½ï¿½ 2021 | Grade B+</div>
               </div>
             </div>
             
@@ -743,14 +743,14 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             <div className="mb-1.5">
               <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Technical Skills</div>
               <div className="grid grid-cols-2 gap-x-1 gap-y-0.5 text-[4.8px]">
-                <div>GÇó Electrical Installation</div>
-                <div>GÇó Circuit Analysis</div>
-                <div>GÇó Basic PLC Programming</div>
-                <div>GÇó Electrical Safety Procedures</div>
-                <div>GÇó Technical Drawing</div>
-                <div>GÇó Microsoft Office Suite</div>
-                <div>GÇó Wiring & Troubleshooting</div>
-                <div>GÇó Equipment Maintenance</div>
+                <div>Gï¿½ï¿½ Electrical Installation</div>
+                <div>Gï¿½ï¿½ Circuit Analysis</div>
+                <div>Gï¿½ï¿½ Basic PLC Programming</div>
+                <div>Gï¿½ï¿½ Electrical Safety Procedures</div>
+                <div>Gï¿½ï¿½ Technical Drawing</div>
+                <div>Gï¿½ï¿½ Microsoft Office Suite</div>
+                <div>Gï¿½ï¿½ Wiring & Troubleshooting</div>
+                <div>Gï¿½ï¿½ Equipment Maintenance</div>
               </div>
             </div>
             
@@ -759,12 +759,12 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Academic Projects</div>
               <div className="mb-1">
                 <div className="font-semibold text-[4.8px] text-gray-900">Automatic Street Lighting System</div>
-                <div className="text-[4.2px] text-gray-500 mb-0.5">Final Year Project GÇô 2023</div>
+                <div className="text-[4.2px] text-gray-500 mb-0.5">Final Year Project Gï¿½ï¿½ 2023</div>
                 <div className="text-[4.8px] text-gray-700">Designed a light-dependent resistor system that automatically switches street lights on and off based on ambient light. Reduced energy consumption by 35% in test environment.</div>
               </div>
               <div>
                 <div className="font-semibold text-[4.8px] text-gray-900">Home Electrical Wiring Simulation</div>
-                <div className="text-[4.2px] text-gray-500 mb-0.5">Second Year Project GÇô 2023</div>
+                <div className="text-[4.2px] text-gray-500 mb-0.5">Second Year Project Gï¿½ï¿½ 2023</div>
                 <div className="text-[4.8px] text-gray-700">Created a complete residential wiring diagram and simulation demonstrating proper electrical installation standards and safety protocols.</div>
               </div>
             </div>
@@ -773,13 +773,13 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             <div className="mb-1.5">
               <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Industrial Attachment</div>
               <div>
-                <div className="font-semibold text-[4.8px] text-gray-900">Industrial Attachment Trainee GÇö Kenya Power</div>
-                <div className="text-[4.2px] text-gray-500 mb-0.5">Machakos | May 2024 GÇô Aug 2024</div>
+                <div className="font-semibold text-[4.8px] text-gray-900">Industrial Attachment Trainee Gï¿½ï¿½ Kenya Power</div>
+                <div className="text-[4.2px] text-gray-500 mb-0.5">Machakos | May 2024 Gï¿½ï¿½ Aug 2024</div>
                 <div className="space-y-0.5 text-[4.8px]">
-                  <div>GÇó Assisted technicians with electrical line inspection and maintenance</div>
-                  <div>GÇó Observed transformer servicing procedures and safety protocols</div>
-                  <div>GÇó Participated in installation of electrical wiring systems</div>
-                  <div>GÇó Learned meter reading and customer service procedures</div>
+                  <div>Gï¿½ï¿½ Assisted technicians with electrical line inspection and maintenance</div>
+                  <div>Gï¿½ï¿½ Observed transformer servicing procedures and safety protocols</div>
+                  <div>Gï¿½ï¿½ Participated in installation of electrical wiring systems</div>
+                  <div>Gï¿½ï¿½ Learned meter reading and customer service procedures</div>
                 </div>
               </div>
             </div>
@@ -788,9 +788,9 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             <div className="mb-1.5">
               <div className="font-semibold text-[6px] text-gray-900 border-b border-gray-200 pb-0.5 mb-0.5">Extracurricular Activities</div>
               <div className="space-y-0.5 text-[4.8px]">
-                <div>GÇó Member GÇô Engineering Students Association (2022-Present)</div>
-                <div>GÇó Volunteer GÇô Local Community Electrical Repairs Initiative</div>
-                <div>GÇó Participant GÇô Technical Skills Competition 2023</div>
+                <div>Gï¿½ï¿½ Member Gï¿½ï¿½ Engineering Students Association (2022-Present)</div>
+                <div>Gï¿½ï¿½ Volunteer Gï¿½ï¿½ Local Community Electrical Repairs Initiative</div>
+                <div>Gï¿½ï¿½ Participant Gï¿½ï¿½ Technical Skills Competition 2023</div>
               </div>
             </div>
             
@@ -814,44 +814,44 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div className="text-[5px] opacity-90 mb-1.5 text-center">Graphic Designer | Brand Identity</div>
               
               <div className="text-[4px] mb-1.5 space-y-0.5">
-                <div>=ƒôì Nairobi, Kenya</div>
-                <div>=ƒôP +254 712 567 890</div>
-                <div>G£ë brian.kimani@email.com</div>
-                <div>=ƒîÉ briankimani.design</div>
+                <div>=ï¿½ï¿½ï¿½ Nairobi, Kenya</div>
+                <div>=ï¿½ï¿½P +254 712 567 890</div>
+                <div>Gï¿½ï¿½ brian.kimani@email.com</div>
+                <div>=ï¿½ï¿½ï¿½ briankimani.design</div>
               </div>
               
               <div className="mb-1.5">
                 <div className="font-semibold text-[5px] mb-1">Core Skills</div>
                 <div className="space-y-0.5 text-[4px]">
-                  <div>GÇó Brand Identity Design</div>
-                  <div>GÇó Logo Design</div>
-                  <div>GÇó Typography</div>
-                  <div>GÇó Social Media Graphics</div>
-                  <div>GÇó Illustration</div>
-                  <div>GÇó Visual Storytelling</div>
-                  <div>GÇó Print Design</div>
-                  <div>GÇó Digital Marketing</div>
+                  <div>Gï¿½ï¿½ Brand Identity Design</div>
+                  <div>Gï¿½ï¿½ Logo Design</div>
+                  <div>Gï¿½ï¿½ Typography</div>
+                  <div>Gï¿½ï¿½ Social Media Graphics</div>
+                  <div>Gï¿½ï¿½ Illustration</div>
+                  <div>Gï¿½ï¿½ Visual Storytelling</div>
+                  <div>Gï¿½ï¿½ Print Design</div>
+                  <div>Gï¿½ï¿½ Digital Marketing</div>
                 </div>
               </div>
               
               <div className="mb-1.5">
                 <div className="font-semibold text-[5px] mb-1">Design Tools</div>
                 <div className="space-y-0.5 text-[4px]">
-                  <div>GÇó Adobe Photoshop</div>
-                  <div>GÇó Adobe Illustrator</div>
-                  <div>GÇó Figma</div>
-                  <div>GÇó Canva</div>
-                  <div>GÇó After Effects</div>
-                  <div>GÇó InDesign</div>
-                  <div>GÇó Sketch</div>
+                  <div>Gï¿½ï¿½ Adobe Photoshop</div>
+                  <div>Gï¿½ï¿½ Adobe Illustrator</div>
+                  <div>Gï¿½ï¿½ Figma</div>
+                  <div>Gï¿½ï¿½ Canva</div>
+                  <div>Gï¿½ï¿½ After Effects</div>
+                  <div>Gï¿½ï¿½ InDesign</div>
+                  <div>Gï¿½ï¿½ Sketch</div>
                 </div>
               </div>
               
               <div>
                 <div className="font-semibold text-[5px] mb-1">Languages</div>
                 <div className="space-y-0.5 text-[4px]">
-                  <div>GÇó English - Fluent</div>
-                  <div>GÇó Swahili - Native</div>
+                  <div>Gï¿½ï¿½ English - Fluent</div>
+                  <div>Gï¿½ï¿½ Swahili - Native</div>
                 </div>
               </div>
             </div>
@@ -869,7 +869,7 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                 <div className="font-semibold text-[5.5px] border-b-2 border-indigo-600 pb-0.5 mb-1">Portfolio Projects</div>
                 <div className="space-y-1">
                   <div>
-                    <div className="font-semibold text-[4px]">Brand Identity GÇô Nairobi Coffee Co.</div>
+                    <div className="font-semibold text-[4px]">Brand Identity Gï¿½ï¿½ Nairobi Coffee Co.</div>
                     <div className="text-[3.5px] text-gray-500">Nairobi Coffee Co. | 2024</div>
                     <div className="text-[4px]">Designed full brand identity including logo, packaging, and social media visuals for local coffee startup. Created warm, approachable brand celebrating Kenyan coffee culture.</div>
                   </div>
@@ -891,16 +891,16 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                 <div className="font-semibold text-[5.5px] border-b-2 border-indigo-600 pb-0.5 mb-1">Work Experience</div>
                 <div className="space-y-1">
                   <div>
-                    <div className="font-semibold text-[4px]">Senior Graphic Designer GÇö Creative Edge Agency</div>
-                    <div className="text-[3.5px] text-gray-500">Nairobi | 2022 GÇô Present</div>
+                    <div className="font-semibold text-[4px]">Senior Graphic Designer Gï¿½ï¿½ Creative Edge Agency</div>
+                    <div className="text-[3.5px] text-gray-500">Nairobi | 2022 Gï¿½ï¿½ Present</div>
                   </div>
                   <div>
-                    <div className="font-semibold text-[4px]">Graphic Designer GÇö Pixel Studio</div>
-                    <div className="text-[3.5px] text-gray-500">Nairobi | 2020 GÇô 2022</div>
+                    <div className="font-semibold text-[4px]">Graphic Designer Gï¿½ï¿½ Pixel Studio</div>
+                    <div className="text-[3.5px] text-gray-500">Nairobi | 2020 Gï¿½ï¿½ 2022</div>
                   </div>
                   <div>
-                    <div className="font-semibold text-[4px]">Junior Designer GÇö Design Hub Kenya</div>
-                    <div className="text-[3.5px] text-gray-500">Nairobi | 2019 GÇô 2020</div>
+                    <div className="font-semibold text-[4px]">Junior Designer Gï¿½ï¿½ Design Hub Kenya</div>
+                    <div className="text-[3.5px] text-gray-500">Nairobi | 2019 Gï¿½ï¿½ 2020</div>
                   </div>
                 </div>
               </div>
@@ -911,7 +911,7 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                 <div>
                   <div className="font-semibold text-[4px]">Diploma in Graphic Design</div>
                   <div className="text-[4px]">Nairobi Institute of Technology</div>
-                  <div className="text-[3.5px] text-gray-500">2017 GÇô 2019</div>
+                  <div className="text-[3.5px] text-gray-500">2017 Gï¿½ï¿½ 2019</div>
                 </div>
               </div>
               
@@ -919,11 +919,11 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div className="mb-1.5">
                 <div className="font-semibold text-[5.5px] border-b-2 border-indigo-600 pb-0.5 mb-1">Awards & Recognition</div>
                 <div className="space-y-0.5 text-[4px]">
-                  <div>GÇó Best Brand Identity - Kenya Design Awards 2023</div>
-                  <div>GÇó Creative Excellence Award - East Africa Advertising Summit 2022</div>
-                  <div>GÇó Rising Designer of the Year - Nairobi Creative Week 2021</div>
-                  <div>GÇó Gold Award for Print Design - Nairobi Design Festival 2022</div>
-                  <div>GÇó Best Packaging Design - East Africa Brand Awards 2021</div>
+                  <div>Gï¿½ï¿½ Best Brand Identity - Kenya Design Awards 2023</div>
+                  <div>Gï¿½ï¿½ Creative Excellence Award - East Africa Advertising Summit 2022</div>
+                  <div>Gï¿½ï¿½ Rising Designer of the Year - Nairobi Creative Week 2021</div>
+                  <div>Gï¿½ï¿½ Gold Award for Print Design - Nairobi Design Festival 2022</div>
+                  <div>Gï¿½ï¿½ Best Packaging Design - East Africa Brand Awards 2021</div>
                 </div>
               </div>
 
@@ -931,14 +931,14 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div className="mb-1.5">
                 <div className="font-semibold text-[5.5px] border-b-2 border-indigo-600 pb-0.5 mb-1">Notable Clients</div>
                 <div className="grid grid-cols-2 gap-x-1 gap-y-0.5 text-[4px]">
-                  <div>GÇó Safaricom Limited</div>
-                  <div>GÇó KCB Bank</div>
-                  <div>GÇó Nairobi Coffee Co.</div>
-                  <div>GÇó Zuri Fashion</div>
-                  <div>GÇó Kenya Wildlife Foundation</div>
-                  <div>GÇó East African Breweries</div>
-                  <div>GÇó Nairobi Jazz Festival</div>
-                  <div>GÇó Equity Bank Kenya</div>
+                  <div>Gï¿½ï¿½ Safaricom Limited</div>
+                  <div>Gï¿½ï¿½ KCB Bank</div>
+                  <div>Gï¿½ï¿½ Nairobi Coffee Co.</div>
+                  <div>Gï¿½ï¿½ Zuri Fashion</div>
+                  <div>Gï¿½ï¿½ Kenya Wildlife Foundation</div>
+                  <div>Gï¿½ï¿½ East African Breweries</div>
+                  <div>Gï¿½ï¿½ Nairobi Jazz Festival</div>
+                  <div>Gï¿½ï¿½ Equity Bank Kenya</div>
                 </div>
               </div>
 
@@ -946,10 +946,10 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div>
                 <div className="font-semibold text-[5.5px] border-b-2 border-indigo-600 pb-0.5 mb-1">Professional Memberships</div>
                 <div className="space-y-0.5 text-[4px]">
-                  <div>GÇó Member - Design Society of Kenya</div>
-                  <div>GÇó Member - African Creative Network</div>
-                  <div>GÇó Member - Graphic Design Association of East Africa</div>
-                  <div>GÇó Volunteer Mentor - Nairobi Design Week</div>
+                  <div>Gï¿½ï¿½ Member - Design Society of Kenya</div>
+                  <div>Gï¿½ï¿½ Member - African Creative Network</div>
+                  <div>Gï¿½ï¿½ Member - Graphic Design Association of East Africa</div>
+                  <div>Gï¿½ï¿½ Volunteer Mentor - Nairobi Design Week</div>
                 </div>
               </div>
             </div>
@@ -977,32 +977,32 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div className="mb-1.5">
                 <div className="font-semibold text-[4.5px] border-b border-gray-700 pb-0.5 mb-0.5">Tech Stack</div>
                 <div className="space-y-0.5 text-[3.5px]">
-                  <div>GÇó JavaScript / TypeScript</div>
-                  <div>GÇó React / Next.js</div>
-                  <div>GÇó Node.js / Express</div>
-                  <div>GÇó PostgreSQL</div>
-                  <div>GÇó Tailwind CSS</div>
-                  <div>GÇó GraphQL / REST</div>
+                  <div>Gï¿½ï¿½ JavaScript / TypeScript</div>
+                  <div>Gï¿½ï¿½ React / Next.js</div>
+                  <div>Gï¿½ï¿½ Node.js / Express</div>
+                  <div>Gï¿½ï¿½ PostgreSQL</div>
+                  <div>Gï¿½ï¿½ Tailwind CSS</div>
+                  <div>Gï¿½ï¿½ GraphQL / REST</div>
                 </div>
               </div>
               
               <div className="mb-1.5">
                 <div className="font-semibold text-[4.5px] border-b border-gray-700 pb-0.5 mb-0.5">Tools</div>
                 <div className="space-y-0.5 text-[3.5px]">
-                  <div>GÇó Git / GitHub</div>
-                  <div>GÇó Docker</div>
-                  <div>GÇó AWS / Vercel</div>
-                  <div>GÇó VS Code</div>
-                  <div>GÇó Figma</div>
+                  <div>Gï¿½ï¿½ Git / GitHub</div>
+                  <div>Gï¿½ï¿½ Docker</div>
+                  <div>Gï¿½ï¿½ AWS / Vercel</div>
+                  <div>Gï¿½ï¿½ VS Code</div>
+                  <div>Gï¿½ï¿½ Figma</div>
                 </div>
               </div>
               
               <div>
                 <div className="font-semibold text-[4.5px] border-b border-gray-700 pb-0.5 mb-0.5">Certifications</div>
                 <div className="space-y-0.5 text-[3.5px]">
-                  <div>GÇó AWS Developer</div>
-                  <div>GÇó Google Analytics</div>
-                  <div>GÇó Meta Front-End</div>
+                  <div>Gï¿½ï¿½ AWS Developer</div>
+                  <div>Gï¿½ï¿½ Google Analytics</div>
+                  <div>Gï¿½ï¿½ Meta Front-End</div>
                 </div>
               </div>
             </div>
@@ -1037,19 +1037,19 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                 <div className="font-semibold text-[5px] border-b-2 border-gray-900 pb-0.5 mb-0.5">Experience</div>
                 <div className="space-y-1">
                   <div>
-                    <div className="font-semibold text-[3.5px]">Senior Developer GÇö TechNova</div>
-                    <div className="text-[3px] text-gray-600">Nairobi | 2022 GÇô Present</div>
+                    <div className="font-semibold text-[3.5px]">Senior Developer Gï¿½ï¿½ TechNova</div>
+                    <div className="text-[3px] text-gray-600">Nairobi | 2022 Gï¿½ï¿½ Present</div>
                     <div className="space-y-0.5 text-[3.5px] ml-1">
-                      <div>GÇó Lead development of web apps</div>
-                      <div>GÇó Reduced load time by 40%</div>
+                      <div>Gï¿½ï¿½ Lead development of web apps</div>
+                      <div>Gï¿½ï¿½ Reduced load time by 40%</div>
                     </div>
                   </div>
                   <div>
-                    <div className="font-semibold text-[3.5px]">Developer GÇö Digital Edge</div>
-                    <div className="text-[3px] text-gray-600">Nairobi | 2020 GÇô 2022</div>
+                    <div className="font-semibold text-[3.5px]">Developer Gï¿½ï¿½ Digital Edge</div>
+                    <div className="text-[3px] text-gray-600">Nairobi | 2020 Gï¿½ï¿½ 2022</div>
                     <div className="space-y-0.5 text-[3.5px] ml-1">
-                      <div>GÇó Built MERN stack projects</div>
-                      <div>GÇó Implemented CI/CD pipelines</div>
+                      <div>Gï¿½ï¿½ Built MERN stack projects</div>
+                      <div>Gï¿½ï¿½ Implemented CI/CD pipelines</div>
                     </div>
                   </div>
                 </div>
@@ -1061,7 +1061,7 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                 <div>
                   <div className="font-semibold text-[3.5px]">BSc Computer Science</div>
                   <div className="text-[3.5px]">University of Nairobi</div>
-                  <div className="text-[3px] text-gray-600">2016 GÇô 2020 | GPA: 3.7/4.0</div>
+                  <div className="text-[3px] text-gray-600">2016 Gï¿½ï¿½ 2020 | GPA: 3.7/4.0</div>
                 </div>
               </div>
 
@@ -1069,11 +1069,11 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div className="mb-1.5">
                 <div className="font-semibold text-[5px] border-b-2 border-gray-900 pb-0.5 mb-0.5">Key Achievements</div>
                 <div className="space-y-0.5 text-[3.5px]">
-                  <div>GÇó Migrated monolith to microservices, improving scalability by 300%</div>
-                  <div>GÇó Reduced API response time from 2s to 200ms via Redis caching</div>
-                  <div>GÇó Mentored 5 junior devs, all promoted within 18 months</div>
-                  <div>GÇó Increased test coverage from 40% to 85%, cutting bugs by 60%</div>
-                  <div>GÇó Saved KES 200K/month through database query optimisation</div>
+                  <div>Gï¿½ï¿½ Migrated monolith to microservices, improving scalability by 300%</div>
+                  <div>Gï¿½ï¿½ Reduced API response time from 2s to 200ms via Redis caching</div>
+                  <div>Gï¿½ï¿½ Mentored 5 junior devs, all promoted within 18 months</div>
+                  <div>Gï¿½ï¿½ Increased test coverage from 40% to 85%, cutting bugs by 60%</div>
+                  <div>Gï¿½ï¿½ Saved KES 200K/month through database query optimisation</div>
                 </div>
               </div>
 
@@ -1081,9 +1081,9 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div className="mb-1.5">
                 <div className="font-semibold text-[5px] border-b-2 border-gray-900 pb-0.5 mb-0.5">Open Source</div>
                 <div className="space-y-0.5 text-[3.5px]">
-                  <div>GÇó React Admin Dashboard GÇô 250+ GitHub stars</div>
-                  <div>GÇó Kenya Payment Gateway SDK GÇô 180+ stars</div>
-                  <div>GÇó East Africa Timezone Library GÇô 120+ stars</div>
+                  <div>Gï¿½ï¿½ React Admin Dashboard Gï¿½ï¿½ 250+ GitHub stars</div>
+                  <div>Gï¿½ï¿½ Kenya Payment Gateway SDK Gï¿½ï¿½ 180+ stars</div>
+                  <div>Gï¿½ï¿½ East Africa Timezone Library Gï¿½ï¿½ 120+ stars</div>
                 </div>
               </div>
 
@@ -1091,9 +1091,9 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div className="mb-1.5">
                 <div className="font-semibold text-[5px] border-b-2 border-gray-900 pb-0.5 mb-0.5">Technical Writing</div>
                 <div className="space-y-0.5 text-[3.5px]">
-                  <div>GÇó Building Scalable APIs with Node.js GÇô Dev.to (5K+ views)</div>
-                  <div>GÇó React Performance Optimization Guide GÇô Medium (3K+ views)</div>
-                  <div>GÇó Database Design Best Practices GÇô Personal Blog</div>
+                  <div>Gï¿½ï¿½ Building Scalable APIs with Node.js Gï¿½ï¿½ Dev.to (5K+ views)</div>
+                  <div>Gï¿½ï¿½ React Performance Optimization Guide Gï¿½ï¿½ Medium (3K+ views)</div>
+                  <div>Gï¿½ï¿½ Database Design Best Practices Gï¿½ï¿½ Personal Blog</div>
                 </div>
               </div>
 
@@ -1101,9 +1101,9 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div>
                 <div className="font-semibold text-[5px] border-b-2 border-gray-900 pb-0.5 mb-0.5">Volunteer & Community</div>
                 <div className="space-y-0.5 text-[3.5px]">
-                  <div>GÇó Code Mentor GÇô Moringa School (2022GÇôPresent)</div>
-                  <div>GÇó Tech Workshop Facilitator GÇô iHub Nairobi</div>
-                  <div>GÇó Guest Lecturer GÇô University of Nairobi CS Dept (2023)</div>
+                  <div>Gï¿½ï¿½ Code Mentor Gï¿½ï¿½ Moringa School (2022Gï¿½ï¿½Present)</div>
+                  <div>Gï¿½ï¿½ Tech Workshop Facilitator Gï¿½ï¿½ iHub Nairobi</div>
+                  <div>Gï¿½ï¿½ Guest Lecturer Gï¿½ï¿½ University of Nairobi CS Dept (2023)</div>
                 </div>
               </div>
             </div>
@@ -1139,21 +1139,21 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div className="mb-1.5">
                 <div className="font-semibold text-[5px] text-indigo-700 mb-0.5">KEY SKILLS</div>
                 <div className="text-[3.5px] space-y-0.5">
-                  <div>GÇó Brand Strategy</div>
-                  <div>GÇó Digital Marketing</div>
-                  <div>GÇó Public Speaking</div>
-                  <div>GÇó Content Marketing</div>
-                  <div>GÇó Personal Branding</div>
-                  <div>GÇó Social Media</div>
+                  <div>Gï¿½ï¿½ Brand Strategy</div>
+                  <div>Gï¿½ï¿½ Digital Marketing</div>
+                  <div>Gï¿½ï¿½ Public Speaking</div>
+                  <div>Gï¿½ï¿½ Content Marketing</div>
+                  <div>Gï¿½ï¿½ Personal Branding</div>
+                  <div>Gï¿½ï¿½ Social Media</div>
                 </div>
               </div>
               
               <div>
                 <div className="font-semibold text-[5px] text-indigo-700 mb-0.5">CERTIFICATIONS</div>
                 <div className="text-[3.5px] space-y-0.5">
-                  <div>GÇó Google Digital Marketing</div>
-                  <div>GÇó HubSpot Content</div>
-                  <div>GÇó Facebook Blueprint</div>
+                  <div>Gï¿½ï¿½ Google Digital Marketing</div>
+                  <div>Gï¿½ï¿½ HubSpot Content</div>
+                  <div>Gï¿½ï¿½ Facebook Blueprint</div>
                 </div>
               </div>
             </div>
@@ -1207,13 +1207,13 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                 <div className="font-semibold text-[4.5px] border-b-2 border-indigo-600 pb-0.5 mb-0.5">EXPERIENCE</div>
                 <div className="space-y-1">
                   <div>
-                    <div className="font-semibold text-[3.5px]">Marketing Consultant GÇö BrandGrow</div>
-                    <div className="text-[3px] text-gray-600">Nairobi | 2021 GÇô Present</div>
+                    <div className="font-semibold text-[3.5px]">Marketing Consultant Gï¿½ï¿½ BrandGrow</div>
+                    <div className="text-[3px] text-gray-600">Nairobi | 2021 Gï¿½ï¿½ Present</div>
                     <div className="text-[3.5px]">Lead brand strategy for 20+ clients. 150% ROI improvement.</div>
                   </div>
                   <div>
-                    <div className="font-semibold text-[3.5px]">Marketing Manager GÇö BrightWave</div>
-                    <div className="text-[3px] text-gray-600">Nairobi | 2018 GÇô 2021</div>
+                    <div className="font-semibold text-[3.5px]">Marketing Manager Gï¿½ï¿½ BrightWave</div>
+                    <div className="text-[3px] text-gray-600">Nairobi | 2018 Gï¿½ï¿½ 2021</div>
                     <div className="text-[3.5px]">Managed campaigns for major brands. Led team of 8.</div>
                   </div>
                 </div>
@@ -1225,7 +1225,7 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                 <div>
                   <div className="font-semibold text-[3.5px]">BCom Marketing - First Class Honours</div>
                   <div className="text-[3.5px]">Kenyatta University</div>
-                  <div className="text-[3px] text-gray-600">2013 GÇô 2017</div>
+                  <div className="text-[3px] text-gray-600">2013 Gï¿½ï¿½ 2017</div>
                 </div>
               </div>
 
@@ -1233,10 +1233,10 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div className="mb-1.5">
                 <div className="font-semibold text-[4.5px] border-b-2 border-indigo-600 pb-0.5 mb-0.5">AWARDS & RECOGNITION</div>
                 <div className="space-y-0.5 text-[3.5px]">
-                  <div>GÇó Marketing Professional of the Year GÇô Kenya Marketing Awards 2023</div>
-                  <div>GÇó Best Digital Campaign GÇô East Africa Advertising Awards 2022</div>
-                  <div>GÇó Top 40 Under 40 Marketing Leaders GÇô Business Daily 2022</div>
-                  <div>GÇó Excellence in Brand Strategy GÇô Marketing Society of Kenya 2021</div>
+                  <div>Gï¿½ï¿½ Marketing Professional of the Year Gï¿½ï¿½ Kenya Marketing Awards 2023</div>
+                  <div>Gï¿½ï¿½ Best Digital Campaign Gï¿½ï¿½ East Africa Advertising Awards 2022</div>
+                  <div>Gï¿½ï¿½ Top 40 Under 40 Marketing Leaders Gï¿½ï¿½ Business Daily 2022</div>
+                  <div>Gï¿½ï¿½ Excellence in Brand Strategy Gï¿½ï¿½ Marketing Society of Kenya 2021</div>
                 </div>
               </div>
 
@@ -1244,10 +1244,10 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div className="mb-1.5">
                 <div className="font-semibold text-[4.5px] border-b-2 border-indigo-600 pb-0.5 mb-0.5">MEDIA FEATURES</div>
                 <div className="space-y-0.5 text-[3.5px]">
-                  <div>GÇó Featured Expert GÇô Citizen TV Business Today (2024)</div>
-                  <div>GÇó Guest Columnist GÇô Business Daily Kenya (Monthly, 2023GÇôPresent)</div>
-                  <div>GÇó Podcast Interview GÇô The Marketing Show Africa (2023)</div>
-                  <div>GÇó Radio Interview GÇô Capital FM Business Breakfast (2023)</div>
+                  <div>Gï¿½ï¿½ Featured Expert Gï¿½ï¿½ Citizen TV Business Today (2024)</div>
+                  <div>Gï¿½ï¿½ Guest Columnist Gï¿½ï¿½ Business Daily Kenya (Monthly, 2023Gï¿½ï¿½Present)</div>
+                  <div>Gï¿½ï¿½ Podcast Interview Gï¿½ï¿½ The Marketing Show Africa (2023)</div>
+                  <div>Gï¿½ï¿½ Radio Interview Gï¿½ï¿½ Capital FM Business Breakfast (2023)</div>
                 </div>
               </div>
 
@@ -1255,10 +1255,10 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div>
                 <div className="font-semibold text-[4.5px] border-b-2 border-indigo-600 pb-0.5 mb-0.5">PROFESSIONAL AFFILIATIONS</div>
                 <div className="space-y-0.5 text-[3.5px]">
-                  <div>GÇó Member GÇô Marketing Society of Kenya (MSK)</div>
-                  <div>GÇó Member GÇô Kenya Speakers Association</div>
-                  <div>GÇó Board Member GÇô Young Marketing Professionals Network</div>
-                  <div>GÇó Mentor GÇô Women in Marketing Initiative</div>
+                  <div>Gï¿½ï¿½ Member Gï¿½ï¿½ Marketing Society of Kenya (MSK)</div>
+                  <div>Gï¿½ï¿½ Member Gï¿½ï¿½ Kenya Speakers Association</div>
+                  <div>Gï¿½ï¿½ Board Member Gï¿½ï¿½ Young Marketing Professionals Network</div>
+                  <div>Gï¿½ï¿½ Mentor Gï¿½ï¿½ Women in Marketing Initiative</div>
                 </div>
               </div>
             </div>
@@ -1274,7 +1274,7 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                 <img src="https://api.dicebear.com/9.x/avataaars/png?seed=DanielNjoroge&skinColor=darkBrown&top=shortHair,shortHairShortFlat&hairColor=black&accessories=prescription02&backgroundColor=f5f5f5" className="w-6 h-6 rounded-full flex-shrink-0" alt="" />
                 <div>
                   <div className="font-bold text-[6.5px]">Dr. Daniel Mwangi Njoroge</div>
-                  <div className="text-[4px] text-gray-700 italic">Senior Lecturer – Department of Environmental Science</div>
+                  <div className="text-[4px] text-gray-700 italic">Senior Lecturer ï¿½ Department of Environmental Science</div>
                 </div>
               </div>
               <div className="flex flex-wrap gap-x-2 text-[3px] text-gray-600">
@@ -1293,112 +1293,112 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             <div className="mb-0.5">
               <div className="font-bold text-[3.5px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Research Interests</div>
               <div className="grid grid-cols-2 gap-x-1 text-[3px]">
-                <div>• Climate Change Adaptation</div>
-                <div>• Sustainable Agriculture & Food Security</div>
-                <div>• Environmental Policy & Governance</div>
-                <div>• Land Degradation & Restoration</div>
-                <div>• Community-Based NRM</div>
-                <div>• Dryland Ecology</div>
+                <div>ï¿½ Climate Change Adaptation</div>
+                <div>ï¿½ Sustainable Agriculture & Food Security</div>
+                <div>ï¿½ Environmental Policy & Governance</div>
+                <div>ï¿½ Land Degradation & Restoration</div>
+                <div>ï¿½ Community-Based NRM</div>
+                <div>ï¿½ Dryland Ecology</div>
               </div>
             </div>
             {/* Positions */}
             <div className="mb-0.5">
               <div className="font-bold text-[3.5px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Academic Positions</div>
               <div className="flex justify-between text-[3px] mb-0.5">
-                <div><span className="font-semibold">Senior Lecturer</span>, Dept. of Environmental Science – University of Nairobi</div>
-                <div className="text-gray-600 ml-1 shrink-0">2018–Present</div>
+                <div><span className="font-semibold">Senior Lecturer</span>, Dept. of Environmental Science ï¿½ University of Nairobi</div>
+                <div className="text-gray-600 ml-1 shrink-0">2018ï¿½Present</div>
               </div>
               <div className="flex justify-between text-[3px] mb-0.5">
-                <div><span className="font-semibold">Lecturer</span>, Dept. of Natural Resources – Egerton University</div>
-                <div className="text-gray-600 ml-1 shrink-0">2014–2018</div>
+                <div><span className="font-semibold">Lecturer</span>, Dept. of Natural Resources ï¿½ Egerton University</div>
+                <div className="text-gray-600 ml-1 shrink-0">2014ï¿½2018</div>
               </div>
               <div className="flex justify-between text-[3px] mb-0.5">
-                <div><span className="font-semibold">Research Associate</span>, Environment & Society Programme – ILRI</div>
-                <div className="text-gray-600 ml-1 shrink-0">2012–2014</div>
+                <div><span className="font-semibold">Research Associate</span>, Environment & Society Programme ï¿½ ILRI</div>
+                <div className="text-gray-600 ml-1 shrink-0">2012ï¿½2014</div>
               </div>
               <div className="flex justify-between text-[3px]">
-                <div><span className="font-semibold">Graduate Teaching Assistant</span> – University of Nairobi</div>
-                <div className="text-gray-600 ml-1 shrink-0">2010–2012</div>
+                <div><span className="font-semibold">Graduate Teaching Assistant</span> ï¿½ University of Nairobi</div>
+                <div className="text-gray-600 ml-1 shrink-0">2010ï¿½2012</div>
               </div>
             </div>
             {/* Publications */}
             <div className="mb-0.5">
               <div className="font-bold text-[3.5px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Selected Publications</div>
               <ol className="list-decimal ml-3 text-[3px] space-y-0.5">
-                <li>Njoroge, D.M. (2023). Climate Adaptation Strategies for Smallholder Farmers. Journal of Environmental Studies, 45(3), 112–128.</li>
-                <li>Njoroge, D.M. & Kamau, P. (2021). Land Restoration in Semi-Arid East Africa. African Environmental Review, 18(2), 45–62.</li>
+                <li>Njoroge, D.M. (2023). Climate Adaptation Strategies for Smallholder Farmers. Journal of Environmental Studies, 45(3), 112ï¿½128.</li>
+                <li>Njoroge, D.M. & Kamau, P. (2021). Land Restoration in Semi-Arid East Africa. African Environmental Review, 18(2), 45ï¿½62.</li>
                 <li>Njoroge, D.M. et al. (2020). Community Participation in Environmental Governance. Ecology & Society, 25(1), 34.</li>
-                <li>Njoroge, D.M. (2019). Sustainable Agriculture Practices in Kenya. Int. Journal of Climate Research, 12(4), 78–95.</li>
+                <li>Njoroge, D.M. (2019). Sustainable Agriculture Practices in Kenya. Int. Journal of Climate Research, 12(4), 78ï¿½95.</li>
                 <li>Njoroge, D.M. & Muthoni, L. (2018). Soil Carbon Sequestration in Degraded Rangelands. Land Degradation & Development, 29(8).</li>
-                <li>Njoroge, D.M. (2016). Pastoral Adaptation to Climate Variability in Northern Kenya. African Studies, 75(2), 201–218.</li>
+                <li>Njoroge, D.M. (2016). Pastoral Adaptation to Climate Variability in Northern Kenya. African Studies, 75(2), 201ï¿½218.</li>
               </ol>
             </div>
             {/* Conferences */}
             <div className="mb-0.5">
               <div className="font-bold text-[3.5px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Conferences & Presentations</div>
               <div className="text-[3px] space-y-0.5">
-                <div>• Int. Climate Change Conference – Nairobi, Kenya (2024) – Keynote Presenter</div>
-                <div>• African Environmental Research Forum – Kigali, Rwanda (2022) – Paper Presenter</div>
-                <div>• World Congress of Soil Science – Glasgow, UK (2022) – Poster Presentation</div>
-                <div>• Sustainable Agriculture Summit – Addis Ababa, Ethiopia (2021) – Panel Discussant</div>
-                <div>• East Africa Climate Adaptation Forum – Dar es Salaam (2020) – Paper Presenter</div>
-                <div>• Int. Society for Ecological Economics – Washington DC (2019) – Paper Presenter</div>
+                <div>ï¿½ Int. Climate Change Conference ï¿½ Nairobi, Kenya (2024) ï¿½ Keynote Presenter</div>
+                <div>ï¿½ African Environmental Research Forum ï¿½ Kigali, Rwanda (2022) ï¿½ Paper Presenter</div>
+                <div>ï¿½ World Congress of Soil Science ï¿½ Glasgow, UK (2022) ï¿½ Poster Presentation</div>
+                <div>ï¿½ Sustainable Agriculture Summit ï¿½ Addis Ababa, Ethiopia (2021) ï¿½ Panel Discussant</div>
+                <div>ï¿½ East Africa Climate Adaptation Forum ï¿½ Dar es Salaam (2020) ï¿½ Paper Presenter</div>
+                <div>ï¿½ Int. Society for Ecological Economics ï¿½ Washington DC (2019) ï¿½ Paper Presenter</div>
               </div>
             </div>
             {/* Education */}
             <div className="mb-0.5">
               <div className="font-bold text-[3.5px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Education</div>
               <div className="flex justify-between text-[3px] mb-0.5">
-                <div><span className="font-semibold">PhD Environmental Science</span> – University of Nairobi <span className="italic text-gray-600">(Thesis: Climate Variability & Pastoral Adaptation)</span></div>
-                <div className="text-gray-600 ml-1 shrink-0">2010–2014</div>
+                <div><span className="font-semibold">PhD Environmental Science</span> ï¿½ University of Nairobi <span className="italic text-gray-600">(Thesis: Climate Variability & Pastoral Adaptation)</span></div>
+                <div className="text-gray-600 ml-1 shrink-0">2010ï¿½2014</div>
               </div>
               <div className="flex justify-between text-[3px] mb-0.5">
-                <div><span className="font-semibold">MSc Environmental Management</span> – Kenyatta University</div>
-                <div className="text-gray-600 ml-1 shrink-0">2007–2009</div>
+                <div><span className="font-semibold">MSc Environmental Management</span> ï¿½ Kenyatta University</div>
+                <div className="text-gray-600 ml-1 shrink-0">2007ï¿½2009</div>
               </div>
               <div className="flex justify-between text-[3px]">
-                <div><span className="font-semibold">BSc Environmental Science (First Class Honours)</span> – University of Nairobi</div>
-                <div className="text-gray-600 ml-1 shrink-0">2003–2007</div>
+                <div><span className="font-semibold">BSc Environmental Science (First Class Honours)</span> ï¿½ University of Nairobi</div>
+                <div className="text-gray-600 ml-1 shrink-0">2003ï¿½2007</div>
               </div>
             </div>
             {/* Grants */}
             <div className="mb-0.5">
               <div className="font-bold text-[3.5px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Grants & Funding</div>
               <div className="text-[3px] space-y-0.5">
-                <div>• Principal Investigator – NEMA Research Grant: Ecosystem Restoration in Degraded Drylands (KES 4.5M, 2022–2024)</div>
-                <div>• Co-Investigator – IDRC Climate Adaptation Fund: Smallholder Farmer Resilience in East Africa (USD 120K, 2020–2022)</div>
-                <div>• Principal Investigator – UoN Research Fund: Land Use Change & Carbon Stocks (KES 1.2M, 2019–2020)</div>
-                <div>• Research Fellow – British Council Climate Research Programme (GBP 15K, 2017–2018)</div>
+                <div>ï¿½ Principal Investigator ï¿½ NEMA Research Grant: Ecosystem Restoration in Degraded Drylands (KES 4.5M, 2022ï¿½2024)</div>
+                <div>ï¿½ Co-Investigator ï¿½ IDRC Climate Adaptation Fund: Smallholder Farmer Resilience in East Africa (USD 120K, 2020ï¿½2022)</div>
+                <div>ï¿½ Principal Investigator ï¿½ UoN Research Fund: Land Use Change & Carbon Stocks (KES 1.2M, 2019ï¿½2020)</div>
+                <div>ï¿½ Research Fellow ï¿½ British Council Climate Research Programme (GBP 15K, 2017ï¿½2018)</div>
               </div>
             </div>
             {/* Awards */}
             <div className="mb-0.5">
               <div className="font-bold text-[3.5px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Awards & Honours</div>
               <div className="text-[3px] space-y-0.5">
-                <div>• Best Research Paper Award – African Environmental Research Forum (2022)</div>
-                <div>• Excellence in Teaching Award – University of Nairobi (2021)</div>
-                <div>• Young Scientist Award – Kenya National Academy of Sciences (2018)</div>
-                <div>• Outstanding Doctoral Thesis Prize – University of Nairobi (2014)</div>
+                <div>ï¿½ Best Research Paper Award ï¿½ African Environmental Research Forum (2022)</div>
+                <div>ï¿½ Excellence in Teaching Award ï¿½ University of Nairobi (2021)</div>
+                <div>ï¿½ Young Scientist Award ï¿½ Kenya National Academy of Sciences (2018)</div>
+                <div>ï¿½ Outstanding Doctoral Thesis Prize ï¿½ University of Nairobi (2014)</div>
               </div>
             </div>
             {/* Teaching */}
             <div className="mb-0.5">
               <div className="font-bold text-[3.5px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Teaching Experience</div>
               <div className="text-[3px] space-y-0.5">
-                <div>• ENV 301: Environmental Impact Assessment (Undergraduate, UoN)</div>
-                <div>• ENV 502: Climate Change & Sustainable Development (Postgraduate, UoN)</div>
-                <div>• NRM 201: Natural Resource Management (Undergraduate, Egerton)</div>
-                <div>• ENV 401: Research Methods in Environmental Science (Undergraduate, UoN)</div>
+                <div>ï¿½ ENV 301: Environmental Impact Assessment (Undergraduate, UoN)</div>
+                <div>ï¿½ ENV 502: Climate Change & Sustainable Development (Postgraduate, UoN)</div>
+                <div>ï¿½ NRM 201: Natural Resource Management (Undergraduate, Egerton)</div>
+                <div>ï¿½ ENV 401: Research Methods in Environmental Science (Undergraduate, UoN)</div>
               </div>
             </div>
             {/* Professional Memberships */}
             <div>
               <div className="font-bold text-[3.5px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Professional Memberships</div>
               <div className="text-[3px] space-y-0.5">
-                <div>• Member – Kenya National Academy of Sciences (KNAS)</div>
-                <div>• Member – African Association of Environmental Scientists (AAES)</div>
-                <div>• Fellow – International Society for Ecological Economics (ISEE)</div>
-                <div>• Reviewer – Journal of Environmental Management; African Environmental Review</div>
+                <div>ï¿½ Member ï¿½ Kenya National Academy of Sciences (KNAS)</div>
+                <div>ï¿½ Member ï¿½ African Association of Environmental Scientists (AAES)</div>
+                <div>ï¿½ Fellow ï¿½ International Society for Ecological Economics (ISEE)</div>
+                <div>ï¿½ Reviewer ï¿½ Journal of Environmental Management; African Environmental Review</div>
               </div>
             </div>
           </div>
@@ -1433,37 +1433,37 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div className="mb-1.5">
                 <div className="font-bold text-[4.5px] uppercase border-b border-gray-400 pb-0.5 mb-0.5">Technical Skills</div>
                 <div className="space-y-0.5 text-[3.8px] text-gray-700">
-                  <div>• Mechanical Systems Maintenance</div>
-                  <div>• Preventive Maintenance Planning</div>
-                  <div>• Production Line Optimization</div>
-                  <div>• Root Cause Analysis</div>
-                  <div>• Industrial Safety Compliance</div>
-                  <div>• Process Improvement (Lean)</div>
-                  <div>• Equipment Commissioning</div>
-                  <div>• Technical Report Writing</div>
-                  <div>• Hydraulics & Pneumatics</div>
-                  <div>• Welding & Fabrication</div>
+                  <div>ï¿½ Mechanical Systems Maintenance</div>
+                  <div>ï¿½ Preventive Maintenance Planning</div>
+                  <div>ï¿½ Production Line Optimization</div>
+                  <div>ï¿½ Root Cause Analysis</div>
+                  <div>ï¿½ Industrial Safety Compliance</div>
+                  <div>ï¿½ Process Improvement (Lean)</div>
+                  <div>ï¿½ Equipment Commissioning</div>
+                  <div>ï¿½ Technical Report Writing</div>
+                  <div>ï¿½ Hydraulics & Pneumatics</div>
+                  <div>ï¿½ Welding & Fabrication</div>
                 </div>
               </div>
               <div className="mb-1.5">
                 <div className="font-bold text-[4.5px] uppercase border-b border-gray-400 pb-0.5 mb-0.5">Tools & Systems</div>
                 <div className="space-y-0.5 text-[3.8px] text-gray-700">
-                  <div>• AutoCAD</div>
-                  <div>• SolidWorks</div>
-                  <div>• SAP PM</div>
-                  <div>• PLC Systems</div>
-                  <div>• CMMS Software</div>
-                  <div>• Microsoft Excel</div>
-                  <div>• SCADA Systems</div>
+                  <div>ï¿½ AutoCAD</div>
+                  <div>ï¿½ SolidWorks</div>
+                  <div>ï¿½ SAP PM</div>
+                  <div>ï¿½ PLC Systems</div>
+                  <div>ï¿½ CMMS Software</div>
+                  <div>ï¿½ Microsoft Excel</div>
+                  <div>ï¿½ SCADA Systems</div>
                 </div>
               </div>
               <div>
                 <div className="font-bold text-[4.5px] uppercase border-b border-gray-400 pb-0.5 mb-0.5">Certifications</div>
                 <div className="space-y-0.5 text-[3.8px] text-gray-700">
-                  <div>• Certified Maintenance Professional</div>
-                  <div>• OSH Certificate</div>
-                  <div>• Lean Manufacturing – KIM</div>
-                  <div>• First Aid & Fire Safety</div>
+                  <div>ï¿½ Certified Maintenance Professional</div>
+                  <div>ï¿½ OSH Certificate</div>
+                  <div>ï¿½ Lean Manufacturing ï¿½ KIM</div>
+                  <div>ï¿½ First Aid & Fire Safety</div>
                 </div>
               </div>
             </div>
@@ -1494,30 +1494,30 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div className="mb-1.5">
                 <div className="font-bold text-[4.5px] uppercase border-b-2 border-gray-800 pb-0.5 mb-1">Professional Experience</div>
                 <div className="mb-1">
-                  <div className="font-bold text-[3.8px]">Mechanical Engineer — East Africa Packaging Ltd</div>
-                  <div className="text-[3.5px] text-gray-500">Nairobi | 2022 – Present</div>
+                  <div className="font-bold text-[3.8px]">Mechanical Engineer ï¿½ East Africa Packaging Ltd</div>
+                  <div className="text-[3.5px] text-gray-500">Nairobi | 2022 ï¿½ Present</div>
                   <div className="space-y-0.5 text-[3.8px] text-gray-700 mt-0.5">
-                    <div>• Oversee maintenance of 40+ production machines across 3 lines</div>
-                    <div>• Develop and execute preventive maintenance schedules via SAP PM</div>
-                    <div>• Lead root cause analysis for recurring equipment failures</div>
-                    <div>• Ensure compliance with OSHA and company safety standards</div>
+                    <div>ï¿½ Oversee maintenance of 40+ production machines across 3 lines</div>
+                    <div>ï¿½ Develop and execute preventive maintenance schedules via SAP PM</div>
+                    <div>ï¿½ Lead root cause analysis for recurring equipment failures</div>
+                    <div>ï¿½ Ensure compliance with OSHA and company safety standards</div>
                   </div>
                 </div>
                 <div className="mb-1">
-                  <div className="font-bold text-[3.8px]">Maintenance Engineer — Nairobi Steel Manufacturing</div>
-                  <div className="text-[3.5px] text-gray-500">Nairobi | 2019 – 2022</div>
+                  <div className="font-bold text-[3.8px]">Maintenance Engineer ï¿½ Nairobi Steel Manufacturing</div>
+                  <div className="text-[3.5px] text-gray-500">Nairobi | 2019 ï¿½ 2022</div>
                   <div className="space-y-0.5 text-[3.8px] text-gray-700 mt-0.5">
-                    <div>• Managed mechanical maintenance for steel rolling and cutting equipment</div>
-                    <div>• Supervised a team of 6 technicians on daily maintenance activities</div>
-                    <div>• Reduced spare parts costs by 20% through improved inventory management</div>
+                    <div>ï¿½ Managed mechanical maintenance for steel rolling and cutting equipment</div>
+                    <div>ï¿½ Supervised a team of 6 technicians on daily maintenance activities</div>
+                    <div>ï¿½ Reduced spare parts costs by 20% through improved inventory management</div>
                   </div>
                 </div>
                 <div>
-                  <div className="font-bold text-[3.8px]">Graduate Trainee – Engineering — Kenya Breweries Ltd</div>
-                  <div className="text-[3.5px] text-gray-500">Nairobi | 2018 – 2019</div>
+                  <div className="font-bold text-[3.8px]">Graduate Trainee ï¿½ Engineering ï¿½ Kenya Breweries Ltd</div>
+                  <div className="text-[3.5px] text-gray-500">Nairobi | 2018 ï¿½ 2019</div>
                   <div className="space-y-0.5 text-[3.8px] text-gray-700 mt-0.5">
-                    <div>• Rotated across production, utilities, and maintenance departments</div>
-                    <div>• Assisted senior engineers with equipment inspections and reports</div>
+                    <div>ï¿½ Rotated across production, utilities, and maintenance departments</div>
+                    <div>ï¿½ Assisted senior engineers with equipment inspections and reports</div>
                   </div>
                 </div>
               </div>
@@ -1526,29 +1526,29 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                 <div className="mb-0.5">
                   <div className="font-bold text-[3.8px]">BSc Mechanical Engineering</div>
                   <div className="text-[3.8px] text-gray-700">Jomo Kenyatta University of Agriculture & Technology</div>
-                  <div className="text-[3.5px] text-gray-500">2014 – 2018</div>
+                  <div className="text-[3.5px] text-gray-500">2014 ï¿½ 2018</div>
                 </div>
                 <div>
                   <div className="font-bold text-[3.8px]">Kenya Certificate of Secondary Education</div>
                   <div className="text-[3.8px] text-gray-700">Moi High School Kabarak</div>
-                  <div className="text-[3.5px] text-gray-500">2010 – 2013</div>
+                  <div className="text-[3.5px] text-gray-500">2010 ï¿½ 2013</div>
                 </div>
               </div>
               <div className="mb-1.5">
                 <div className="font-bold text-[4.5px] uppercase border-b-2 border-gray-800 pb-0.5 mb-1">Key Achievements</div>
                 <div className="space-y-0.5 text-[3.8px] text-gray-700">
-                  <div>• Reduced unplanned machine downtime by 30% through predictive maintenance</div>
-                  <div>• Saved KES 1.8M annually via energy audit and system optimization</div>
-                  <div>• Extended average machine lifespan by 2 years through improved PM program</div>
-                  <div>• Mentored 4 junior engineers and 3 graduate trainees</div>
+                  <div>ï¿½ Reduced unplanned machine downtime by 30% through predictive maintenance</div>
+                  <div>ï¿½ Saved KES 1.8M annually via energy audit and system optimization</div>
+                  <div>ï¿½ Extended average machine lifespan by 2 years through improved PM program</div>
+                  <div>ï¿½ Mentored 4 junior engineers and 3 graduate trainees</div>
                 </div>
               </div>
               <div>
                 <div className="font-bold text-[4.5px] uppercase border-b-2 border-gray-800 pb-0.5 mb-1">Professional Memberships</div>
                 <div className="space-y-0.5 text-[3.8px] text-gray-700">
-                  <div>• Member – Engineers Board of Kenya (EBK)</div>
-                  <div>• Member – Institution of Engineers of Kenya (IEK)</div>
-                  <div>• Member – Kenya Association of Manufacturers (KAM)</div>
+                  <div>ï¿½ Member ï¿½ Engineers Board of Kenya (EBK)</div>
+                  <div>ï¿½ Member ï¿½ Institution of Engineers of Kenya (IEK)</div>
+                  <div>ï¿½ Member ï¿½ Kenya Association of Manufacturers (KAM)</div>
                 </div>
               </div>
             </div>
@@ -1580,46 +1580,46 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             <div className="mb-1">
               <div className="font-semibold text-[4px] uppercase border-b border-gray-400 pb-0.5 mb-0.5 tracking-wide">Core Skills</div>
               <div className="grid grid-cols-2 text-[3.5px] gap-y-0.5">
-                <div>• Data Analysis</div>
-                <div>• SQL</div>
-                <div>• Python</div>
-                <div>• Power BI</div>
-                <div>• Excel (Advanced)</div>
-                <div>• Data Visualization</div>
-                <div>• Statistical Analysis</div>
-                <div>• Business Intelligence</div>
-                <div>• ETL Pipelines</div>
-                <div>• Stakeholder Reporting</div>
+                <div>ï¿½ Data Analysis</div>
+                <div>ï¿½ SQL</div>
+                <div>ï¿½ Python</div>
+                <div>ï¿½ Power BI</div>
+                <div>ï¿½ Excel (Advanced)</div>
+                <div>ï¿½ Data Visualization</div>
+                <div>ï¿½ Statistical Analysis</div>
+                <div>ï¿½ Business Intelligence</div>
+                <div>ï¿½ ETL Pipelines</div>
+                <div>ï¿½ Stakeholder Reporting</div>
               </div>
             </div>
             {/* Experience */}
             <div className="mb-1">
               <div className="font-semibold text-[4px] uppercase border-b border-gray-400 pb-0.5 mb-0.5 tracking-wide">Professional Experience</div>
               <div className="mb-0.5">
-                <div className="font-semibold text-[3.5px]">Data Analyst — Insight Analytics Ltd</div>
-                <div className="text-[3.2px] text-gray-600 mb-0.5">Nairobi, Kenya | January 2021 – Present</div>
+                <div className="font-semibold text-[3.5px]">Data Analyst ï¿½ Insight Analytics Ltd</div>
+                <div className="text-[3.2px] text-gray-600 mb-0.5">Nairobi, Kenya | January 2021 ï¿½ Present</div>
                 <div className="space-y-0.5 text-[3.5px] text-gray-700">
-                  <div>• Analyzed large datasets to support business decision-making across 5 departments.</div>
-                  <div>• Developed Power BI dashboards tracking 20+ KPIs for senior leadership.</div>
-                  <div>• Automated weekly reporting using Python scripts, saving 8 hours per week.</div>
-                  <div>• Collaborated with product and finance teams to deliver quarterly data insights.</div>
+                  <div>ï¿½ Analyzed large datasets to support business decision-making across 5 departments.</div>
+                  <div>ï¿½ Developed Power BI dashboards tracking 20+ KPIs for senior leadership.</div>
+                  <div>ï¿½ Automated weekly reporting using Python scripts, saving 8 hours per week.</div>
+                  <div>ï¿½ Collaborated with product and finance teams to deliver quarterly data insights.</div>
                 </div>
               </div>
               <div className="mb-0.5">
-                <div className="font-semibold text-[3.5px]">Junior Data Analyst — TechData Solutions</div>
-                <div className="text-[3.2px] text-gray-600 mb-0.5">Nairobi, Kenya | March 2019 – December 2020</div>
+                <div className="font-semibold text-[3.5px]">Junior Data Analyst ï¿½ TechData Solutions</div>
+                <div className="text-[3.2px] text-gray-600 mb-0.5">Nairobi, Kenya | March 2019 ï¿½ December 2020</div>
                 <div className="space-y-0.5 text-[3.5px] text-gray-700">
-                  <div>• Prepared reports and visualizations for management review.</div>
-                  <div>• Maintained company data warehouse and ensured data integrity.</div>
-                  <div>• Supported analytics projects across finance, sales, and operations.</div>
+                  <div>ï¿½ Prepared reports and visualizations for management review.</div>
+                  <div>ï¿½ Maintained company data warehouse and ensured data integrity.</div>
+                  <div>ï¿½ Supported analytics projects across finance, sales, and operations.</div>
                 </div>
               </div>
               <div>
-                <div className="font-semibold text-[3.5px]">Data Intern — Kenya Revenue Authority</div>
-                <div className="text-[3.2px] text-gray-600 mb-0.5">Nairobi, Kenya | June 2018 – February 2019</div>
+                <div className="font-semibold text-[3.5px]">Data Intern ï¿½ Kenya Revenue Authority</div>
+                <div className="text-[3.2px] text-gray-600 mb-0.5">Nairobi, Kenya | June 2018 ï¿½ February 2019</div>
                 <div className="space-y-0.5 text-[3.5px] text-gray-700">
-                  <div>• Assisted with data cleaning and validation for compliance reporting.</div>
-                  <div>• Built Excel models to track revenue collection trends across regions.</div>
+                  <div>ï¿½ Assisted with data cleaning and validation for compliance reporting.</div>
+                  <div>ï¿½ Built Excel models to track revenue collection trends across regions.</div>
                 </div>
               </div>
             </div>
@@ -1629,40 +1629,40 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div className="mb-0.5">
                 <div className="font-semibold text-[3.5px]">BSc Statistics</div>
                 <div className="text-[3.5px] text-gray-700">University of Nairobi</div>
-                <div className="text-[3.2px] text-gray-600">2015 – 2019 | Second Class Honours (Upper Division)</div>
+                <div className="text-[3.2px] text-gray-600">2015 ï¿½ 2019 | Second Class Honours (Upper Division)</div>
               </div>
               <div>
                 <div className="font-semibold text-[3.5px]">Kenya Certificate of Secondary Education</div>
                 <div className="text-[3.5px] text-gray-700">Starehe Boys Centre, Nairobi</div>
-                <div className="text-[3.2px] text-gray-600">2011 – 2014 | Grade A-</div>
+                <div className="text-[3.2px] text-gray-600">2011 ï¿½ 2014 | Grade A-</div>
               </div>
             </div>
             {/* Certifications */}
             <div className="mb-1">
               <div className="font-semibold text-[4px] uppercase border-b border-gray-400 pb-0.5 mb-0.5 tracking-wide">Certifications</div>
               <div className="space-y-0.5 text-[3.5px] text-gray-700">
-                <div>• Google Data Analytics Professional Certificate – Google (2022)</div>
-                <div>• Microsoft Power BI Data Analyst Associate – Microsoft (2023)</div>
-                <div>• SQL for Data Science – Coursera / UC Davis (2021)</div>
+                <div>ï¿½ Google Data Analytics Professional Certificate ï¿½ Google (2022)</div>
+                <div>ï¿½ Microsoft Power BI Data Analyst Associate ï¿½ Microsoft (2023)</div>
+                <div>ï¿½ SQL for Data Science ï¿½ Coursera / UC Davis (2021)</div>
               </div>
             </div>
             {/* Additional */}
             <div className="mb-1">
               <div className="font-semibold text-[4px] uppercase border-b border-gray-400 pb-0.5 mb-0.5 tracking-wide">Additional Information</div>
               <div className="space-y-0.5 text-[3.5px] text-gray-700">
-                <div>• Languages: English (Fluent), Swahili (Fluent), French (Basic)</div>
-                <div>• Volunteer Data Analyst – DataKind Kenya (2022 – Present)</div>
-                <div>• Member – Kenya Data Science Society</div>
+                <div>ï¿½ Languages: English (Fluent), Swahili (Fluent), French (Basic)</div>
+                <div>ï¿½ Volunteer Data Analyst ï¿½ DataKind Kenya (2022 ï¿½ Present)</div>
+                <div>ï¿½ Member ï¿½ Kenya Data Science Society</div>
               </div>
             </div>
             {/* Key Achievements */}
             <div className="mb-1">
               <div className="font-semibold text-[4px] uppercase border-b border-gray-400 pb-0.5 mb-0.5 tracking-wide">Key Achievements</div>
               <div className="space-y-0.5 text-[3.5px] text-gray-700">
-                <div>• Automated reporting workflows saving 8+ hours per week across 3 teams.</div>
-                <div>• Built executive dashboards adopted by C-suite for monthly business reviews.</div>
-                <div>• Reduced data processing errors by 40% through improved validation pipelines.</div>
-                <div>• Recognized as top performer Q3 2023 for data-driven cost savings initiative.</div>
+                <div>ï¿½ Automated reporting workflows saving 8+ hours per week across 3 teams.</div>
+                <div>ï¿½ Built executive dashboards adopted by C-suite for monthly business reviews.</div>
+                <div>ï¿½ Reduced data processing errors by 40% through improved validation pipelines.</div>
+                <div>ï¿½ Recognized as top performer Q3 2023 for data-driven cost savings initiative.</div>
               </div>
             </div>
             {/* References */}
