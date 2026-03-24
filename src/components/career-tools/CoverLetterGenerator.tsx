@@ -7,257 +7,147 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Mail, Download, Wand2, Copy, Trash2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Plus, Mail, Download, Copy, Trash2, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import CoverLetterTemplatePreview from '@/components/cover-letter/CoverLetterTemplatePreview';
+import ClassicProfessionalLetter, { ClassicLetterData } from '@/components/cover-letter/templates/ClassicProfessionalLetter';
+import { classicLetterPreviewData } from '@/data/classicLetterPreviewData';
+import { classicLetterSchema } from '@/schemas/classicLetterSchema';
 import {
   getCoverLetterTemplates,
   getUserCoverLetters,
   createCoverLetter,
-  updateCoverLetter,
-  generateCoverLetterFromTemplate,
   type CoverLetterTemplate,
-  type CandidateCoverLetter
 } from '@/lib/careerTools';
+
+const PROFESSIONAL_TEMPLATES = [
+  {
+    name: 'Classic Professional Cover Letter',
+    available: true,
+    bestFor: ['Government jobs', 'NGOs', 'Banking', 'Corporate roles', 'Administrative positions'],
+    why: 'Safest option — works everywhere',
+  },
+  {
+    name: 'Modern Professional Cover Letter',
+    available: false,
+    bestFor: ['Private sector jobs', 'Marketing roles', 'Business roles', 'Mid-level professionals'],
+    why: 'Feels current without being risky',
+  },
+  {
+    name: 'Short & Direct Cover Letter',
+    available: false,
+    bestFor: ['Startups', 'Tech companies', 'Busy recruiters', 'Online applications'],
+    why: 'Matches modern hiring behavior',
+  },
+];
 
 export default function CoverLetterGenerator() {
   const [letters, setLetters] = useState<any[]>([]);
-  const [templates, setTemplates] = useState<CoverLetterTemplate[]>([]);
-  const [selectedTemplate, setSelectedTemplate] = useState<CoverLetterTemplate | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
-  const [placeholders, setPlaceholders] = useState<Record<string, string>>({});
+  const [dbTemplates, setDbTemplates] = useState<CoverLetterTemplate[]>([]);
+  const [showEditor, setShowEditor] = useState(false);
+  const [formData, setFormData] = useState<ClassicLetterData>({ ...classicLetterPreviewData });
+  const [letterTitle, setLetterTitle] = useState('');
+  const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
   async function loadData() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-
       const [lettersData, templatesData] = await Promise.all([
         getUserCoverLetters(user.id),
-        getCoverLetterTemplates()
+        getCoverLetterTemplates(),
       ]);
-
-      setLetters(lettersData);
-      setTemplates(templatesData);
+      setLetters(lettersData ?? []);
+      setDbTemplates(templatesData ?? []);
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive'
-      });
+      toast({ title: 'Error loading data', description: error.message, variant: 'destructive' });
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleGenerateFromTemplate() {
-    if (!selectedTemplate) return;
+  function handleUseClassic() {
+    setFormData({ ...classicLetterPreviewData });
+    setLetterTitle('');
+    setShowEditor(true);
+  }
 
+  function updateField(key: keyof ClassicLetterData, value: string) {
+    setFormData(prev => ({ ...prev, [key]: value }));
+  }
+
+  async function handleSave() {
+    if (!letterTitle.trim()) {
+      toast({ title: 'Name required', description: 'Give your cover letter a name.', variant: 'destructive' });
+      return;
+    }
+    setSaving(true);
     try {
-      const content = await generateCoverLetterFromTemplate(
-        selectedTemplate.id,
-        placeholders
-      );
-
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-
+      const classicTemplate = dbTemplates.find(t => t.name === 'Classic Professional Cover Letter');
+      const content = [
+        formData.name, formData.phone, formData.email, formData.location, '',
+        formData.date, '',
+        formData.hiringManager, formData.company, formData.companyAddress, '',
+        `Dear ${formData.hiringManager || 'Hiring Manager'},`, '',
+        formData.paragraph1, '', formData.paragraph2, '', formData.paragraph3, '',
+        'Sincerely,', formData.name,
+      ].join('\n');
       const newLetter = await createCoverLetter({
         user_id: user.id,
-        template_id: selectedTemplate.id,
-        title: placeholders.job_title || 'Untitled Cover Letter',
+        template_id: classicTemplate?.id ?? null,
+        title: letterTitle,
         content,
-        job_id: null
+        job_id: null,
       });
-
       setLetters([newLetter, ...letters]);
-      setIsCreating(false);
-      setPlaceholders({});
-      setSelectedTemplate(null);
-
-      toast({
-        title: 'Success',
-        description: 'Cover letter generated successfully'
-      });
+      setShowEditor(false);
+      toast({ title: 'Cover letter saved' });
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive'
-      });
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } finally {
+      setSaving(false);
     }
   }
 
-  async function handleDeleteLetter(id: string) {
-    if (!confirm('Are you sure you want to delete this cover letter?')) return;
-
+  async function handleDelete(id: string) {
+    if (!confirm('Delete this cover letter?')) return;
     try {
       await supabase.from('candidate_cover_letters' as any).delete().eq('id', id);
       setLetters(letters.filter(l => l.id !== id));
-      toast({
-        title: 'Success',
-        description: 'Cover letter deleted'
-      });
+      toast({ title: 'Deleted' });
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive'
-      });
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     }
   }
 
   function copyToClipboard(content: string) {
     navigator.clipboard.writeText(content);
-    toast({
-      title: 'Copied',
-      description: 'Cover letter copied to clipboard'
-    });
+    toast({ title: 'Copied to clipboard' });
   }
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  if (loading) return <div className="p-8 text-center text-muted-foreground">Loading...</div>;
 
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Cover Letter Generator</CardTitle>
-              <CardDescription>
-                Create personalized cover letters using templates
-              </CardDescription>
-            </div>
-            <Dialog open={isCreating} onOpenChange={setIsCreating}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Cover Letter
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Generate Cover Letter</DialogTitle>
-                  <DialogDescription>
-                    Select a template and fill in the details
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label>Template</Label>
-                    <Select
-                      value={selectedTemplate?.id}
-                      onValueChange={(value) => {
-                        const template = templates.find(t => t.id === value);
-                        setSelectedTemplate(template || null);
-                        if (template?.placeholders) {
-                          const initialPlaceholders: Record<string, string> = {};
-                          template.placeholders.placeholders.forEach((p: string) => {
-                            initialPlaceholders[p] = '';
-                          });
-                          setPlaceholders(initialPlaceholders);
-                        }
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a template" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {templates.map(template => (
-                          <SelectItem key={template.id} value={template.id}>
-                            {template.name} - {template.category}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {selectedTemplate && (
-                    <>
-                      <div className="border rounded-lg p-4 bg-muted/50">
-                        <h4 className="font-semibold mb-2">Template Preview</h4>
-                        <p className="text-sm whitespace-pre-wrap">
-                          {selectedTemplate.template_text.substring(0, 300)}...
-                        </p>
-                      </div>
-
-                      <div className="space-y-3">
-                        <h4 className="font-semibold">Fill in the details</h4>
-                        {selectedTemplate.placeholders?.placeholders.map((placeholder: string) => (
-                          <div key={placeholder}>
-                            <Label htmlFor={placeholder}>
-                              {placeholder.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                            </Label>
-                            {placeholder.includes('paragraph') ? (
-                              <Textarea
-                                id={placeholder}
-                                value={placeholders[placeholder] || ''}
-                                onChange={(e) => setPlaceholders({
-                                  ...placeholders,
-                                  [placeholder]: e.target.value
-                                })}
-                                rows={3}
-                              />
-                            ) : (
-                              <Input
-                                id={placeholder}
-                                value={placeholders[placeholder] || ''}
-                                onChange={(e) => setPlaceholders({
-                                  ...placeholders,
-                                  [placeholder]: e.target.value
-                                })}
-                              />
-                            )}
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => {
-                            setIsCreating(false);
-                            setSelectedTemplate(null);
-                            setPlaceholders({});
-                          }}
-                        >
-                          Cancel
-                        </Button>
-                        <Button onClick={handleGenerateFromTemplate}>
-                          <Wand2 className="h-4 w-4 mr-2" />
-                          Generate
-                        </Button>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
+          <CardTitle>My Cover Letters</CardTitle>
+          <CardDescription>Your saved cover letters — ready to copy or download.</CardDescription>
         </CardHeader>
         <CardContent>
           {letters.length === 0 ? (
-            <div className="text-center py-12">
+            <div className="text-center py-10">
               <Mail className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No cover letters yet</h3>
-              <p className="text-muted-foreground mb-4">
-                Generate your first cover letter from a template
-              </p>
-              <Button onClick={() => setIsCreating(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Cover Letter
-              </Button>
+              <h3 className="text-lg font-semibold mb-1">No cover letters yet</h3>
+              <p className="text-muted-foreground text-sm">Pick a template below to get started.</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -266,38 +156,20 @@ export default function CoverLetterGenerator() {
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div>
-                        <CardTitle className="text-lg">{letter.title}</CardTitle>
-                        <CardDescription>                          Created {new Date(letter.created_at).toLocaleDateString()}
-                        </CardDescription>
+                        <CardTitle className="text-base">{letter.title}</CardTitle>
+                        <CardDescription>{new Date(letter.created_at).toLocaleDateString()}</CardDescription>
                       </div>
                       <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => copyToClipboard(letter.content)}
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Download className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => handleDeleteLetter(letter.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => copyToClipboard(letter.content)}><Copy className="h-4 w-4" /></Button>
+                        <Button size="sm" variant="outline"><Download className="h-4 w-4" /></Button>
+                        <Button size="sm" variant="destructive" onClick={() => handleDelete(letter.id)}><Trash2 className="h-4 w-4" /></Button>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="prose prose-sm max-w-none">
-                      <pre className="whitespace-pre-wrap font-sans text-sm">
-                        {letter.content.substring(0, 400)}
-                        {letter.content.length > 400 && '...'}
-                      </pre>
-                    </div>
+                    <pre className="whitespace-pre-wrap font-sans text-sm text-muted-foreground line-clamp-3">
+                      {letter.content.substring(0, 300)}{letter.content.length > 300 && '...'}
+                    </pre>
                   </CardContent>
                 </Card>
               ))}
@@ -306,42 +178,142 @@ export default function CoverLetterGenerator() {
         </CardContent>
       </Card>
 
-      {/* Templates Gallery */}
       <Card>
-        <CardHeader>
-          <CardTitle>Available Templates</CardTitle>
-          <CardDescription>
-            Professional cover letter templates for different situations
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl text-[#0A66C2]">Cover Letter Templates</CardTitle>
+          <CardDescription className="text-base mt-2 max-w-3xl mx-auto">
+            Choose from professionally designed templates tailored for the Kenyan job market.
+            Each template is structured to help you make a strong first impression.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {templates.map(template => (
-              <Card key={template.id} className="cursor-pointer hover:border-primary">
-                <CardHeader>
-                  <CardTitle className="text-sm">{template.name}</CardTitle>
-                  <CardDescription className="text-xs">
-                    {template.category}
-                    {template.is_premium && (
-                      <Badge variant="secondary" className="ml-2">Premium</Badge>
-                    )}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-xs text-muted-foreground line-clamp-3">
-                    {template.description}
-                  </p>
-                  <div className="mt-3">
-                    <Badge variant="outline" className="text-xs">
-                      Used {template.usage_count} times
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+          <div>
+            <div className="mb-6 text-center">
+              <h3 className="text-xl font-semibold text-[#0A66C2]">Professional Cover Letters</h3>
+              <p className="text-sm text-muted-foreground mt-1 max-w-3xl mx-auto">
+                The core category — handles 70–80% of all job applications. Suitable for corporate,
+                government, NGO, banking, and private sector roles across all experience levels.
+              </p>
+            </div>
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+              {PROFESSIONAL_TEMPLATES.map(tpl => (
+                tpl.available ? (
+                  <Card
+                    key={tpl.name}
+                    className="cursor-pointer hover:border-primary hover:shadow-lg transition-all transform hover:scale-105 group relative"
+                    onClick={handleUseClassic}
+                  >
+                    <CardHeader className="p-4">
+                      <div className="relative">
+                        <CoverLetterTemplatePreview templateName={tpl.name} showDescription={false} />
+                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center rounded pointer-events-none">
+                          <div className="bg-orange-500 text-white px-6 py-3 rounded-full font-semibold text-sm shadow-lg">
+                            Use This Template
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-4 space-y-2">
+                        <CardTitle className="text-base text-[#0A66C2]">{tpl.name}</CardTitle>
+                        <CoverLetterTemplatePreview templateName={tpl.name} showDescription={true} descriptionOnly={true} />
+                        <div className="pt-1">
+                          <p className="text-xs font-medium text-gray-500 mb-1">Best for:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {tpl.bestFor.map(b => <Badge key={b} variant="outline" className="text-xs">{b}</Badge>)}
+                          </div>
+                        </div>
+                        <p className="text-xs text-green-700 font-medium">👉 {tpl.why}</p>
+                      </div>
+                    </CardHeader>
+                  </Card>
+                ) : (
+                  <Card key={tpl.name} className="relative opacity-75">
+                    <CardHeader className="p-4">
+                      <div className="w-full aspect-[3/4] bg-gray-50 border border-dashed border-gray-300 rounded flex flex-col items-center justify-center gap-2">
+                        <Clock className="h-8 w-8 text-gray-300" />
+                        <span className="text-xs text-gray-400 font-medium">Coming Soon</span>
+                      </div>
+                      <div className="mt-4 space-y-2">
+                        <CardTitle className="text-base text-gray-400">{tpl.name}</CardTitle>
+                        <CoverLetterTemplatePreview templateName={tpl.name} showDescription={true} descriptionOnly={true} />
+                        <div className="pt-1">
+                          <p className="text-xs font-medium text-gray-400 mb-1">Best for:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {tpl.bestFor.map(b => <Badge key={b} variant="outline" className="text-xs text-gray-400">{b}</Badge>)}
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-400">👉 {tpl.why}</p>
+                      </div>
+                    </CardHeader>
+                  </Card>
+                )
+              ))}
+            </div>
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={showEditor} onOpenChange={setShowEditor}>
+        <DialogContent className="max-w-6xl w-[95vw] max-h-[90vh] h-[90vh] overflow-hidden flex flex-col p-0">
+          <DialogHeader className="px-6 pt-6 pb-3 border-b">
+            <DialogTitle>Classic Professional Cover Letter</DialogTitle>
+            <DialogDescription>Edit your details on the left — the preview updates live on the right.</DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-1 overflow-hidden">
+            <div className="w-[340px] flex-shrink-0 border-r overflow-y-auto px-5 py-4 space-y-4">
+              <div>
+                <Label htmlFor="letter-title" className="text-sm font-semibold">Cover Letter Name</Label>
+                <Input
+                  id="letter-title"
+                  className="mt-1"
+                  placeholder="e.g. Application for Finance Manager — KCB"
+                  value={letterTitle}
+                  onChange={e => setLetterTitle(e.target.value)}
+                />
+              </div>
+              <div className="border-t pt-3">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Your Details</p>
+                {(Object.entries(classicLetterSchema) as [keyof ClassicLetterData, typeof classicLetterSchema[string]][]).map(([key, field]) => (
+                  <div key={key} className="mb-3">
+                    <Label htmlFor={key} className="text-sm">{field.label}</Label>
+                    {field.type === 'textarea' ? (
+                      <>
+                        <Textarea
+                          id={key}
+                          className="mt-1 text-sm"
+                          rows={4}
+                          placeholder={field.placeholder}
+                          value={formData[key] ?? ''}
+                          onChange={e => updateField(key, e.target.value)}
+                        />
+                        {field.hint && <p className="text-xs text-muted-foreground mt-1">{field.hint}</p>}
+                      </>
+                    ) : (
+                      <Input
+                        id={key}
+                        className="mt-1 text-sm"
+                        placeholder={field.placeholder}
+                        value={formData[key] ?? ''}
+                        onChange={e => updateField(key, e.target.value)}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2 pt-2 pb-4">
+                <Button variant="outline" className="flex-1" onClick={() => setShowEditor(false)}>Cancel</Button>
+                <Button className="flex-1" onClick={handleSave} disabled={saving}>
+                  {saving ? 'Saving...' : 'Save Letter'}
+                </Button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-auto bg-gray-100 flex items-start justify-center p-6">
+              <div style={{ transform: 'scale(0.75)', transformOrigin: 'top center' }}>
+                <ClassicProfessionalLetter data={formData} />
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
