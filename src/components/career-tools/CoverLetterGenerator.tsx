@@ -316,7 +316,7 @@ export default function CoverLetterGenerator() {
                   const prefix = activeTemplate === 'modern' ? 'modern-' : activeTemplate === 'short' ? 'short-' : '';
                   return Object.keys(schema).map(key => {
                     const field = schema[key];
-                    const val = (vals as Record<string, string>)[key] ?? '';
+                    const val = (vals as unknown as Record<string, string>)[key] ?? '';
                     return (
                       <div key={key} className="mb-3">
                         <Label htmlFor={`${prefix}${key}`} className="text-sm">{field.label}</Label>
