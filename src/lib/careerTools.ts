@@ -214,7 +214,7 @@ export async function getCoverLetterTemplates() {
 export async function getUserCoverLetters(userId: string) {
   const { data, error } = await supabase
     .from('candidate_cover_letters' as any)
-    .select('*, jobs(title, company_name)')
+    .select('*')
     .eq('user_id', userId)
     .order('updated_at', { ascending: false });
 

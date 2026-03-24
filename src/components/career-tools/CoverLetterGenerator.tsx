@@ -267,9 +267,7 @@ export default function CoverLetterGenerator() {
                     <div className="flex items-start justify-between">
                       <div>
                         <CardTitle className="text-lg">{letter.title}</CardTitle>
-                        <CardDescription>
-                          {letter.jobs?.company_name && `For ${letter.jobs.company_name} • `}
-                          Created {new Date(letter.created_at).toLocaleDateString()}
+                        <CardDescription>                          Created {new Date(letter.created_at).toLocaleDateString()}
                         </CardDescription>
                       </div>
                       <div className="flex gap-2">
