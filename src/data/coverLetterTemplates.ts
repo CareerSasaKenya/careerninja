@@ -8,6 +8,10 @@ import ClassicProfessionalLetter from '@/components/cover-letter/templates/Class
 import { classicLetterPreviewData } from './classicLetterPreviewData';
 import { classicLetterSchema } from '@/schemas/classicLetterSchema';
 
+import ModernProfessionalLetter from '@/components/cover-letter/templates/ModernProfessionalLetter';
+import { modernLetterPreviewData } from './modernLetterPreviewData';
+import { modernLetterSchema } from '@/schemas/modernLetterSchema';
+
 export interface CoverLetterTemplateConfig {
   id: string;
   name: string;
@@ -33,8 +37,19 @@ export const coverLetterTemplateRegistry: Record<string, CoverLetterTemplateConf
     schema: classicLetterSchema,
     isPremium: false,
   },
+  'Modern Professional Cover Letter': {
+    id: 'modern-professional',
+    name: 'Modern Professional Cover Letter',
+    category: 'professional',
+    description:
+      'Cleaner layout with better spacing and a contemporary tone. Ideal for private sector, marketing, business, and mid-level professional roles.',
+    bestFor: ['Private sector', 'Marketing', 'Business roles', 'Mid-level professionals', 'Corporate upgrades'],
+    component: ModernProfessionalLetter,
+    defaultData: modernLetterPreviewData as unknown as Record<string, string>,
+    schema: modernLetterSchema,
+    isPremium: false,
+  },
   // Additional templates will be registered here as they are built:
-  // 'Modern Professional Cover Letter': { ... },
   // 'Short & Direct Cover Letter': { ... },
   // 'Graduate / Entry-Level Cover Letter': { ... },
   // 'Internship / Attachment Cover Letter': { ... },

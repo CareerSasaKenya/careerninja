@@ -68,6 +68,44 @@ function ClassicPreviewThumbnail() {
   );
 }
 
+function ModernPreviewThumbnail() {
+  return (
+    <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded px-4 py-4 text-[5px] leading-[1.5] overflow-hidden shadow-sm font-sans">
+      {/* Header */}
+      <div className="mb-3">
+        <div className="font-bold text-[8px] text-gray-900">Grace Wanjiku Mwangi</div>
+        <div className="flex gap-2 text-gray-500 mt-0.5 flex-wrap">
+          <span>+254 712 555 444</span>
+          <span>grace@email.com</span>
+          <span>Nairobi, Kenya</span>
+        </div>
+        <div className="mt-1.5 h-[1.5px] w-6 bg-gray-800 rounded" />
+      </div>
+      {/* Date */}
+      <div className="text-gray-500 mb-2">24 March 2026</div>
+      {/* Employer */}
+      <div className="mb-2 space-y-0.5">
+        <div className="font-semibold text-gray-900">Hiring Manager</div>
+        <div>BrightWave Marketing Ltd</div>
+        <div className="text-gray-500">P.O. Box 67890, Nairobi</div>
+      </div>
+      {/* Salutation */}
+      <div className="mb-2">Dear Hiring Manager,</div>
+      {/* Body */}
+      <div className="space-y-2 mb-3 text-gray-700">
+        <p>I am excited to apply for the Marketing Executive position at BrightWave Marketing Ltd. With over five years of experience in digital marketing and brand strategy, I have developed a strong ability to create impactful campaigns.</p>
+        <p>In my current role, I have successfully managed multi-channel marketing campaigns, increased social media engagement, and contributed to revenue growth through data-driven strategies.</p>
+        <p>I am particularly drawn to your company's innovative approach to marketing and would welcome the opportunity to contribute my expertise to your team.</p>
+      </div>
+      {/* Closing */}
+      <div>
+        <div className="mb-2 text-gray-700">Sincerely,</div>
+        <div className="font-semibold text-gray-900">Grace Wanjiku Mwangi</div>
+      </div>
+    </div>
+  );
+}
+
 function GenericPreviewThumbnail({ templateName }: { templateName: string }) {
   const isShort = templateName === 'Short & Direct Cover Letter';
   const isPersonalBrand = templateName === 'Personal Brand Cover Letter';
@@ -143,6 +181,8 @@ export default function CoverLetterTemplatePreview({ templateName, showDescripti
 
   const thumbnail = templateName === 'Classic Professional Cover Letter'
     ? <ClassicPreviewThumbnail />
+    : templateName === 'Modern Professional Cover Letter'
+    ? <ModernPreviewThumbnail />
     : <GenericPreviewThumbnail templateName={templateName} />;
 
   return (
