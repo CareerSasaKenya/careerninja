@@ -18,6 +18,9 @@ import { classicLetterSchema } from '@/schemas/classicLetterSchema';
 import ModernProfessionalLetter, { ModernLetterData } from '@/components/cover-letter/templates/ModernProfessionalLetter';
 import { modernLetterPreviewData } from '@/data/modernLetterPreviewData';
 import { modernLetterSchema } from '@/schemas/modernLetterSchema';
+import ShortDirectLetter, { ShortDirectLetterData } from '@/components/cover-letter/templates/ShortDirectLetter';
+import { shortLetterPreviewData } from '@/data/shortLetterPreviewData';
+import { shortLetterSchema } from '@/schemas/shortLetterSchema';
 import {
   getCoverLetterTemplates,
   getUserCoverLetters,
@@ -40,7 +43,7 @@ const PROFESSIONAL_TEMPLATES = [
   },
   {
     name: 'Short & Direct Cover Letter',
-    available: false,
+    available: true,
     bestFor: ['Startups', 'Tech companies', 'Busy recruiters', 'Online applications'],
     why: 'Matches modern hiring behavior',
   },
@@ -54,8 +57,9 @@ export default function CoverLetterGenerator() {
   const [letterTitle, setLetterTitle] = useState('');
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [activeTemplate, setActiveTemplate] = useState<'classic' | 'modern'>('classic');
+  const [activeTemplate, setActiveTemplate] = useState<'classic' | 'modern' | 'short'>('classic');
   const [modernFormData, setModernFormData] = useState<ModernLetterData>({ ...modernLetterPreviewData });
+  const [shortFormData, setShortFormData] = useState<ShortDirectLetterData>({ ...shortLetterPreviewData });
   const { toast } = useToast();
 
   useEffect(() => { loadData(); }, []);
@@ -95,6 +99,17 @@ export default function CoverLetterGenerator() {
     setModernFormData(prev => ({ ...prev, [key]: value }));
   }
 
+  function handleUseShort() {
+    setShortFormData({ ...shortLetterPreviewData });
+    setLetterTitle('');
+    setActiveTemplate('short');
+    setShowEditor(true);
+  }
+
+  function updateShortField(key: string, value: string) {
+    setShortFormData(prev => ({ ...prev, [key]: value }));
+  }
+
   function updateField(key: keyof ClassicLetterData, value: string) {
     setFormData(prev => ({ ...prev, [key]: value }));
   }
@@ -109,8 +124,8 @@ export default function CoverLetterGenerator() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       const isModern = activeTemplate === 'modern';
-      const d = (isModern ? modernFormData : formData) as unknown as Record<string, string>;
-      const tplName = isModern ? 'Modern Professional Cover Letter' : 'Classic Professional Cover Letter';
+      const d = (isModern ? modernFormData : activeTemplate === 'short' ? shortFormData : formData) as unknown as Record<string, string>;
+      const tplName = isModern ? 'Modern Professional Cover Letter' : activeTemplate === 'short' ? 'Short & Direct Cover Letter' : 'Classic Professional Cover Letter';
       const matchedTpl = dbTemplates.find(t => t.name === tplName);
       const content = [
         d.name, d.phone, d.email, d.location, '',
@@ -221,7 +236,7 @@ export default function CoverLetterGenerator() {
                   <Card
                     key={tpl.name}
                     className="cursor-pointer hover:border-primary hover:shadow-lg transition-all transform hover:scale-105 group relative"
-                    onClick={tpl.name === 'Modern Professional Cover Letter' ? handleUseModern : handleUseClassic}
+                    onClick={tpl.name === 'Modern Professional Cover Letter' ? handleUseModern : tpl.name === 'Short & Direct Cover Letter' ? handleUseShort : handleUseClassic}
                   >
                     <CardHeader className="p-4">
                       <div className="relative">
@@ -276,7 +291,7 @@ export default function CoverLetterGenerator() {
         <DialogContent className="max-w-6xl w-[95vw] max-h-[90vh] h-[90vh] overflow-hidden flex flex-col p-0">
           <DialogHeader className="px-6 pt-6 pb-3 border-b">
             <DialogTitle>
-              {activeTemplate === 'modern' ? 'Modern Professional Cover Letter' : 'Classic Professional Cover Letter'}
+              {activeTemplate === 'modern' ? 'Modern Professional Cover Letter' : activeTemplate === 'short' ? 'Short & Direct Cover Letter' : 'Classic Professional Cover Letter'}
             </DialogTitle>
             <DialogDescription>Edit your details on the left — the preview updates live on the right.</DialogDescription>
           </DialogHeader>
@@ -294,32 +309,43 @@ export default function CoverLetterGenerator() {
               </div>
               <div className="border-t pt-3">
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Your Details</p>
-                {(Object.entries(classicLetterSchema) as [keyof ClassicLetterData, typeof classicLetterSchema[string]][]).map(([key, field]) => (
-                  <div key={key} className="mb-3">
-                    <Label htmlFor={key} className="text-sm">{field.label}</Label>
-                    {field.type === 'textarea' ? (
-                      <>
-                        <Textarea
-                          id={key}
-                          className="mt-1 text-sm"
-                          rows={4}
-                          placeholder={field.placeholder}
-                          value={formData[key] ?? ''}
-                          onChange={e => updateField(key, e.target.value)}
-                        />
-                        {field.hint && <p className="text-xs text-muted-foreground mt-1">{field.hint}</p>}
-                      </>
-                    ) : (
-                      <Input
-                        id={key}
-                        className="mt-1 text-sm"
-                        placeholder={field.placeholder}
-                        value={formData[key] ?? ''}
-                        onChange={e => updateField(key, e.target.value)}
-                      />
-                    )}
-                  </div>
-                ))}
+                {(() => {
+                  const schema = activeTemplate === 'modern' ? modernLetterSchema : activeTemplate === 'short' ? shortLetterSchema : classicLetterSchema;
+                  const vals = activeTemplate === 'modern' ? modernFormData : activeTemplate === 'short' ? shortFormData : formData;
+                  const updater = activeTemplate === 'modern' ? updateModernField : activeTemplate === 'short' ? updateShortField : updateField;
+                  const prefix = activeTemplate === 'modern' ? 'modern-' : activeTemplate === 'short' ? 'short-' : '';
+                  return Object.keys(schema).map(key => {
+                    const field = schema[key];
+                    const val = (vals as Record<string, string>)[key] ?? '';
+                    return (
+                      <div key={key} className="mb-3">
+                        <Label htmlFor={`${prefix}${key}`} className="text-sm">{field.label}</Label>
+                        {field.type === 'textarea' ? (
+                          <>
+                            <Textarea
+                              id={`${prefix}${key}`}
+                              className="mt-1 text-sm"
+                              rows={4}
+                              placeholder={field.placeholder}
+                              value={val}
+                              onChange={e => updater(key, e.target.value)}
+                            />
+                            {field.hint && <p className="text-xs text-muted-foreground mt-1">{field.hint}</p>}
+                          </>
+                        ) : (
+                          <Input
+                            id={`${prefix}${key}`}
+                            className="mt-1 text-sm"
+                            placeholder={field.placeholder}
+                            value={val}
+                            onChange={e => updater(key, e.target.value)}
+                          />
+                        )}
+                      </div>
+                    );
+                  });
+                })()
+                }
               </div>
               <div className="flex gap-2 pt-2 pb-4">
                 <Button variant="outline" className="flex-1" onClick={() => setShowEditor(false)}>Cancel</Button>
@@ -332,6 +358,8 @@ export default function CoverLetterGenerator() {
               <div style={{ transform: 'scale(0.75)', transformOrigin: 'top center' }}>
                 {activeTemplate === 'modern'
                   ? <ModernProfessionalLetter data={modernFormData} />
+                  : activeTemplate === 'short'
+                  ? <ShortDirectLetter data={shortFormData} />
                   : <ClassicProfessionalLetter data={formData} />
                 }
               </div>

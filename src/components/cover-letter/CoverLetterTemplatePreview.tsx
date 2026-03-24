@@ -106,6 +106,43 @@ function ModernPreviewThumbnail() {
   );
 }
 
+function ShortDirectPreviewThumbnail() {
+  return (
+    <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded px-4 py-4 text-[5px] leading-[1.5] overflow-hidden shadow-sm font-sans">
+      {/* Header */}
+      <div className="mb-2">
+        <div className="font-bold text-[8px] text-gray-900">David Otieno Mwangi</div>
+        <div className="flex gap-2 text-gray-500 mt-0.5 flex-wrap">
+          <span>+254 700 123 456</span>
+          <span>david@email.com</span>
+          <span>Nairobi, Kenya</span>
+        </div>
+      </div>
+      {/* Date */}
+      <div className="text-gray-500 mb-1.5">24 March 2026</div>
+      {/* Employer */}
+      <div className="mb-1.5 space-y-0.5">
+        <div className="font-medium text-gray-900">Hiring Manager</div>
+        <div>TechNova Ltd</div>
+        <div className="text-gray-500">P.O. Box 98765, Nairobi</div>
+      </div>
+      {/* Salutation */}
+      <div className="mb-1.5">Dear Hiring Manager,</div>
+      {/* Body */}
+      <div className="space-y-1.5 mb-2 text-gray-700">
+        <p>I am applying for the Software Developer position at TechNova Ltd. With 3 years of experience in web development, I have delivered solutions that increased client satisfaction by 20%.</p>
+        <p>I lead project teams, streamline workflows, and implement efficient coding practices. My technical skills and proactive approach will contribute positively to your team.</p>
+        <p>I am excited about TechNova's mission and would welcome the opportunity to bring my expertise to your projects.</p>
+      </div>
+      {/* Closing */}
+      <div>
+        <div className="mb-1.5 text-gray-700">Best regards,</div>
+        <div className="font-semibold text-gray-900">David Otieno Mwangi</div>
+      </div>
+    </div>
+  );
+}
+
 function GenericPreviewThumbnail({ templateName }: { templateName: string }) {
   const isShort = templateName === 'Short & Direct Cover Letter';
   const isPersonalBrand = templateName === 'Personal Brand Cover Letter';
@@ -183,6 +220,8 @@ export default function CoverLetterTemplatePreview({ templateName, showDescripti
     ? <ClassicPreviewThumbnail />
     : templateName === 'Modern Professional Cover Letter'
     ? <ModernPreviewThumbnail />
+    : templateName === 'Short & Direct Cover Letter'
+    ? <ShortDirectPreviewThumbnail />
     : <GenericPreviewThumbnail templateName={templateName} />;
 
   return (

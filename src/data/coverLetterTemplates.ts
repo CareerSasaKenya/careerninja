@@ -11,6 +11,9 @@ import { classicLetterSchema } from '@/schemas/classicLetterSchema';
 import ModernProfessionalLetter from '@/components/cover-letter/templates/ModernProfessionalLetter';
 import { modernLetterPreviewData } from './modernLetterPreviewData';
 import { modernLetterSchema } from '@/schemas/modernLetterSchema';
+import ShortDirectLetter from '@/components/cover-letter/templates/ShortDirectLetter';
+import { shortLetterPreviewData } from './shortLetterPreviewData';
+import { shortLetterSchema } from '@/schemas/shortLetterSchema';
 
 export interface CoverLetterTemplateConfig {
   id: string;
@@ -49,8 +52,19 @@ export const coverLetterTemplateRegistry: Record<string, CoverLetterTemplateConf
     schema: modernLetterSchema,
     isPremium: false,
   },
+  'Short & Direct Cover Letter': {
+    id: 'short-direct',
+    name: 'Short & Direct Cover Letter',
+    category: 'professional',
+    description:
+      'Concise 3-paragraph format built for impact. Ideal for startups, tech companies, online applications, and busy recruiters who skim quickly.',
+    bestFor: ['Startups', 'Tech companies', 'Online applications', 'Busy recruiters'],
+    component: ShortDirectLetter,
+    defaultData: shortLetterPreviewData as unknown as Record<string, string>,
+    schema: shortLetterSchema,
+    isPremium: false,
+  },
   // Additional templates will be registered here as they are built:
-  // 'Short & Direct Cover Letter': { ... },
   // 'Graduate / Entry-Level Cover Letter': { ... },
   // 'Internship / Attachment Cover Letter': { ... },
   // 'Career Change Cover Letter': { ... },
