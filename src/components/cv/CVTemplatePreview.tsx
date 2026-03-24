@@ -1,4 +1,4 @@
-/**
+﻿/**
  * CV Template Preview Component
  * Renders a thumbnail preview of CV templates with full content
  * SAME SIZE ON ALL DEVICES
@@ -1293,12 +1293,12 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             <div className="mb-0.5">
               <div className="font-bold text-[3.5px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Research Interests</div>
               <div className="grid grid-cols-2 gap-x-1 text-[3px]">
-                <div>— Climate Change Adaptation</div>
-                <div>— Sustainable Agriculture & Food Security</div>
-                <div>— Environmental Policy & Governance</div>
-                <div>— Land Degradation & Restoration</div>
-                <div>— Community-Based NRM</div>
-                <div>— Dryland Ecology</div>
+                <div>• Climate Change Adaptation</div>
+                <div>• Sustainable Agriculture & Food Security</div>
+                <div>• Environmental Policy & Governance</div>
+                <div>• Land Degradation & Restoration</div>
+                <div>• Community-Based NRM</div>
+                <div>• Dryland Ecology</div>
               </div>
             </div>
             {/* Positions */}
@@ -1337,12 +1337,12 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             <div className="mb-0.5">
               <div className="font-bold text-[3.5px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Conferences & Presentations</div>
               <div className="text-[3px] space-y-0.5">
-                <div>— Int. Climate Change Conference — Nairobi, Kenya (2024) — Keynote Presenter</div>
-                <div>— African Environmental Research Forum — Kigali, Rwanda (2022) — Paper Presenter</div>
-                <div>— World Congress of Soil Science — Glasgow, UK (2022) — Poster Presentation</div>
-                <div>— Sustainable Agriculture Summit — Addis Ababa, Ethiopia (2021) — Panel Discussant</div>
-                <div>— East Africa Climate Adaptation Forum — Dar es Salaam (2020) — Paper Presenter</div>
-                <div>— Int. Society for Ecological Economics — Washington DC (2019) — Paper Presenter</div>
+                <div>• Int. Climate Change Conference — Nairobi, Kenya (2024) — Keynote Presenter</div>
+                <div>• African Environmental Research Forum — Kigali, Rwanda (2022) — Paper Presenter</div>
+                <div>• World Congress of Soil Science — Glasgow, UK (2022) — Poster Presentation</div>
+                <div>• Sustainable Agriculture Summit — Addis Ababa, Ethiopia (2021) — Panel Discussant</div>
+                <div>• East Africa Climate Adaptation Forum — Dar es Salaam (2020) — Paper Presenter</div>
+                <div>• Int. Society for Ecological Economics — Washington DC (2019) — Paper Presenter</div>
               </div>
             </div>
             {/* Education */}
@@ -1365,40 +1365,40 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             <div className="mb-0.5">
               <div className="font-bold text-[3.5px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Grants & Funding</div>
               <div className="text-[3px] space-y-0.5">
-                <div>— Principal Investigator — NEMA Research Grant: Ecosystem Restoration in Degraded Drylands (KES 4.5M, 2022—2024)</div>
-                <div>— Co-Investigator — IDRC Climate Adaptation Fund: Smallholder Farmer Resilience in East Africa (USD 120K, 2020—2022)</div>
-                <div>— Principal Investigator — UoN Research Fund: Land Use Change & Carbon Stocks (KES 1.2M, 2019—2020)</div>
-                <div>— Research Fellow — British Council Climate Research Programme (GBP 15K, 2017—2018)</div>
+                <div>• Principal Investigator — NEMA Research Grant: Ecosystem Restoration in Degraded Drylands (KES 4.5M, 2022—2024)</div>
+                <div>• Co-Investigator — IDRC Climate Adaptation Fund: Smallholder Farmer Resilience in East Africa (USD 120K, 2020—2022)</div>
+                <div>• Principal Investigator — UoN Research Fund: Land Use Change & Carbon Stocks (KES 1.2M, 2019—2020)</div>
+                <div>• Research Fellow — British Council Climate Research Programme (GBP 15K, 2017—2018)</div>
               </div>
             </div>
             {/* Awards */}
             <div className="mb-0.5">
               <div className="font-bold text-[3.5px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Awards & Honours</div>
               <div className="text-[3px] space-y-0.5">
-                <div>— Best Research Paper Award — African Environmental Research Forum (2022)</div>
-                <div>— Excellence in Teaching Award — University of Nairobi (2021)</div>
-                <div>— Young Scientist Award — Kenya National Academy of Sciences (2018)</div>
-                <div>— Outstanding Doctoral Thesis Prize — University of Nairobi (2014)</div>
+                <div>• Best Research Paper Award — African Environmental Research Forum (2022)</div>
+                <div>• Excellence in Teaching Award — University of Nairobi (2021)</div>
+                <div>• Young Scientist Award — Kenya National Academy of Sciences (2018)</div>
+                <div>• Outstanding Doctoral Thesis Prize — University of Nairobi (2014)</div>
               </div>
             </div>
             {/* Teaching */}
             <div className="mb-0.5">
               <div className="font-bold text-[3.5px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Teaching Experience</div>
               <div className="text-[3px] space-y-0.5">
-                <div>— ENV 301: Environmental Impact Assessment (Undergraduate, UoN)</div>
-                <div>— ENV 502: Climate Change & Sustainable Development (Postgraduate, UoN)</div>
-                <div>— NRM 201: Natural Resource Management (Undergraduate, Egerton)</div>
-                <div>— ENV 401: Research Methods in Environmental Science (Undergraduate, UoN)</div>
+                <div>• ENV 301: Environmental Impact Assessment (Undergraduate, UoN)</div>
+                <div>• ENV 502: Climate Change & Sustainable Development (Postgraduate, UoN)</div>
+                <div>• NRM 201: Natural Resource Management (Undergraduate, Egerton)</div>
+                <div>• ENV 401: Research Methods in Environmental Science (Undergraduate, UoN)</div>
               </div>
             </div>
             {/* Professional Memberships */}
             <div>
               <div className="font-bold text-[3.5px] uppercase tracking-widest border-b border-gray-400 pb-0.5 mb-0.5">Professional Memberships</div>
               <div className="text-[3px] space-y-0.5">
-                <div>— Member — Kenya National Academy of Sciences (KNAS)</div>
-                <div>— Member — African Association of Environmental Scientists (AAES)</div>
-                <div>— Fellow — International Society for Ecological Economics (ISEE)</div>
-                <div>— Reviewer — Journal of Environmental Management; African Environmental Review</div>
+                <div>• Member — Kenya National Academy of Sciences (KNAS)</div>
+                <div>• Member — African Association of Environmental Scientists (AAES)</div>
+                <div>• Fellow — International Society for Ecological Economics (ISEE)</div>
+                <div>• Reviewer — Journal of Environmental Management; African Environmental Review</div>
               </div>
             </div>
           </div>
@@ -1433,37 +1433,37 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div className="mb-1.5">
                 <div className="font-bold text-[4.5px] uppercase border-b border-gray-400 pb-0.5 mb-0.5">Technical Skills</div>
                 <div className="space-y-0.5 text-[3.8px] text-gray-700">
-                  <div>— Mechanical Systems Maintenance</div>
-                  <div>— Preventive Maintenance Planning</div>
-                  <div>— Production Line Optimization</div>
-                  <div>— Root Cause Analysis</div>
-                  <div>— Industrial Safety Compliance</div>
-                  <div>— Process Improvement (Lean)</div>
-                  <div>— Equipment Commissioning</div>
-                  <div>— Technical Report Writing</div>
-                  <div>— Hydraulics & Pneumatics</div>
-                  <div>— Welding & Fabrication</div>
+                  <div>• Mechanical Systems Maintenance</div>
+                  <div>• Preventive Maintenance Planning</div>
+                  <div>• Production Line Optimization</div>
+                  <div>• Root Cause Analysis</div>
+                  <div>• Industrial Safety Compliance</div>
+                  <div>• Process Improvement (Lean)</div>
+                  <div>• Equipment Commissioning</div>
+                  <div>• Technical Report Writing</div>
+                  <div>• Hydraulics & Pneumatics</div>
+                  <div>• Welding & Fabrication</div>
                 </div>
               </div>
               <div className="mb-1.5">
                 <div className="font-bold text-[4.5px] uppercase border-b border-gray-400 pb-0.5 mb-0.5">Tools & Systems</div>
                 <div className="space-y-0.5 text-[3.8px] text-gray-700">
-                  <div>— AutoCAD</div>
-                  <div>— SolidWorks</div>
-                  <div>— SAP PM</div>
-                  <div>— PLC Systems</div>
-                  <div>— CMMS Software</div>
-                  <div>— Microsoft Excel</div>
-                  <div>— SCADA Systems</div>
+                  <div>• AutoCAD</div>
+                  <div>• SolidWorks</div>
+                  <div>• SAP PM</div>
+                  <div>• PLC Systems</div>
+                  <div>• CMMS Software</div>
+                  <div>• Microsoft Excel</div>
+                  <div>• SCADA Systems</div>
                 </div>
               </div>
               <div>
                 <div className="font-bold text-[4.5px] uppercase border-b border-gray-400 pb-0.5 mb-0.5">Certifications</div>
                 <div className="space-y-0.5 text-[3.8px] text-gray-700">
-                  <div>— Certified Maintenance Professional</div>
-                  <div>— OSH Certificate</div>
-                  <div>— Lean Manufacturing — KIM</div>
-                  <div>— First Aid & Fire Safety</div>
+                  <div>• Certified Maintenance Professional</div>
+                  <div>• OSH Certificate</div>
+                  <div>• Lean Manufacturing — KIM</div>
+                  <div>• First Aid & Fire Safety</div>
                 </div>
               </div>
             </div>
@@ -1497,27 +1497,27 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                   <div className="font-bold text-[3.8px]">Mechanical Engineer — East Africa Packaging Ltd</div>
                   <div className="text-[3.5px] text-gray-500">Nairobi | 2022 — Present</div>
                   <div className="space-y-0.5 text-[3.8px] text-gray-700 mt-0.5">
-                    <div>— Oversee maintenance of 40+ production machines across 3 lines</div>
-                    <div>— Develop and execute preventive maintenance schedules via SAP PM</div>
-                    <div>— Lead root cause analysis for recurring equipment failures</div>
-                    <div>— Ensure compliance with OSHA and company safety standards</div>
+                    <div>• Oversee maintenance of 40+ production machines across 3 lines</div>
+                    <div>• Develop and execute preventive maintenance schedules via SAP PM</div>
+                    <div>• Lead root cause analysis for recurring equipment failures</div>
+                    <div>• Ensure compliance with OSHA and company safety standards</div>
                   </div>
                 </div>
                 <div className="mb-1">
                   <div className="font-bold text-[3.8px]">Maintenance Engineer — Nairobi Steel Manufacturing</div>
                   <div className="text-[3.5px] text-gray-500">Nairobi | 2019 — 2022</div>
                   <div className="space-y-0.5 text-[3.8px] text-gray-700 mt-0.5">
-                    <div>— Managed mechanical maintenance for steel rolling and cutting equipment</div>
-                    <div>— Supervised a team of 6 technicians on daily maintenance activities</div>
-                    <div>— Reduced spare parts costs by 20% through improved inventory management</div>
+                    <div>• Managed mechanical maintenance for steel rolling and cutting equipment</div>
+                    <div>• Supervised a team of 6 technicians on daily maintenance activities</div>
+                    <div>• Reduced spare parts costs by 20% through improved inventory management</div>
                   </div>
                 </div>
                 <div>
                   <div className="font-bold text-[3.8px]">Graduate Trainee — Engineering — Kenya Breweries Ltd</div>
                   <div className="text-[3.5px] text-gray-500">Nairobi | 2018 — 2019</div>
                   <div className="space-y-0.5 text-[3.8px] text-gray-700 mt-0.5">
-                    <div>— Rotated across production, utilities, and maintenance departments</div>
-                    <div>— Assisted senior engineers with equipment inspections and reports</div>
+                    <div>• Rotated across production, utilities, and maintenance departments</div>
+                    <div>• Assisted senior engineers with equipment inspections and reports</div>
                   </div>
                 </div>
               </div>
@@ -1537,18 +1537,18 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
               <div className="mb-1.5">
                 <div className="font-bold text-[4.5px] uppercase border-b-2 border-gray-800 pb-0.5 mb-1">Key Achievements</div>
                 <div className="space-y-0.5 text-[3.8px] text-gray-700">
-                  <div>— Reduced unplanned machine downtime by 30% through predictive maintenance</div>
-                  <div>— Saved KES 1.8M annually via energy audit and system optimization</div>
-                  <div>— Extended average machine lifespan by 2 years through improved PM program</div>
-                  <div>— Mentored 4 junior engineers and 3 graduate trainees</div>
+                  <div>• Reduced unplanned machine downtime by 30% through predictive maintenance</div>
+                  <div>• Saved KES 1.8M annually via energy audit and system optimization</div>
+                  <div>• Extended average machine lifespan by 2 years through improved PM program</div>
+                  <div>• Mentored 4 junior engineers and 3 graduate trainees</div>
                 </div>
               </div>
               <div>
                 <div className="font-bold text-[4.5px] uppercase border-b-2 border-gray-800 pb-0.5 mb-1">Professional Memberships</div>
                 <div className="space-y-0.5 text-[3.8px] text-gray-700">
-                  <div>— Member — Engineers Board of Kenya (EBK)</div>
-                  <div>— Member — Institution of Engineers of Kenya (IEK)</div>
-                  <div>— Member — Kenya Association of Manufacturers (KAM)</div>
+                  <div>• Member — Engineers Board of Kenya (EBK)</div>
+                  <div>• Member — Institution of Engineers of Kenya (IEK)</div>
+                  <div>• Member — Kenya Association of Manufacturers (KAM)</div>
                 </div>
               </div>
             </div>
@@ -1580,16 +1580,16 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             <div className="mb-1">
               <div className="font-semibold text-[4px] uppercase border-b border-gray-400 pb-0.5 mb-0.5 tracking-wide">Core Skills</div>
               <div className="grid grid-cols-2 text-[3.5px] gap-y-0.5">
-                <div>— Data Analysis</div>
-                <div>— SQL</div>
-                <div>— Python</div>
-                <div>— Power BI</div>
-                <div>— Excel (Advanced)</div>
-                <div>— Data Visualization</div>
-                <div>— Statistical Analysis</div>
-                <div>— Business Intelligence</div>
-                <div>— ETL Pipelines</div>
-                <div>— Stakeholder Reporting</div>
+                <div>• Data Analysis</div>
+                <div>• SQL</div>
+                <div>• Python</div>
+                <div>• Power BI</div>
+                <div>• Excel (Advanced)</div>
+                <div>• Data Visualization</div>
+                <div>• Statistical Analysis</div>
+                <div>• Business Intelligence</div>
+                <div>• ETL Pipelines</div>
+                <div>• Stakeholder Reporting</div>
               </div>
             </div>
             {/* Experience */}
@@ -1599,27 +1599,27 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
                 <div className="font-semibold text-[3.5px]">Data Analyst — Insight Analytics Ltd</div>
                 <div className="text-[3.2px] text-gray-600 mb-0.5">Nairobi, Kenya | January 2021 — Present</div>
                 <div className="space-y-0.5 text-[3.5px] text-gray-700">
-                  <div>— Analyzed large datasets to support business decision-making across 5 departments.</div>
-                  <div>— Developed Power BI dashboards tracking 20+ KPIs for senior leadership.</div>
-                  <div>— Automated weekly reporting using Python scripts, saving 8 hours per week.</div>
-                  <div>— Collaborated with product and finance teams to deliver quarterly data insights.</div>
+                  <div>• Analyzed large datasets to support business decision-making across 5 departments.</div>
+                  <div>• Developed Power BI dashboards tracking 20+ KPIs for senior leadership.</div>
+                  <div>• Automated weekly reporting using Python scripts, saving 8 hours per week.</div>
+                  <div>• Collaborated with product and finance teams to deliver quarterly data insights.</div>
                 </div>
               </div>
               <div className="mb-0.5">
                 <div className="font-semibold text-[3.5px]">Junior Data Analyst — TechData Solutions</div>
                 <div className="text-[3.2px] text-gray-600 mb-0.5">Nairobi, Kenya | March 2019 — December 2020</div>
                 <div className="space-y-0.5 text-[3.5px] text-gray-700">
-                  <div>— Prepared reports and visualizations for management review.</div>
-                  <div>— Maintained company data warehouse and ensured data integrity.</div>
-                  <div>— Supported analytics projects across finance, sales, and operations.</div>
+                  <div>• Prepared reports and visualizations for management review.</div>
+                  <div>• Maintained company data warehouse and ensured data integrity.</div>
+                  <div>• Supported analytics projects across finance, sales, and operations.</div>
                 </div>
               </div>
               <div>
                 <div className="font-semibold text-[3.5px]">Data Intern — Kenya Revenue Authority</div>
                 <div className="text-[3.2px] text-gray-600 mb-0.5">Nairobi, Kenya | June 2018 — February 2019</div>
                 <div className="space-y-0.5 text-[3.5px] text-gray-700">
-                  <div>— Assisted with data cleaning and validation for compliance reporting.</div>
-                  <div>— Built Excel models to track revenue collection trends across regions.</div>
+                  <div>• Assisted with data cleaning and validation for compliance reporting.</div>
+                  <div>• Built Excel models to track revenue collection trends across regions.</div>
                 </div>
               </div>
             </div>
@@ -1641,28 +1641,28 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
             <div className="mb-1">
               <div className="font-semibold text-[4px] uppercase border-b border-gray-400 pb-0.5 mb-0.5 tracking-wide">Certifications</div>
               <div className="space-y-0.5 text-[3.5px] text-gray-700">
-                <div>— Google Data Analytics Professional Certificate — Google (2022)</div>
-                <div>— Microsoft Power BI Data Analyst Associate — Microsoft (2023)</div>
-                <div>— SQL for Data Science — Coursera / UC Davis (2021)</div>
+                <div>• Google Data Analytics Professional Certificate — Google (2022)</div>
+                <div>• Microsoft Power BI Data Analyst Associate — Microsoft (2023)</div>
+                <div>• SQL for Data Science — Coursera / UC Davis (2021)</div>
               </div>
             </div>
             {/* Additional */}
             <div className="mb-1">
               <div className="font-semibold text-[4px] uppercase border-b border-gray-400 pb-0.5 mb-0.5 tracking-wide">Additional Information</div>
               <div className="space-y-0.5 text-[3.5px] text-gray-700">
-                <div>— Languages: English (Fluent), Swahili (Fluent), French (Basic)</div>
-                <div>— Volunteer Data Analyst — DataKind Kenya (2022 — Present)</div>
-                <div>— Member — Kenya Data Science Society</div>
+                <div>• Languages: English (Fluent), Swahili (Fluent), French (Basic)</div>
+                <div>• Volunteer Data Analyst — DataKind Kenya (2022 — Present)</div>
+                <div>• Member — Kenya Data Science Society</div>
               </div>
             </div>
             {/* Key Achievements */}
             <div className="mb-1">
               <div className="font-semibold text-[4px] uppercase border-b border-gray-400 pb-0.5 mb-0.5 tracking-wide">Key Achievements</div>
               <div className="space-y-0.5 text-[3.5px] text-gray-700">
-                <div>— Automated reporting workflows saving 8+ hours per week across 3 teams.</div>
-                <div>— Built executive dashboards adopted by C-suite for monthly business reviews.</div>
-                <div>— Reduced data processing errors by 40% through improved validation pipelines.</div>
-                <div>— Recognized as top performer Q3 2023 for data-driven cost savings initiative.</div>
+                <div>• Automated reporting workflows saving 8+ hours per week across 3 teams.</div>
+                <div>• Built executive dashboards adopted by C-suite for monthly business reviews.</div>
+                <div>• Reduced data processing errors by 40% through improved validation pipelines.</div>
+                <div>• Recognized as top performer Q3 2023 for data-driven cost savings initiative.</div>
               </div>
             </div>
             {/* References */}
@@ -1696,3 +1696,5 @@ export default function CVTemplatePreview({ templateName, showDescription = fals
     </div>
   );
 }
+
+
