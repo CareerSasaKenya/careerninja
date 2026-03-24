@@ -312,7 +312,7 @@ export default function CoverLetterGenerator() {
                 {(() => {
                   const schema = activeTemplate === 'modern' ? modernLetterSchema : activeTemplate === 'short' ? shortLetterSchema : classicLetterSchema;
                   const vals = activeTemplate === 'modern' ? modernFormData : activeTemplate === 'short' ? shortFormData : formData;
-                  const updater = activeTemplate === 'modern' ? updateModernField : activeTemplate === 'short' ? updateShortField : updateField;
+                  const updater: (key: string, value: string) => void = activeTemplate === 'modern' ? (k, v) => updateModernField(k as keyof ModernLetterData, v) : activeTemplate === 'short' ? (k, v) => updateShortField(k as keyof ShortDirectLetterData, v) : (k, v) => updateField(k as keyof ClassicLetterData, v);
                   const prefix = activeTemplate === 'modern' ? 'modern-' : activeTemplate === 'short' ? 'short-' : '';
                   return Object.keys(schema).map(key => {
                     const field = schema[key];
