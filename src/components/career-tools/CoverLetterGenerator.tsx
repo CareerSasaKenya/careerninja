@@ -15,6 +15,9 @@ import CoverLetterTemplatePreview from '@/components/cover-letter/CoverLetterTem
 import ClassicProfessionalLetter, { ClassicLetterData } from '@/components/cover-letter/templates/ClassicProfessionalLetter';
 import { classicLetterPreviewData } from '@/data/classicLetterPreviewData';
 import { classicLetterSchema } from '@/schemas/classicLetterSchema';
+import ModernProfessionalLetter, { ModernLetterData } from '@/components/cover-letter/templates/ModernProfessionalLetter';
+import { modernLetterPreviewData } from '@/data/modernLetterPreviewData';
+import { modernLetterSchema } from '@/schemas/modernLetterSchema';
 import {
   getCoverLetterTemplates,
   getUserCoverLetters,
@@ -31,7 +34,7 @@ const PROFESSIONAL_TEMPLATES = [
   },
   {
     name: 'Modern Professional Cover Letter',
-    available: false,
+    available: true,
     bestFor: ['Private sector jobs', 'Marketing roles', 'Business roles', 'Mid-level professionals'],
     why: 'Feels current without being risky',
   },
@@ -51,6 +54,8 @@ export default function CoverLetterGenerator() {
   const [letterTitle, setLetterTitle] = useState('');
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [activeTemplate, setActiveTemplate] = useState<'classic' | 'modern'>('classic');
+  const [modernFormData, setModernFormData] = useState<ModernLetterData>({ ...modernLetterPreviewData });
   const { toast } = useToast();
 
   useEffect(() => { loadData(); }, []);
@@ -75,7 +80,19 @@ export default function CoverLetterGenerator() {
   function handleUseClassic() {
     setFormData({ ...classicLetterPreviewData });
     setLetterTitle('');
+    setActiveTemplate('classic');
     setShowEditor(true);
+  }
+
+  function handleUseModern() {
+    setModernFormData({ ...modernLetterPreviewData });
+    setLetterTitle('');
+    setActiveTemplate('modern');
+    setShowEditor(true);
+  }
+
+  function updateModernField(key: keyof ModernLetterData, value: string) {
+    setModernFormData(prev => ({ ...prev, [key]: value }));
   }
 
   function updateField(key: keyof ClassicLetterData, value: string) {
@@ -91,18 +108,21 @@ export default function CoverLetterGenerator() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      const classicTemplate = dbTemplates.find(t => t.name === 'Classic Professional Cover Letter');
+      const isModern = activeTemplate === 'modern';
+      const d = (isModern ? modernFormData : formData) as unknown as Record<string, string>;
+      const tplName = isModern ? 'Modern Professional Cover Letter' : 'Classic Professional Cover Letter';
+      const matchedTpl = dbTemplates.find(t => t.name === tplName);
       const content = [
-        formData.name, formData.phone, formData.email, formData.location, '',
-        formData.date, '',
-        formData.hiringManager, formData.company, formData.companyAddress, '',
-        `Dear ${formData.hiringManager || 'Hiring Manager'},`, '',
-        formData.paragraph1, '', formData.paragraph2, '', formData.paragraph3, '',
-        'Sincerely,', formData.name,
+        d.name, d.phone, d.email, d.location, '',
+        d.date, '',
+        d.hiringManager, d.company, d.companyAddress, '',
+        `Dear ${d.hiringManager || 'Hiring Manager'},`, '',
+        d.paragraph1, '', d.paragraph2, '', d.paragraph3, '',
+        'Sincerely,', d.name,
       ].join('\n');
       const newLetter = await createCoverLetter({
         user_id: user.id,
-        template_id: classicTemplate?.id ?? null,
+        template_id: matchedTpl?.id ?? null,
         title: letterTitle,
         content,
         job_id: null,
@@ -201,7 +221,7 @@ export default function CoverLetterGenerator() {
                   <Card
                     key={tpl.name}
                     className="cursor-pointer hover:border-primary hover:shadow-lg transition-all transform hover:scale-105 group relative"
-                    onClick={handleUseClassic}
+                    onClick={tpl.name === 'Modern Professional Cover Letter' ? handleUseModern : handleUseClassic}
                   >
                     <CardHeader className="p-4">
                       <div className="relative">
@@ -255,7 +275,9 @@ export default function CoverLetterGenerator() {
       <Dialog open={showEditor} onOpenChange={setShowEditor}>
         <DialogContent className="max-w-6xl w-[95vw] max-h-[90vh] h-[90vh] overflow-hidden flex flex-col p-0">
           <DialogHeader className="px-6 pt-6 pb-3 border-b">
-            <DialogTitle>Classic Professional Cover Letter</DialogTitle>
+            <DialogTitle>
+              {activeTemplate === 'modern' ? 'Modern Professional Cover Letter' : 'Classic Professional Cover Letter'}
+            </DialogTitle>
             <DialogDescription>Edit your details on the left — the preview updates live on the right.</DialogDescription>
           </DialogHeader>
           <div className="flex flex-1 overflow-hidden">
@@ -308,7 +330,10 @@ export default function CoverLetterGenerator() {
             </div>
             <div className="flex-1 overflow-auto bg-gray-100 flex items-start justify-center p-6">
               <div style={{ transform: 'scale(0.75)', transformOrigin: 'top center' }}>
-                <ClassicProfessionalLetter data={formData} />
+                {activeTemplate === 'modern'
+                  ? <ModernProfessionalLetter data={modernFormData} />
+                  : <ClassicProfessionalLetter data={formData} />
+                }
               </div>
             </div>
           </div>
