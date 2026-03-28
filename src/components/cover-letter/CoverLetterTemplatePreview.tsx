@@ -23,6 +23,8 @@ const descriptions: Record<string, string> = {
     'Focuses on education, projects, and potential rather than experience. Solves the "I don\'t have experience" problem for fresh graduates.',
   'Internship / Attachment Cover Letter':
     'Tailored for students applying for industrial attachment or internships. Highly relevant for university and TVET students in Kenya.',
+  'Skills-Focused Entry-Level Cover Letter':
+    'For candidates with little or no formal experience who have real, demonstrable skills. Ideal for self-taught professionals, freelancers, and hustlers who can do the work.',
   'Career Change Cover Letter':
     'Helps candidates explain transitions between industries or roles. Ideal for career switchers and people re-entering the workforce.',
   'Personal Brand Cover Letter':
@@ -143,23 +145,146 @@ function ShortDirectPreviewThumbnail() {
   );
 }
 
+function GraduatePreviewThumbnail() {
+  return (
+    <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded px-4 py-4 text-[5px] leading-[1.5] overflow-hidden shadow-sm font-sans">
+      {/* Header */}
+      <div className="mb-2">
+        <div className="font-bold text-[8px] text-gray-900">Faith Wanjiru Njeri</div>
+        <div className="w-3 h-[1px] bg-emerald-500 rounded my-0.5" />
+        <div className="flex gap-2 text-gray-500 mt-0.5 flex-wrap">
+          <span>+254 712 888 222</span>
+          <span>faith.njeri@email.com</span>
+          <span>Nairobi, Kenya</span>
+        </div>
+      </div>
+      {/* Date */}
+      <div className="text-gray-500 mb-1.5">24 March 2026</div>
+      {/* Employer */}
+      <div className="mb-1.5 space-y-0.5">
+        <div className="font-medium text-gray-900">Hiring Manager</div>
+        <div>ABC Company Ltd</div>
+        <div className="text-gray-500">P.O. Box 12345, Nairobi</div>
+      </div>
+      {/* Salutation */}
+      <div className="mb-1.5">Dear Hiring Manager,</div>
+      {/* Body */}
+      <div className="space-y-1.5 mb-2 text-gray-700">
+        <p>I am writing to apply for the Graduate Trainee position at ABC Company Ltd. I recently graduated with a Bachelor of Commerce (Finance) from Kenyatta University.</p>
+        <p>During my studies, I completed academic projects involving financial modeling and data analysis. I am proficient in Microsoft Excel and have a strong interest in financial planning.</p>
+        <p>I am eager to begin my professional career in a dynamic organisation such as yours, where I can apply my knowledge and learn from experienced professionals.</p>
+      </div>
+      {/* Closing */}
+      <div>
+        <div className="mb-2 text-gray-700">Sincerely,</div>
+        <div className="font-semibold text-gray-900">Faith Wanjiru Njeri</div>
+      </div>
+    </div>
+  );
+}
+
+function InternshipPreviewThumbnail() {
+  return (
+    <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded px-4 py-4 text-[5px] leading-[1.5] overflow-hidden shadow-sm font-sans">
+      {/* Header */}
+      <div className="mb-2">
+        <div className="font-bold text-[8px] text-gray-900">Brian Omondi Otieno</div>
+        <div className="w-3 h-[1px] bg-indigo-500 rounded my-0.5" />
+        <div className="flex gap-2 text-gray-500 mt-0.5 flex-wrap">
+          <span>+254 722 333 444</span>
+          <span>brian.omondi@email.com</span>
+          <span>Nairobi, Kenya</span>
+        </div>
+      </div>
+      {/* Institution */}
+      <div className="text-[5.5px] text-gray-600 mb-1.5">
+        <div>Kenyatta University</div>
+        <div>BSc Computer Science (Year 3)</div>
+      </div>
+      {/* Date */}
+      <div className="text-gray-500 mb-1.5">24 March 2026</div>
+      {/* Employer */}
+      <div className="mb-1.5 space-y-0.5">
+        <div className="font-medium text-gray-900">Hiring Manager</div>
+        <div>TechHub Solutions Ltd</div>
+        <div className="text-gray-500">P.O. Box 56789, Nairobi</div>
+      </div>
+      {/* Salutation */}
+      <div className="mb-1.5">Dear Hiring Manager,</div>
+      {/* Body */}
+      <div className="space-y-1.5 mb-2 text-gray-700">
+        <p>I am writing to apply for industrial attachment at TechHub Solutions Ltd. I am a third-year Computer Science student at Kenyatta University.</p>
+        <p>Through my coursework, I have developed skills in Python, web development, and database management. I am eager to apply these skills in a professional environment.</p>
+        <p>I am available for a 3-month attachment from May to July 2026. I would be grateful for the opportunity to learn from your team.</p>
+      </div>
+      {/* Closing */}
+      <div>
+        <div className="mb-2 text-gray-700">Yours faithfully,</div>
+        <div className="font-semibold text-gray-900">Brian Omondi Otieno</div>
+      </div>
+    </div>
+  );
+}
+
+function SkillsEntryPreviewThumbnail() {
+  return (
+    <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded px-4 py-4 text-[5px] leading-[1.5] overflow-hidden shadow-sm font-sans">
+      {/* Header */}
+      <div className="mb-2">
+        <div className="font-bold text-[8px] text-gray-900">Kevin Otieno Onyango</div>
+        <div className="w-3 h-[1px] bg-blue-500 rounded my-0.5" />
+        <div className="flex gap-2 text-gray-500 mt-0.5 flex-wrap">
+          <span>+254 700 888 111</span>
+          <span>kevin.onyango@email.com</span>
+          <span>Nairobi, Kenya</span>
+        </div>
+      </div>
+      {/* Date */}
+      <div className="text-gray-500 mb-1.5">24 March 2026</div>
+      {/* Employer */}
+      <div className="mb-1.5 space-y-0.5">
+        <div className="font-medium text-gray-900">Hiring Manager</div>
+        <div>Digital Solutions Ltd</div>
+        <div className="text-gray-500">P.O. Box 45678, Nairobi</div>
+      </div>
+      {/* Salutation */}
+      <div className="mb-1.5">Dear Hiring Manager,</div>
+      {/* Body */}
+      <div className="space-y-1.5 mb-2 text-gray-700">
+        <p>I am writing to apply for the Social Media Assistant position. Although I am at the early stage of my career, I have developed strong practical skills through self-learning.</p>
+        <p>I have experience managing social media pages, creating content using Canva, and applying basic SEO strategies. Through personal projects and freelance work, I have built skills in audience engagement.</p>
+        <p>I am eager to grow in a professional environment where I can apply my skills and learn from experienced professionals.</p>
+      </div>
+      {/* Key Skills Box */}
+      <div className="mb-2 p-1.5 bg-gray-50 rounded border border-gray-200">
+        <div className="text-[4px] font-semibold text-gray-600 uppercase mb-0.5">Key Skills</div>
+        <div className="text-[4.5px] text-gray-800">Social Media Management, Content Creation, Canva, Basic SEO</div>
+      </div>
+      {/* Closing */}
+      <div>
+        <div className="mb-1.5 text-gray-700">Sincerely,</div>
+        <div className="font-semibold text-gray-900">Kevin Otieno Onyango</div>
+      </div>
+    </div>
+  );
+}
+
 function GenericPreviewThumbnail({ templateName }: { templateName: string }) {
   const isShort = templateName === 'Short & Direct Cover Letter';
   const isPersonalBrand = templateName === 'Personal Brand Cover Letter';
-  const isInternship = templateName === 'Internship / Attachment Cover Letter';
 
   return (
     <div className="w-full aspect-[3/4] bg-white border border-gray-200 rounded px-4 py-4 text-[5px] leading-[1.5] overflow-hidden shadow-sm font-sans">
       {/* Header bar */}
       <div className={`pb-2 mb-2 ${isPersonalBrand ? 'border-b-2 border-orange-400' : 'border-b border-gray-300'}`}>
         <div className={`font-bold text-[8px] ${isPersonalBrand ? 'text-orange-600' : 'text-gray-900'}`}>
-          {isPersonalBrand ? 'AMINA ODHIAMBO' : isInternship ? 'KEVIN OTIENO OUMA' : 'GRACE WANJIKU NJOROGE'}
+          {isPersonalBrand ? 'AMINA ODHIAMBO' : 'GRACE WANJIKU NJOROGE'}
         </div>
         {isPersonalBrand && (
           <div className="text-orange-500 text-[6px] italic mb-0.5">Brand Strategist & Content Creator</div>
         )}
         <div className="text-gray-500 mt-0.5">
-          {isInternship ? 'Kenyatta University • BSc Computer Science (Year 3)' : '+254 723 456 789 | grace@email.com | Nairobi'}
+          +254 723 456 789 | grace@email.com | Nairobi
         </div>
       </div>
       {/* Date + recipient */}
@@ -190,9 +315,9 @@ function GenericPreviewThumbnail({ templateName }: { templateName: string }) {
           </>
         ) : (
           <>
-            <p>I am writing to apply for the {isInternship ? 'industrial attachment' : 'position'} at XYZ Company Ltd. {isInternship ? 'I am a third-year Computer Science student at Kenyatta University seeking practical experience.' : 'With 4 years of experience in marketing, I am confident in my ability to contribute to your team.'}</p>
-            <p>{isInternship ? 'Through my coursework, I have developed foundational knowledge in Python, web development, and database management. I am eager to apply these skills in a real-world environment.' : 'In my current role, I have successfully managed campaigns that increased brand awareness by 35% and grew our social media following by 20,000 in 12 months.'}</p>
-            <p>I am particularly drawn to your organisation because of your reputation for innovation. I would welcome the opportunity to {isInternship ? 'learn from your team' : 'contribute my skills and grow with you'}.</p>
+            <p>I am writing to apply for the position at XYZ Company Ltd. With 4 years of experience in marketing, I am confident in my ability to contribute to your team.</p>
+            <p>In my current role, I have successfully managed campaigns that increased brand awareness by 35% and grew our social media following by 20,000 in 12 months.</p>
+            <p>I am particularly drawn to your organisation because of your reputation for innovation. I would welcome the opportunity to contribute my skills and grow with you.</p>
           </>
         )}
       </div>
@@ -200,7 +325,7 @@ function GenericPreviewThumbnail({ templateName }: { templateName: string }) {
       <div className="mt-3">
         <div className="mb-2">{isPersonalBrand ? "Let's connect." : isShort ? '' : 'Sincerely,'}</div>
         <div className="font-semibold">
-          {isPersonalBrand ? 'Amina Odhiambo' : isInternship ? 'Kevin Otieno Ouma' : 'Grace Wanjiku Njoroge'}
+          {isPersonalBrand ? 'Amina Odhiambo' : 'Grace Wanjiku Njoroge'}
         </div>
       </div>
     </div>
@@ -222,6 +347,12 @@ export default function CoverLetterTemplatePreview({ templateName, showDescripti
     ? <ModernPreviewThumbnail />
     : templateName === 'Short & Direct Cover Letter'
     ? <ShortDirectPreviewThumbnail />
+    : templateName === 'Graduate / Entry-Level Cover Letter'
+    ? <GraduatePreviewThumbnail />
+    : templateName === 'Internship / Attachment Cover Letter'
+    ? <InternshipPreviewThumbnail />
+    : templateName === 'Skills-Focused Entry-Level Cover Letter'
+    ? <SkillsEntryPreviewThumbnail />
     : <GenericPreviewThumbnail templateName={templateName} />;
 
   return (

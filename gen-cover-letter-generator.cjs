@@ -1,4 +1,7 @@
-'use client';
+const fs = require('fs');
+const path = require('path');
+
+const content = `'use client';
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -66,7 +69,7 @@ const ENTRY_LEVEL_TEMPLATES = [
     key: 'graduate' as ActiveTemplate,
     available: true,
     bestFor: ['Fresh graduates', 'First-time job seekers', 'Graduate trainee programmes'],
-    why: "Solves \"I don't have experience\" problem",
+    why: "Solves \\"I don't have experience\\" problem",
   },
   {
     name: 'Internship / Attachment Cover Letter',
@@ -171,10 +174,10 @@ export default function CoverLetterGenerator() {
         '',
         d.date, '',
         d.hiringManager, d.company, d.companyAddress, '',
-        `Dear ${d.hiringManager || 'Hiring Manager'},`, '',
+        \`Dear \${d.hiringManager || 'Hiring Manager'},\`, '',
         d.paragraph1, '', d.paragraph2, '', d.paragraph3, '',
         closing, d.name,
-      ].join('\n');
+      ].join('\\n');
       const newLetter = await createCoverLetter({
         user_id: user.id,
         template_id: matchedTpl?.id ?? null,
@@ -369,11 +372,11 @@ export default function CoverLetterGenerator() {
                   const val = getActiveFormData()[key] ?? '';
                   return (
                     <div key={key} className="mb-3">
-                      <Label htmlFor={`${activeTemplate}-${key}`} className="text-sm">{field.label}</Label>
+                      <Label htmlFor={\`\${activeTemplate}-\${key}\`} className="text-sm">{field.label}</Label>
                       {field.type === 'textarea' ? (
                         <>
                           <Textarea
-                            id={`${activeTemplate}-${key}`}
+                            id={\`\${activeTemplate}-\${key}\`}
                             className="mt-1 text-sm"
                             rows={4}
                             placeholder={field.placeholder}
@@ -384,7 +387,7 @@ export default function CoverLetterGenerator() {
                         </>
                       ) : (
                         <Input
-                          id={`${activeTemplate}-${key}`}
+                          id={\`\${activeTemplate}-\${key}\`}
                           className="mt-1 text-sm"
                           placeholder={field.placeholder}
                           value={val}
@@ -417,3 +420,8 @@ export default function CoverLetterGenerator() {
     </div>
   );
 }
+`;
+
+const outPath = path.join(__dirname, 'src', 'components', 'career-tools', 'CoverLetterGenerator.tsx');
+fs.writeFileSync(outPath, content, 'utf8');
+console.log('Written:', outPath, '— size:', fs.statSync(outPath).size, 'bytes');

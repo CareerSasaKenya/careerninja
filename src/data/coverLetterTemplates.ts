@@ -15,6 +15,18 @@ import ShortDirectLetter from '@/components/cover-letter/templates/ShortDirectLe
 import { shortLetterPreviewData } from './shortLetterPreviewData';
 import { shortLetterSchema } from '@/schemas/shortLetterSchema';
 
+import GraduateLetter from '@/components/cover-letter/templates/GraduateLetter';
+import { graduateLetterPreviewData } from './graduateLetterPreviewData';
+import { graduateLetterSchema } from '@/schemas/graduateLetterSchema';
+
+import InternshipLetter from '@/components/cover-letter/templates/InternshipLetter';
+import { internshipLetterPreviewData } from './internshipLetterPreviewData';
+import { internshipLetterSchema } from '@/schemas/internshipLetterSchema';
+
+import SkillsEntryLetter from '@/components/cover-letter/templates/SkillsEntryLetter';
+import { skillsEntryLetterPreviewData } from './skillsEntryLetterPreviewData';
+import { skillsEntryLetterSchema } from '@/schemas/skillsEntryLetterSchema';
+
 export interface CoverLetterTemplateConfig {
   id: string;
   name: string;
@@ -64,9 +76,44 @@ export const coverLetterTemplateRegistry: Record<string, CoverLetterTemplateConf
     schema: shortLetterSchema,
     isPremium: false,
   },
-  // Additional templates will be registered here as they are built:
-  // 'Graduate / Entry-Level Cover Letter': { ... },
-  // 'Internship / Attachment Cover Letter': { ... },
+  'Graduate / Entry-Level Cover Letter': {
+    id: 'graduate-entry-level',
+    name: 'Graduate / Entry-Level Cover Letter',
+    category: 'entry-level',
+    description:
+      'Focuses on education, projects, and potential instead of experience. Solves the "I don\'t have experience" problem for fresh graduates and first-time job seekers.',
+    bestFor: ['Fresh graduates', 'First-time job seekers', 'Graduate trainee programmes', 'Entry-level roles'],
+    component: GraduateLetter,
+    defaultData: graduateLetterPreviewData as unknown as Record<string, string>,
+    schema: graduateLetterSchema,
+    isPremium: false,
+  },
+  'Internship / Attachment Cover Letter': {
+    id: 'internship-attachment',
+    name: 'Internship / Attachment Cover Letter',
+    category: 'entry-level',
+    description:
+      'Built for university and TVET students seeking industrial attachment. Highlights course, institution, and availability period — exactly what supervisors look for.',
+    bestFor: ['University students', 'TVET students', 'Industrial attachment', 'Internship applications'],
+    component: InternshipLetter,
+    defaultData: internshipLetterPreviewData as unknown as Record<string, string>,
+    schema: internshipLetterSchema,
+    isPremium: false,
+  },
+
+  'Skills-Focused Entry-Level Cover Letter': {
+    id: 'skills-entry-level',
+    name: 'Skills-Focused Entry-Level Cover Letter',
+    category: 'entry-level',
+    description:
+      'For candidates with little or no formal experience who have real, demonstrable skills. Ideal for self-taught professionals, freelancers, and hustlers who can do the work.',
+    bestFor: ['Self-taught professionals', 'Freelancers', 'Career starters', 'Digital creatives', 'No formal experience'],
+    component: SkillsEntryLetter,
+    defaultData: skillsEntryLetterPreviewData as unknown as Record<string, string>,
+    schema: skillsEntryLetterSchema,
+    isPremium: false,
+  },
+
   // 'Career Change Cover Letter': { ... },
   // 'Personal Brand Cover Letter': { ... },
   // 'International / ATS-Friendly Cover Letter': { ... },
