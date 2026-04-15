@@ -26,6 +26,7 @@ export function useAppSetting(key: string): boolean | null {
 export async function setAppSetting(key: string, value: boolean): Promise<void> {
   const { error } = await supabase
     .from('app_settings' as any)
-    .upsert({ key, value: String(value), updated_at: new Date().toISOString() });
+    .update({ value: String(value), updated_at: new Date().toISOString() })
+    .eq('key', key);
   if (error) throw error;
 }
