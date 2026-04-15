@@ -15,6 +15,7 @@ import SocialShare from "@/components/SocialShare";
 import ServiceAdvertisement from "@/components/ServiceAdvertisement";
 import { SaveJobButton } from "@/components/SaveJobButton";
 import JobViewTracker from "@/components/JobViewTracker";
+import CVAdBanner from "@/components/CVAdBanner";
 
 // Create Supabase client for server-side data fetching
 // Check if required environment variables are present
@@ -242,6 +243,9 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                 </CardHeader>
                 
                 <CardContent className="py-8 space-y-6">
+                  {/* CV Builder promo — shown before description */}
+                  <CVAdBanner />
+
                   <div>
                     <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
                       <Briefcase className="h-5 w-5" />
