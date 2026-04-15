@@ -17,7 +17,7 @@ CREATE POLICY "Public can read app_settings"
   ON app_settings FOR SELECT
   USING (true);
 
--- Only admins can update (via service role or admin RLS policy)
+-- Only admins can update
 CREATE POLICY "Admins can update app_settings"
   ON app_settings FOR UPDATE
   USING (

@@ -12,26 +12,17 @@ const WhatsAppButton = () => {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      
-      // Show button when scrolling up or at top of page
       if (currentScrollY < lastScrollY || currentScrollY < 100) {
         setIsVisible(true);
       } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
         setIsVisible(false);
       }
-      
       setLastScrollY(currentScrollY);
     };
-
-    // Check if window is defined (browser environment)
     if (typeof window !== "undefined") {
       window.addEventListener("scroll", handleScroll, { passive: true });
       return () => {
-        try {
-          window.removeEventListener("scroll", handleScroll);
-        } catch (error) {
-          console.debug('Error removing scroll listener:', error);
-        }
+        try { window.removeEventListener("scroll", handleScroll); } catch (e) {}
       };
     }
   }, [lastScrollY]);
@@ -49,21 +40,9 @@ const WhatsAppButton = () => {
           ref={buttonRef}
           className="fixed bottom-6 left-6 z-40"
           initial={{ opacity: 0, y: 20 }}
-          animate={{ 
-            opacity: 1, 
-            y: 0,
-            scale: 1
-          }}
-          exit={{ 
-            opacity: 0, 
-            y: 20,
-            scale: 0.8
-          }}
-          transition={{ 
-            type: "spring", 
-            stiffness: 300,
-            damping: 20
-          }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 20, scale: 0.8 }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
         >
           <button
             onClick={handleClick}

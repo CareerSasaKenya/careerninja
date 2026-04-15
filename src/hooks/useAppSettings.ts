@@ -15,7 +15,6 @@ export function useAppSetting(key: string): boolean | null {
       .single()
       .then(({ data }) => {
         const row = data as unknown as { value: string } | null;
-        // Default to true if row missing (fail-open)
         setValue(row ? row.value === 'true' : true);
       });
   }, [key]);
