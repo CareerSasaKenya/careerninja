@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle } from "lucide-react";
+import { useAppSetting } from "@/hooks/useAppSettings";
 
 const WhatsAppButton = () => {
+  const whatsappEnabled = useAppSetting('whatsapp_enabled');
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const buttonRef = useRef<HTMLDivElement>(null);
@@ -42,7 +44,7 @@ const WhatsAppButton = () => {
 
   return (
     <AnimatePresence>
-      {isVisible && (
+      {whatsappEnabled && isVisible && (
         <motion.div
           ref={buttonRef}
           className="fixed bottom-6 left-6 z-40"

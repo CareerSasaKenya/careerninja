@@ -2,12 +2,15 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Briefcase, Users, Trash2, FileText, Edit, BarChart, FileEdit, Search } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Plus, Briefcase, Users, Trash2, FileText, Edit, BarChart, FileEdit, Search, Settings } from "lucide-react";
 import { toast } from "sonner";
+import { useAppSetting, setAppSetting } from "@/hooks/useAppSettings";
 
 interface Job {
   id: string;
@@ -49,6 +52,8 @@ const AdminDashboard = () => {
   const [jobFilter, setJobFilter] = useState<"all" | "active" | "draft">("all");
   const jobsPerPage = 10;
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const whatsappEnabled = useAppSetting('whatsapp_enabled');
+  const [togglingWhatsapp, setTogglingWhatsapp] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -204,6 +209,18 @@ const AdminDashboard = () => {
   const draftCount = jobs.filter((j) => j.status === "draft").length;
   const activeCount = jobs.filter((j) => j.status === "active").length;
 
+  async function handleToggleWhatsapp(checked: boolean) {
+    setTogglingWhatsapp(true);
+    try {
+      await setAppSetting('whatsapp_enabled', checked);
+      toast.success(`WhatsApp button ${checked ? 'enabled' : 'disabled'}`);
+    } catch (err: any) {
+      toast.error('Failed to update setting: ' + err.message);
+    } finally {
+      setTogglingWhatsapp(false);
+    }
+  }
+
   const generateSlug = (title: string) => {
     return title
       .toLowerCase()
@@ -258,10 +275,14 @@ const AdminDashboard = () => {
       </div>
 
       <Tabs defaultValue="jobs" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="jobs">All Jobs</TabsTrigger>
           <TabsTrigger value="blog">Blog Posts</TabsTrigger>
           <TabsTrigger value="users">All Users</TabsTrigger>
+          <TabsTrigger value="settings">
+            <Settings className="h-4 w-4 mr-1" />
+            Settings
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="jobs">
@@ -524,6 +545,36 @@ const AdminDashboard = () => {
                   </Table>
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="settings">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                Feature Settings
+              </CardTitle>
+              <CardDescription>
+                Toggle site-wide features on or off. Changes take effect immediately for all users.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <Label className="text-base font-semibold">WhatsApp Floating Button</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Show or hide the WhatsApp chat button that appears on all pages.
+                    Disable this when the number is unavailable or during maintenance.
+                  </p>
+                </div>
+                <Switch
+                  checked={whatsappEnabled ?? true}
+                  onCheckedChange={handleToggleWhatsapp}
+                  disabled={togglingWhatsapp || whatsappEnabled === null}
+                  aria-label="Toggle WhatsApp button"
+                />
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
