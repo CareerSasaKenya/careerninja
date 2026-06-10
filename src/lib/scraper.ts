@@ -60,7 +60,7 @@ export interface NormalizedJob {
   location: string
   apply_link: string
   application_url: string
-  valid_through: string
+  valid_through: string | null
   salary_min: number | null
   salary_max: number | null
   salary_currency: string
@@ -259,14 +259,13 @@ function extractCity(location: string): string {
   return ''
 }
 
-function parseDateString(raw: string): string {
-  if (!raw) return ''
-  // Try to parse common date formats
+function parseDateString(raw: string): string | null {
+  if (!raw) return null
   const date = new Date(raw)
   if (!isNaN(date.getTime())) {
-    return date.toISOString().split('T')[0] // YYYY-MM-DD
+    return date.toISOString().split('T')[0]
   }
-  return ''
+  return null
 }
 
 function parseSalary(raw: string): {
