@@ -122,7 +122,7 @@ export function extractJobLinks(
 
     // Get the link href
     const linkEl = card.find(selectors.jobLink).first()
-    let href = linkEl.attr('href') || card.filter(selectors.jobLink).attr('href') || ''
+    const href = linkEl.attr('href') || card.filter(selectors.jobLink).attr('href') || ''
 
     if (!href) return
 
