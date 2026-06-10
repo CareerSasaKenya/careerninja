@@ -196,7 +196,7 @@ export function normalizeWorkableJob(
     salary_visibility: 'Hide',  // Workable jobs don't expose salary
     experience_level: 'Mid',
     status: 'active',
-    posted_by: 'scraper',
+    posted_by: 'admin',  // scraper posts as admin
     tags: detail.department?.join(', ') || '',
   }
 }
