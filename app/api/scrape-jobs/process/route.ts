@@ -124,6 +124,9 @@ export async function POST(request: NextRequest) {
       company_id: companyId,
       user_id: scraperUserId,
       hiring_organization_name: source.name,
+      // Workable jobs apply externally — satisfy the DB constraint
+      direct_apply: false,
+      application_url: normalized.application_url || queueItem.job_url,
     }
 
     const { data: insertedJob, error: jobError } = await supabase
@@ -158,7 +161,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err)
+    const message = err instanceof Error ? err.message : (typeof err === 'object' ? JSON.stringify(err) : String(err))
     console.error('[process] Error:', queueItem.job_url, message)
 
     const attempts = (queueItem.attempts || 0) + 1
