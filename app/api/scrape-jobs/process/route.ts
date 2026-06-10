@@ -8,6 +8,7 @@ import {
   extractWorkableSlug,
   generateContentHash as workableHash,
 } from '@/lib/workable-adapter'
+import { extractJobMetadata, mapEducationLevel } from '@/lib/jobMetadataExtraction'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -97,6 +98,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Duplicate job skipped', job_url: queueItem.job_url })
     }
 
+    // ── AI metadata extraction ───────────────────────────────────────────────
+    // Send the full job text to Gemini to extract deadline, education, experience, etc.
+    const fullText = [
+      normalized.description,
+      normalized.required_qualifications,
+    ].filter(Boolean).join('\n\n')
+
+    const aiMeta = await extractJobMetadata(fullText)
+
+    // Look up education_level_id from DB
+    const { data: educationLevels } = await supabase
+      .from('education_levels')
+      .select('id, name')
+    const educationLevelId = mapEducationLevel(aiMeta.education_level, educationLevels || [])
+
     // ── Look up or create company ────────────────────────────────────────────
     const scraperUserId = await getScraperUserId()
     let companyId: string | null = null
@@ -127,6 +143,17 @@ export async function POST(request: NextRequest) {
       // Workable jobs apply externally — satisfy the DB constraint
       direct_apply: false,
       application_url: normalized.application_url || queueItem.job_url,
+      // AI-extracted fields (override the normalizer defaults with accurate values)
+      valid_through: aiMeta.deadline || normalized.valid_through,
+      education_level_id: educationLevelId,
+      minimum_experience: aiMeta.minimum_experience ?? normalized.minimum_experience,
+      experience_level: aiMeta.experience_level || normalized.experience_level,
+      industry: aiMeta.industry || normalized.industry || null,
+      // Salary — only use AI values if the normalizer didn't find any
+      salary_min: normalized.salary_min ?? aiMeta.salary_min ?? null,
+      salary_max: normalized.salary_max ?? aiMeta.salary_max ?? null,
+      salary_currency: normalized.salary_currency || aiMeta.salary_currency || 'KES',
+      salary_period: normalized.salary_period || aiMeta.salary_period || 'MONTH',
     }
 
     const { data: insertedJob, error: jobError } = await supabase

@@ -67,6 +67,8 @@ export interface NormalizedJob {
   salary_period: string
   salary_visibility: string
   experience_level: string
+  minimum_experience: number | null
+  industry: string | null
   status: string
   posted_by: string
   tags: string
@@ -215,6 +217,8 @@ export function normalizeJob(
     ...parseSalary(raw.salary_text),
     salary_visibility: 'Show',
     experience_level: 'Mid',
+    minimum_experience: null,
+    industry: null,
     status: 'active',
     posted_by: 'scraper',
     tags: '',

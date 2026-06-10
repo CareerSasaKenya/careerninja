@@ -195,6 +195,8 @@ export function normalizeWorkableJob(
     salary_period: 'MONTH',
     salary_visibility: 'Hide',  // Workable jobs don't expose salary
     experience_level: 'Mid',
+    minimum_experience: null,
+    industry: null,
     status: 'active',
     posted_by: 'admin',  // scraper posts as admin
     tags: detail.department?.join(', ') || '',
