@@ -8,12 +8,16 @@ import {
   extractWorkableSlug,
   generateContentHash as workableHash,
 } from '@/lib/workable-adapter'
-import { extractJobMetadata, mapEducationLevel } from '@/lib/jobMetadataExtraction'
+import { mapEducationLevel } from '@/lib/jobMetadataExtraction'
+import { parseScrapedJobContent, ScrapedJobInput } from '@/lib/scraperJobParsing'
+import type { WorkableJobDetail } from '@/lib/workable-adapter'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
+
+export const maxDuration = 60
 
 export async function POST(request: NextRequest) {
   const secret = request.headers.get('x-scraper-secret')
@@ -46,6 +50,7 @@ export async function POST(request: NextRequest) {
   try {
     let normalized: ReturnType<typeof normalizeJob>
     let rawData: unknown
+    let parseInput: ScrapedJobInput
 
     if (isWorkable) {
       // ── Workable: fetch via API ──────────────────────────────────────────────
@@ -56,15 +61,23 @@ export async function POST(request: NextRequest) {
         throw new Error(`Cannot parse Workable slug/shortcode from URL: ${queueItem.job_url}`)
       }
 
-      const detail = await fetchWorkableJobDetails(slug, shortcode)
+      const detail: WorkableJobDetail = await fetchWorkableJobDetails(slug, shortcode)
       const filterCountry = (source.selectors as { filterCountry?: string }).filterCountry
 
       normalized = normalizeWorkableJob(detail, source.name, filterCountry)
-
-      // Fix the application_url placeholder
       normalized.application_url = queueItem.job_url
-
       rawData = detail
+
+      parseInput = {
+        title: normalized.title,
+        company: source.name,
+        location: normalized.location,
+        employmentType: normalized.employment_type,
+        workplace: normalized.job_location_type,
+        descriptionSection: detail.description,
+        requirementsSection: detail.requirements,
+        benefitsSection: detail.benefits,
+      }
 
     } else {
       // ── HTML scraper ─────────────────────────────────────────────────────────
@@ -77,6 +90,16 @@ export async function POST(request: NextRequest) {
 
       normalized = normalizeJob(raw, source.name)
       rawData = raw
+
+      parseInput = {
+        title: normalized.title,
+        company: source.name,
+        location: normalized.location,
+        employmentType: normalized.employment_type,
+        descriptionSection: raw.description,
+        requirementsSection: raw.requirements,
+        rawContent: [raw.description, raw.requirements].filter(Boolean).join('\n\n'),
+      }
     }
 
     if (!normalized.title) throw new Error('Job title is empty after normalization')
@@ -98,20 +121,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Duplicate job skipped', job_url: queueItem.job_url })
     }
 
-    // ── AI metadata extraction ───────────────────────────────────────────────
-    // Send the full job text to Gemini to extract deadline, education, experience, etc.
-    const fullText = [
-      normalized.description,
-      normalized.required_qualifications,
-    ].filter(Boolean).join('\n\n')
+    // ── Intelligent field parsing ────────────────────────────────────────────
+    const parsed = await parseScrapedJobContent(parseInput)
 
-    const aiMeta = await extractJobMetadata(fullText)
-
-    // Look up education_level_id from DB
     const { data: educationLevels } = await supabase
       .from('education_levels')
       .select('id, name')
-    const educationLevelId = mapEducationLevel(aiMeta.education_level, educationLevels || [])
+    const educationLevelId = mapEducationLevel(parsed.education_level, educationLevels || [])
 
     // ── Look up or create company ────────────────────────────────────────────
     const scraperUserId = await getScraperUserId()
@@ -137,23 +153,25 @@ export async function POST(request: NextRequest) {
     // ── Insert job ───────────────────────────────────────────────────────────
     const jobPayload = {
       ...normalized,
+      description: parsed.description || normalized.description,
+      responsibilities: parsed.responsibilities || null,
+      required_qualifications: parsed.required_qualifications || normalized.required_qualifications || null,
+      additional_info: parsed.additional_info || null,
       company_id: companyId,
       user_id: scraperUserId,
       hiring_organization_name: source.name,
-      // Workable jobs apply externally — satisfy the DB constraint
+      source: 'Scraper',
       direct_apply: false,
       application_url: normalized.application_url || queueItem.job_url,
-      // AI-extracted fields (override the normalizer defaults with accurate values)
-      valid_through: aiMeta.deadline || normalized.valid_through,
+      valid_through: parsed.deadline || normalized.valid_through,
       education_level_id: educationLevelId,
-      minimum_experience: aiMeta.minimum_experience ?? normalized.minimum_experience,
-      experience_level: aiMeta.experience_level || normalized.experience_level,
-      industry: aiMeta.industry || normalized.industry || null,
-      // Salary — only use AI values if the normalizer didn't find any
-      salary_min: normalized.salary_min ?? aiMeta.salary_min ?? null,
-      salary_max: normalized.salary_max ?? aiMeta.salary_max ?? null,
-      salary_currency: normalized.salary_currency || aiMeta.salary_currency || 'KES',
-      salary_period: normalized.salary_period || aiMeta.salary_period || 'MONTH',
+      minimum_experience: parsed.minimum_experience ?? normalized.minimum_experience,
+      experience_level: parsed.experience_level || normalized.experience_level,
+      industry: parsed.industry || normalized.industry || null,
+      salary_min: normalized.salary_min ?? parsed.salary_min ?? null,
+      salary_max: normalized.salary_max ?? parsed.salary_max ?? null,
+      salary_currency: normalized.salary_currency || parsed.salary_currency || 'KES',
+      salary_period: normalized.salary_period || parsed.salary_period || 'MONTH',
     }
 
     const { data: insertedJob, error: jobError } = await supabase

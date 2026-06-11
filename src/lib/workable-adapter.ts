@@ -169,16 +169,11 @@ export function normalizeWorkableJob(
   const county = targetLoc?.region?.replace(/\s+county/i, '').trim() || ''
   const city = targetLoc?.city || ''
 
-  // Combine description + requirements + benefits into a full description
-  const fullDescription = [detail.description, detail.requirements, detail.benefits]
-    .filter(Boolean)
-    .join('\n\n')
-
   return {
     title: detail.title,
     company: companyName,
-    description: fullDescription,
-    responsibilities: '',  // embedded in description from Workable
+    description: detail.description || '',
+    responsibilities: '',
     required_qualifications: detail.requirements || '',
     employment_type: normalizeWorkableEmploymentType(detail.type),
     job_location_type: normalizeWorkplace(detail.workplace),
@@ -207,7 +202,7 @@ export function normalizeWorkableJob(
 
 export function extractWorkableShortcode(jobUrl: string): string | null {
   // URL format: https://apply.workable.com/{slug}/j/{shortcode}/
-  const match = jobUrl.match(/\/j\/([A-Z0-9]+)\/?$/)
+  const match = jobUrl.match(/\/j\/([A-Za-z0-9]+)\/?$/i)
   return match ? match[1] : null
 }
 
