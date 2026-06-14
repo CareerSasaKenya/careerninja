@@ -306,7 +306,7 @@ export default function BasicInfoForm({ profile, onUpdate }: BasicInfoFormProps)
                 <Label htmlFor="gender">Gender</Label>
                 <Select
                   value={formData.gender || undefined}
-                  onValueChange={(value) => setFormData({ ...formData, gender: value || '' })}
+                  onValueChange={(value) => setFormData({ ...formData, gender: (value || '') as 'male' | 'female' | 'other' | 'prefer_not_to_say' })}
                 >
                   <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
                   <SelectContent>
@@ -322,7 +322,7 @@ export default function BasicInfoForm({ profile, onUpdate }: BasicInfoFormProps)
                 <Label htmlFor="marital_status">Marital Status</Label>
                 <Select
                   value={formData.marital_status || undefined}
-                  onValueChange={(value) => setFormData({ ...formData, marital_status: value || '' })}
+                  onValueChange={(value) => setFormData({ ...formData, marital_status: (value || '') as 'single' | 'married' | 'divorced' | 'widowed' | 'prefer_not_to_say' })}
                 >
                   <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
                   <SelectContent>
@@ -422,7 +422,7 @@ export default function BasicInfoForm({ profile, onUpdate }: BasicInfoFormProps)
               <Label htmlFor="disability_status">Disability Status</Label>
               <Select
                 value={formData.disability_status || undefined}
-                onValueChange={(value) => setFormData({ ...formData, disability_status: value || 'prefer_not_to_say' })}
+                onValueChange={(value) => setFormData({ ...formData, disability_status: (value || 'prefer_not_to_say') as 'yes' | 'no' | 'prefer_not_to_say' })}
               >
                 <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
                 <SelectContent>
