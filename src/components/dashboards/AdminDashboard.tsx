@@ -120,7 +120,7 @@ const AdminDashboard = () => {
         toast.error("Failed to load users");
         console.error("Users fetch error:", usersResult.error);
       } else {
-        setUsers((usersResult.data || []) as AdminUser[]);
+        setUsers((usersResult.data || []) as unknown as AdminUser[]);
       }
 
       if (blogPostsResult.error) {
