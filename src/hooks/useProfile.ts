@@ -20,6 +20,19 @@ export interface CandidateProfile {
   github_url: string | null;
   profile_visibility: 'private' | 'public' | 'recruiters_only';
   job_alerts_enabled: boolean;
+  // New fields added 2026-06-14
+  date_of_birth: string | null;
+  nationality: string | null;
+  gender: 'male' | 'female' | 'non_binary' | 'prefer_not_to_say' | null;
+  marital_status: 'single' | 'married' | 'divorced' | 'widowed' | 'prefer_not_to_say' | null;
+  languages: string[] | null;
+  highest_education_level: string | null;
+  industry: string | null;
+  job_preferences: Record<string, unknown> | null;
+  notice_period: string | null;
+  work_authorization: string | null;
+  disability_status: 'yes' | 'no' | 'prefer_not_to_say' | null;
+  profile_completeness_score: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -166,43 +179,49 @@ export function useProfile() {
 
   const calculateCompleteness = () => {
     let score = 0;
-    const weights = {
-      basicInfo: 30,
-      professional: 20,
-      workExperience: 20,
-      education: 15,
-      skills: 15,
-    };
 
-    // Basic info (30%)
+    // Basic info (25%)
     if (profile?.full_name) score += 5;
     if (profile?.phone) score += 5;
     if (profile?.location) score += 5;
-    if (profile?.bio && profile.bio.length > 50) score += 10;
-    if (profile?.linkedin_url || profile?.portfolio_url || profile?.github_url) score += 5;
+    if (profile?.bio && profile.bio.length > 50) score += 7;
+    if (profile?.linkedin_url || profile?.portfolio_url || profile?.github_url) score += 3;
 
-    // Professional (20%)
-    if (profile?.current_title) score += 10;
-    if (profile?.years_experience !== null) score += 5;
-    if (profile?.expected_salary_min) score += 5;
+    // Professional (15%)
+    if (profile?.current_title) score += 7;
+    if (profile?.years_experience !== null) score += 4;
+    if (profile?.expected_salary_min) score += 4;
 
-    // Work experience (20%)
-    if (workExperience.length > 0) score += 10;
-    if (workExperience.length >= 2) score += 5;
-    if (workExperience.some(exp => exp.description && exp.description.length > 50)) score += 5;
+    // Demographics (15%)
+    if (profile?.date_of_birth) score += 3;
+    if (profile?.nationality) score += 3;
+    if (Array.isArray(profile?.languages) && (profile.languages as string[]).length > 0) score += 5;
+    if (profile?.gender) score += 2;
+    if (profile?.marital_status && profile.marital_status !== 'prefer_not_to_say') score += 2;
 
-    // Education (15%)
-    if (education.length > 0) score += 10;
-    if (education.length >= 2) score += 5;
+    // Career preferences (15%)
+    if (profile?.highest_education_level) score += 4;
+    if (profile?.industry) score += 4;
+    if (profile?.notice_period) score += 3;
+    if (profile?.work_authorization) score += 4;
 
-    // Skills (15%)
-    if (skills.length >= 3) score += 5;
-    if (skills.length >= 5) score += 5;
-    if (skills.length >= 10) score += 5;
+    // Work experience (12%)
+    if (workExperience.length > 0) score += 6;
+    if (workExperience.length >= 2) score += 3;
+    if (workExperience.some(exp => exp.description && exp.description.length > 50)) score += 3;
 
-    // Bonus for having a CV uploaded
+    // Education (8%)
+    if (education.length > 0) score += 5;
+    if (education.length >= 2) score += 3;
+
+    // Skills (7%)
+    if (skills.length >= 3) score += 2;
+    if (skills.length >= 5) score += 2;
+    if (skills.length >= 10) score += 3;
+
+    // Bonus for CV upload (3%)
     if (documents.some(doc => (doc.document_type === 'cv' || doc.document_type === 'resume') && doc.is_primary)) {
-      score += 5;
+      score += 3;
     }
 
     setCompleteness(Math.min(score, 100));

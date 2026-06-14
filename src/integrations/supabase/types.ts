@@ -879,60 +879,96 @@ export type Database = {
           bio: string | null
           created_at: string | null
           current_title: string | null
+          date_of_birth: string | null
+          disability_status: string | null
           expected_salary_currency: string | null
           expected_salary_max: number | null
           expected_salary_min: number | null
           full_name: string
+          gender: string | null
           github_url: string | null
+          highest_education_level: string | null
           id: string
+          industry: string | null
           job_alerts_enabled: boolean | null
+          job_preferences: unknown | null
+          languages: unknown | null
           linkedin_url: string | null
           location: string | null
+          marital_status: string | null
+          nationality: string | null
+          notice_period: string | null
           phone: string | null
           portfolio_url: string | null
+          profile_completeness_score: number | null
           profile_visibility: string | null
           updated_at: string | null
           user_id: string
+          work_authorization: string | null
           years_experience: number | null
         }
         Insert: {
           bio?: string | null
           created_at?: string | null
           current_title?: string | null
+          date_of_birth?: string | null
+          disability_status?: string | null
           expected_salary_currency?: string | null
           expected_salary_max?: number | null
           expected_salary_min?: number | null
           full_name: string
+          gender?: string | null
           github_url?: string | null
+          highest_education_level?: string | null
           id?: string
+          industry?: string | null
           job_alerts_enabled?: boolean | null
+          job_preferences?: unknown | null
+          languages?: unknown | null
           linkedin_url?: string | null
           location?: string | null
+          marital_status?: string | null
+          nationality?: string | null
+          notice_period?: string | null
           phone?: string | null
           portfolio_url?: string | null
+          profile_completeness_score?: number | null
           profile_visibility?: string | null
           updated_at?: string | null
           user_id: string
+          work_authorization?: string | null
           years_experience?: number | null
         }
         Update: {
           bio?: string | null
           created_at?: string | null
           current_title?: string | null
+          date_of_birth?: string | null
+          disability_status?: string | null
           expected_salary_currency?: string | null
           expected_salary_max?: number | null
           expected_salary_min?: number | null
           full_name?: string
+          gender?: string | null
           github_url?: string | null
+          highest_education_level?: string | null
           id?: string
+          industry?: string | null
           job_alerts_enabled?: boolean | null
+          job_preferences?: unknown | null
+          languages?: unknown | null
           linkedin_url?: string | null
           location?: string | null
+          marital_status?: string | null
+          nationality?: string | null
+          notice_period?: string | null
           phone?: string | null
           portfolio_url?: string | null
+          profile_completeness_score?: number | null
           profile_visibility?: string | null
           updated_at?: string | null
           user_id?: string
+          work_authorization?: string | null
           years_experience?: number | null
         }
         Relationships: []

@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Plus, Briefcase, Users, Trash2, FileText, Edit, BarChart, FileEdit, Search, Settings } from "lucide-react";
+import { Plus, Briefcase, Users, Trash2, FileText, Edit, BarChart, FileEdit, Search, Settings, UserCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useAppSetting, setAppSetting } from "@/hooks/useAppSettings";
 
@@ -27,11 +27,21 @@ interface Job {
   } | null | any;
 }
 
-interface User {
+interface AdminUser {
   id: string;
-  user_id: string;
-  role: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  role: string | null;
   created_at: string;
+  // Joined from candidate_profiles (may be null for non-candidates)
+  candidate_profiles: {
+    id: string;
+    current_title: string | null;
+    location: string | null;
+    phone: string | null;
+    profile_completeness_score: number | null;
+    profile_visibility: string | null;
+  }[] | null;
 }
 
 interface BlogPost {
@@ -44,7 +54,7 @@ interface BlogPost {
 
 const AdminDashboard = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<AdminUser[]>([]);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -77,7 +87,21 @@ const AdminDashboard = () => {
           education_levels (name)
         `).order("created_at", { ascending: false }).range(from, to),
         supabase.from("jobs").select("id", { count: "exact", head: true }),
-        supabase.from("user_roles").select("id, user_id, role, created_at").order("created_at", { ascending: false }),
+        supabase.from("user_profiles").select(`
+          id,
+          full_name,
+          avatar_url,
+          role,
+          created_at,
+          candidate_profiles (
+            id,
+            current_title,
+            location,
+            phone,
+            profile_completeness_score,
+            profile_visibility
+          )
+        `).order("created_at", { ascending: false }),
         supabase.from("blog_posts").select("id, title, category, created_at, author_id").order("created_at", { ascending: false }),
       ]);
 
@@ -96,7 +120,7 @@ const AdminDashboard = () => {
         toast.error("Failed to load users");
         console.error("Users fetch error:", usersResult.error);
       } else {
-        setUsers(usersResult.data || []);
+        setUsers((usersResult.data || []) as AdminUser[]);
       }
 
       if (blogPostsResult.error) {
@@ -509,10 +533,13 @@ const AdminDashboard = () => {
         <TabsContent value="users">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                All Users
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  All Users
+                  <Badge variant="outline" className="ml-2">{users.length}</Badge>
+                </CardTitle>
+              </div>
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -524,23 +551,83 @@ const AdminDashboard = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>User ID</TableHead>
+                        <TableHead>User</TableHead>
                         <TableHead>Role</TableHead>
+                        <TableHead>Current Title</TableHead>
+                        <TableHead>Location</TableHead>
+                        <TableHead>Profile</TableHead>
                         <TableHead>Joined</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {users.map((user) => (
-                        <TableRow key={user.id}>
-                          <TableCell className="font-mono text-sm">{user.user_id}</TableCell>
-                          <TableCell>
-                            <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
-                              {user.role}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
-                        </TableRow>
-                      ))}
+                      {users.map((user) => {
+                        const cp = user.candidate_profiles?.[0] ?? null;
+                        return (
+                          <TableRow key={user.id}>
+                            <TableCell>
+                              <div className="flex items-center gap-3">
+                                {user.avatar_url ? (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img
+                                    src={user.avatar_url}
+                                    alt={user.full_name || 'User'}
+                                    className="h-9 w-9 rounded-full object-cover ring-1 ring-border"
+                                  />
+                                ) : (
+                                  <UserCircle className="h-9 w-9 text-muted-foreground" />
+                                )}
+                                <div className="flex flex-col">
+                                  <span className="font-medium text-sm leading-tight">
+                                    {user.full_name || <span className="text-muted-foreground italic">No name</span>}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground font-mono truncate max-w-[140px]">
+                                    {user.id}
+                                  </span>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={user.role === 'admin' ? 'default' : user.role === 'employer' ? 'outline' : 'secondary'}>
+                                {user.role || 'candidate'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-sm">
+                              {cp?.current_title || <span className="text-muted-foreground">—</span>}
+                            </TableCell>
+                            <TableCell className="text-sm">
+                              {cp?.location || <span className="text-muted-foreground">—</span>}
+                            </TableCell>
+                            <TableCell>
+                              {cp ? (
+                                <div className="flex items-center gap-2">
+                                  <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
+                                    <div
+                                      className={`h-full rounded-full ${
+                                        (cp.profile_completeness_score ?? 0) >= 70 ? 'bg-green-500'
+                                          : (cp.profile_completeness_score ?? 0) >= 40 ? 'bg-yellow-500'
+                                          : 'bg-red-400'
+                                      }`}
+                                      style={{ width: `${cp.profile_completeness_score ?? 0}%` }}
+                                    />
+                                  </div>
+                                  <span className="text-xs text-muted-foreground w-7 text-right">
+                                    {cp.profile_completeness_score ?? 0}%
+                                  </span>
+                                  <Badge
+                                    variant={cp.profile_visibility === 'public' ? 'default' : 'secondary'}
+                                    className="text-[10px] px-1.5"
+                                  >
+                                    {cp.profile_visibility || 'private'}
+                                  </Badge>
+                                </div>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">No profile</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-sm">{new Date(user.created_at).toLocaleDateString()}</TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>

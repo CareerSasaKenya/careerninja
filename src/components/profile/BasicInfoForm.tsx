@@ -35,6 +35,17 @@ export default function BasicInfoForm({ profile, onUpdate }: BasicInfoFormProps)
     github_url: profile?.github_url || '',
     profile_visibility: profile?.profile_visibility || 'private',
     job_alerts_enabled: profile?.job_alerts_enabled ?? true,
+    // New fields
+    date_of_birth: profile?.date_of_birth || '',
+    nationality: profile?.nationality || '',
+    gender: profile?.gender || '',
+    marital_status: profile?.marital_status || '',
+    languages: Array.isArray(profile?.languages) ? (profile.languages as string[]).join(', ') : '',
+    highest_education_level: profile?.highest_education_level || '',
+    industry: profile?.industry || '',
+    notice_period: profile?.notice_period || '',
+    work_authorization: profile?.work_authorization || '',
+    disability_status: profile?.disability_status || 'prefer_not_to_say',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,6 +71,19 @@ export default function BasicInfoForm({ profile, onUpdate }: BasicInfoFormProps)
         github_url: formData.github_url || null,
         profile_visibility: formData.profile_visibility,
         job_alerts_enabled: formData.job_alerts_enabled,
+        // New fields
+        date_of_birth: formData.date_of_birth || null,
+        nationality: formData.nationality || null,
+        gender: formData.gender || null,
+        marital_status: formData.marital_status || null,
+        languages: formData.languages
+          ? formData.languages.split(',').map(l => l.trim()).filter(Boolean)
+          : [],
+        highest_education_level: formData.highest_education_level || null,
+        industry: formData.industry || null,
+        notice_period: formData.notice_period || null,
+        work_authorization: formData.work_authorization || null,
+        disability_status: formData.disability_status || 'prefer_not_to_say',
       };
 
       if (profile) {
@@ -247,6 +271,170 @@ export default function BasicInfoForm({ profile, onUpdate }: BasicInfoFormProps)
                 <SelectItem value="public">Public (Everyone)</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          {/* ── Demographics ─────────────────────────────────────────── */}
+          <div className="pt-4 border-t">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+              Demographics <span className="text-xs font-normal normal-case">(optional)</span>
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="date_of_birth">Date of Birth</Label>
+                <Input
+                  id="date_of_birth"
+                  type="date"
+                  value={formData.date_of_birth}
+                  onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="nationality">Nationality</Label>
+                <Input
+                  id="nationality"
+                  placeholder="e.g. Kenyan"
+                  value={formData.nationality}
+                  onChange={(e) => setFormData({ ...formData, nationality: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div className="space-y-2">
+                <Label htmlFor="gender">Gender</Label>
+                <Select
+                  value={formData.gender || undefined}
+                  onValueChange={(value) => setFormData({ ...formData, gender: value || '' })}
+                >
+                  <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="non_binary">Non-binary</SelectItem>
+                    <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="marital_status">Marital Status</Label>
+                <Select
+                  value={formData.marital_status || undefined}
+                  onValueChange={(value) => setFormData({ ...formData, marital_status: value || '' })}
+                >
+                  <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="single">Single</SelectItem>
+                    <SelectItem value="married">Married</SelectItem>
+                    <SelectItem value="divorced">Divorced</SelectItem>
+                    <SelectItem value="widowed">Widowed</SelectItem>
+                    <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-2">
+              <Label htmlFor="languages">Languages Spoken</Label>
+              <Input
+                id="languages"
+                placeholder="e.g. English, Swahili, French"
+                value={formData.languages}
+                onChange={(e) => setFormData({ ...formData, languages: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">Comma-separated list</p>
+            </div>
+          </div>
+
+          {/* ── Career Preferences ──────────────────────────────────── */}
+          <div className="pt-4 border-t">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+              Career Preferences <span className="text-xs font-normal normal-case">(optional)</span>
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="highest_education_level">Highest Education Level</Label>
+                <Select
+                  value={formData.highest_education_level || undefined}
+                  onValueChange={(value) => setFormData({ ...formData, highest_education_level: value || '' })}
+                >
+                  <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="High School">High School</SelectItem>
+                    <SelectItem value="Diploma">Diploma / Certificate</SelectItem>
+                    <SelectItem value="Bachelor's">Bachelor’s Degree</SelectItem>
+                    <SelectItem value="Master's">Master’s Degree</SelectItem>
+                    <SelectItem value="PhD">PhD / Doctorate</SelectItem>
+                    <SelectItem value="Professional Certification">Professional Certification</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="industry">Industry / Domain</Label>
+                <Input
+                  id="industry"
+                  placeholder="e.g. Technology, Healthcare, Finance"
+                  value={formData.industry}
+                  onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div className="space-y-2">
+                <Label htmlFor="notice_period">Notice Period</Label>
+                <Select
+                  value={formData.notice_period || undefined}
+                  onValueChange={(value) => setFormData({ ...formData, notice_period: value || '' })}
+                >
+                  <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="immediate">Immediate</SelectItem>
+                    <SelectItem value="2_weeks">2 Weeks</SelectItem>
+                    <SelectItem value="1_month">1 Month</SelectItem>
+                    <SelectItem value="3_months">3 Months</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="work_authorization">Work Authorization</Label>
+                <Select
+                  value={formData.work_authorization || undefined}
+                  onValueChange={(value) => setFormData({ ...formData, work_authorization: value || '' })}
+                >
+                  <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="citizen">Citizen</SelectItem>
+                    <SelectItem value="permanent_resident">Permanent Resident</SelectItem>
+                    <SelectItem value="work_permit">Work Permit Holder</SelectItem>
+                    <SelectItem value="visa_sponsored">Requires Visa Sponsorship</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-2">
+              <Label htmlFor="disability_status">Disability Status</Label>
+              <Select
+                value={formData.disability_status || undefined}
+                onValueChange={(value) => setFormData({ ...formData, disability_status: value || 'prefer_not_to_say' })}
+              >
+                <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="yes">Yes</SelectItem>
+                  <SelectItem value="no">No</SelectItem>
+                  <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Voluntary disclosure for inclusive hiring programs
+              </p>
+            </div>
           </div>
 
           <div className="flex items-center justify-between">
