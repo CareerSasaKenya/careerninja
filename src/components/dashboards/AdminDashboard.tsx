@@ -1,3 +1,4 @@
+// Admin Dashboard Component
 import { useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import { supabase } from "@/integrations/supabase/client";
