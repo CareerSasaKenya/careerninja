@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Plus, Briefcase, Users, Trash2, FileText, Edit, BarChart, FileEdit, Search, Settings, UserCircle } from "lucide-react";
+import { Plus, Briefcase, Users, Trash2, FileText, Edit, BarChart, FileEdit, Search, Settings, UserCircle, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { useAppSetting, setAppSetting } from "@/hooks/useAppSettings";
 
@@ -288,6 +288,12 @@ const AdminDashboard = () => {
             <Button variant="outline" className="w-full sm:w-auto">
               <BarChart className="mr-2 h-4 w-4" />
               Parser Stats
+            </Button>
+          </Link>
+          <Link href="/dashboard/admin/emails">
+            <Button variant="outline" className="w-full sm:w-auto">
+              <Mail className="mr-2 h-4 w-4" />
+              Email Management
             </Button>
           </Link>
           <Link href="/post-job">
