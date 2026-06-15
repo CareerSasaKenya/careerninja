@@ -132,6 +132,16 @@ export default function AdminEmailsPage() {
     if (!error && data) setCampaigns(data);
   }
 
+  // ---- Auth helper ----
+  async function getAuthHeaders(): Promise<Record<string, string>> {
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+    return {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+  }
+
   // ---- Actions ----
 
   async function handleSendTest() {
@@ -143,7 +153,7 @@ export default function AdminEmailsPage() {
     try {
       const res = await fetch("/api/emails/test", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: await getAuthHeaders(),
         body: JSON.stringify({ to: testEmail }),
       });
       const data = await res.json();
@@ -199,7 +209,7 @@ export default function AdminEmailsPage() {
     try {
       const res = await fetch("/api/emails/send", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: await getAuthHeaders(),
         body: JSON.stringify({ campaign_id: campaignId }),
       });
       const data = await res.json();

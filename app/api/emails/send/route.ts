@@ -18,19 +18,15 @@ function getAdminClient() {
 export async function POST(request: NextRequest) {
   try {
     // Verify admin auth
-    const authHeader = request.headers.get('authorization');
-    const cookie = request.headers.get('cookie');
+    const accessToken = request.headers.get('authorization')?.replace('Bearer ', '');
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
 
-    // Create a client with the user's session
+    // Create a client with the user's access token
     const userClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: {
-        headers: {
-          ...(cookie ? { cookie } : {}),
-          ...(authHeader ? { authorization: authHeader } : {}),
-        },
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
       },
     });
 
