@@ -37,7 +37,13 @@ export type EmailType =
   | 'new_message'
   | 'newsletter'
   | 'confirmation'
-  | 'campaign';
+  | 'campaign'
+  | 'broadcast'
+  | 'reengagement'
+  | 'reminder'
+  | 'employer_welcome'
+  | 'profile_nudge'
+  | 'job_expiry';
 
 export interface SendEmailParams {
   to: string | string[];
@@ -687,4 +693,236 @@ export async function sendTestEmail(to: string): Promise<SendEmailResult> {
   `;
 
   return sendEmail({ to, subject: '[Test] CareerSasa Email System', html, emailType: 'transactional' });
+}
+
+// =====================================================
+// AUTOMATED EMAIL TEMPLATES
+// =====================================================
+
+/**
+ * Send re-engagement email to inactive users.
+ */
+export async function sendReengagementEmail(
+  to: string, name: string, daysSinceLogin: number, userId?: string
+): Promise<SendEmailResult> {
+  const siteUrl = getSiteUrl();
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+    <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;background:#f5f5f5;margin:0;padding:0;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:white;">
+        <tr><td style="background:#1a1a2e;color:white;padding:30px;text-align:center;">
+          <h1 style="margin:0;font-size:24px;">We Miss You, ${escapeHtml(name)}!</h1>
+          <p style="margin:5px 0 0;opacity:0.8;">It's been ${daysSinceLogin} days since your last visit</p>
+        </td></tr>
+        <tr><td style="padding:30px;">
+          <p>A lot has happened since you were last on CareerSasa. Here's what you're missing:</p>
+          <ul style="line-height:2;">
+            <li>New job opportunities posted daily</li>
+            <li>Featured positions from top Kenyan employers</li>
+            <li>Career tips and industry insights</li>
+          </ul>
+          <p>Your dream job could be waiting for you right now.</p>
+          <p style="text-align:center;margin:30px 0;">
+            <a href="${siteUrl}/jobs" style="display:inline-block;padding:12px 30px;background:#1a1a2e;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Browse Latest Jobs</a>
+          </p>
+          <p style="text-align:center;margin:10px 0;">
+            <a href="${siteUrl}/dashboard/profile" style="display:inline-block;padding:12px 30px;background:#e94560;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Update Your Profile</a>
+          </p>
+        </td></tr>
+        <tr><td style="padding:20px;text-align:center;font-size:12px;color:#666;border-top:1px solid #eee;">
+          <p>&copy; ${new Date().getFullYear()} CareerSasa. All rights reserved.</p>
+          <p><a href="${siteUrl}/dashboard/preferences" style="color:#666;">Email Preferences</a></p>
+        </td></tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  return sendEmail({ to, subject: `We miss you! ${daysSinceLogin} days of new opportunities await`, html, emailType: 'reengagement', userId });
+}
+
+/**
+ * Send incomplete application reminder.
+ */
+export async function sendIncompleteApplicationReminder(
+  to: string, name: string, jobTitle: string, applicationUrl: string, userId?: string
+): Promise<SendEmailResult> {
+  const siteUrl = getSiteUrl();
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+    <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;background:#f5f5f5;margin:0;padding:0;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:white;">
+        <tr><td style="background:#f59e0b;color:white;padding:30px;text-align:center;">
+          <h1 style="margin:0;font-size:24px;">Don't Forget Your Application!</h1>
+        </td></tr>
+        <tr><td style="padding:30px;">
+          <p>Hi ${escapeHtml(name)},</p>
+          <p>You started applying for <strong>${escapeHtml(jobTitle)}</strong> but didn't finish. This role might be a great fit for you!</p>
+          <div style="background:#fff3cd;padding:15px;border-radius:8px;margin:20px 0;border-left:4px solid #f59e0b;">
+            <p style="margin:0;"><strong>Reminder:</strong> Applications left incomplete may miss the deadline. Complete yours now!</p>
+          </div>
+          <p style="text-align:center;margin:30px 0;">
+            <a href="${applicationUrl}" style="display:inline-block;padding:12px 30px;background:#f59e0b;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Complete Application</a>
+          </p>
+        </td></tr>
+        <tr><td style="padding:20px;text-align:center;font-size:12px;color:#666;border-top:1px solid #eee;">
+          <p>&copy; ${new Date().getFullYear()} CareerSasa. All rights reserved.</p>
+          <p><a href="${siteUrl}/dashboard/preferences" style="color:#666;">Email Preferences</a></p>
+        </td></tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  return sendEmail({ to, subject: `Reminder: Complete your application for ${jobTitle}`, html, emailType: 'reminder', userId });
+}
+
+/**
+ * Send employer welcome/onboarding email.
+ */
+export async function sendEmployerWelcomeEmail(
+  to: string, name: string, companyName: string, userId?: string
+): Promise<SendEmailResult> {
+  const siteUrl = getSiteUrl();
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+    <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;background:#f5f5f5;margin:0;padding:0;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:white;">
+        <tr><td style="background:#1a1a2e;color:white;padding:30px;text-align:center;">
+          <h1 style="margin:0;font-size:24px;">Welcome to CareerSasa for Employers!</h1>
+          <p style="margin:5px 0 0;opacity:0.8;">${escapeHtml(companyName)}</p>
+        </td></tr>
+        <tr><td style="padding:30px;">
+          <p>Hi ${escapeHtml(name)},</p>
+          <p>Welcome aboard! Your employer account for <strong>${escapeHtml(companyName)}</strong> is ready. Here's how to get the most out of CareerSasa:</p>
+          <div style="margin:20px 0;">
+            <div style="padding:15px;border-bottom:1px solid #eee;">
+              <h3 style="margin:0 0 5px;color:#1a1a2e;">1. Post Your First Job</h3>
+              <p style="margin:0;color:#666;">Create a detailed listing with requirements, benefits, and company culture to attract top talent.</p>
+            </div>
+            <div style="padding:15px;border-bottom:1px solid #eee;">
+              <h3 style="margin:0 0 5px;color:#1a1a2e;">2. Manage Applications</h3>
+              <p style="margin:0;color:#666;">Review, shortlist, and communicate with candidates all from your dashboard.</p>
+            </div>
+            <div style="padding:15px;border-bottom:1px solid #eee;">
+              <h3 style="margin:0 0 5px;color:#1a1a2e;">3. Message Candidates</h3>
+              <p style="margin:0;color:#666;">Use our built-in messaging to schedule interviews and answer questions.</p>
+            </div>
+            <div style="padding:15px;">
+              <h3 style="margin:0 0 5px;color:#1a1a2e;">4. Promote Your Listings</h3>
+              <p style="margin:0;color:#666;">Featured and promoted jobs get up to 5x more applications.</p>
+            </div>
+          </div>
+          <p style="text-align:center;margin:30px 0;">
+            <a href="${siteUrl}/post-job" style="display:inline-block;padding:12px 30px;background:#1a1a2e;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Post a Job</a>
+          </p>
+          <p style="text-align:center;margin:10px 0;">
+            <a href="${siteUrl}/dashboard/manage-jobs" style="display:inline-block;padding:12px 30px;background:#e94560;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Employer Dashboard</a>
+          </p>
+        </td></tr>
+        <tr><td style="padding:20px;text-align:center;font-size:12px;color:#666;border-top:1px solid #eee;">
+          <p>&copy; ${new Date().getFullYear()} CareerSasa. All rights reserved.</p>
+        </td></tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  return sendEmail({ to, subject: `Welcome to CareerSasa for Employers - Let's Find Great Talent!`, html, emailType: 'employer_welcome', userId });
+}
+
+/**
+ * Send profile completion nudge to candidates.
+ */
+export async function sendProfileCompletionNudge(
+  to: string, name: string, completionPercent: number, userId?: string
+): Promise<SendEmailResult> {
+  const siteUrl = getSiteUrl();
+  const remaining = 100 - completionPercent;
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+    <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;background:#f5f5f5;margin:0;padding:0;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:white;">
+        <tr><td style="background:#1a1a2e;color:white;padding:30px;text-align:center;">
+          <h1 style="margin:0;font-size:24px;">Your Profile is ${completionPercent}% Complete</h1>
+        </td></tr>
+        <tr><td style="padding:30px;">
+          <p>Hi ${escapeHtml(name)},</p>
+          <p>Employers are <strong>3x more likely</strong> to contact candidates with complete profiles. You're just ${remaining}% away!</p>
+          <div style="background:#f8f9fa;padding:20px;border-radius:8px;margin:20px 0;">
+            <div style="background:#e0e0e0;border-radius:10px;height:20px;overflow:hidden;">
+              <div style="background:#1a1a2e;height:100%;width:${completionPercent}%;border-radius:10px;transition:width 0.3s;"></div>
+            </div>
+            <p style="text-align:center;margin:10px 0 0;color:#666;font-size:14px;">${completionPercent}% complete</p>
+          </div>
+          <p>Complete these sections to boost your visibility:</p>
+          <ul style="line-height:2;">
+            <li>Add your work experience</li>
+            <li>Upload your CV</li>
+            <li>Set your salary expectations</li>
+            <li>Add your skills and education</li>
+          </ul>
+          <p style="text-align:center;margin:30px 0;">
+            <a href="${siteUrl}/dashboard/profile" style="display:inline-block;padding:12px 30px;background:#e94560;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Complete Your Profile</a>
+          </p>
+        </td></tr>
+        <tr><td style="padding:20px;text-align:center;font-size:12px;color:#666;border-top:1px solid #eee;">
+          <p>&copy; ${new Date().getFullYear()} CareerSasa. All rights reserved.</p>
+          <p><a href="${siteUrl}/dashboard/preferences" style="color:#666;">Email Preferences</a></p>
+        </td></tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  return sendEmail({ to, subject: `Your profile is ${completionPercent}% complete - employers are looking!`, html, emailType: 'profile_nudge', userId });
+}
+
+/**
+ * Send job expiry warning to employer.
+ */
+export async function sendJobExpiryWarning(
+  to: string, jobTitle: string, daysUntilExpiry: number, renewUrl: string, userId?: string
+): Promise<SendEmailResult> {
+  const siteUrl = getSiteUrl();
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+    <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;background:#f5f5f5;margin:0;padding:0;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:white;">
+        <tr><td style="background:#dc2626;color:white;padding:30px;text-align:center;">
+          <h1 style="margin:0;font-size:24px;">Job Listing Expiring Soon</h1>
+        </td></tr>
+        <tr><td style="padding:30px;">
+          <p>Your job listing is about to expire:</p>
+          <div style="background:#fef2f2;padding:20px;border-radius:8px;margin:20px 0;border-left:4px solid #dc2626;">
+            <h3 style="margin:0 0 10px;">${escapeHtml(jobTitle)}</h3>
+            <p style="margin:0;color:#dc2626;font-weight:bold;">Expires in ${daysUntilExpiry} day${daysUntilExpiry !== 1 ? 's' : ''}</p>
+          </div>
+          <p>Don't miss out on potential candidates! Renew your listing to keep it visible to job seekers.</p>
+          <p style="text-align:center;margin:30px 0;">
+            <a href="${renewUrl}" style="display:inline-block;padding:12px 30px;background:#dc2626;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Renew Listing</a>
+          </p>
+          <p style="text-align:center;margin:10px 0;">
+            <a href="${siteUrl}/dashboard/manage-jobs" style="display:inline-block;padding:12px 30px;background:#1a1a2e;color:white;text-decoration:none;border-radius:6px;">Manage All Jobs</a>
+          </p>
+        </td></tr>
+        <tr><td style="padding:20px;text-align:center;font-size:12px;color:#666;border-top:1px solid #eee;">
+          <p>&copy; ${new Date().getFullYear()} CareerSasa. All rights reserved.</p>
+        </td></tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  return sendEmail({ to, subject: `Action needed: "${jobTitle}" expires in ${daysUntilExpiry} day${daysUntilExpiry !== 1 ? 's' : ''}`, html, emailType: 'job_expiry', userId });
 }

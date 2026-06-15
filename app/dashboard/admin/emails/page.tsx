@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Mail, Send, Users, BarChart3, FileText, Plus,
-  Loader2, RefreshCw, CheckCircle, XCircle, AlertCircle, Eye, Trash2
+  Loader2, RefreshCw, CheckCircle, XCircle, AlertCircle, Eye, Trash2,
+  Radio, Settings2, Play
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -85,6 +87,20 @@ export default function AdminEmailsPage() {
   const [testEmail, setTestEmail] = useState("");
   const [testingEmail, setTestingEmail] = useState(false);
 
+  // Broadcast
+  const [broadcastRole, setBroadcastRole] = useState("");
+  const [broadcastLocation, setBroadcastLocation] = useState("");
+  const [broadcastSubject, setBroadcastSubject] = useState("");
+  const [broadcastSubjectB, setBroadcastSubjectB] = useState("");
+  const [broadcastBody, setBroadcastBody] = useState("");
+  const [recipientCount, setRecipientCount] = useState<number | null>(null);
+  const [countingRecipients, setCountingRecipients] = useState(false);
+  const [broadcasting, setBroadcasting] = useState(false);
+
+  // Automations
+  const [automationRules, setAutomationRules] = useState<any[]>([]);
+  const [loadingAutomations, setLoadingAutomations] = useState(false);
+
   const fetchAll = useCallback(async () => {
     try {
       setLoading(true);
@@ -97,6 +113,12 @@ export default function AdminEmailsPage() {
   useEffect(() => {
     fetchAll();
   }, [fetchAll]);
+
+  useEffect(() => {
+    if (activeTab === "automations" && automationRules.length === 0) {
+      fetchAutomations();
+    }
+  }, [activeTab]);
 
   // ---- Data fetching ----
 
@@ -242,6 +264,90 @@ export default function AdminEmailsPage() {
     }
   }
 
+  // ---- Broadcast handlers ----
+
+  async function countRecipients() {
+    setCountingRecipients(true);
+    try {
+      const params = new URLSearchParams();
+      if (broadcastRole) params.set('role', broadcastRole);
+      if (broadcastLocation) params.set('location', broadcastLocation);
+      const res = await fetch(`/api/emails/broadcast?${params}`, {
+        headers: await getAuthHeaders(),
+      });
+      const data = await res.json();
+      setRecipientCount(data.count ?? 0);
+    } catch {
+      toast.error("Failed to count recipients");
+    } finally {
+      setCountingRecipients(false);
+    }
+  }
+
+  async function handleBroadcast() {
+    if (!broadcastSubject || !broadcastBody) {
+      toast.error("Subject and body are required");
+      return;
+    }
+    if (!recipientCount || recipientCount === 0) {
+      toast.error("No recipients match the filters. Click 'Count' first.");
+      return;
+    }
+    if (!confirm(`Send broadcast to ${recipientCount} recipients?`)) return;
+
+    setBroadcasting(true);
+    try {
+      const res = await fetch("/api/emails/broadcast", {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify({
+          subject: broadcastSubject,
+          html_body: broadcastBody,
+          subject_b: broadcastSubjectB || undefined,
+          filters: {
+            role: broadcastRole || undefined,
+            location: broadcastLocation || undefined,
+          },
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(`Broadcast sent to ${data.sent} recipients`);
+        setBroadcastSubject("");
+        setBroadcastBody("");
+        setBroadcastSubjectB("");
+        fetchCampaigns();
+        fetchStats();
+      } else {
+        toast.error(data.error || "Failed to send broadcast");
+      }
+    } catch {
+      toast.error("Failed to send broadcast");
+    } finally {
+      setBroadcasting(false);
+    }
+  }
+
+  // ---- Automation handlers ----
+
+  async function fetchAutomations() {
+    setLoadingAutomations(true);
+    const { data, error } = await (supabase as any)
+      .from("email_automation_rules")
+      .select("*")
+      .order("created_at");
+    if (!error && data) setAutomationRules(data);
+    setLoadingAutomations(false);
+  }
+
+  async function toggleAutomation(id: string, enabled: boolean) {
+    await (supabase as any)
+      .from("email_automation_rules")
+      .update({ enabled })
+      .eq("id", id);
+    fetchAutomations();
+  }
+
   // ---- Status badges ----
 
   function statusBadge(status: string) {
@@ -296,6 +402,8 @@ export default function AdminEmailsPage() {
           <TabsTrigger value="subscribers">Subscribers</TabsTrigger>
           <TabsTrigger value="logs">Email Logs</TabsTrigger>
           <TabsTrigger value="settings">Test & Settings</TabsTrigger>
+          <TabsTrigger value="broadcast">Broadcast</TabsTrigger>
+          <TabsTrigger value="automations">Automations</TabsTrigger>
           <TabsTrigger value="previews">Previews</TabsTrigger>
         </TabsList>
 
@@ -612,6 +720,149 @@ export default function AdminEmailsPage() {
                   /newsletter
                 </Link>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ---- BROADCAST TAB ---- */}
+        <TabsContent value="broadcast" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Broadcast Email</CardTitle>
+              <CardDescription>Send an email to filtered user segments (all registered users, not just newsletter subscribers)</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Filters */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Audience</Label>
+                  <select
+                    value={broadcastRole}
+                    onChange={(e) => setBroadcastRole(e.target.value)}
+                    className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                  >
+                    <option value="">All Users</option>
+                    <option value="candidate">Candidates Only</option>
+                    <option value="employer">Employers Only</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Location (optional)</Label>
+                  <Input
+                    value={broadcastLocation}
+                    onChange={(e) => setBroadcastLocation(e.target.value)}
+                    placeholder="e.g. Nairobi, Mombasa"
+                  />
+                </div>
+              </div>
+
+              <Button variant="outline" onClick={countRecipients} disabled={countingRecipients}>
+                {countingRecipients ? (
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Counting...</>
+                ) : (
+                  <><Users className="h-4 w-4 mr-2" /> Count Recipients</>
+                )}
+              </Button>
+
+              {recipientCount !== null && (
+                <div className="bg-muted p-3 rounded-md text-sm">
+                  <strong>{recipientCount}</strong> recipient{recipientCount !== 1 ? 's' : ''} match the current filters
+                </div>
+              )}
+
+              {/* Compose */}
+              <div className="space-y-2">
+                <Label>Subject Line</Label>
+                <Input
+                  value={broadcastSubject}
+                  onChange={(e) => setBroadcastSubject(e.target.value)}
+                  placeholder="Email subject"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Subject B (optional A/B test)</Label>
+                <Input
+                  value={broadcastSubjectB}
+                  onChange={(e) => setBroadcastSubjectB(e.target.value)}
+                  placeholder="Alternative subject for A/B testing (leave empty to skip)"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>HTML Body</Label>
+                <textarea
+                  value={broadcastBody}
+                  onChange={(e) => setBroadcastBody(e.target.value)}
+                  rows={8}
+                  className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm font-mono"
+                  placeholder="<p>Your email HTML content here...</p>"
+                />
+              </div>
+
+              <Button onClick={handleBroadcast} disabled={broadcasting || !broadcastSubject || !broadcastBody}>
+                {broadcasting ? (
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Sending...</>
+                ) : (
+                  <><Send className="h-4 w-4 mr-2" /> Send Broadcast</>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ---- AUTOMATIONS TAB ---- */}
+        <TabsContent value="automations">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Email Automations</CardTitle>
+                  <CardDescription>Automated emails triggered by user activity (runs daily at 8am)</CardDescription>
+                </div>
+                <Button variant="outline" size="sm" onClick={fetchAutomations}>
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {loadingAutomations ? (
+                <p className="text-muted-foreground text-center py-8">Loading...</p>
+              ) : automationRules.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No automation rules found</p>
+                  <p className="text-xs text-muted-foreground mt-2">Run the migration first to seed default rules</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {automationRules.map((rule) => (
+                    <div key={rule.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-sm capitalize">
+                            {rule.type.replace(/_/g, ' ')}
+                          </span>
+                          <Badge variant={rule.enabled ? 'default' : 'secondary'} className="text-xs">
+                            {rule.enabled ? 'Active' : 'Disabled'}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Config: {JSON.stringify(rule.config)}
+                        </p>
+                        {rule.last_run_at && (
+                          <p className="text-xs text-muted-foreground">
+                            Last run: {new Date(rule.last_run_at).toLocaleString()}
+                          </p>
+                        )}
+                      </div>
+                      <Switch
+                        checked={rule.enabled}
+                        onCheckedChange={(checked) => toggleAutomation(rule.id, checked)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
