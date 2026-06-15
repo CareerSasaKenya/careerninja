@@ -34,6 +34,13 @@ export default function PreferencesPage() {
     application_updates: true
   });
 
+  const [emailPrefs, setEmailPrefs] = useState({
+    transactional_emails: true,
+    marketing_emails: false,
+    job_alert_emails: true,
+    weekly_digest: true
+  });
+
   const jobFunctions = [
     'Software Development',
     'Product Management',
@@ -86,6 +93,23 @@ export default function PreferencesPage() {
       if (!user) {
         setLoading(false);
         return;
+      }
+
+      // Load email preferences from user_profiles (cast for new columns not yet in generated types)
+      const { data: profileRaw } = await (supabase as any)
+        .from('user_profiles')
+        .select('transactional_emails, marketing_emails, job_alert_emails, weekly_digest')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      const profile = profileRaw as Record<string, unknown> | null;
+      if (profile) {
+        setEmailPrefs({
+          transactional_emails: (profile.transactional_emails as boolean) ?? true,
+          marketing_emails: (profile.marketing_emails as boolean) ?? false,
+          job_alert_emails: (profile.job_alert_emails as boolean) ?? true,
+          weekly_digest: (profile.weekly_digest as boolean) ?? true,
+        });
       }
 
       const { data, error } = await supabase
@@ -168,6 +192,19 @@ export default function PreferencesPage() {
         recommendation_emails: preferences.recommendation_emails,
         application_updates: preferences.application_updates
       };
+
+      // Save email preferences to user_profiles (cast for new columns not yet in generated types)
+      const { error: emailPrefError } = await (supabase as any)
+        .from('user_profiles')
+        .update({
+          transactional_emails: emailPrefs.transactional_emails,
+          marketing_emails: emailPrefs.marketing_emails,
+          job_alert_emails: emailPrefs.job_alert_emails,
+          weekly_digest: emailPrefs.weekly_digest,
+        })
+        .eq('id', user.id);
+
+      if (emailPrefError) console.warn('Email prefs save warning:', emailPrefError);
 
       const { error } = await supabase
         .from('candidate_preferences')
@@ -449,6 +486,62 @@ export default function PreferencesPage() {
                   <SelectItem value="3_months">3 Months Notice</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Email Preferences</CardTitle>
+            <CardDescription>Control which emails you receive from CareerSasa</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label htmlFor="transactional_emails" className="font-medium">Transactional Emails</Label>
+                <p className="text-xs text-muted-foreground">Application confirmations, status updates, messages (always recommended)</p>
+              </div>
+              <Switch
+                id="transactional_emails"
+                checked={emailPrefs.transactional_emails}
+                onCheckedChange={(checked) => setEmailPrefs({ ...emailPrefs, transactional_emails: checked })}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <Label htmlFor="job_alert_emails" className="font-medium">Job Alert Emails</Label>
+                <p className="text-xs text-muted-foreground">Notifications when new jobs match your saved searches</p>
+              </div>
+              <Switch
+                id="job_alert_emails"
+                checked={emailPrefs.job_alert_emails}
+                onCheckedChange={(checked) => setEmailPrefs({ ...emailPrefs, job_alert_emails: checked })}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <Label htmlFor="weekly_digest" className="font-medium">Weekly Digest</Label>
+                <p className="text-xs text-muted-foreground">Weekly summary of featured jobs and career tips</p>
+              </div>
+              <Switch
+                id="weekly_digest"
+                checked={emailPrefs.weekly_digest}
+                onCheckedChange={(checked) => setEmailPrefs({ ...emailPrefs, weekly_digest: checked })}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <Label htmlFor="marketing_emails" className="font-medium">Marketing & Newsletter</Label>
+                <p className="text-xs text-muted-foreground">Promotions, announcements, career resources</p>
+              </div>
+              <Switch
+                id="marketing_emails"
+                checked={emailPrefs.marketing_emails}
+                onCheckedChange={(checked) => setEmailPrefs({ ...emailPrefs, marketing_emails: checked })}
+              />
             </div>
           </CardContent>
         </Card>

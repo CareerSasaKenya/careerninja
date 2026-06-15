@@ -130,7 +130,7 @@ export async function extractJobMetadata(
 }
 
 /**
- * Map education level string to careerninja's education_levels table ID.
+ * Map education level string to careersasa's education_levels table ID.
  * Returns null if no match — job will be published without education filter.
  */
 export function mapEducationLevel(

@@ -189,10 +189,10 @@ export function extractJobDetails(
   }
 }
 
-// ─── Normalize to careerninja schema ─────────────────────────────────────────
+// ─── Normalize to careersasa schema ─────────────────────────────────────────
 
 /**
- * Maps raw scraped data to the careerninja jobs table schema.
+ * Maps raw scraped data to the careersasa jobs table schema.
  * Handles employment type enum, location splitting, salary parsing, etc.
  */
 export function normalizeJob(

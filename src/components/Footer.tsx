@@ -7,19 +7,36 @@ import { toast } from "sonner";
 
 export function Footer() {
   const [email, setEmail] = useState("");
+  const [subscribing, setSubscribing] = useState(false);
 
-  const handleSubscribe = (e: React.FormEvent) => {
+  const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+    setSubscribing(true);
     try {
-      if (email) {
-        toast.success("Successfully subscribed to career updates!");
-        setEmail("");
-      } else {
-        toast.error("Please enter a valid email address");
+      const res = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || "Failed to subscribe");
+        return;
       }
-    } catch (error) {
-      console.debug('Error during subscription:', error);
+      if (data.already_subscribed) {
+        toast.info(data.message);
+      } else {
+        toast.success("Check your email to confirm your subscription!");
+      }
+      setEmail("");
+    } catch {
       toast.error("Error subscribing to updates");
+    } finally {
+      setSubscribing(false);
     }
   };
 
@@ -44,8 +61,9 @@ export function Footer() {
                 type="submit"
                 size="lg"
                 className="h-12 px-8 bg-orange-500 hover:bg-orange-600 text-white font-semibold"
+                disabled={subscribing}
               >
-                Subscribe
+                {subscribing ? 'Subscribing...' : 'Subscribe'}
               </Button>
             </form>
           </div>
@@ -100,6 +118,11 @@ export function Footer() {
                 <li>
                   <Link href="/job-alerts" className="text-muted-foreground hover:text-foreground transition-colors" prefetch={true}>
                     Job Alerts
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/newsletter" className="text-muted-foreground hover:text-foreground transition-colors" prefetch={true}>
+                    Newsletter
                   </Link>
                 </li>
                 <li>

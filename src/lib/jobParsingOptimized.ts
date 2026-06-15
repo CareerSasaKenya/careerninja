@@ -236,8 +236,8 @@ async function callOpenRouterAPI(apiKey: string, jobText: string, systemPrompt: 
       headers: {
         "Authorization": `Bearer ${apiKey}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "https://careerninja.co.ke",
-        "X-Title": "CareerNinja Job Parser",
+        "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "https://careersasa.co.ke",
+        "X-Title": "CareerSasa Job Parser",
       },
       body: JSON.stringify({
         model: "anthropic/claude-3.5-sonnet",

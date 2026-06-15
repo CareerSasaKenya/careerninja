@@ -84,7 +84,7 @@ export async function discoverWorkableJobs(
         'Accept': 'application/json',
         'Origin': 'https://apply.workable.com',
         'Referer': `https://apply.workable.com/${config.slug}/`,
-        'User-Agent': 'Mozilla/5.0 (compatible; careerninja-scraper/1.0)',
+        'User-Agent': 'Mozilla/5.0 (compatible; careersasa-scraper/1.0)',
       },
       body: JSON.stringify(payload),
     })
@@ -141,7 +141,7 @@ export async function fetchWorkableJobDetails(
     headers: {
       'Accept': 'application/json',
       'Referer': `https://apply.workable.com/${slug}/j/${shortcode}/`,
-      'User-Agent': 'Mozilla/5.0 (compatible; careerninja-scraper/1.0)',
+      'User-Agent': 'Mozilla/5.0 (compatible; careersasa-scraper/1.0)',
     },
   })
 
@@ -152,7 +152,7 @@ export async function fetchWorkableJobDetails(
   return response.json()
 }
 
-// ── Normalize Workable job to careerninja schema ──────────────────────────────
+// ── Normalize Workable job to careersasa schema ─────────────────────────────
 
 export function normalizeWorkableJob(
   detail: WorkableJobDetail,
