@@ -286,6 +286,7 @@ export default function AdminEmailsPage() {
           <TabsTrigger value="subscribers">Subscribers</TabsTrigger>
           <TabsTrigger value="logs">Email Logs</TabsTrigger>
           <TabsTrigger value="settings">Test & Settings</TabsTrigger>
+          <TabsTrigger value="previews">Previews</TabsTrigger>
         </TabsList>
 
         {/* ---- OVERVIEW TAB ---- */}
@@ -600,6 +601,43 @@ export default function AdminEmailsPage() {
                 <Link href="/newsletter" className="text-sm text-primary hover:underline">
                   /newsletter
                 </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ---- TEMPLATE PREVIEWS TAB ---- */}
+        <TabsContent value="previews">
+          <Card>
+            <CardHeader>
+              <CardTitle>Email Template Previews</CardTitle>
+              <CardDescription>Click any template to see how it renders in an email client</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[
+                  { slug: 'welcome', name: 'Welcome Email', desc: 'Sent to new users on signup', badge: 'Transactional', color: 'bg-blue-100 text-blue-800' },
+                  { slug: 'application-confirmation', name: 'Application Confirmation', desc: 'Sent to candidate after applying', badge: 'Transactional', color: 'bg-blue-100 text-blue-800' },
+                  { slug: 'application-status', name: 'Application Status', desc: 'Employer updates candidate status', badge: 'Transactional', color: 'bg-blue-100 text-blue-800' },
+                  { slug: 'employer-new-application', name: 'Employer Notification', desc: 'Employer notified of new application', badge: 'Transactional', color: 'bg-blue-100 text-blue-800' },
+                  { slug: 'new-message', name: 'New Message', desc: 'In-app message notification', badge: 'Transactional', color: 'bg-blue-100 text-blue-800' },
+                  { slug: 'password-reset', name: 'Password Reset', desc: 'Auth password reset link', badge: 'Transactional', color: 'bg-blue-100 text-blue-800' },
+                  { slug: 'subscription-confirmation', name: 'Subscription Confirm', desc: 'Newsletter double opt-in', badge: 'Confirmation', color: 'bg-green-100 text-green-800' },
+                  { slug: 'job-alert-digest', name: 'Job Alert Digest', desc: 'Matching jobs sent to user', badge: 'Marketing', color: 'bg-amber-100 text-amber-800' },
+                  { slug: 'weekly-digest', name: 'Weekly Digest', desc: 'Featured jobs + career tips', badge: 'Marketing', color: 'bg-amber-100 text-amber-800' },
+                  { slug: 'test', name: 'Test Email', desc: 'Admin test email', badge: 'Transactional', color: 'bg-blue-100 text-blue-800' },
+                ].map((t) => (
+                  <Link
+                    key={t.slug}
+                    href={`/api/emails/preview?template=${t.slug}`}
+                    target="_blank"
+                    className="block p-4 border rounded-lg hover:border-primary hover:shadow-md transition-all"
+                  >
+                    <div className="font-semibold text-sm">{t.name}</div>
+                    <div className="text-xs text-muted-foreground mt-1">{t.desc}</div>
+                    <span className={`inline-block text-[10px] px-2 py-0.5 rounded mt-2 ${t.color}`}>{t.badge}</span>
+                  </Link>
+                ))}
               </div>
             </CardContent>
           </Card>
