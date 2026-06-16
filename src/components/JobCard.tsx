@@ -108,8 +108,15 @@ const JobCard = ({
 }: JobCardProps) => {
   // Safely handle potentially undefined values
   const displayLocation = locationType
-    ? `${location || ""}${location && locationType ? " • " : ""}${toTitleCase(locationType) || ""}`
+    ? `${location || ""}${location && locationType ? " \u2022 " : ""}${toTitleCase(locationType) || ""}`
     : location || "";
+  
+  // SEO-friendly heading: "[Job Title] in [Location], Kenya" or "[Job Title] — Remote (Kenya)"
+  const seoTitle = locationType === "REMOTE"
+    ? `${title} — Remote (Kenya)`
+    : location
+      ? `${title} in ${location}, Kenya`
+      : title;
 
   const salaryMinFmt = formatCurrency(salaryMin, salaryCurrency);
   const salaryMaxFmt = formatCurrency(salaryMax, salaryCurrency);
@@ -163,9 +170,9 @@ const JobCard = ({
           </div>
         )}
         
-        {/* Title (prominent) */}
-        <CardTitle className="text-xl sm:text-2xl font-bold text-card-foreground group-hover:text-primary transition-colors line-clamp-2 sm:line-clamp-1" title={title}>
-          {title}
+        {/* Title (prominent, SEO-friendly) */}
+        <CardTitle className="text-xl sm:text-2xl font-bold text-card-foreground group-hover:text-primary transition-colors line-clamp-2 sm:line-clamp-1" title={seoTitle}>
+          {seoTitle}
         </CardTitle>
 
         {/* Company row */}

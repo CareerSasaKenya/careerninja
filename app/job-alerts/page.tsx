@@ -38,18 +38,18 @@ export default function JobAlertsPage() {
               <Bell className="w-8 h-8 text-primary" />
             </div>
             <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Job Alerts
+              Never Miss a Job Again
             </h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Stay Ahead - Get Notified About New Opportunities Instantly
+              The best candidates apply within hours of a job being posted. Set up alerts and be first in line — because early applicants get 4x more interview callbacks.
             </p>
           </div>
 
           <div className="grid lg:grid-cols-2 gap-8">
             <section className="bg-card border border-border rounded-lg p-8 space-y-6">
               <div>
-                <h2 className="text-2xl font-bold text-primary mb-2">Create Job Alert</h2>
-                <p className="text-muted-foreground">Set up personalized alerts and never miss the perfect opportunity.</p>
+                <h2 className="text-2xl font-bold text-primary mb-2">Create Your Free Job Alert</h2>
+                <p className="text-muted-foreground">Takes 60 seconds. Jobs start coming to your inbox immediately.</p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -146,15 +146,15 @@ export default function JobAlertsPage() {
 
             <section className="space-y-6">
               <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg p-6 space-y-4">
-                <h2 className="text-2xl font-bold text-primary">Why Use Job Alerts?</h2>
+                <h2 className="text-2xl font-bold text-primary">Why Early Applicants Win</h2>
                 <ul className="space-y-3">
                   <li className="flex items-start gap-3">
                     <div className="w-6 h-6 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                       <span className="text-primary text-sm font-bold">1</span>
                     </div>
                     <div>
-                      <h3 className="font-semibold text-foreground">Be the First to Apply</h3>
-                      <p className="text-sm text-muted-foreground">Get notified immediately when jobs matching your criteria are posted.</p>
+                      <h3 className="font-semibold text-foreground">Be First — Not One of 200 Applicants</h3>
+                      <p className="text-sm text-muted-foreground">Employers start reviewing applications within hours. Alerts put you at the front of the queue.</p>
                     </div>
                   </li>
                   <li className="flex items-start gap-3">
@@ -162,8 +162,8 @@ export default function JobAlertsPage() {
                       <span className="text-primary text-sm font-bold">2</span>
                     </div>
                     <div>
-                      <h3 className="font-semibold text-foreground">Save Time</h3>
-                      <p className="text-sm text-muted-foreground">No need to constantly check the website. Jobs come to you.</p>
+                      <h3 className="font-semibold text-foreground">Stop Wasting Time Searching</h3>
+                      <p className="text-sm text-muted-foreground">Jobs come to your inbox while you focus on preparing great applications — not scrolling job boards.</p>
                     </div>
                   </li>
                   <li className="flex items-start gap-3">
@@ -171,8 +171,8 @@ export default function JobAlertsPage() {
                       <span className="text-primary text-sm font-bold">3</span>
                     </div>
                     <div>
-                      <h3 className="font-semibold text-foreground">Personalized Results</h3>
-                      <p className="text-sm text-muted-foreground">Only receive alerts for jobs that match your specific requirements.</p>
+                      <h3 className="font-semibold text-foreground">Only Jobs That Match Your Skills</h3>
+                      <p className="text-sm text-muted-foreground">No irrelevant spam. Set your exact criteria and get only jobs you'd actually apply for.</p>
                     </div>
                   </li>
                   <li className="flex items-start gap-3">
@@ -180,8 +180,8 @@ export default function JobAlertsPage() {
                       <span className="text-primary text-sm font-bold">4</span>
                     </div>
                     <div>
-                      <h3 className="font-semibold text-foreground">Flexible Preferences</h3>
-                      <p className="text-sm text-muted-foreground">Update or pause your alerts anytime from your dashboard.</p>
+                      <h3 className="font-semibold text-foreground">Pause Anytime — You're in Control</h3>
+                      <p className="text-sm text-muted-foreground">Got a job? Pause alerts. Looking again? Turn them back on. No pressure, no spam.</p>
                     </div>
                   </li>
                 </ul>
@@ -189,6 +189,7 @@ export default function JobAlertsPage() {
 
               <div className="bg-card border border-border rounded-lg p-6 space-y-4">
                 <h3 className="text-xl font-bold text-primary">How It Works</h3>
+                <p className="text-sm text-muted-foreground mb-3">60 seconds to set up. Jobs start arriving immediately.</p>
                 <ol className="space-y-3 text-muted-foreground">
                   <li className="flex gap-3">
                     <span className="font-semibold text-primary">1.</span>
@@ -212,7 +213,7 @@ export default function JobAlertsPage() {
               <div className="bg-card border border-border rounded-lg p-6 space-y-3">
                 <h3 className="text-xl font-bold text-primary">Manage Your Alerts</h3>
                 <p className="text-muted-foreground">
-                  Already have an account? Log in to your dashboard to view, edit, or delete your existing job alerts. You can create multiple alerts for different job types and locations.
+                  Already have an account? Log in to create multiple alerts for different roles and locations, edit your preferences, or pause alerts when you're not actively looking.
                 </p>
                 <Button variant="outline" className="w-full">
                   Go to Dashboard

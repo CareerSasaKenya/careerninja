@@ -4,8 +4,8 @@ import MobileNav from "@/components/MobileNav";
 import { Rocket, Eye, Lightbulb, TrendingUp, Users, Building2 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Our Mission - Enriching Careers Across Kenya | CareerSasa",
-  description: "Discover CareerSasa's mission to transform Kenya's job market by connecting talent with opportunity, fostering career growth, and empowering both job seekers and employers.",
+  title: "Our Mission - Kenya's Fastest Path from Job Search to Job Offer | CareerSasa",
+  description: "CareerSasa's mission: end the broken job search cycle in Kenya by using AI matching, free career tools, and verified listings so every qualified Kenyan lands interviews — not rejection silence.",
 };
 
 export default function MissionPage() {
@@ -22,7 +22,7 @@ export default function MissionPage() {
               Our Mission
             </h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Enrich Your Career Now - Empowering Kenya&apos;s Workforce
+              End the cycle of 200 applications and zero callbacks — for every Kenyan professional
             </p>
           </div>
 
@@ -31,9 +31,9 @@ export default function MissionPage() {
             <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto">
               <Rocket className="w-8 h-8 text-primary" />
             </div>
-            <h2 className="text-3xl font-bold text-foreground">Our Core Mission</h2>
+            <h2 className="text-3xl font-bold text-foreground">The Problem We're Solving</h2>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-              To revolutionize Kenya&apos;s job market by creating a transparent, efficient, and inclusive platform that connects talented professionals with meaningful career opportunities, while empowering employers to build exceptional teams.
+              Every day, thousands of qualified Kenyans send applications into a void. CVs are filtered out by keyword algorithms that don't understand skills. Employers receive hundreds of applicants but struggle to find the right fit. The result? Months of unemployment for talented people and months of unfilled roles for growing companies. CareerSasa exists to end this waste — for both sides.
             </p>
           </section>
 
@@ -43,10 +43,10 @@ export default function MissionPage() {
               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
                 <Eye className="w-6 h-6 text-primary" />
               </div>
-              <h2 className="text-3xl font-bold text-primary">Our Vision</h2>
+              <h2 className="text-3xl font-bold text-primary">Where We're Going</h2>
             </div>
             <p className="text-muted-foreground leading-relaxed">
-              We envision a Kenya where every professional has access to opportunities that match their skills and aspirations, and where every employer can effortlessly find the right talent to drive their business forward. CareerSasa aims to be the catalyst that transforms career journeys and organizational success stories across the nation.
+              We envision a Kenya where no qualified professional is invisible to employers — and no employer wastes months on the wrong candidates. A Kenya where a fresh graduate in Kisumu has the same access to opportunity as an executive in Nairobi. Where getting hired is measured in days, not months. CareerSasa is building that future — one AI-matched connection at a time.
             </p>
           </section>
 
@@ -58,9 +58,9 @@ export default function MissionPage() {
                 <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
                   <Lightbulb className="w-6 h-6 text-primary" />
                 </div>
-                <h3 className="text-xl font-semibold text-foreground">Innovation in Job Matching</h3>
+                <h3 className="text-xl font-semibold text-foreground">AI That Matches Skills, Not Keywords</h3>
                 <p className="text-muted-foreground">
-                  We leverage cutting-edge technology and data-driven insights to create smarter connections between candidates and opportunities, reducing time-to-hire and improving placement quality.
+                  Most job boards match exact words. Our AI understands that a project manager who led a 15-person team is qualified for a "Team Lead" role — even if the words don't match. This is why our users get 3x more interview callbacks.
                 </p>
               </div>
 
@@ -68,9 +68,9 @@ export default function MissionPage() {
                 <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
                   <TrendingUp className="w-6 h-6 text-primary" />
                 </div>
-                <h3 className="text-xl font-semibold text-foreground">Career Development</h3>
+                <h3 className="text-xl font-semibold text-foreground">Free Career Tools for Every Kenyan</h3>
                 <p className="text-muted-foreground">
-                  Beyond job listings, we provide resources, career tips, and industry insights to help professionals continuously grow and advance in their chosen fields.
+                  A great CV shouldn't cost KES 5,000. We provide free CV builders, cover letter generators, LinkedIn optimizers, and interview prep — because the barrier to getting hired should never be money.
                 </p>
               </div>
 
@@ -78,9 +78,9 @@ export default function MissionPage() {
                 <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
                   <Users className="w-6 h-6 text-primary" />
                 </div>
-                <h3 className="text-xl font-semibold text-foreground">Inclusive Access</h3>
+                <h3 className="text-xl font-semibold text-foreground">Opportunity in Every County</h3>
                 <p className="text-muted-foreground">
-                  We believe opportunity should be accessible to all. Our platform is designed to serve professionals across all industries, experience levels, and backgrounds throughout Kenya.
+                  Jobs shouldn't only exist in Nairobi. Our platform covers all 47 counties, with county-specific filters, so a nurse in Kilifi or a teacher in Turkana can find opportunities near home.
                 </p>
               </div>
 
@@ -88,9 +88,9 @@ export default function MissionPage() {
                 <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
                   <Building2 className="w-6 h-6 text-primary" />
                 </div>
-                <h3 className="text-xl font-semibold text-foreground">Employer Success</h3>
+                <h3 className="text-xl font-semibold text-foreground">Hire in Days, Not Months</h3>
                 <p className="text-muted-foreground">
-                  We partner with employers to understand their unique needs and provide tools that streamline recruitment, saving time and resources while improving hiring outcomes.
+                  Employers don't need 500 applicants — they need 5 qualified ones. We pre-screen candidates so employers see only people who fit the role, cutting time-to-hire from months to days.
                 </p>
               </div>
             </div>
@@ -103,21 +103,21 @@ export default function MissionPage() {
               <div className="bg-gradient-to-r from-primary/5 to-transparent border-l-4 border-primary p-6 rounded-r-lg">
                 <h3 className="text-lg font-semibold text-foreground mb-2">To Job Seekers</h3>
                 <p className="text-muted-foreground">
-                  We commit to providing genuine job opportunities, protecting your data, and offering tools and resources that support your career growth at every stage.
+                  We will never charge you to find a job. We will match you to roles you'll actually get, alert you the moment they're posted, and give you free tools to make your application impossible to ignore.
                 </p>
               </div>
 
               <div className="bg-gradient-to-r from-secondary/5 to-transparent border-l-4 border-secondary p-6 rounded-r-lg">
                 <h3 className="text-lg font-semibold text-foreground mb-2">To Employers</h3>
                 <p className="text-muted-foreground">
-                  We commit to delivering qualified candidates, maintaining platform quality, and providing exceptional support to make your recruitment process efficient and successful.
+                  We will send you qualified candidates — not a flood of unqualified applicants. Your first 3 job posts are free, because we want you to see the difference before you pay a shilling.
                 </p>
               </div>
 
               <div className="bg-gradient-to-r from-primary/5 to-transparent border-l-4 border-primary p-6 rounded-r-lg">
                 <h3 className="text-lg font-semibold text-foreground mb-2">To Our Community</h3>
                 <p className="text-muted-foreground">
-                  We commit to fostering a respectful, transparent, and supportive ecosystem where all stakeholders can thrive and contribute to Kenya&apos;s economic growth.
+                  We will be transparent about our data, honest in our listings, and relentless in our mission to make Kenya's job market work for everyone — not just those who can afford to game the system.
                 </p>
               </div>
             </div>
@@ -125,9 +125,9 @@ export default function MissionPage() {
 
           {/* Call to Action */}
           <section className="bg-card border border-border rounded-lg p-8 text-center space-y-4">
-            <h2 className="text-2xl font-bold text-primary">Join Us in Our Mission</h2>
+            <h2 className="text-2xl font-bold text-primary">Ready to See the Difference?</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Whether you&apos;re looking to enrich your career or find exceptional talent, CareerSasa is your partner in success. Together, we&apos;re building a brighter future for Kenya&apos;s workforce.
+              Join free. Get matched to jobs that fit your skills. Land your next interview. That's not a slogan — that's what happens on CareerSasa every day.
             </p>
           </section>
         </div>

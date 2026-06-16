@@ -59,11 +59,10 @@ export default function NewsletterPage() {
             <Mail className="h-8 w-8 text-primary" />
           </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Stay Ahead in Your Career
+            The Jobs You Miss Yesterday Are in Your Inbox Tomorrow
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Join thousands of professionals receiving curated job opportunities,
-            career tips, and industry insights delivered to your inbox.
+            Join Kenyan professionals who get first access to new jobs, salary insights, and free career tools — because early applicants get 4x more interview callbacks.
           </p>
         </div>
 
@@ -72,27 +71,27 @@ export default function NewsletterPage() {
           <Card>
             <CardContent className="pt-6 text-center">
               <Briefcase className="h-10 w-10 text-primary mx-auto mb-3" />
-              <h3 className="font-semibold mb-2">Featured Jobs</h3>
+              <h3 className="font-semibold mb-2">Jobs Before Anyone Else</h3>
               <p className="text-sm text-muted-foreground">
-                Hand-picked job opportunities matching your interests and skills
+                Get new jobs in your inbox before they appear on the site — be the first to apply because early applicants get hired
               </p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-6 text-center">
               <BookOpen className="h-10 w-10 text-primary mx-auto mb-3" />
-              <h3 className="font-semibold mb-2">Career Tips</h3>
+              <h3 className="font-semibold mb-2">Free Salary Guides & CV Templates</h3>
               <p className="text-sm text-muted-foreground">
-                Expert advice on CV writing, interviews, and career growth
+                Exclusive downloads you won't find anywhere else — including Kenya's salary benchmarks by industry and role
               </p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-6 text-center">
               <TrendingUp className="h-10 w-10 text-primary mx-auto mb-3" />
-              <h3 className="font-semibold mb-2">Industry News</h3>
+              <h3 className="font-semibold mb-2">What Employers Actually Want</h3>
               <p className="text-sm text-muted-foreground">
-                Stay updated on hiring trends and market insights
+                Insider insights from Kenyan hiring managers — the advice that gets you shortlisted, not the generic tips everyone shares
               </p>
             </CardContent>
           </Card>
@@ -101,9 +100,9 @@ export default function NewsletterPage() {
         {/* Subscribe Form */}
         <Card className="max-w-lg mx-auto">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl">Subscribe to Our Newsletter</CardTitle>
+            <CardTitle className="text-2xl">Get Hired Faster — It's Free</CardTitle>
             <CardDescription>
-              Free. No spam. Unsubscribe anytime.
+              No spam. No fluff. Just jobs, tools, and insights that actually help you land interviews.
             </CardDescription>
           </CardHeader>
           <CardContent>

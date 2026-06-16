@@ -487,10 +487,10 @@ const Jobs = () => {
       <div className="container mx-auto px-4 py-8 md:py-12">
         <div className="mb-8 md:mb-12 text-center animate-fade-in">
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-3 md:mb-4 bg-gradient-primary bg-clip-text text-transparent px-4">
-            Browse Jobs
+            Find Your Next Job in Kenya
           </h1>
           <p className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto px-4">
-            Discover your next career opportunity from top companies in Kenya
+            Verified jobs from real employers — updated daily. Apply now because early applicants get 4x more interview callbacks.
           </p>
           <div className="mt-4 flex justify-center">
             <SaveSearchButton searchParams={filters} />
@@ -813,8 +813,8 @@ const Jobs = () => {
                   <div className="inline-flex p-6 rounded-full bg-muted mb-6">
                     <FileText className="h-16 w-16 text-muted-foreground" />
                   </div>
-                  <p className="text-2xl font-semibold mb-2">No jobs found</p>
-                  <p className="text-muted-foreground text-lg">Try adjusting your search filters</p>
+                  <p className="text-2xl font-semibold mb-2">No Jobs Found — Yet</p>
+                  <p className="text-muted-foreground text-lg">Try adjusting your search filters, or set up a job alert so you're notified the moment a matching job is posted.</p>
                 </div>
               )}
             </div>

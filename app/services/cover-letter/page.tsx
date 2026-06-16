@@ -11,11 +11,11 @@ export default function CoverLetterServicesPage() {
   const { data: content } = usePageContent("services-cover-letter");
 
   // Get content values with fallbacks
-  const heroTitle = getContentValue(content, "hero_title", "Outstanding Cover Letters by CareerSasa");
-  const heroSubtitle = getContentValue(content, "hero_subtitle", "Cover Letters That Get Read 📄✉️");
-  const heroDescription1 = getContentValue(content, "hero_description_1", "Your CV shows what you've done. Your cover letter explains why you're the right fit.");
-  const heroDescription2 = getContentValue(content, "hero_description_2", "At CareerSasa, we write cover letters that connect your experience to the job, speak directly to recruiters, and increase your chances of getting shortlisted.");
-  const heroDescription3 = getContentValue(content, "hero_description_3", "Whether you're applying for your first job or a senior role, our cover letter services help your application stand out — for the right reasons.");
+  const heroTitle = getContentValue(content, "hero_title", "Your CV Gets You Seen. Your Cover Letter Gets You Hired.");
+  const heroSubtitle = getContentValue(content, "hero_subtitle", "The letter that explains why you're the right fit — not just another applicant");
+  const heroDescription1 = getContentValue(content, "hero_description_1", "Your CV shows what you've done. But it can't explain why you're perfect for THIS role at THIS company. That's what a cover letter does — when it's done right. Most cover letters repeat the CV or sound like they were written for a different job entirely. Ours don't.");
+  const heroDescription2 = getContentValue(content, "hero_description_2", "At CareerSasa, we write cover letters that connect your experience to the specific job, speak directly to the hiring manager's needs, and give them a reason to call you — not the next applicant.");
+  const heroDescription3 = getContentValue(content, "hero_description_3", "Whether you're applying for your first graduate role or positioning for a C-suite opportunity, our cover letter services are built for the Kenyan job market — not recycled templates.");
 
   const services = [
     {
@@ -150,27 +150,27 @@ export default function CoverLetterServicesPage() {
           <div className="relative z-10">
             <div className="flex flex-col md:flex-row items-center gap-8 max-w-6xl mx-auto">
               <div className="flex-1">
-                <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">Why Cover Letters Still Matter</h2>
+                <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">The Cover Letter Mistake That Costs Kenyans Interviews</h2>
                 <ul className="space-y-4">
                   <li className="flex items-start">
                     <span className="text-blue-600 font-bold mr-3">•</span>
-                    <span className="text-gray-700"><strong>Many recruiters read cover letters for serious roles</strong></span>
+                    <span className="text-gray-700"><strong>65% of serious employers read cover letters — and a weak one undermines even a strong CV</strong></span>
                   </li>
                   <li className="flex items-start">
                     <span className="text-blue-600 font-bold mr-3">•</span>
-                    <span className="text-gray-700"><strong>Cover letters explain career gaps and transitions</strong></span>
+                    <span className="text-gray-700"><strong>Cover letters explain career gaps, transitions, and motivation — things your CV can't</strong></span>
                   </li>
                   <li className="flex items-start">
                     <span className="text-blue-600 font-bold mr-3">•</span>
-                    <span className="text-gray-700"><strong>They show motivation, clarity, and communication skills</strong></span>
+                    <span className="text-gray-700"><strong>A generic cover letter tells the recruiter you didn't really want this specific job</strong></span>
                   </li>
                   <li className="flex items-start">
                     <span className="text-blue-600 font-bold mr-3">•</span>
-                    <span className="text-gray-700"><strong>A generic cover letter can hurt a strong CV</strong></span>
+                    <span className="text-gray-700"><strong>When two CVs are equal, the cover letter decides who gets the call</strong></span>
                   </li>
                 </ul>
                 <p className="text-lg text-gray-700 mt-6 italic text-center">
-                  When required, a weak cover letter can cost you an interview. We make sure yours strengthens your application.
+                  A great cover letter doesn't repeat your CV — it explains your value in a way your CV can't. That's the difference between "we'll get back to you" and "when can you start?"
                 </p>
               </div>
               <div className="flex-shrink-0">
@@ -188,7 +188,7 @@ export default function CoverLetterServicesPage() {
 
         {/* What We Do Differently */}
         <section className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">What We Do Differently at CareerSasa</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Why CareerSasa Cover Letters Get Read — and Remembered</h2>
           <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
             <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-8 rounded-2xl border border-gray-200 shadow-sm relative overflow-hidden">
               <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-green-100 to-emerald-100 rounded-full -translate-y-12 translate-x-12 blur-xl opacity-50"></div>
@@ -215,7 +215,7 @@ export default function CoverLetterServicesPage() {
                 </div>
                 <div className="flex items-start">
                   <span className="text-green-600 font-bold mr-3 text-xl">✔</span>
-                  <span className="font-semibold text-gray-800">Trusted career platform in Kenya & East Africa</span>
+                  <span className="font-semibold text-gray-800">Built for Kenya's job market — not recycled international templates</span>
                 </div>
               </div>
             </div>
@@ -516,8 +516,11 @@ export default function CoverLetterServicesPage() {
           
           <div className="relative z-10">
             <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Strengthen Your Applications?</h2>
-            <p className="text-xl mb-8">
-              Don't let a weak or generic cover letter undermine your CV.
+            <p className="text-xl mb-4">
+              Every application you send without a strong cover letter is an interview you may have lost to someone who had one.
+            </p>
+            <p className="text-lg mb-8 opacity-90">
+              Our cover letters are written for the specific job you're applying to — not templates. That's why our clients report stronger callbacks within 2 weeks.
             </p>
             <div className="flex flex-col lg:flex-row gap-8 justify-center items-center">
               <Link href="https://wa.me/254795564135?text=Hi,%20I'd%20like%20to%20choose%20a%20cover%20letter%20service%20today!" target="_blank">

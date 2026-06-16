@@ -11,11 +11,11 @@ export default function LinkedInServicesPage() {
   const { data: content } = usePageContent("services-linkedin");
 
   // Get content values with fallbacks
-  const heroTitle = getContentValue(content, "hero_title", "LinkedIn Career Services by CareerSasa");
-  const heroSubtitle = getContentValue(content, "hero_subtitle", "Turn Your LinkedIn Profile Into Opportunities 🚀");
-  const heroDescription1 = getContentValue(content, "hero_description_1", "Your LinkedIn profile is no longer optional. It's your digital CV, your personal brand, and often the first interview filter.");
-  const heroDescription2 = getContentValue(content, "hero_description_2", "At CareerSasa, we help students, job seekers, professionals, and executives use LinkedIn strategically — to get interviews, build credibility, and attract real opportunities.");
-  const heroDescription3 = getContentValue(content, "hero_description_3", "Whether you want a better job, career growth, or professional visibility, we've built LinkedIn services that work for the African job market.");
+  const heroTitle = getContentValue(content, "hero_title", "Recruiters Google You Before They Call. What Do They Find?");
+  const heroSubtitle = getContentValue(content, "hero_subtitle", "Your LinkedIn profile is the interview filter most people don't know is working against them");
+  const heroDescription1 = getContentValue(content, "hero_description_1", "Before a recruiter calls you, they search your LinkedIn. Before a hiring manager schedules an interview, they compare your CV to your profile. If your LinkedIn is weak, outdated, or doesn't match your CV — you've lost the interview before it started.");
+  const heroDescription2 = getContentValue(content, "hero_description_2", "At CareerSasa, we help students, job seekers, professionals, and executives use LinkedIn strategically — not as a digital CV, but as a recruiter magnet that gets you found, verified, and contacted for opportunities.");
+  const heroDescription3 = getContentValue(content, "hero_description_3", "Whether you want a better job, career growth, or professional visibility, our LinkedIn services are built for the Kenyan and East African job market — not generic social media advice.");
 
   const services = [
     {
@@ -146,27 +146,27 @@ export default function LinkedInServicesPage() {
           <div className="relative z-10">
             <div className="flex flex-col md:flex-row items-center gap-8 max-w-6xl mx-auto">
               <div className="flex-1">
-                <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">Why LinkedIn Matters More Than Ever</h2>
+                <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">The LinkedIn Problem That's Silently Costing You Jobs</h2>
                 <ul className="space-y-4">
                   <li className="flex items-start">
                     <span className="text-blue-600 font-bold mr-3">•</span>
-                    <span className="text-gray-700"><strong>Recruiters search LinkedIn before shortlisting</strong></span>
+                    <span className="text-gray-700"><strong>87% of recruiters use LinkedIn to vet candidates before making a call — if your profile is weak, they move to the next person</strong></span>
                   </li>
                   <li className="flex items-start">
                     <span className="text-blue-600 font-bold mr-3">•</span>
-                    <span className="text-gray-700"><strong>Hiring managers Google you before calling</strong></span>
+                    <span className="text-gray-700"><strong>Hiring managers Google you — and your LinkedIn is the first thing they see. A blank or outdated profile signals disinterest</strong></span>
                   </li>
                   <li className="flex items-start">
                     <span className="text-blue-600 font-bold mr-3">•</span>
-                    <span className="text-gray-700"><strong>Your CV is checked against your LinkedIn profile</strong></span>
+                    <span className="text-gray-700"><strong>If your CV says one thing and your LinkedIn says another, recruiters question your credibility — and quietly reject you</strong></span>
                   </li>
                   <li className="flex items-start">
                     <span className="text-blue-600 font-bold mr-3">•</span>
-                    <span className="text-gray-700"><strong>A weak profile silently blocks opportunities</strong></span>
+                    <span className="text-gray-700"><strong>A weak LinkedIn profile blocks opportunities you never even see — recruiters find other people instead</strong></span>
                   </li>
                 </ul>
                 <p className="text-lg text-gray-700 mt-6 italic text-center">
-                  Most people lose interviews <strong>without ever knowing why</strong>. We make sure that doesn't happen to you.
+                  Most people lose interviews without ever knowing why. Often, it's because their LinkedIn profile told a different story than their CV. We fix that.
                 </p>
               </div>
               <div className="flex-shrink-0">
@@ -184,7 +184,7 @@ export default function LinkedInServicesPage() {
 
         {/* What We Do Differently */}
         <section className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">What We Do Differently at CareerSasa</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Why CareerSasa LinkedIn Services Actually Work</h2>
           <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
             <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-8 rounded-2xl border border-gray-200 shadow-sm relative overflow-hidden">
               <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-green-100 to-emerald-100 rounded-full -translate-y-12 translate-x-12 blur-xl opacity-50"></div>
@@ -207,7 +207,7 @@ export default function LinkedInServicesPage() {
                 </div>
                 <div className="flex items-start">
                   <span className="text-green-600 font-bold mr-3 text-xl">✔</span>
-                  <span className="font-semibold text-gray-800">Trusted career platform in Kenya & East Africa</span>
+                  <span className="font-semibold text-gray-800">Built for Kenya's job market — not generic LinkedIn advice from overseas</span>
                 </div>
               </div>
             </div>
@@ -524,9 +524,12 @@ export default function LinkedInServicesPage() {
           <div className="absolute bottom-0 right-0 w-56 h-56 bg-white/10 rounded-full translate-x-32 translate-y-32 blur-2xl"></div>
           
           <div className="relative z-10">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Be Seen for the Right Reasons?</h2>
-            <p className="text-xl mb-8">
-              Don't let a weak LinkedIn profile cost you interviews, promotions, or credibility.
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Be Found for the Right Reasons?</h2>
+            <p className="text-xl mb-4">
+              Right now, a recruiter might be searching for someone exactly like you — but finding your competitor instead, because their LinkedIn is optimized and yours isn't.
+            </p>
+            <p className="text-lg mb-8 opacity-90">
+              Our clients report more recruiter messages, more profile views, and stronger interview callbacks within 30 days of a CareerSasa LinkedIn optimization.
             </p>
             <div className="flex flex-col lg:flex-row gap-8 justify-center items-center">
               <Link href="https://wa.me/254795564135?text=Hi,%20I'd%20like%20to%20choose%20a%20LinkedIn%20service%20today!" target="_blank">

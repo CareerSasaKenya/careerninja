@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from '@supabase/supabase-js';
 import { Flag, Star } from "lucide-react";
@@ -127,6 +128,44 @@ async function getRelatedJobs(jobId: string, industry?: string, jobFunction?: st
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+// SEO-friendly metadata: "Accounting Manager Job in Nairobi, Kenya - CareerSasa"
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const job = await getJobData(id);
+  
+  if (!job) {
+    return { title: "Job Not Found - CareerSasa" };
+  }
+  
+  // Build SEO-friendly title: "[Job Title] Job in [Location], Kenya"
+  const locationPart = job.job_location_type === "REMOTE"
+    ? "Remote (Kenya)"
+    : job.job_location_county || job.location || "Kenya";
+  const seoTitle = job.job_location_type === "REMOTE"
+    ? `${job.title} Job — ${locationPart} | CareerSasa`
+    : `${job.title} Job in ${locationPart}, Kenya | CareerSasa`;
+  
+  const description = job.description
+    ? job.description.replace(/<[^>]*>/g, '').substring(0, 160)
+    : `${job.title} job at ${job.companies?.name || job.company || 'a top company'} in ${locationPart}. Apply now on CareerSasa.`;
+  
+  return {
+    title: seoTitle,
+    description: description,
+    openGraph: {
+      title: seoTitle,
+      description: description,
+      type: 'website',
+      url: `https://www.careersasa.co.ke/jobs/${job.job_slug || job.id}`,
+    },
+    twitter: {
+      card: 'summary',
+      title: seoTitle,
+      description: description,
+    },
+  };
+}
+
 // Main page component
 export default async function JobDetails({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -196,7 +235,15 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                           )}
                         </div>
                       )}
-                      <CardTitle className="text-2xl sm:text-3xl mb-4 break-words">{job.title}</CardTitle>
+                      {/* SEO-friendly visible heading: "[Job Title] in [Location], Kenya" */}
+                      <CardTitle className="text-2xl sm:text-3xl mb-4 break-words">
+                        {job.job_location_type === "REMOTE"
+                          ? `${job.title} — Remote (Kenya)`
+                          : job.location
+                            ? `${job.title} in ${job.location}, Kenya`
+                            : job.title
+                        }
+                      </CardTitle>
                       <div className="flex flex-wrap gap-4 text-muted-foreground">
                         {job.company_id && job.companies ? (
                           <Link 
