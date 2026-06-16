@@ -247,7 +247,8 @@ export async function sendWelcomeEmail(to: string, name: string, userId?: string
     <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
     <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;background:#f5f5f5;margin:0;padding:0;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:white;">
-        <tr><td style="background:#1a1a2e;color:white;padding:30px;text-align:center;">
+        <tr><td style="background:#0A66C2;color:white;padding:30px;text-align:center;">
+          <img src="${siteUrl}/logo.png" alt="CareerSasa" style="width:60px;height:60px;margin-bottom:10px;" />
           <h1 style="margin:0;font-size:24px;">Welcome to CareerSasa!</h1>
         </td></tr>
         <tr><td style="padding:30px;">
@@ -260,10 +261,10 @@ export async function sendWelcomeEmail(to: string, name: string, userId?: string
             <li>Access free career tools (CV builder, cover letter generator)</li>
           </ul>
           <p style="text-align:center;margin:30px 0;">
-            <a href="${siteUrl}/jobs" style="display:inline-block;padding:12px 30px;background:#1a1a2e;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Browse Jobs</a>
+            <a href="${siteUrl}/jobs" style="display:inline-block;padding:12px 30px;background:#0A66C2;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Browse Jobs</a>
           </p>
           <p style="text-align:center;margin:10px 0;">
-            <a href="${siteUrl}/dashboard/profile" style="display:inline-block;padding:12px 30px;background:#e94560;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Complete Your Profile</a>
+            <a href="${siteUrl}/dashboard/profile" style="display:inline-block;padding:12px 30px;background:#E8712B;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Complete Your Profile</a>
           </p>
         </td></tr>
         <tr><td style="padding:20px;text-align:center;font-size:12px;color:#666;border-top:1px solid #eee;">
@@ -291,19 +292,20 @@ export async function sendApplicationConfirmation(
     <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
     <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;background:#f5f5f5;margin:0;padding:0;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:white;">
-        <tr><td style="background:#1a1a2e;color:white;padding:30px;text-align:center;">
+        <tr><td style="background:#0A66C2;color:white;padding:30px;text-align:center;">
+          <img src="${siteUrl}/logo.png" alt="CareerSasa" style="width:60px;height:60px;margin-bottom:10px;" />
           <h1 style="margin:0;font-size:24px;">Application Submitted!</h1>
         </td></tr>
         <tr><td style="padding:30px;">
           <p>Hi ${escapeHtml(name)},</p>
           <p>Your application has been successfully submitted:</p>
-          <div style="background:#f8f9fa;padding:20px;border-radius:8px;margin:20px 0;border-left:4px solid #1a1a2e;">
+          <div style="background:#f8f9fa;padding:20px;border-radius:8px;margin:20px 0;border-left:4px solid #0A66C2;">
             <h3 style="margin:0 0 10px;">${escapeHtml(jobTitle)}</h3>
             <p style="margin:0;color:#666;">at ${escapeHtml(companyName)}</p>
           </div>
           <p>The employer will review your application and you'll be notified of any status changes.</p>
           <p style="text-align:center;margin:30px 0;">
-            <a href="${siteUrl}/dashboard/applications" style="display:inline-block;padding:12px 30px;background:#1a1a2e;color:white;text-decoration:none;border-radius:6px;">Track Applications</a>
+            <a href="${siteUrl}/dashboard/applications" style="display:inline-block;padding:12px 30px;background:#0A66C2;color:white;text-decoration:none;border-radius:6px;">Track Applications</a>
           </p>
         </td></tr>
         <tr><td style="padding:20px;text-align:center;font-size:12px;color:#666;border-top:1px solid #eee;">
@@ -336,7 +338,8 @@ export async function sendApplicationStatusUpdate(
     <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
     <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;background:#f5f5f5;margin:0;padding:0;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:white;">
-        <tr><td style="background:#1a1a2e;color:white;padding:30px;text-align:center;">
+        <tr><td style="background:#0A66C2;color:white;padding:30px;text-align:center;">
+          <img src="${siteUrl}/logo.png" alt="CareerSasa" style="width:60px;height:60px;margin-bottom:10px;" />
           <h1 style="margin:0;font-size:24px;">Application Status Update</h1>
         </td></tr>
         <tr><td style="padding:30px;">
@@ -351,7 +354,7 @@ export async function sendApplicationStatusUpdate(
           </div>
           ${message ? `<div style="background:#fff3cd;padding:15px;border-radius:8px;margin:15px 0;border-left:4px solid #f59e0b;"><p style="margin:0;"><strong>Message from employer:</strong> ${escapeHtml(message)}</p></div>` : ''}
           <p style="text-align:center;margin:30px 0;">
-            <a href="${siteUrl}/dashboard/applications" style="display:inline-block;padding:12px 30px;background:#1a1a2e;color:white;text-decoration:none;border-radius:6px;">View Details</a>
+            <a href="${siteUrl}/dashboard/applications" style="display:inline-block;padding:12px 30px;background:#0A66C2;color:white;text-decoration:none;border-radius:6px;">View Details</a>
           </p>
         </td></tr>
         <tr><td style="padding:20px;text-align:center;font-size:12px;color:#666;border-top:1px solid #eee;">
@@ -379,7 +382,8 @@ export async function sendEmployerNewApplication(
     <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
     <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;background:#f5f5f5;margin:0;padding:0;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:white;">
-        <tr><td style="background:#1a1a2e;color:white;padding:30px;text-align:center;">
+        <tr><td style="background:#0A66C2;color:white;padding:30px;text-align:center;">
+          <img src="${siteUrl}/logo.png" alt="CareerSasa" style="width:60px;height:60px;margin-bottom:10px;" />
           <h1 style="margin:0;font-size:24px;">New Application Received</h1>
         </td></tr>
         <tr><td style="padding:30px;">
@@ -390,7 +394,7 @@ export async function sendEmployerNewApplication(
             <p style="margin:0;"><strong>Candidate:</strong> ${escapeHtml(candidateName)}</p>
           </div>
           <p style="text-align:center;margin:30px 0;">
-            <a href="${siteUrl}/dashboard/manage-jobs" style="display:inline-block;padding:12px 30px;background:#1a1a2e;color:white;text-decoration:none;border-radius:6px;">Review Applications</a>
+            <a href="${siteUrl}/dashboard/manage-jobs" style="display:inline-block;padding:12px 30px;background:#0A66C2;color:white;text-decoration:none;border-radius:6px;">Review Applications</a>
           </p>
         </td></tr>
         <tr><td style="padding:20px;text-align:center;font-size:12px;color:#666;border-top:1px solid #eee;">
@@ -417,18 +421,19 @@ export async function sendNewMessageEmail(
     <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
     <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;background:#f5f5f5;margin:0;padding:0;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:white;">
-        <tr><td style="background:#1a1a2e;color:white;padding:30px;text-align:center;">
+        <tr><td style="background:#0A66C2;color:white;padding:30px;text-align:center;">
+          <img src="${siteUrl}/logo.png" alt="CareerSasa" style="width:60px;height:60px;margin-bottom:10px;" />
           <h1 style="margin:0;font-size:24px;">New Message</h1>
         </td></tr>
         <tr><td style="padding:30px;">
           <p>Hi ${escapeHtml(recipientName)},</p>
           <p>You have a new message regarding <strong>${escapeHtml(jobTitle)}</strong>:</p>
-          <div style="background:#f8f9fa;padding:20px;border-radius:8px;margin:20px 0;border-left:4px solid #1a1a2e;">
+          <div style="background:#f8f9fa;padding:20px;border-radius:8px;margin:20px 0;border-left:4px solid #0A66C2;">
             <p style="margin:0 0 10px;color:#666;">From: <strong>${escapeHtml(senderName)}</strong></p>
             <p style="margin:0;">${escapeHtml(messagePreview)}</p>
           </div>
           <p style="text-align:center;margin:30px 0;">
-            <a href="${siteUrl}/dashboard/messages" style="display:inline-block;padding:12px 30px;background:#1a1a2e;color:white;text-decoration:none;border-radius:6px;">View Conversation</a>
+            <a href="${siteUrl}/dashboard/messages" style="display:inline-block;padding:12px 30px;background:#0A66C2;color:white;text-decoration:none;border-radius:6px;">View Conversation</a>
           </p>
         </td></tr>
         <tr><td style="padding:20px;text-align:center;font-size:12px;color:#666;border-top:1px solid #eee;">
@@ -447,20 +452,22 @@ export async function sendNewMessageEmail(
  * Send password reset email.
  */
 export async function sendPasswordResetEmail(to: string, resetLink: string): Promise<SendEmailResult> {
+  const siteUrl = getSiteUrl();
   const html = `
     <!DOCTYPE html>
     <html>
     <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
     <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;background:#f5f5f5;margin:0;padding:0;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:white;">
-        <tr><td style="background:#1a1a2e;color:white;padding:30px;text-align:center;">
+        <tr><td style="background:#0A66C2;color:white;padding:30px;text-align:center;">
+          <img src="${siteUrl}/logo.png" alt="CareerSasa" style="width:60px;height:60px;margin-bottom:10px;" />
           <h1 style="margin:0;font-size:24px;">Password Reset</h1>
         </td></tr>
         <tr><td style="padding:30px;">
           <p>Hi there,</p>
           <p>We received a request to reset your password. Click the button below to set a new password:</p>
           <p style="text-align:center;margin:30px 0;">
-            <a href="${escapeHtml(resetLink)}" style="display:inline-block;padding:12px 30px;background:#e94560;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Reset Password</a>
+            <a href="${escapeHtml(resetLink)}" style="display:inline-block;padding:12px 30px;background:#E8712B;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Reset Password</a>
           </p>
           <p style="color:#666;font-size:14px;">This link will expire in 1 hour. If you didn't request a password reset, you can safely ignore this email.</p>
         </td></tr>
@@ -492,7 +499,8 @@ export async function sendSubscriptionConfirmation(to: string, confirmToken: str
     <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
     <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;background:#f5f5f5;margin:0;padding:0;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:white;">
-        <tr><td style="background:#1a1a2e;color:white;padding:30px;text-align:center;">
+        <tr><td style="background:#0A66C2;color:white;padding:30px;text-align:center;">
+          <img src="${siteUrl}/logo.png" alt="CareerSasa" style="width:60px;height:60px;margin-bottom:10px;" />
           <h1 style="margin:0;font-size:24px;">Confirm Your Subscription</h1>
         </td></tr>
         <tr><td style="padding:30px;">
@@ -504,7 +512,7 @@ export async function sendSubscriptionConfirmation(to: string, confirmToken: str
             <li>Industry news and updates</li>
           </ul>
           <p style="text-align:center;margin:30px 0;">
-            <a href="${confirmUrl}" style="display:inline-block;padding:12px 30px;background:#1a1a2e;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Confirm Subscription</a>
+            <a href="${confirmUrl}" style="display:inline-block;padding:12px 30px;background:#0A66C2;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Confirm Subscription</a>
           </p>
           <p style="color:#666;font-size:14px;">If you didn't subscribe, you can safely ignore this email.</p>
         </td></tr>
@@ -559,7 +567,7 @@ export async function sendJobAlertDigest(
   const jobRows = jobs.map(job => `
     <tr>
       <td style="padding:15px;border-bottom:1px solid #eee;">
-        <a href="${siteUrl}/jobs/${job.id}" style="color:#1a1a2e;text-decoration:none;font-weight:bold;">${escapeHtml(job.title)}</a>
+        <a href="${siteUrl}/jobs/${job.id}" style="color:#0A66C2;text-decoration:none;font-weight:bold;">${escapeHtml(job.title)}</a>
         <p style="margin:5px 0 0;color:#666;font-size:14px;">${escapeHtml(job.company)} &middot; ${escapeHtml(job.location)} &middot; ${escapeHtml(job.type)}</p>
       </td>
     </tr>
@@ -571,7 +579,7 @@ export async function sendJobAlertDigest(
     <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
     <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;background:#f5f5f5;margin:0;padding:0;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:white;">
-        <tr><td style="background:#1a1a2e;color:white;padding:30px;text-align:center;">
+        <tr><td style="background:#0A66C2;color:white;padding:30px;text-align:center;">
           <h1 style="margin:0;font-size:24px;">Your Job Alert</h1>
           <p style="margin:5px 0 0;opacity:0.8;">${jobs.length} new jobs matching your search</p>
         </td></tr>
@@ -580,7 +588,7 @@ export async function sendJobAlertDigest(
           <p>Here are new jobs matching your preferences:</p>
           <table width="100%" cellspacing="0" cellpadding="0">${jobRows}</table>
           <p style="text-align:center;margin:30px 0;">
-            <a href="${siteUrl}/jobs" style="display:inline-block;padding:12px 30px;background:#1a1a2e;color:white;text-decoration:none;border-radius:6px;">View All Jobs</a>
+            <a href="${siteUrl}/jobs" style="display:inline-block;padding:12px 30px;background:#0A66C2;color:white;text-decoration:none;border-radius:6px;">View All Jobs</a>
           </p>
         </td></tr>
         <tr><td style="padding:20px;text-align:center;font-size:12px;color:#666;border-top:1px solid #eee;">
@@ -608,14 +616,14 @@ export async function sendWeeklyDigest(
   const siteUrl = getSiteUrl();
   const jobRows = featuredJobs.map(job => `
     <div style="padding:12px 0;border-bottom:1px solid #eee;">
-      <a href="${siteUrl}/jobs/${job.id}" style="color:#1a1a2e;text-decoration:none;font-weight:bold;">${escapeHtml(job.title)}</a>
+      <a href="${siteUrl}/jobs/${job.id}" style="color:#0A66C2;text-decoration:none;font-weight:bold;">${escapeHtml(job.title)}</a>
       <p style="margin:3px 0 0;color:#666;font-size:14px;">${escapeHtml(job.company)} &middot; ${escapeHtml(job.location)}</p>
     </div>
   `).join('');
 
   const tipRows = tips.map(tip => `
     <div style="padding:10px 0;border-bottom:1px solid #eee;">
-      <a href="${tip.url}" style="color:#e94560;text-decoration:none;font-weight:bold;">${escapeHtml(tip.title)}</a>
+      <a href="${tip.url}" style="color:#E8712B;text-decoration:none;font-weight:bold;">${escapeHtml(tip.title)}</a>
     </div>
   `).join('');
 
@@ -625,24 +633,24 @@ export async function sendWeeklyDigest(
     <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
     <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;background:#f5f5f5;margin:0;padding:0;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:white;">
-        <tr><td style="background:#1a1a2e;color:white;padding:30px;text-align:center;">
+        <tr><td style="background:#0A66C2;color:white;padding:30px;text-align:center;">
           <h1 style="margin:0;font-size:24px;">CareerSasa Weekly Digest</h1>
           <p style="margin:5px 0 0;opacity:0.8;">Your weekly career roundup</p>
         </td></tr>
         <tr><td style="padding:20px;">
           <p>Hi ${escapeHtml(name)},</p>
 
-          <h2 style="color:#1a1a2e;border-bottom:2px solid #1a1a2e;padding-bottom:10px;">Featured Jobs This Week</h2>
+          <h2 style="color:#0A66C2;border-bottom:2px solid #0A66C2;padding-bottom:10px;">Featured Jobs This Week</h2>
           ${jobRows || '<p style="color:#666;">No featured jobs this week. Check back soon!</p>'}
 
           ${tips.length > 0 ? `
-            <h2 style="color:#e94560;border-bottom:2px solid #e94560;padding-bottom:10px;margin-top:30px;">Career Tips</h2>
+            <h2 style="color:#E8712B;border-bottom:2px solid #E8712B;padding-bottom:10px;margin-top:30px;">Career Tips</h2>
             ${tipRows}
           ` : ''}
 
           <p style="text-align:center;margin:30px 0;">
-            <a href="${siteUrl}/jobs" style="display:inline-block;padding:12px 30px;background:#1a1a2e;color:white;text-decoration:none;border-radius:6px;margin:5px;">Browse All Jobs</a>
-            <a href="${siteUrl}/blog" style="display:inline-block;padding:12px 30px;background:#e94560;color:white;text-decoration:none;border-radius:6px;margin:5px;">Read Blog</a>
+            <a href="${siteUrl}/jobs" style="display:inline-block;padding:12px 30px;background:#0A66C2;color:white;text-decoration:none;border-radius:6px;margin:5px;">Browse All Jobs</a>
+            <a href="${siteUrl}/blog" style="display:inline-block;padding:12px 30px;background:#E8712B;color:white;text-decoration:none;border-radius:6px;margin:5px;">Read Blog</a>
           </p>
         </td></tr>
         <tr><td style="padding:20px;text-align:center;font-size:12px;color:#666;border-top:1px solid #eee;">
@@ -680,7 +688,7 @@ export async function sendTestEmail(to: string): Promise<SendEmailResult> {
     <head><meta charset="UTF-8"></head>
     <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;">
       <div style="max-width:600px;margin:0 auto;background:white;padding:30px;">
-        <h1 style="color:#1a1a2e;">CareerSasa Email Test</h1>
+        <h1 style="color:#0A66C2;">CareerSasa Email Test</h1>
         <p>If you're reading this, the email system is working correctly!</p>
         <div style="background:#f8f9fa;padding:20px;border-radius:8px;margin:20px 0;">
           <p><strong>Sent at:</strong> ${new Date().toISOString()}</p>
@@ -712,7 +720,8 @@ export async function sendReengagementEmail(
     <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
     <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;background:#f5f5f5;margin:0;padding:0;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:white;">
-        <tr><td style="background:#1a1a2e;color:white;padding:30px;text-align:center;">
+        <tr><td style="background:#0A66C2;color:white;padding:30px;text-align:center;">
+          <img src="${siteUrl}/logo.png" alt="CareerSasa" style="width:60px;height:60px;margin-bottom:10px;" />
           <h1 style="margin:0;font-size:24px;">We Miss You, ${escapeHtml(name)}!</h1>
           <p style="margin:5px 0 0;opacity:0.8;">It's been ${daysSinceLogin} days since your last visit</p>
         </td></tr>
@@ -725,10 +734,10 @@ export async function sendReengagementEmail(
           </ul>
           <p>Your dream job could be waiting for you right now.</p>
           <p style="text-align:center;margin:30px 0;">
-            <a href="${siteUrl}/jobs" style="display:inline-block;padding:12px 30px;background:#1a1a2e;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Browse Latest Jobs</a>
+            <a href="${siteUrl}/jobs" style="display:inline-block;padding:12px 30px;background:#0A66C2;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Browse Latest Jobs</a>
           </p>
           <p style="text-align:center;margin:10px 0;">
-            <a href="${siteUrl}/dashboard/profile" style="display:inline-block;padding:12px 30px;background:#e94560;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Update Your Profile</a>
+            <a href="${siteUrl}/dashboard/profile" style="display:inline-block;padding:12px 30px;background:#E8712B;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Update Your Profile</a>
           </p>
         </td></tr>
         <tr><td style="padding:20px;text-align:center;font-size:12px;color:#666;border-top:1px solid #eee;">
@@ -756,17 +765,18 @@ export async function sendIncompleteApplicationReminder(
     <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
     <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;background:#f5f5f5;margin:0;padding:0;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:white;">
-        <tr><td style="background:#f59e0b;color:white;padding:30px;text-align:center;">
+        <tr><td style="background:#0A66C2;color:white;padding:30px;text-align:center;">
+          <img src="${siteUrl}/logo.png" alt="CareerSasa" style="width:60px;height:60px;margin-bottom:10px;" />
           <h1 style="margin:0;font-size:24px;">Don't Forget Your Application!</h1>
         </td></tr>
         <tr><td style="padding:30px;">
           <p>Hi ${escapeHtml(name)},</p>
           <p>You started applying for <strong>${escapeHtml(jobTitle)}</strong> but didn't finish. This role might be a great fit for you!</p>
-          <div style="background:#fff3cd;padding:15px;border-radius:8px;margin:20px 0;border-left:4px solid #f59e0b;">
+          <div style="background:#fff3cd;padding:15px;border-radius:8px;margin:20px 0;border-left:4px solid #E8712B;">
             <p style="margin:0;"><strong>Reminder:</strong> Applications left incomplete may miss the deadline. Complete yours now!</p>
           </div>
           <p style="text-align:center;margin:30px 0;">
-            <a href="${applicationUrl}" style="display:inline-block;padding:12px 30px;background:#f59e0b;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Complete Application</a>
+            <a href="${applicationUrl}" style="display:inline-block;padding:12px 30px;background:#E8712B;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Complete Application</a>
           </p>
         </td></tr>
         <tr><td style="padding:20px;text-align:center;font-size:12px;color:#666;border-top:1px solid #eee;">
@@ -794,7 +804,8 @@ export async function sendEmployerWelcomeEmail(
     <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
     <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;background:#f5f5f5;margin:0;padding:0;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:white;">
-        <tr><td style="background:#1a1a2e;color:white;padding:30px;text-align:center;">
+        <tr><td style="background:#0A66C2;color:white;padding:30px;text-align:center;">
+          <img src="${siteUrl}/logo.png" alt="CareerSasa" style="width:60px;height:60px;margin-bottom:10px;" />
           <h1 style="margin:0;font-size:24px;">Welcome to CareerSasa for Employers!</h1>
           <p style="margin:5px 0 0;opacity:0.8;">${escapeHtml(companyName)}</p>
         </td></tr>
@@ -803,27 +814,27 @@ export async function sendEmployerWelcomeEmail(
           <p>Welcome aboard! Your employer account for <strong>${escapeHtml(companyName)}</strong> is ready. Here's how to get the most out of CareerSasa:</p>
           <div style="margin:20px 0;">
             <div style="padding:15px;border-bottom:1px solid #eee;">
-              <h3 style="margin:0 0 5px;color:#1a1a2e;">1. Post Your First Job</h3>
+              <h3 style="margin:0 0 5px;color:#0A66C2;">1. Post Your First Job</h3>
               <p style="margin:0;color:#666;">Create a detailed listing with requirements, benefits, and company culture to attract top talent.</p>
             </div>
             <div style="padding:15px;border-bottom:1px solid #eee;">
-              <h3 style="margin:0 0 5px;color:#1a1a2e;">2. Manage Applications</h3>
+              <h3 style="margin:0 0 5px;color:#0A66C2;">2. Manage Applications</h3>
               <p style="margin:0;color:#666;">Review, shortlist, and communicate with candidates all from your dashboard.</p>
             </div>
             <div style="padding:15px;border-bottom:1px solid #eee;">
-              <h3 style="margin:0 0 5px;color:#1a1a2e;">3. Message Candidates</h3>
+              <h3 style="margin:0 0 5px;color:#0A66C2;">3. Message Candidates</h3>
               <p style="margin:0;color:#666;">Use our built-in messaging to schedule interviews and answer questions.</p>
             </div>
             <div style="padding:15px;">
-              <h3 style="margin:0 0 5px;color:#1a1a2e;">4. Promote Your Listings</h3>
+              <h3 style="margin:0 0 5px;color:#0A66C2;">4. Promote Your Listings</h3>
               <p style="margin:0;color:#666;">Featured and promoted jobs get up to 5x more applications.</p>
             </div>
           </div>
           <p style="text-align:center;margin:30px 0;">
-            <a href="${siteUrl}/post-job" style="display:inline-block;padding:12px 30px;background:#1a1a2e;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Post a Job</a>
+            <a href="${siteUrl}/post-job" style="display:inline-block;padding:12px 30px;background:#0A66C2;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Post a Job</a>
           </p>
           <p style="text-align:center;margin:10px 0;">
-            <a href="${siteUrl}/dashboard/manage-jobs" style="display:inline-block;padding:12px 30px;background:#e94560;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Employer Dashboard</a>
+            <a href="${siteUrl}/dashboard/manage-jobs" style="display:inline-block;padding:12px 30px;background:#E8712B;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Employer Dashboard</a>
           </p>
         </td></tr>
         <tr><td style="padding:20px;text-align:center;font-size:12px;color:#666;border-top:1px solid #eee;">
@@ -851,7 +862,8 @@ export async function sendProfileCompletionNudge(
     <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
     <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;background:#f5f5f5;margin:0;padding:0;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:white;">
-        <tr><td style="background:#1a1a2e;color:white;padding:30px;text-align:center;">
+        <tr><td style="background:#0A66C2;color:white;padding:30px;text-align:center;">
+          <img src="${siteUrl}/logo.png" alt="CareerSasa" style="width:60px;height:60px;margin-bottom:10px;" />
           <h1 style="margin:0;font-size:24px;">Your Profile is ${completionPercent}% Complete</h1>
         </td></tr>
         <tr><td style="padding:30px;">
@@ -859,7 +871,7 @@ export async function sendProfileCompletionNudge(
           <p>Employers are <strong>3x more likely</strong> to contact candidates with complete profiles. You're just ${remaining}% away!</p>
           <div style="background:#f8f9fa;padding:20px;border-radius:8px;margin:20px 0;">
             <div style="background:#e0e0e0;border-radius:10px;height:20px;overflow:hidden;">
-              <div style="background:#1a1a2e;height:100%;width:${completionPercent}%;border-radius:10px;transition:width 0.3s;"></div>
+              <div style="background:#0A66C2;height:100%;width:${completionPercent}%;border-radius:10px;transition:width 0.3s;"></div>
             </div>
             <p style="text-align:center;margin:10px 0 0;color:#666;font-size:14px;">${completionPercent}% complete</p>
           </div>
@@ -871,7 +883,7 @@ export async function sendProfileCompletionNudge(
             <li>Add your skills and education</li>
           </ul>
           <p style="text-align:center;margin:30px 0;">
-            <a href="${siteUrl}/dashboard/profile" style="display:inline-block;padding:12px 30px;background:#e94560;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Complete Your Profile</a>
+            <a href="${siteUrl}/dashboard/profile" style="display:inline-block;padding:12px 30px;background:#E8712B;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Complete Your Profile</a>
           </p>
         </td></tr>
         <tr><td style="padding:20px;text-align:center;font-size:12px;color:#666;border-top:1px solid #eee;">
@@ -899,7 +911,8 @@ export async function sendJobExpiryWarning(
     <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
     <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;background:#f5f5f5;margin:0;padding:0;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:white;">
-        <tr><td style="background:#dc2626;color:white;padding:30px;text-align:center;">
+        <tr><td style="background:#E8712B;color:white;padding:30px;text-align:center;">
+          <img src="${siteUrl}/logo.png" alt="CareerSasa" style="width:60px;height:60px;margin-bottom:10px;" />
           <h1 style="margin:0;font-size:24px;">Job Listing Expiring Soon</h1>
         </td></tr>
         <tr><td style="padding:30px;">
@@ -913,7 +926,7 @@ export async function sendJobExpiryWarning(
             <a href="${renewUrl}" style="display:inline-block;padding:12px 30px;background:#dc2626;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Renew Listing</a>
           </p>
           <p style="text-align:center;margin:10px 0;">
-            <a href="${siteUrl}/dashboard/manage-jobs" style="display:inline-block;padding:12px 30px;background:#1a1a2e;color:white;text-decoration:none;border-radius:6px;">Manage All Jobs</a>
+            <a href="${siteUrl}/dashboard/manage-jobs" style="display:inline-block;padding:12px 30px;background:#0A66C2;color:white;text-decoration:none;border-radius:6px;">Manage All Jobs</a>
           </p>
         </td></tr>
         <tr><td style="padding:20px;text-align:center;font-size:12px;color:#666;border-top:1px solid #eee;">

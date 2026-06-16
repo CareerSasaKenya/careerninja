@@ -118,6 +118,7 @@ export default function AdminEmailsPage() {
     if (activeTab === "automations" && automationRules.length === 0) {
       fetchAutomations();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   // ---- Data fetching ----

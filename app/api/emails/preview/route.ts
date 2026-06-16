@@ -23,7 +23,8 @@ const TEMPLATES: Record<string, () => string> = {
     return `
     <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;background:#f5f5f5;margin:0;padding:0;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:white;">
-        <tr><td style="background:#1a1a2e;color:white;padding:30px;text-align:center;">
+        <tr><td style="background:#0A66C2;color:white;padding:30px;text-align:center;">
+          <img src="${siteUrl}/logo.png" alt="CareerSasa" style="width:60px;height:60px;margin-bottom:10px;" />
           <h1 style="margin:0;font-size:24px;">Welcome to CareerSasa!</h1>
         </td></tr>
         <tr><td style="padding:30px;">
@@ -36,10 +37,10 @@ const TEMPLATES: Record<string, () => string> = {
             <li>Access free career tools (CV builder, cover letter generator)</li>
           </ul>
           <p style="text-align:center;margin:30px 0;">
-            <a href="${siteUrl}/jobs" style="display:inline-block;padding:12px 30px;background:#1a1a2e;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Browse Jobs</a>
+            <a href="${siteUrl}/jobs" style="display:inline-block;padding:12px 30px;background:#0A66C2;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Browse Jobs</a>
           </p>
           <p style="text-align:center;margin:10px 0;">
-            <a href="${siteUrl}/dashboard/profile" style="display:inline-block;padding:12px 30px;background:#e94560;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Complete Your Profile</a>
+            <a href="${siteUrl}/dashboard/profile" style="display:inline-block;padding:12px 30px;background:#E8712B;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Complete Your Profile</a>
           </p>
         </td></tr>
         <tr><td style="padding:20px;text-align:center;font-size:12px;color:#666;border-top:1px solid #eee;">
@@ -55,19 +56,20 @@ const TEMPLATES: Record<string, () => string> = {
     return `
     <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;background:#f5f5f5;margin:0;padding:0;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:white;">
-        <tr><td style="background:#1a1a2e;color:white;padding:30px;text-align:center;">
+        <tr><td style="background:#0A66C2;color:white;padding:30px;text-align:center;">
+          <img src="${siteUrl}/logo.png" alt="CareerSasa" style="width:60px;height:60px;margin-bottom:10px;" />
           <h1 style="margin:0;font-size:24px;">Application Submitted!</h1>
         </td></tr>
         <tr><td style="padding:30px;">
           <p>Hi John,</p>
           <p>Your application has been successfully submitted:</p>
-          <div style="background:#f8f9fa;padding:20px;border-radius:8px;margin:20px 0;border-left:4px solid #1a1a2e;">
+          <div style="background:#f8f9fa;padding:20px;border-radius:8px;margin:20px 0;border-left:4px solid #0A66C2;">
             <h3 style="margin:0 0 10px;">Senior Software Engineer</h3>
             <p style="margin:0;color:#666;">at Safaricom PLC</p>
           </div>
           <p>The employer will review your application and you'll be notified of any status changes.</p>
           <p style="text-align:center;margin:30px 0;">
-            <a href="${siteUrl}/dashboard/applications" style="display:inline-block;padding:12px 30px;background:#1a1a2e;color:white;text-decoration:none;border-radius:6px;">Track Applications</a>
+            <a href="${siteUrl}/dashboard/applications" style="display:inline-block;padding:12px 30px;background:#0A66C2;color:white;text-decoration:none;border-radius:6px;">Track Applications</a>
           </p>
         </td></tr>
         <tr><td style="padding:20px;text-align:center;font-size:12px;color:#666;border-top:1px solid #eee;">
@@ -82,7 +84,8 @@ const TEMPLATES: Record<string, () => string> = {
     return `
     <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;background:#f5f5f5;margin:0;padding:0;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:white;">
-        <tr><td style="background:#1a1a2e;color:white;padding:30px;text-align:center;">
+        <tr><td style="background:#0A66C2;color:white;padding:30px;text-align:center;">
+          <img src="${siteUrl}/logo.png" alt="CareerSasa" style="width:60px;height:60px;margin-bottom:10px;" />
           <h1 style="margin:0;font-size:24px;">Application Status Update</h1>
         </td></tr>
         <tr><td style="padding:30px;">
@@ -95,11 +98,11 @@ const TEMPLATES: Record<string, () => string> = {
             <h3 style="margin:0 0 10px;">Senior Software Engineer</h3>
             <p style="margin:0;color:#666;">at Safaricom PLC</p>
           </div>
-          <div style="background:#fff3cd;padding:15px;border-radius:8px;margin:15px 0;border-left:4px solid #f59e0b;">
+          <div style="background:#fff3cd;padding:15px;border-radius:8px;margin:15px 0;border-left:4px solid #E8712B;">
             <p style="margin:0;"><strong>Message from employer:</strong> We'd like to schedule an interview next week.</p>
           </div>
           <p style="text-align:center;margin:30px 0;">
-            <a href="${siteUrl}/dashboard/applications" style="display:inline-block;padding:12px 30px;background:#1a1a2e;color:white;text-decoration:none;border-radius:6px;">View Details</a>
+            <a href="${siteUrl}/dashboard/applications" style="display:inline-block;padding:12px 30px;background:#0A66C2;color:white;text-decoration:none;border-radius:6px;">View Details</a>
           </p>
         </td></tr>
         <tr><td style="padding:20px;text-align:center;font-size:12px;color:#666;border-top:1px solid #eee;">
@@ -115,7 +118,8 @@ const TEMPLATES: Record<string, () => string> = {
     return `
     <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;background:#f5f5f5;margin:0;padding:0;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:white;">
-        <tr><td style="background:#1a1a2e;color:white;padding:30px;text-align:center;">
+        <tr><td style="background:#0A66C2;color:white;padding:30px;text-align:center;">
+          <img src="${siteUrl}/logo.png" alt="CareerSasa" style="width:60px;height:60px;margin-bottom:10px;" />
           <h1 style="margin:0;font-size:24px;">New Application Received</h1>
         </td></tr>
         <tr><td style="padding:30px;">
@@ -126,7 +130,7 @@ const TEMPLATES: Record<string, () => string> = {
             <p style="margin:0;"><strong>Candidate:</strong> John Doe</p>
           </div>
           <p style="text-align:center;margin:30px 0;">
-            <a href="${siteUrl}/dashboard/manage-jobs" style="display:inline-block;padding:12px 30px;background:#1a1a2e;color:white;text-decoration:none;border-radius:6px;">Review Applications</a>
+            <a href="${siteUrl}/dashboard/manage-jobs" style="display:inline-block;padding:12px 30px;background:#0A66C2;color:white;text-decoration:none;border-radius:6px;">Review Applications</a>
           </p>
         </td></tr>
         <tr><td style="padding:20px;text-align:center;font-size:12px;color:#666;border-top:1px solid #eee;">
@@ -141,18 +145,19 @@ const TEMPLATES: Record<string, () => string> = {
     return `
     <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;background:#f5f5f5;margin:0;padding:0;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:white;">
-        <tr><td style="background:#1a1a2e;color:white;padding:30px;text-align:center;">
+        <tr><td style="background:#0A66C2;color:white;padding:30px;text-align:center;">
+          <img src="${siteUrl}/logo.png" alt="CareerSasa" style="width:60px;height:60px;margin-bottom:10px;" />
           <h1 style="margin:0;font-size:24px;">New Message</h1>
         </td></tr>
         <tr><td style="padding:30px;">
           <p>Hi John,</p>
           <p>You have a new message regarding <strong>Senior Software Engineer</strong>:</p>
-          <div style="background:#f8f9fa;padding:20px;border-radius:8px;margin:20px 0;border-left:4px solid #1a1a2e;">
+          <div style="background:#f8f9fa;padding:20px;border-radius:8px;margin:20px 0;border-left:4px solid #0A66C2;">
             <p style="margin:0 0 10px;color:#666;">From: <strong>Jane Recruiter</strong></p>
             <p style="margin:0;">Hi John, we'd love to schedule a call to discuss the role further...</p>
           </div>
           <p style="text-align:center;margin:30px 0;">
-            <a href="${siteUrl}/dashboard/messages" style="display:inline-block;padding:12px 30px;background:#1a1a2e;color:white;text-decoration:none;border-radius:6px;">View Conversation</a>
+            <a href="${siteUrl}/dashboard/messages" style="display:inline-block;padding:12px 30px;background:#0A66C2;color:white;text-decoration:none;border-radius:6px;">View Conversation</a>
           </p>
         </td></tr>
         <tr><td style="padding:20px;text-align:center;font-size:12px;color:#666;border-top:1px solid #eee;">
@@ -164,17 +169,19 @@ const TEMPLATES: Record<string, () => string> = {
   },
 
   'password-reset': () => {
+    const siteUrl = getSiteUrl();
     return `
     <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;background:#f5f5f5;margin:0;padding:0;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:white;">
-        <tr><td style="background:#1a1a2e;color:white;padding:30px;text-align:center;">
+        <tr><td style="background:#0A66C2;color:white;padding:30px;text-align:center;">
+          <img src="${siteUrl}/logo.png" alt="CareerSasa" style="width:60px;height:60px;margin-bottom:10px;" />
           <h1 style="margin:0;font-size:24px;">Password Reset</h1>
         </td></tr>
         <tr><td style="padding:30px;">
           <p>Hi there,</p>
           <p>We received a request to reset your password. Click the button below to set a new password:</p>
           <p style="text-align:center;margin:30px 0;">
-            <a href="#" style="display:inline-block;padding:12px 30px;background:#e94560;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Reset Password</a>
+            <a href="#" style="display:inline-block;padding:12px 30px;background:#E8712B;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Reset Password</a>
           </p>
           <p style="color:#666;font-size:14px;">This link will expire in 1 hour. If you didn't request a password reset, you can safely ignore this email.</p>
         </td></tr>
@@ -190,7 +197,8 @@ const TEMPLATES: Record<string, () => string> = {
     return `
     <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;background:#f5f5f5;margin:0;padding:0;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:white;">
-        <tr><td style="background:#1a1a2e;color:white;padding:30px;text-align:center;">
+        <tr><td style="background:#0A66C2;color:white;padding:30px;text-align:center;">
+          <img src="${siteUrl}/logo.png" alt="CareerSasa" style="width:60px;height:60px;margin-bottom:10px;" />
           <h1 style="margin:0;font-size:24px;">Confirm Your Subscription</h1>
         </td></tr>
         <tr><td style="padding:30px;">
@@ -202,7 +210,7 @@ const TEMPLATES: Record<string, () => string> = {
             <li>Industry news and updates</li>
           </ul>
           <p style="text-align:center;margin:30px 0;">
-            <a href="#" style="display:inline-block;padding:12px 30px;background:#1a1a2e;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Confirm Subscription</a>
+            <a href="#" style="display:inline-block;padding:12px 30px;background:#0A66C2;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Confirm Subscription</a>
           </p>
           <p style="color:#666;font-size:14px;">If you didn't subscribe, you can safely ignore this email.</p>
         </td></tr>
@@ -224,7 +232,7 @@ const TEMPLATES: Record<string, () => string> = {
     const jobRows = jobs.map(job => `
       <tr>
         <td style="padding:15px;border-bottom:1px solid #eee;">
-          <a href="${siteUrl}/jobs/${job.id}" style="color:#1a1a2e;text-decoration:none;font-weight:bold;">${job.title}</a>
+          <a href="${siteUrl}/jobs/${job.id}" style="color:#0A66C2;text-decoration:none;font-weight:bold;">${job.title}</a>
           <p style="margin:5px 0 0;color:#666;font-size:14px;">${job.company} &middot; ${job.location} &middot; ${job.type}</p>
         </td>
       </tr>
@@ -232,7 +240,7 @@ const TEMPLATES: Record<string, () => string> = {
     return `
     <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;background:#f5f5f5;margin:0;padding:0;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:white;">
-        <tr><td style="background:#1a1a2e;color:white;padding:30px;text-align:center;">
+        <tr><td style="background:#0A66C2;color:white;padding:30px;text-align:center;">
           <h1 style="margin:0;font-size:24px;">Your Job Alert</h1>
           <p style="margin:5px 0 0;opacity:0.8;">4 new jobs matching your search</p>
         </td></tr>
@@ -241,7 +249,7 @@ const TEMPLATES: Record<string, () => string> = {
           <p>Here are new jobs matching your preferences:</p>
           <table width="100%" cellspacing="0" cellpadding="0">${jobRows}</table>
           <p style="text-align:center;margin:30px 0;">
-            <a href="${siteUrl}/jobs" style="display:inline-block;padding:12px 30px;background:#1a1a2e;color:white;text-decoration:none;border-radius:6px;">View All Jobs</a>
+            <a href="${siteUrl}/jobs" style="display:inline-block;padding:12px 30px;background:#0A66C2;color:white;text-decoration:none;border-radius:6px;">View All Jobs</a>
           </p>
         </td></tr>
         <tr><td style="padding:20px;text-align:center;font-size:12px;color:#666;border-top:1px solid #eee;">
@@ -257,35 +265,35 @@ const TEMPLATES: Record<string, () => string> = {
     return `
     <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;background:#f5f5f5;margin:0;padding:0;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:white;">
-        <tr><td style="background:#1a1a2e;color:white;padding:30px;text-align:center;">
+        <tr><td style="background:#0A66C2;color:white;padding:30px;text-align:center;">
           <h1 style="margin:0;font-size:24px;">CareerSasa Weekly Digest</h1>
           <p style="margin:5px 0 0;opacity:0.8;">Your weekly career roundup</p>
         </td></tr>
         <tr><td style="padding:20px;">
           <p>Hi John,</p>
-          <h2 style="color:#1a1a2e;border-bottom:2px solid #1a1a2e;padding-bottom:10px;">Featured Jobs This Week</h2>
+          <h2 style="color:#0A66C2;border-bottom:2px solid #0A66C2;padding-bottom:10px;">Featured Jobs This Week</h2>
           <div style="padding:12px 0;border-bottom:1px solid #eee;">
-            <a href="#" style="color:#1a1a2e;text-decoration:none;font-weight:bold;">Senior Software Engineer</a>
+            <a href="#" style="color:#0A66C2;text-decoration:none;font-weight:bold;">Senior Software Engineer</a>
             <p style="margin:3px 0 0;color:#666;font-size:14px;">Safaricom PLC &middot; Nairobi</p>
           </div>
           <div style="padding:12px 0;border-bottom:1px solid #eee;">
-            <a href="#" style="color:#1a1a2e;text-decoration:none;font-weight:bold;">Product Manager</a>
+            <a href="#" style="color:#0A66C2;text-decoration:none;font-weight:bold;">Product Manager</a>
             <p style="margin:3px 0 0;color:#666;font-size:14px;">M-Pesa &middot; Nairobi</p>
           </div>
           <div style="padding:12px 0;border-bottom:1px solid #eee;">
-            <a href="#" style="color:#1a1a2e;text-decoration:none;font-weight:bold;">UX Designer</a>
+            <a href="#" style="color:#0A66C2;text-decoration:none;font-weight:bold;">UX Designer</a>
             <p style="margin:3px 0 0;color:#666;font-size:14px;">Cellulant &middot; Remote</p>
           </div>
-          <h2 style="color:#e94560;border-bottom:2px solid #e94560;padding-bottom:10px;margin-top:30px;">Career Tips</h2>
+          <h2 style="color:#E8712B;border-bottom:2px solid #E8712B;padding-bottom:10px;margin-top:30px;">Career Tips</h2>
           <div style="padding:10px 0;border-bottom:1px solid #eee;">
-            <a href="#" style="color:#e94560;text-decoration:none;font-weight:bold;">5 Tips for Acing Your Next Tech Interview</a>
+            <a href="#" style="color:#E8712B;text-decoration:none;font-weight:bold;">5 Tips for Acing Your Next Tech Interview</a>
           </div>
           <div style="padding:10px 0;border-bottom:1px solid #eee;">
-            <a href="#" style="color:#e94560;text-decoration:none;font-weight:bold;">How to Optimize Your CV for ATS Systems</a>
+            <a href="#" style="color:#E8712B;text-decoration:none;font-weight:bold;">How to Optimize Your CV for ATS Systems</a>
           </div>
           <p style="text-align:center;margin:30px 0;">
-            <a href="${siteUrl}/jobs" style="display:inline-block;padding:12px 30px;background:#1a1a2e;color:white;text-decoration:none;border-radius:6px;margin:5px;">Browse All Jobs</a>
-            <a href="${siteUrl}/blog" style="display:inline-block;padding:12px 30px;background:#e94560;color:white;text-decoration:none;border-radius:6px;margin:5px;">Read Blog</a>
+            <a href="${siteUrl}/jobs" style="display:inline-block;padding:12px 30px;background:#0A66C2;color:white;text-decoration:none;border-radius:6px;margin:5px;">Browse All Jobs</a>
+            <a href="${siteUrl}/blog" style="display:inline-block;padding:12px 30px;background:#E8712B;color:white;text-decoration:none;border-radius:6px;margin:5px;">Read Blog</a>
           </p>
         </td></tr>
         <tr><td style="padding:20px;text-align:center;font-size:12px;color:#666;border-top:1px solid #eee;">
@@ -300,7 +308,7 @@ const TEMPLATES: Record<string, () => string> = {
     return `
     <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;">
       <div style="max-width:600px;margin:0 auto;background:white;padding:30px;">
-        <h1 style="color:#1a1a2e;">CareerSasa Email Test</h1>
+        <h1 style="color:#0A66C2;">CareerSasa Email Test</h1>
         <p>If you're reading this, the email system is working correctly!</p>
         <div style="background:#f8f9fa;padding:20px;border-radius:8px;margin:20px 0;">
           <p><strong>Sent at:</strong> ${new Date().toISOString()}</p>
@@ -320,11 +328,11 @@ const INDEX_HTML = `
   <title>CareerSasa Email Template Previews</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; background: #f5f5f5; }
-    h1 { color: #1a1a2e; }
+    h1 { color: #0A66C2; }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-top: 30px; }
     a { display: block; padding: 20px; background: white; border-radius: 8px; text-decoration: none; color: #333; border: 1px solid #e0e0e0; transition: all 0.2s; }
-    a:hover { border-color: #1a1a2e; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transform: translateY(-2px); }
-    .name { font-weight: 600; color: #1a1a2e; margin-bottom: 4px; }
+    a:hover { border-color: #0A66C2; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transform: translateY(-2px); }
+    .name { font-weight: 600; color: #0A66C2; margin-bottom: 4px; }
     .desc { font-size: 13px; color: #666; }
     .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 4px; margin-top: 8px; }
     .tx { background: #dbeafe; color: #1e40af; }

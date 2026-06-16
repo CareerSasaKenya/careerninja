@@ -281,7 +281,7 @@ async function getRecipients(
 
     // Also get candidate_profiles to map user_id
     const cpIds = Array.from(applicantCpIds);
-    let cpToUserId = new Map<string, string>();
+    const cpToUserId = new Map<string, string>();
     if (cpIds.length > 0) {
       const { data: cps } = await adminClient
         .from('candidate_profiles')
