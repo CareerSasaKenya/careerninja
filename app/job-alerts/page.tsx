@@ -41,7 +41,7 @@ export default function JobAlertsPage() {
               Never Miss a Job Again
             </h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              The best candidates apply within hours of a job being posted. Set up alerts and be first in line — because early applicants get 4x more interview callbacks.
+              The best candidates apply within hours of a job being posted. Set up alerts and be first in line. Early applicants get 4x more interview callbacks.
             </p>
           </div>
 
@@ -153,7 +153,7 @@ export default function JobAlertsPage() {
                       <span className="text-primary text-sm font-bold">1</span>
                     </div>
                     <div>
-                      <h3 className="font-semibold text-foreground">Be First — Not One of 200 Applicants</h3>
+                      <h3 className="font-semibold text-foreground">Be First, Not One of 200 Applicants</h3>
                       <p className="text-sm text-muted-foreground">Employers start reviewing applications within hours. Alerts put you at the front of the queue.</p>
                     </div>
                   </li>
@@ -163,7 +163,7 @@ export default function JobAlertsPage() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-foreground">Stop Wasting Time Searching</h3>
-                      <p className="text-sm text-muted-foreground">Jobs come to your inbox while you focus on preparing great applications — not scrolling job boards.</p>
+                      <p className="text-sm text-muted-foreground">Jobs come to your inbox while you focus on preparing great applications, not scrolling job boards.</p>
                     </div>
                   </li>
                   <li className="flex items-start gap-3">
@@ -180,7 +180,7 @@ export default function JobAlertsPage() {
                       <span className="text-primary text-sm font-bold">4</span>
                     </div>
                     <div>
-                      <h3 className="font-semibold text-foreground">Pause Anytime — You're in Control</h3>
+                      <h3 className="font-semibold text-foreground">Pause Anytime. You're in Control</h3>
                       <p className="text-sm text-muted-foreground">Got a job? Pause alerts. Looking again? Turn them back on. No pressure, no spam.</p>
                     </div>
                   </li>

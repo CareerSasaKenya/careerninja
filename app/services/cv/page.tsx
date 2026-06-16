@@ -13,9 +13,9 @@ export default function CVServicesPage() {
   // Get content values with fallbacks
   const heroTitle = getContentValue(content, "hero_title", "Your CV Has 6 Seconds. Make Them Count.");
   const heroSubtitle = getContentValue(content, "hero_subtitle", "Recruiters scan your CV in 6 seconds. Most CVs fail that test. Ours don't.");
-  const heroDescription1 = getContentValue(content, "hero_description_1", "You've been sending applications for weeks. Zero callbacks. Not because you're unqualified — because your CV doesn't survive the 6-second scan. Before interviews. Before LinkedIn. Before you can explain yourself — your CV decides if you get a chance.");
-  const heroDescription2 = getContentValue(content, "hero_description_2", "At CareerSasa, we don't just write CVs. We engineer them to beat ATS systems, pass the recruiter scan, and get you shortlisted — because we know exactly what Kenyan employers look for.");
-  const heroDescription3 = getContentValue(content, "hero_description_3", "Whether you're a student writing your first CV or an executive repositioning for a board role, our CV services are built for the Kenyan job market — not generic templates from the internet.");
+  const heroDescription1 = getContentValue(content, "hero_description_1", "You've been sending applications for weeks. Zero callbacks. Not because you're unqualified. Your CV just doesn't survive the 6-second scan. Before interviews. Before LinkedIn. Before you can explain yourself, your CV decides if you get a chance.");
+  const heroDescription2 = getContentValue(content, "hero_description_2", "At CareerSasa, we don't just write CVs. We engineer them to beat ATS systems, pass the recruiter scan, and get you shortlisted. We know exactly what Kenyan employers look for.");
+  const heroDescription3 = getContentValue(content, "hero_description_3", "Whether you're a student writing your first CV or an executive repositioning for a board role, our CV services are built for the Kenyan job market, not generic templates from the internet.");
 
   const services = [
     {
@@ -156,7 +156,7 @@ export default function CVServicesPage() {
                   </li>
                   <li className="flex items-start">
                     <span className="text-blue-600 font-bold mr-3">•</span>
-                    <span className="text-gray-700"><strong>ATS systems reject 75% of CVs before a human ever sees them — because they're not keyword-optimized</strong></span>
+                    <span className="text-gray-700"><strong>ATS systems reject 75% of CVs before a human ever sees them. They're not keyword-optimized</strong></span>
                   </li>
                   <li className="flex items-start">
                     <span className="text-blue-600 font-bold mr-3">•</span>
@@ -509,7 +509,7 @@ export default function CVServicesPage() {
               Every week you send applications with a weak CV is a week of interviews you missed.
             </p>
             <p className="text-lg mb-8 opacity-90">
-              Our clients report 3x more callbacks within 30 days of using a CareerSasa CV — because it's engineered for the exact filters Kenyan employers use.
+              Our clients report 3x more callbacks within 30 days of using a CareerSasa CV. It's engineered for the exact filters Kenyan employers use.
             </p>
             <div className="flex flex-col lg:flex-row gap-8 justify-center items-center">
               <Link href="https://wa.me/254795564135?text=Hi,%20I'd%20like%20to%20choose%20a%20CV%20package%20today!" target="_blank">

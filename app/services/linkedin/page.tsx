@@ -13,9 +13,9 @@ export default function LinkedInServicesPage() {
   // Get content values with fallbacks
   const heroTitle = getContentValue(content, "hero_title", "Recruiters Google You Before They Call. What Do They Find?");
   const heroSubtitle = getContentValue(content, "hero_subtitle", "Your LinkedIn profile is the interview filter most people don't know is working against them");
-  const heroDescription1 = getContentValue(content, "hero_description_1", "Before a recruiter calls you, they search your LinkedIn. Before a hiring manager schedules an interview, they compare your CV to your profile. If your LinkedIn is weak, outdated, or doesn't match your CV — you've lost the interview before it started.");
-  const heroDescription2 = getContentValue(content, "hero_description_2", "At CareerSasa, we help students, job seekers, professionals, and executives use LinkedIn strategically — not as a digital CV, but as a recruiter magnet that gets you found, verified, and contacted for opportunities.");
-  const heroDescription3 = getContentValue(content, "hero_description_3", "Whether you want a better job, career growth, or professional visibility, our LinkedIn services are built for the Kenyan and East African job market — not generic social media advice.");
+  const heroDescription1 = getContentValue(content, "hero_description_1", "Before a recruiter calls you, they search your LinkedIn. Before a hiring manager schedules an interview, they compare your CV to your profile. If your LinkedIn is weak, outdated, or doesn't match your CV, you've lost the interview before it started.");
+  const heroDescription2 = getContentValue(content, "hero_description_2", "At CareerSasa, we help students, job seekers, professionals, and executives use LinkedIn strategically: not as a digital CV, but as a recruiter magnet that gets you found, verified, and contacted for opportunities.");
+  const heroDescription3 = getContentValue(content, "hero_description_3", "Whether you want a better job, career growth, or professional visibility, our LinkedIn services are built for the Kenyan and East African job market, not generic social media advice.");
 
   const services = [
     {
@@ -166,7 +166,7 @@ export default function LinkedInServicesPage() {
                   </li>
                 </ul>
                 <p className="text-lg text-gray-700 mt-6 italic text-center">
-                  Most people lose interviews without ever knowing why. Often, it's because their LinkedIn profile told a different story than their CV. We fix that.
+                  Most people lose interviews without ever knowing why. Often, their LinkedIn profile told a different story than their CV. We fix that.
                 </p>
               </div>
               <div className="flex-shrink-0">
@@ -526,7 +526,7 @@ export default function LinkedInServicesPage() {
           <div className="relative z-10">
             <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Be Found for the Right Reasons?</h2>
             <p className="text-xl mb-4">
-              Right now, a recruiter might be searching for someone exactly like you — but finding your competitor instead, because their LinkedIn is optimized and yours isn't.
+              Right now, a recruiter might be searching for someone exactly like you, but finding your competitor instead. Their LinkedIn is optimized and yours isn't.
             </p>
             <p className="text-lg mb-8 opacity-90">
               Our clients report more recruiter messages, more profile views, and stronger interview callbacks within 30 days of a CareerSasa LinkedIn optimization.

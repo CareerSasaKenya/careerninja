@@ -5,7 +5,7 @@ import { Rocket, Eye, Lightbulb, TrendingUp, Users, Building2 } from "lucide-rea
 
 export const metadata: Metadata = {
   title: "Our Mission - Kenya's Fastest Path from Job Search to Job Offer | CareerSasa",
-  description: "CareerSasa's mission: end the broken job search cycle in Kenya by using AI matching, free career tools, and verified listings so every qualified Kenyan lands interviews — not rejection silence.",
+  description: "CareerSasa's mission: end the broken job search cycle in Kenya by using AI matching, free career tools, and verified listings so every qualified Kenyan lands interviews, not rejection silence.",
 };
 
 export default function MissionPage() {
@@ -22,7 +22,7 @@ export default function MissionPage() {
               Our Mission
             </h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              End the cycle of 200 applications and zero callbacks — for every Kenyan professional
+              End the cycle of 200 applications and zero callbacks for every Kenyan professional
             </p>
           </div>
 
@@ -33,7 +33,7 @@ export default function MissionPage() {
             </div>
             <h2 className="text-3xl font-bold text-foreground">The Problem We're Solving</h2>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-              Every day, thousands of qualified Kenyans send applications into a void. CVs are filtered out by keyword algorithms that don't understand skills. Employers receive hundreds of applicants but struggle to find the right fit. The result? Months of unemployment for talented people and months of unfilled roles for growing companies. CareerSasa exists to end this waste — for both sides.
+              Every day, thousands of qualified Kenyans send applications into a void. CVs are filtered out by keyword algorithms that don't understand skills. Employers receive hundreds of applicants but struggle to find the right fit. The result? Months of unemployment for talented people and months of unfilled roles for growing companies. CareerSasa exists to end this waste, for both sides.
             </p>
           </section>
 
@@ -46,7 +46,7 @@ export default function MissionPage() {
               <h2 className="text-3xl font-bold text-primary">Where We're Going</h2>
             </div>
             <p className="text-muted-foreground leading-relaxed">
-              We envision a Kenya where no qualified professional is invisible to employers — and no employer wastes months on the wrong candidates. A Kenya where a fresh graduate in Kisumu has the same access to opportunity as an executive in Nairobi. Where getting hired is measured in days, not months. CareerSasa is building that future — one AI-matched connection at a time.
+              We envision a Kenya where no qualified professional is invisible to employers, and no employer wastes months on the wrong candidates. A Kenya where a fresh graduate in Kisumu has the same access to opportunity as an executive in Nairobi. Where getting hired is measured in days, not months. CareerSasa is building that future, one AI-matched connection at a time.
             </p>
           </section>
 
@@ -60,7 +60,7 @@ export default function MissionPage() {
                 </div>
                 <h3 className="text-xl font-semibold text-foreground">AI That Matches Skills, Not Keywords</h3>
                 <p className="text-muted-foreground">
-                  Most job boards match exact words. Our AI understands that a project manager who led a 15-person team is qualified for a "Team Lead" role — even if the words don't match. This is why our users get 3x more interview callbacks.
+                  Most job boards match exact words. Our AI understands that a project manager who led a 15-person team is qualified for a "Team Lead" role, even if the words don't match. This is why our users get 3x more interview callbacks.
                 </p>
               </div>
 
@@ -70,7 +70,7 @@ export default function MissionPage() {
                 </div>
                 <h3 className="text-xl font-semibold text-foreground">Free Career Tools for Every Kenyan</h3>
                 <p className="text-muted-foreground">
-                  A great CV shouldn't cost KES 5,000. We provide free CV builders, cover letter generators, LinkedIn optimizers, and interview prep — because the barrier to getting hired should never be money.
+                  A great CV shouldn't cost KES 5,000. We provide free CV builders, cover letter generators, LinkedIn optimizers, and interview prep. The barrier to getting hired should never be money.
                 </p>
               </div>
 
@@ -90,7 +90,7 @@ export default function MissionPage() {
                 </div>
                 <h3 className="text-xl font-semibold text-foreground">Hire in Days, Not Months</h3>
                 <p className="text-muted-foreground">
-                  Employers don't need 500 applicants — they need 5 qualified ones. We pre-screen candidates so employers see only people who fit the role, cutting time-to-hire from months to days.
+                  Employers don't need 500 applicants. They need 5 qualified ones. We pre-screen candidates so employers see only people who fit the role, cutting time-to-hire from months to days.
                 </p>
               </div>
             </div>
@@ -110,14 +110,14 @@ export default function MissionPage() {
               <div className="bg-gradient-to-r from-secondary/5 to-transparent border-l-4 border-secondary p-6 rounded-r-lg">
                 <h3 className="text-lg font-semibold text-foreground mb-2">To Employers</h3>
                 <p className="text-muted-foreground">
-                  We will send you qualified candidates — not a flood of unqualified applicants. Your first 3 job posts are free, because we want you to see the difference before you pay a shilling.
+                  We will send you qualified candidates, not a flood of unqualified applicants. Your first 3 job posts are free. We want you to see the difference before you pay a shilling.
                 </p>
               </div>
 
               <div className="bg-gradient-to-r from-primary/5 to-transparent border-l-4 border-primary p-6 rounded-r-lg">
                 <h3 className="text-lg font-semibold text-foreground mb-2">To Our Community</h3>
                 <p className="text-muted-foreground">
-                  We will be transparent about our data, honest in our listings, and relentless in our mission to make Kenya's job market work for everyone — not just those who can afford to game the system.
+                  We will be transparent about our data, honest in our listings, and relentless in our mission to make Kenya's job market work for everyone, not just those who can afford to game the system.
                 </p>
               </div>
             </div>
@@ -127,7 +127,7 @@ export default function MissionPage() {
           <section className="bg-card border border-border rounded-lg p-8 text-center space-y-4">
             <h2 className="text-2xl font-bold text-primary">Ready to See the Difference?</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Join free. Get matched to jobs that fit your skills. Land your next interview. That's not a slogan — that's what happens on CareerSasa every day.
+              Join free. Get matched to jobs that fit your skills. Land your next interview. That's not a slogan. That's what happens on CareerSasa every day.
             </p>
           </section>
         </div>

@@ -32,7 +32,7 @@ export default function PostJobPage() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">Post a Job — Your First 3 Are Free</h1>
           <p className="text-muted-foreground">
-            Reach thousands of qualified Kenyan professionals. Our AI pre-screens candidates so you see only the top matches — not 500 unqualified applicants. Fill in the details below to post your listing.
+            Reach thousands of qualified Kenyan professionals. Our AI pre-screens candidates so you see only the top matches, not 500 unqualified applicants. Fill in the details below to post your listing.
           </p>
         </div>
         <JobPostingForm />

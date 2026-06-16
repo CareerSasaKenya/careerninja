@@ -32,12 +32,12 @@ export default function Home() {
 
   // Get content values with fallbacks
   const heroTitle = getContentValue(content, "hero_title", "Stop Searching. Start Getting Hired.");
-  const heroSubtitle = getContentValue(content, "hero_subtitle", "You've sent dozens of applications with zero callbacks. CareerSasa changes that — we match your skills directly to employers who are hiring right now, so you skip the black hole and land your next interview faster.");
+  const heroSubtitle = getContentValue(content, "hero_subtitle", "You've sent dozens of applications with zero callbacks. CareerSasa changes that. We match your skills directly to employers who are hiring right now, so you skip the black hole and land your next interview faster.");
   const statsJobsTarget = parseInt(getContentValue(content, "stats_jobs", "1070"));
   const statsCompaniesTarget = parseInt(getContentValue(content, "stats_companies", "103"));
   const statsSuccessRateTarget = parseInt(getContentValue(content, "stats_success_rate", "90"));
   const ctaTitle = getContentValue(content, "cta_title", "Your Next Interview Is 60 Seconds Away");
-  const ctaSubtitle = getContentValue(content, "cta_subtitle", "Because CareerSasa matches your skills directly to employer requirements — not just keywords — our users get 3x more interview callbacks than on other job boards. Join free today.");
+  const ctaSubtitle = getContentValue(content, "cta_subtitle", "CareerSasa matches your skills directly to employer requirements, not just keywords. That's why our users get 3x more interview callbacks than on other job boards. Join free today.");
 
   // Auto-scroll plugin for carousel
   const plugin = useRef(
@@ -244,7 +244,7 @@ export default function Home() {
         <div className="container mx-auto">
           <div className="mb-12 text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-3">Featured Opportunities</h2>
-            <p className="text-muted-foreground">Hand-picked roles from top Kenyan employers — new jobs added daily</p>
+            <p className="text-muted-foreground">Hand-picked roles from top Kenyan employers, with new jobs added daily</p>
           </div>
 
           {loadingFeatured ? (
@@ -333,18 +333,18 @@ export default function Home() {
           <div>
             <h2 className="text-3xl md:text-4xl font-bold mb-6">Why 95% of Our Users Land Interviews Within 3 Months</h2>
             <p className="text-muted-foreground mb-6 text-lg">
-              Most job boards dump listings and leave you to figure it out. CareerSasa is different — because we actively match you to employers using AI, not just keywords.
+              Most job boards dump listings and leave you to figure it out. CareerSasa is different. We actively match you to employers using AI, not just keywords.
             </p>
             <div className="space-y-4">
               {[
-                "Smart AI matching that connects your skills to jobs you'll actually get — not just jobs that exist",
+                "Smart AI matching that connects your skills to jobs you'll actually get, not just jobs that exist",
                 "Real-time alerts: be among the first to apply when new roles drop in your inbox",
-                "Free career tools worth KES 10,000+ — CV builder, cover letter generator & LinkedIn optimizer",
+                "Free career tools worth KES 10,000+: CV builder, cover letter generator & LinkedIn optimizer",
                 "1,070+ verified jobs from 103+ companies across every county in Kenya",
-                "Zero spam, zero ghost listings — every job is verified and actively hiring",
-                "Trusted by Kenyan professionals because we're built by Kenyans, for Kenya's job market",
+                "Zero spam, zero ghost listings. Every job is verified and actively hiring",
+                "Trusted by Kenyan professionals, built by Kenyans, for Kenya's job market",
                 "Our users report 3x more interview callbacks compared to applying on generic job boards",
-                "100% free to join, search, and apply — no hidden fees, no catch"
+                "100% free to join, search, and apply. No hidden fees, no catch"
               ].map((benefit, idx) => (
                 <div key={idx} className="flex items-start gap-3 animate-fade-in" style={{ animationDelay: `${idx * 100}ms` }}>
                   <CheckCircle2 className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
@@ -386,7 +386,7 @@ export default function Home() {
                 name: "David Kamau",
                 role: "Software Developer at Safaricom",
                 image: "/assets/testimonial-1.jpg",
-                quote: "I'd been applying for 4 months with zero callbacks. Within 2 weeks on CareerSasa, I had 3 interviews. The AI matching actually works — it connected me to roles I would never have found myself."
+                quote: "I'd been applying for 4 months with zero callbacks. Within 2 weeks on CareerSasa, I had 3 interviews. The AI matching actually works. It connected me to roles I would never have found myself."
               },
               {
                 name: "Grace Wanjiru",
@@ -398,7 +398,7 @@ export default function Home() {
                 name: "Brian Ochieng",
                 role: "Data Analyst at Equity Bank",
                 image: "/assets/testimonial-3.jpg",
-                quote: "The free CV builder alone was worth signing up for. But what surprised me was getting 3 interview invitations in my first month — because CareerSasa shows you jobs that actually match your skills."
+                quote: "The free CV builder alone was worth signing up for. But what surprised me was getting 3 interview invitations in my first month. CareerSasa shows you jobs that actually match your skills."
               }
             ].map((testimonial, idx) => (
               <Card key={idx} className="glass hover:shadow-xl transition-all duration-300 hover:scale-105 animate-fade-in" style={{ animationDelay: `${idx * 150}ms` }}>
@@ -432,7 +432,7 @@ export default function Home() {
         <div className="container mx-auto">
           <div className="mb-12 text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-3">Latest Job Openings</h2>
-            <p className="text-muted-foreground">Fresh opportunities posted today — early applicants get 4x more callbacks</p>
+            <p className="text-muted-foreground">Fresh opportunities posted today. Early applicants get 4x more callbacks</p>
           </div>
 
           {loadingLatest ? (
@@ -507,7 +507,7 @@ export default function Home() {
         <div className="container mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">Your Career, Transformed</h2>
           <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
-            From fresh graduates to senior executives — CareerSasa has helped thousands of Kenyans level up.
+            From fresh graduates to senior executives, CareerSasa has helped thousands of Kenyans level up.
           </p>
           
           <div className="grid md:grid-cols-2 gap-8">
@@ -522,7 +522,7 @@ export default function Home() {
               <CardContent className="p-6">
                 <h3 className="text-2xl font-semibold mb-3">From Graduate to Senior Manager in 3 Years</h3>
                 <p className="text-muted-foreground mb-4">
-                  &quot;I started as a fresh graduate with no connections. CareerSasa matched me to my first role, then my second, then my third. In 3 years, I went from intern to Senior Manager at NCBA Bank — because every opportunity was the right next step.&quot;
+                  &quot;I started as a fresh graduate with no connections. CareerSasa matched me to my first role, then my second, then my third. In 3 years, I went from intern to Senior Manager at NCBA Bank. Every opportunity was the right next step.&quot;
                 </p>
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-gradient-primary"></div>
@@ -545,7 +545,7 @@ export default function Home() {
               <CardContent className="p-6">
                 <h3 className="text-2xl font-semibold mb-3">Career Change Without Starting Over</h3>
                 <p className="text-muted-foreground mb-4">
-                  &quot;I spent 6 years in finance and wanted to move into tech — but every job board made me feel like I had to start from scratch. CareerSasa's matching found tech roles that valued my finance background. I'm now a Tech Lead at Andela Kenya.&quot;
+                  &quot;I spent 6 years in finance and wanted to move into tech, but every job board made me feel like I had to start from scratch. CareerSasa's matching found tech roles that valued my finance background. I'm now a Tech Lead at Andela Kenya.&quot;
                 </p>
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-gradient-secondary"></div>
@@ -566,7 +566,7 @@ export default function Home() {
           <div className="container mx-auto">
             <div className="mb-12 text-center">
               <h2 className="text-3xl md:text-4xl font-bold mb-3">Career Insights That Actually Get You Hired</h2>
-              <p className="text-muted-foreground">Free expert advice — because knowing what employers want is half the battle</p>
+              <p className="text-muted-foreground">Free expert advice. Knowing what employers want is half the battle</p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-8 mb-8">

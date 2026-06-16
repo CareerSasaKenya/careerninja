@@ -62,7 +62,7 @@ export default function NewsletterPage() {
             The Jobs You Miss Yesterday Are in Your Inbox Tomorrow
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Join Kenyan professionals who get first access to new jobs, salary insights, and free career tools — because early applicants get 4x more interview callbacks.
+            Join Kenyan professionals who get first access to new jobs, salary insights, and free career tools. Early applicants get 4x more interview callbacks.
           </p>
         </div>
 
@@ -73,7 +73,7 @@ export default function NewsletterPage() {
               <Briefcase className="h-10 w-10 text-primary mx-auto mb-3" />
               <h3 className="font-semibold mb-2">Jobs Before Anyone Else</h3>
               <p className="text-sm text-muted-foreground">
-                Get new jobs in your inbox before they appear on the site — be the first to apply because early applicants get hired
+                Get new jobs in your inbox before they appear on the site. Be the first to apply. Early applicants get hired.
               </p>
             </CardContent>
           </Card>
@@ -82,7 +82,7 @@ export default function NewsletterPage() {
               <BookOpen className="h-10 w-10 text-primary mx-auto mb-3" />
               <h3 className="font-semibold mb-2">Free Salary Guides & CV Templates</h3>
               <p className="text-sm text-muted-foreground">
-                Exclusive downloads you won't find anywhere else — including Kenya's salary benchmarks by industry and role
+                Exclusive downloads you won't find anywhere else, including Kenya's salary benchmarks by industry and role
               </p>
             </CardContent>
           </Card>
@@ -91,7 +91,7 @@ export default function NewsletterPage() {
               <TrendingUp className="h-10 w-10 text-primary mx-auto mb-3" />
               <h3 className="font-semibold mb-2">What Employers Actually Want</h3>
               <p className="text-sm text-muted-foreground">
-                Insider insights from Kenyan hiring managers — the advice that gets you shortlisted, not the generic tips everyone shares
+                Insider insights from Kenyan hiring managers: the advice that gets you shortlisted, not the generic tips everyone shares
               </p>
             </CardContent>
           </Card>

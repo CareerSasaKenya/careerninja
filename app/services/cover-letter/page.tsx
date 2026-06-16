@@ -12,10 +12,10 @@ export default function CoverLetterServicesPage() {
 
   // Get content values with fallbacks
   const heroTitle = getContentValue(content, "hero_title", "Your CV Gets You Seen. Your Cover Letter Gets You Hired.");
-  const heroSubtitle = getContentValue(content, "hero_subtitle", "The letter that explains why you're the right fit — not just another applicant");
-  const heroDescription1 = getContentValue(content, "hero_description_1", "Your CV shows what you've done. But it can't explain why you're perfect for THIS role at THIS company. That's what a cover letter does — when it's done right. Most cover letters repeat the CV or sound like they were written for a different job entirely. Ours don't.");
-  const heroDescription2 = getContentValue(content, "hero_description_2", "At CareerSasa, we write cover letters that connect your experience to the specific job, speak directly to the hiring manager's needs, and give them a reason to call you — not the next applicant.");
-  const heroDescription3 = getContentValue(content, "hero_description_3", "Whether you're applying for your first graduate role or positioning for a C-suite opportunity, our cover letter services are built for the Kenyan job market — not recycled templates.");
+  const heroSubtitle = getContentValue(content, "hero_subtitle", "The letter that explains why you're the right fit, not just another applicant");
+  const heroDescription1 = getContentValue(content, "hero_description_1", "Your CV shows what you've done. But it can't explain why you're perfect for THIS role at THIS company. That's what a cover letter does when it's done right. Most cover letters repeat the CV or sound like they were written for a different job entirely. Ours don't.");
+  const heroDescription2 = getContentValue(content, "hero_description_2", "At CareerSasa, we write cover letters that connect your experience to the specific job, speak directly to the hiring manager's needs, and give them a reason to call you, not the next applicant.");
+  const heroDescription3 = getContentValue(content, "hero_description_3", "Whether you're applying for your first graduate role or positioning for a C-suite opportunity, our cover letter services are built for the Kenyan job market, not recycled templates.");
 
   const services = [
     {
