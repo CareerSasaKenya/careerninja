@@ -2,7 +2,8 @@ import { Metadata } from "next";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { FileText, Download, CheckCircle2, Briefcase, ArrowRight } from "lucide-react";
+import { FileText, CheckCircle2, Briefcase, ArrowRight } from "lucide-react";
+import { PrintButton } from "@/components/PrintButton";
 
 export const metadata: Metadata = {
   title: "Free Job Seeker's Toolkit - CareerSasa",
@@ -28,10 +29,7 @@ export default function ToolkitPage() {
 
         {/* Print/Save Button */}
         <div className="flex justify-center mb-10 print:hidden">
-          <Button onClick={() => window.print()} className="bg-[#0A66C2] hover:bg-[#004182] text-white">
-            <Download className="mr-2 h-4 w-4" />
-            Save This Page as PDF
-          </Button>
+          <PrintButton />
         </div>
 
         {/* Section 1: CV Template */}
