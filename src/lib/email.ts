@@ -505,15 +505,25 @@ export async function sendSubscriptionConfirmation(to: string, confirmToken: str
         </td></tr>
         <tr><td style="padding:30px;">
           <p>Hi ${escapeHtml(name || 'there')},</p>
-          <p>Thanks for subscribing to the CareerSasa newsletter! Please confirm your email address to start receiving:</p>
+          <p>Thanks for subscribing to CareerSasa! Please confirm your email address to start receiving:</p>
           <ul style="line-height:2;">
             <li>Weekly featured job picks</li>
-            <li>Career tips and advice</li>
-            <li>Industry news and updates</li>
+            <li>Salary insights and career tips</li>
+            <li>Free career tools and templates</li>
           </ul>
           <p style="text-align:center;margin:30px 0;">
-            <a href="${confirmUrl}" style="display:inline-block;padding:12px 30px;background:#0A66C2;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Confirm Subscription</a>
+            <a href="${confirmUrl}" style="display:inline-block;padding:12px 30px;background:#0A66C2;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">Confirm &amp; Get Your Free Toolkit</a>
           </p>
+          <div style="background:#f0f7ff;border:1px solid #0A66C2;border-radius:8px;padding:20px;margin:20px 0;">
+            <p style="margin:0 0 10px;font-weight:bold;color:#0A66C2;">🎁 Your Free Toolkit Includes:</p>
+            <ul style="margin:0;padding-left:20px;line-height:1.8;">
+              <li>Professional CV template (ATS-friendly)</li>
+              <li>Cover letter template that gets read</li>
+              <li>Interview prep checklist</li>
+              <li>Salary negotiation script</li>
+            </ul>
+            <p style="margin:10px 0 0;font-size:14px;color:#666;">Once confirmed, your download link will appear on the confirmation page.</p>
+          </div>
           <p style="color:#666;font-size:14px;">If you didn't subscribe, you can safely ignore this email.</p>
         </td></tr>
         <tr><td style="padding:20px;text-align:center;font-size:12px;color:#666;border-top:1px solid #eee;">

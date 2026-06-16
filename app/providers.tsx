@@ -8,6 +8,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { ThemeProvider } from "next-themes";
 import { Footer } from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import { LeadMagnetPopup } from "@/components/LeadMagnetPopup";
 import { useState } from "react";
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -36,6 +37,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             {children}
             <Footer />
             <WhatsAppButton />
+            <LeadMagnetPopup />
           </TooltipProvider>
         </AuthProvider>
       </ThemeProvider>
