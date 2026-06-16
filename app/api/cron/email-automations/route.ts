@@ -99,7 +99,8 @@ export async function GET(request: NextRequest) {
 interface RunResult { sent: number; skipped: number; errors: number }
 
 async function wasRecentlySent(
-  supabase: ReturnType<typeof createClient>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    supabase: any,
   ruleId: string,
   userId: string,
   withinDays: number
@@ -118,7 +119,8 @@ async function wasRecentlySent(
 }
 
 async function logAutomationSend(
-  supabase: ReturnType<typeof createClient>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    supabase: any,
   ruleId: string,
   userId: string,
   email: string,
@@ -144,7 +146,8 @@ function getUserName(profiles: { id: string; full_name: string | null }[], userI
 // AUTOMATION: Inactive Re-engagement
 // =====================================================
 async function runInactiveReengagement(
-  supabase: ReturnType<typeof createClient>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    supabase: any,
   ruleId: string,
   config: Record<string, unknown>
 ): Promise<RunResult> {
@@ -201,7 +204,8 @@ async function runInactiveReengagement(
 // AUTOMATION: Incomplete Application
 // =====================================================
 async function runIncompleteApplication(
-  supabase: ReturnType<typeof createClient>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    supabase: any,
   ruleId: string,
   config: Record<string, unknown>
 ): Promise<RunResult> {
@@ -258,7 +262,7 @@ async function runIncompleteApplication(
     const appUrl = `${siteUrl}/jobs/${app.job_id}`;
     const name = app.full_name || 'there';
 
-    const result = await sendIncompleteApplicationReminder(app.email, name, jobTitle, appUrl, userId || undefined);
+    const result = await sendIncompleteApplicationReminder(app.email as string, name as string, jobTitle as string, appUrl, userId || undefined);
     if (result.success) {
       sent++;
       if (userId) {
@@ -278,7 +282,8 @@ async function runIncompleteApplication(
 // AUTOMATION: Job Expiry Warning
 // =====================================================
 async function runJobExpiryWarning(
-  supabase: ReturnType<typeof createClient>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    supabase: any,
   ruleId: string,
   config: Record<string, unknown>
 ): Promise<RunResult> {
@@ -339,7 +344,8 @@ async function runJobExpiryWarning(
 // AUTOMATION: Employer Welcome
 // =====================================================
 async function runEmployerWelcome(
-  supabase: ReturnType<typeof createClient>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    supabase: any,
   ruleId: string,
   config: Record<string, unknown>
 ): Promise<RunResult> {
@@ -400,7 +406,8 @@ async function runEmployerWelcome(
 // AUTOMATION: Profile Completion Nudge
 // =====================================================
 async function runProfileNudge(
-  supabase: ReturnType<typeof createClient>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    supabase: any,
   ruleId: string,
   config: Record<string, unknown>
 ): Promise<RunResult> {
