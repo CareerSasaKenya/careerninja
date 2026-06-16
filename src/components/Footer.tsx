@@ -2,7 +2,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Facebook, Linkedin } from "lucide-react";
+import { Facebook, Linkedin, Instagram } from "lucide-react";
 import { toast } from "sonner";
 
 export function Footer() {
@@ -189,6 +189,17 @@ export function Footer() {
                   >
                     <Linkedin className="w-4 h-4" />
                     LinkedIn
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://www.instagram.com/careersasa/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <Instagram className="w-4 h-4" />
+                    Instagram
                   </a>
                 </li>
               </ul>
