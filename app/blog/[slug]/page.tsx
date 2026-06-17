@@ -72,23 +72,28 @@ export default function BlogPostPage() {
         .from("blog_posts")
         .select("*")
         .eq("slug", slug)
-        .eq("status", "published")
         .single();
 
       if (error) throw error;
+      // Only show published posts (gracefully handle missing status column)
+      if (data?.status && data.status !== "published") {
+        setPost(null);
+        return;
+      }
       setPost(data);
 
       // Fetch related posts by same category
       if (data?.category) {
         const { data: related } = await supabase
           .from("blog_posts")
-          .select("id, title, slug, featured_image, excerpt, category, created_at, reading_time, content")
-          .eq("status", "published")
+          .select("*")
           .eq("category", data.category)
           .neq("id", data.id)
           .order("created_at", { ascending: false })
           .limit(3);
-        const enrichedRelated = (related || []).map((p: any) => ({
+        const enrichedRelated = (related || [])
+          .filter((p: any) => !p.status || p.status === "published")
+          .map((p: any) => ({
           ...p,
           reading_time: p.reading_time ?? estimateReadingTime(p.content || ""),
         }));

@@ -67,13 +67,14 @@ function BlogPageInner() {
     try {
       const { data, error } = await supabase
         .from("blog_posts")
-        .select("id, title, slug, featured_image, excerpt, category, tags, created_at, reading_time, content")
-        .eq("status", "published")
+        .select("*")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
+      // Filter: only show published posts (gracefully handle missing status column)
+      const published = (data || []).filter((p: any) => !p.status || p.status === "published");
       // Compute reading_time client-side if not set
-      const enriched = (data || []).map((p) => ({
+      const enriched = published.map((p: any) => ({
         ...p,
         reading_time: p.reading_time ?? estimateReadingTime(p.content || ""),
         content: undefined,
