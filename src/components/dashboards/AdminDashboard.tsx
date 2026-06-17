@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Plus, Briefcase, Users, Trash2, FileText, Edit, BarChart, FileEdit, Search, Settings, UserCircle, Mail } from "lucide-react";
+import { Plus, Briefcase, Users, Trash2, FileText, Edit, BarChart, FileEdit, Search, Settings, UserCircle, Mail, MessageSquare, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useAppSetting, setAppSetting } from "@/hooks/useAppSettings";
 
@@ -48,15 +48,30 @@ interface AdminUser {
 interface BlogPost {
   id: string;
   title: string;
+  slug: string;
   category: string | null;
   created_at: string;
   author_id: string | null;
+  status: string;
+  reading_time: number | null;
+}
+
+interface BlogComment {
+  id: string;
+  post_id: string;
+  author_name: string;
+  author_email: string;
+  content: string;
+  approved: boolean;
+  created_at: string;
+  blog_posts: { title: string; slug: string } | null;
 }
 
 const AdminDashboard = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+  const [blogComments, setBlogComments] = useState<BlogComment[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalJobs, setTotalJobs] = useState(0);
@@ -74,7 +89,7 @@ const AdminDashboard = () => {
       const from = (currentPage - 1) * jobsPerPage;
       const to = from + jobsPerPage - 1;
       
-      const [jobsResult, jobsCountResult, usersResult, blogPostsResult] = await Promise.all([
+      const [jobsResult, jobsCountResult, usersResult, blogPostsResult, commentsResult] = await Promise.all([
         supabase.from("jobs").select(`
           id, 
           title, 
@@ -103,7 +118,8 @@ const AdminDashboard = () => {
             profile_visibility
           )
         `).order("created_at", { ascending: false }),
-        supabase.from("blog_posts").select("id, title, category, created_at, author_id").order("created_at", { ascending: false }),
+        supabase.from("blog_posts").select("id, title, slug, category, created_at, author_id, status, reading_time").order("created_at", { ascending: false }),
+        supabase.from("blog_comments").select("id, post_id, author_name, author_email, content, approved, created_at, blog_posts(title, slug)").order("created_at", { ascending: false }).limit(50),
       ]);
 
       if (jobsResult.error) {
@@ -129,6 +145,12 @@ const AdminDashboard = () => {
         console.error("Blog posts fetch error:", blogPostsResult.error);
       } else {
         setBlogPosts(blogPostsResult.data || []);
+      }
+
+      if (commentsResult.error) {
+        console.error("Comments fetch error:", commentsResult.error);
+      } else {
+        setBlogComments((commentsResult.data || []) as unknown as BlogComment[]);
       }
     } catch (error) {
       console.error("Unexpected error in fetchData:", error);
@@ -185,7 +207,6 @@ const AdminDashboard = () => {
         console.error("Blog post delete error:", error);
       } else {
         toast.success("Blog post deleted successfully");
-        // Add a small delay before refreshing to prevent rate limiting
         if (fetchTimeoutRef.current) {
           clearTimeout(fetchTimeoutRef.current);
         }
@@ -196,6 +217,31 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error("Unexpected error deleting blog post:", error);
       toast.error("An unexpected error occurred while deleting the blog post");
+    }
+  };
+
+  const handleApproveComment = async (commentId: string) => {
+    try {
+      const { error } = await supabase.from("blog_comments").update({ approved: true }).eq("id", commentId);
+      if (error) throw error;
+      toast.success("Comment approved");
+      setBlogComments((prev) => prev.map((c) => (c.id === commentId ? { ...c, approved: true } : c)));
+    } catch (error) {
+      console.error("Error approving comment:", error);
+      toast.error("Failed to approve comment");
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    if (!confirm("Delete this comment?")) return;
+    try {
+      const { error } = await supabase.from("blog_comments").delete().eq("id", commentId);
+      if (error) throw error;
+      toast.success("Comment deleted");
+      setBlogComments((prev) => prev.filter((c) => c.id !== commentId));
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      toast.error("Failed to delete comment");
     }
   };
 
@@ -245,15 +291,6 @@ const AdminDashboard = () => {
       setTogglingWhatsapp(false);
     }
   }
-
-  const generateSlug = (title: string) => {
-    return title
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, "")
-      .replace(/[\s_-]+/g, "-")
-      .replace(/^-+|-+$/g, "");
-  };
 
   return (
     <div className="space-y-6">
@@ -482,59 +519,139 @@ const AdminDashboard = () => {
         </TabsContent>
 
         <TabsContent value="blog">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Blog Posts
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <p className="text-muted-foreground">Loading...</p>
-              ) : blogPosts.length === 0 ? (
-                <p className="text-muted-foreground">No blog posts available.</p>
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Title</TableHead>
-                        <TableHead>Category</TableHead>
-                        <TableHead>Posted</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {blogPosts.map((post) => (
-                        <TableRow key={post.id}>
-                          <TableCell className="font-medium">
-                            <Link href={`/blog/${generateSlug(post.title)}-${post.id}`} className="hover:underline">
-                              {post.title}
-                            </Link>
-                          </TableCell>
-                          <TableCell>{post.category || 'Uncategorized'}</TableCell>
-                          <TableCell>{new Date(post.created_at).toLocaleDateString()}</TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Link href={`/blog/edit/${post.id}`}>
-                                <Button variant="ghost" size="icon">
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                              </Link>
-                              <Button variant="ghost" size="icon" onClick={() => handleDeleteBlogPost(post.id)}>
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+          <div className="space-y-6">
+            {/* Blog Posts Table */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Blog Posts
+                    <Badge variant="outline" className="ml-2">{blogPosts.length}</Badge>
+                  </CardTitle>
+                  <Link href="/blog/create">
+                    <Button size="sm" variant="outline">
+                      <Plus className="h-4 w-4 mr-1" />
+                      New Post
+                    </Button>
+                  </Link>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <p className="text-muted-foreground">Loading...</p>
+                ) : blogPosts.length === 0 ? (
+                  <p className="text-muted-foreground">No blog posts yet.</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Title</TableHead>
+                          <TableHead>Category</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Reading Time</TableHead>
+                          <TableHead>Posted</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {blogPosts.map((post) => (
+                          <TableRow key={post.id}>
+                            <TableCell className="font-medium max-w-[280px] truncate">
+                              <Link href={`/blog/${post.slug}`} className="hover:underline">
+                                {post.title}
+                              </Link>
+                            </TableCell>
+                            <TableCell>{post.category || <span className="text-muted-foreground">None</span>}</TableCell>
+                            <TableCell>
+                              <Badge variant={post.status === 'published' ? 'default' : post.status === 'draft' ? 'secondary' : 'outline'}>
+                                {post.status || 'published'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-sm">{post.reading_time ? `${post.reading_time} min` : '—'}</TableCell>
+                            <TableCell>{new Date(post.created_at).toLocaleDateString()}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                <Link href={`/blog/edit/${post.id}`}>
+                                  <Button variant="ghost" size="icon">
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                </Link>
+                                <Button variant="ghost" size="icon" onClick={() => handleDeleteBlogPost(post.id)}>
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Pending Comments */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5" />
+                  Comments
+                  <Badge variant="outline" className="ml-2">
+                    {blogComments.filter((c) => !c.approved).length} pending
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <p className="text-muted-foreground">Loading...</p>
+                ) : blogComments.length === 0 ? (
+                  <p className="text-muted-foreground">No comments yet.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {blogComments.map((comment) => (
+                      <div
+                        key={comment.id}
+                        className={`flex items-start gap-3 p-4 rounded-lg border ${comment.approved ? 'border-border/40 bg-card/30' : 'border-amber-200/60 bg-amber-50/30 dark:border-amber-700/30 dark:bg-amber-900/10'}`}
+                      >
+                        <div className="w-8 h-8 shrink-0 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                          {comment.author_name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                            <span className="font-semibold text-sm">{comment.author_name}</span>
+                            {comment.approved ? (
+                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Approved</Badge>
+                            ) : (
+                              <Badge className="bg-amber-500 text-white text-[10px] px-1.5 py-0">Pending</Badge>
+                            )}
+                            <span className="text-xs text-muted-foreground">
+                              on &quot;{comment.blog_posts?.title || 'Unknown post'}&quot;
+                            </span>
+                          </div>
+                          <p className="text-sm text-muted-foreground line-clamp-2">{comment.content}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {comment.author_email} · {new Date(comment.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="flex gap-1 shrink-0">
+                          {!comment.approved && (
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-green-600 hover:text-green-700" onClick={() => handleApproveComment(comment.id)} title="Approve">
+                              <CheckCircle className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDeleteComment(comment.id)} title="Delete">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="users">

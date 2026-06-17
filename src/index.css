@@ -270,12 +270,32 @@ All colors MUST be HSL.
 
   .richtext-content img,
   .prose img {
-    @apply max-w-full h-auto my-3 rounded-lg;
+    @apply max-w-full h-auto my-6 rounded-xl shadow-md;
   }
 
   .richtext-content hr,
   .prose hr {
-    @apply my-4 border-t border-border;
+    @apply my-6 border-t border-border;
+  }
+
+  .richtext-content table,
+  .prose table {
+    @apply w-full my-4 border-collapse;
+  }
+
+  .richtext-content th,
+  .prose th {
+    @apply bg-muted px-4 py-2 text-left font-semibold border border-border;
+  }
+
+  .richtext-content td,
+  .prose td {
+    @apply px-4 py-2 border border-border;
+  }
+
+  .richtext-content tr:nth-child(even),
+  .prose tr:nth-child(even) {
+    @apply bg-muted/30;
   }
 
   /* Override Tailwind prose max-width */
