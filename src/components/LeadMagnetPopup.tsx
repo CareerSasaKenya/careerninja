@@ -110,14 +110,17 @@ export function LeadMagnetPopup() {
       if (data.already_subscribed) {
         toast.info(data.message);
       } else {
-        toast.success("Check your inbox to confirm and get your free toolkit!");
+        toast.success("You\u2019re in! Redirecting to your free toolkit\u2026");
       }
 
       setIsSuccess(true);
       try { localStorage.setItem(SUBSCRIBED_KEY, "true"); } catch { /* ignore */ }
 
-      // Auto-close after 4 seconds
-      setTimeout(() => close(), 4000);
+      // Redirect to toolkit after a short success flash
+      setTimeout(() => {
+        close();
+        window.location.href = '/toolkit';
+      }, 2500);
     } catch {
       toast.error("Failed to subscribe. Please try again.");
     } finally {
