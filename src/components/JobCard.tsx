@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { MapPin, Building2, DollarSign, FileText, Clock, ExternalLink, Mail, Briefcase, GraduationCap, Star, TrendingUp } from "lucide-react";
 import { stripHtmlTags } from "@/lib/textUtils";
 import { SaveJobButton } from "@/components/SaveJobButton";
+import { AdminEditJobButton } from "@/components/AdminEditJobButton";
 
 interface JobCardProps {
   id: string;
@@ -271,10 +272,11 @@ const JobCard = ({
         )}
 
         {/* Action Buttons */}
-        <div className="mt-4 flex gap-2">
+        <div className="mt-4 flex gap-2 items-center">
           <Button variant="outline" className="flex-1">
             View Details
           </Button>
+          <AdminEditJobButton jobId={id} variant="card" />
           <SaveJobButton jobId={id} variant="outline" size="default" showText={false} />
         </div>
       </CardContent>

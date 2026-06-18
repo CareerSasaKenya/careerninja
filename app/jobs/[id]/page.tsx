@@ -15,6 +15,7 @@ import ApplySection from "@/components/ApplySection";
 import SocialShare from "@/components/SocialShare";
 import ServiceAdvertisement from "@/components/ServiceAdvertisement";
 import { SaveJobButton } from "@/components/SaveJobButton";
+import { AdminEditJobButton } from "@/components/AdminEditJobButton";
 import JobViewTracker from "@/components/JobViewTracker";
 import CVAdBanner from "@/components/CVAdBanner";
 
@@ -188,12 +189,15 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
         <Navbar />
         
         <div className="container mx-auto px-4 py-8">
-          <Link href="/jobs" prefetch={true}>
-            <Button variant="ghost" className="mb-6">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Jobs
-            </Button>
-          </Link>
+          <div className="flex items-center justify-between mb-6">
+            <Link href="/jobs" prefetch={true}>
+              <Button variant="ghost">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Jobs
+              </Button>
+            </Link>
+            <AdminEditJobButton jobId={job.id} variant="page" />
+          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Main Content */}
