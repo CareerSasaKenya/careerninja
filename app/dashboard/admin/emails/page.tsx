@@ -410,8 +410,8 @@ export default function AdminEmailsPage() {
 
         {/* ---- OVERVIEW TAB ---- */}
         <TabsContent value="overview">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <Card>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <Card className="cursor-pointer hover:border-blue-400 hover:shadow-md transition-all" onClick={() => setActiveTab("logs")}>
               <CardContent className="pt-6">
                 <div className="flex items-center gap-3">
                   <Send className="h-8 w-8 text-blue-500" />
@@ -422,7 +422,7 @@ export default function AdminEmailsPage() {
                 </div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="cursor-pointer hover:border-red-400 hover:shadow-md transition-all" onClick={() => setActiveTab("logs")}>
               <CardContent className="pt-6">
                 <div className="flex items-center gap-3">
                   <XCircle className="h-8 w-8 text-red-500" />
@@ -433,7 +433,7 @@ export default function AdminEmailsPage() {
                 </div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="cursor-pointer hover:border-green-400 hover:shadow-md transition-all" onClick={() => setActiveTab("subscribers")}>
               <CardContent className="pt-6">
                 <div className="flex items-center gap-3">
                   <Users className="h-8 w-8 text-green-500" />
@@ -444,7 +444,7 @@ export default function AdminEmailsPage() {
                 </div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="cursor-pointer hover:border-purple-400 hover:shadow-md transition-all" onClick={() => setActiveTab("campaigns")}>
               <CardContent className="pt-6">
                 <div className="flex items-center gap-3">
                   <FileText className="h-8 w-8 text-purple-500" />
