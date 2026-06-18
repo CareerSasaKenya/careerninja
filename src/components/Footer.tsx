@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Facebook, Linkedin, Instagram, FileText, CheckCircle2, Gift } from "lucide-react";
+import { Facebook, Linkedin, Instagram } from "lucide-react";
 import { toast } from "sonner";
 
 export function Footer() {
@@ -47,60 +47,35 @@ export function Footer() {
   return (
     <footer className="w-full bg-background border-t border-border/40 mt-auto">
       {/* Section 1: Subscribe */}
-      <div className="w-full bg-gradient-to-br from-[#0A66C2]/10 via-background to-[#E8712B]/10 py-14">
-        <div className="container mx-auto px-4 max-w-3xl">
-          <div className="text-center space-y-4 mb-8">
-            <div className="inline-flex items-center gap-2 bg-[#0A66C2]/10 text-[#0A66C2] text-sm font-semibold px-4 py-1.5 rounded-full mb-2">
-              <Gift className="w-4 h-4" />
-              FREE Job Seeker&apos;s Toolkit — Instant Access
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold">
-              Get Hired Faster —<span className="text-[#0A66C2]"> It Starts Here</span>
-            </h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">
-              Subscribe and unlock your free toolkit instantly. Plus get weekly jobs, salary insights, and career tips delivered to your inbox.
-            </p>
-          </div>
-
-          {/* Offer highlights */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-            {[
-              { icon: FileText, label: "ATS-Friendly CV Template" },
-              { icon: FileText, label: "Cover Letter Template" },
-              { icon: CheckCircle2, label: "Interview Prep Checklist" },
-              { icon: FileText, label: "Salary Negotiation Script" },
-            ].map((item) => (
-              <div
-                key={item.label}
-                className="flex items-center gap-2 bg-card border border-border/60 rounded-lg px-3 py-2.5 text-sm"
-              >
-                <item.icon className="w-4 h-4 text-[#0A66C2] shrink-0" />
-                <span className="leading-tight">{item.label}</span>
-              </div>
-            ))}
-          </div>
-
-          <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
+      <div className="w-full bg-gradient-to-br from-[#0A66C2]/10 via-background to-[#E8712B]/10 py-12">
+        <div className="container mx-auto px-4 max-w-xl text-center space-y-4">
+          <h2 className="text-2xl md:text-3xl font-bold">
+            Subscribe & <span className="text-[#0A66C2]">Get Hired Faster</span>
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Grab Free Career Toolkit:
+          </p>
+          <p className="text-sm font-medium tracking-wide">
+            CV Template &bull; Cover Letter &bull; Interview Checklist &bull; Salary Guide
+          </p>
+          <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3 pt-2">
             <Input
               type="email"
               placeholder="Enter your email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="flex-1 h-12 text-base"
+              className="flex-1 h-11 text-base"
               required
             />
             <Button
               type="submit"
               size="lg"
-              className="h-12 px-8 bg-orange-500 hover:bg-orange-600 text-white font-semibold whitespace-nowrap"
+              className="h-11 px-7 bg-orange-500 hover:bg-orange-600 text-white font-semibold whitespace-nowrap"
               disabled={subscribing}
             >
-              {subscribing ? 'Subscribing\u2026' : 'Get My Free Toolkit'}
+              {subscribing ? 'Subscribing\u2026' : 'Get Instant Access'}
             </Button>
           </form>
-          <p className="text-xs text-muted-foreground text-center mt-3">
-            No spam. Unsubscribe anytime. Your toolkit is emailed to you as a backup too.
-          </p>
         </div>
       </div>
 
