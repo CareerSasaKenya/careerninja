@@ -4,25 +4,61 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Briefcase, LogOut, Menu, X } from "lucide-react";
+import {
+  Briefcase,
+  LogOut,
+  Menu,
+  X,
+  ChevronDown,
+  Linkedin,
+  FileText,
+  LayoutTemplate,
+  PenLine,
+} from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+const careerBoostLinks = [
+  {
+    title: "Boost Your LinkedIn",
+    href: "/services/linkedin",
+    icon: Linkedin,
+  },
+  {
+    title: "Power Your CV & Resume",
+    href: "/services/cv",
+    icon: FileText,
+  },
+  {
+    title: "CV Templates",
+    href: "/dashboard/career-tools",
+    icon: LayoutTemplate,
+  },
+  {
+    title: "Outstanding Cover Letters",
+    href: "/services/cover-letter",
+    icon: PenLine,
+  },
+];
 
 const MobileNav = () => {
   const { user } = useAuth();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  
-  // Use static branding values
+  const [boostOpen, setBoostOpen] = useState(false);
+
   const siteName = "CareerSasa";
-  const logoUrl = "/logo.png"; // Change this to your logo filename (e.g., "/logo.svg")
+  const logoUrl = "/logo.png";
 
   // Listen for close event from Navbar
   useEffect(() => {
-    const closeMenu = () => setOpen(false);
-    window.addEventListener('close-mobile-menu', closeMenu);
-    return () => window.removeEventListener('close-mobile-menu', closeMenu);
+    const closeMenu = () => {
+      setOpen(false);
+      setBoostOpen(false);
+    };
+    window.addEventListener("close-mobile-menu", closeMenu);
+    return () => window.removeEventListener("close-mobile-menu", closeMenu);
   }, []);
 
   const handleSignOut = async () => {
@@ -35,7 +71,7 @@ const MobileNav = () => {
         router.push("/");
       }
     } catch (error) {
-      console.debug('Error during sign out:', error);
+      console.debug("Error during sign out:", error);
       toast.error("Error signing out");
     }
     setOpen(false);
@@ -44,8 +80,9 @@ const MobileNav = () => {
   const closeMenu = () => {
     try {
       setOpen(false);
+      setBoostOpen(false);
     } catch (error) {
-      console.debug('Error closing menu:', error);
+      console.debug("Error closing menu:", error);
     }
   };
 
@@ -65,14 +102,13 @@ const MobileNav = () => {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               {logoUrl ? (
-                <img 
-                  src={logoUrl} 
+                <img
+                  src={logoUrl}
                   alt={siteName}
                   className="h-10 w-10 object-contain"
                   onError={(e) => {
-                    // Handle image loading errors
                     const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
+                    target.style.display = "none";
                   }}
                 />
               ) : (
@@ -95,26 +131,43 @@ const MobileNav = () => {
                 Browse Jobs
               </Button>
             </Link>
-            <Link href="/services/linkedin" onClick={closeMenu} prefetch={true}>
-              <Button variant="ghost" className="w-full justify-start text-base">
-                Boost Your LinkedIn
-              </Button>
-            </Link>
-            <Link href="/services/cv" onClick={closeMenu} prefetch={true}>
-              <Button variant="ghost" className="w-full justify-start text-base">
-                Power Your CV & Resume
-              </Button>
-            </Link>
-            <Link href="/dashboard/career-tools" onClick={closeMenu} prefetch={true}>
-              <Button variant="ghost" className="w-full justify-start text-base">
-                CV Templates
-              </Button>
-            </Link>
-            <Link href="/services/cover-letter" onClick={closeMenu} prefetch={true}>
-              <Button variant="ghost" className="w-full justify-start text-base">
-                Outstanding Cover Letters
-              </Button>
-            </Link>
+
+            {/* Career Boost accordion */}
+            <div>
+              <button
+                type="button"
+                onClick={() => setBoostOpen(!boostOpen)}
+                className="flex items-center justify-between w-full px-4 py-2 text-base font-medium rounded-md hover:bg-accent/50 transition-colors"
+              >
+                Career Boost
+                <ChevronDown
+                  className={`h-4 w-4 transition-transform duration-200 ${
+                    boostOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+              {boostOpen && (
+                <div className="ml-3 pl-3 border-l-2 border-border/50 flex flex-col gap-0.5 mt-1">
+                  {careerBoostLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={closeMenu}
+                      prefetch={true}
+                    >
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start text-sm h-9 gap-2"
+                      >
+                        <link.icon className="h-4 w-4 text-primary shrink-0" />
+                        {link.title}
+                      </Button>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <Link href="/blog" onClick={closeMenu} prefetch={true}>
               <Button variant="ghost" className="w-full justify-start text-base">
                 Blog

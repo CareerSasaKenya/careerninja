@@ -3,7 +3,15 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Briefcase, LogOut } from "lucide-react";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+import { Briefcase, LogOut, Linkedin, FileText, LayoutTemplate, PenLine } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -11,19 +19,44 @@ import MobileNav from "./MobileNav";
 import NotificationBell from "./NotificationBell";
 import { useEffect, useCallback } from "react";
 
+const careerBoostLinks = [
+  {
+    title: "Boost Your LinkedIn",
+    href: "/services/linkedin",
+    description: "Stand out to recruiters on LinkedIn",
+    icon: Linkedin,
+  },
+  {
+    title: "Power Your CV & Resume",
+    href: "/services/cv",
+    description: "Build a CV that gets interviews",
+    icon: FileText,
+  },
+  {
+    title: "CV Templates",
+    href: "/dashboard/career-tools",
+    description: "Professional, ready-to-use templates",
+    icon: LayoutTemplate,
+  },
+  {
+    title: "Outstanding Cover Letters",
+    href: "/services/cover-letter",
+    description: "Cover letters that make an impression",
+    icon: PenLine,
+  },
+];
+
 const Navbar = () => {
   const { user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  
-  // Use static branding values
-  const siteName = "CareerSasa";
-  const logoUrl = "/logo.png"; // Change this to your logo filename (e.g., "/logo.svg")
 
-  // Close any open mobile menu when route changes
+  const siteName = "CareerSasa";
+  const logoUrl = "/logo.png";
+
+  // Close mobile menu on route change
   useEffect(() => {
-    // This will trigger on route changes to close mobile menu if open
-    const closeEvent = new CustomEvent('close-mobile-menu');
+    const closeEvent = new CustomEvent("close-mobile-menu");
     window.dispatchEvent(closeEvent);
   }, [pathname]);
 
@@ -37,7 +70,7 @@ const Navbar = () => {
         router.push("/");
       }
     } catch (error) {
-      console.debug('Error during sign out:', error);
+      console.debug("Error during sign out:", error);
       toast.error("Error signing out");
     }
   }, [router]);
@@ -47,14 +80,13 @@ const Navbar = () => {
       <div className="container mx-auto px-4 py-3 md:py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3 md:gap-4 group" prefetch={true}>
           {logoUrl ? (
-            <img 
-              src={logoUrl} 
+            <img
+              src={logoUrl}
               alt={siteName}
               className="h-12 w-12 md:h-16 md:w-16 object-contain transition-all duration-300 group-hover:scale-105"
               onError={(e) => {
-                // Handle image loading errors
                 const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
+                target.style.display = "none";
               }}
             />
           ) : (
@@ -66,35 +98,61 @@ const Navbar = () => {
             {siteName}
           </span>
         </Link>
-        
+
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden md:flex items-center gap-1">
           <Link href="/jobs" prefetch={true}>
             <Button variant="ghost">Browse Jobs</Button>
           </Link>
-          <Link href="/services/linkedin" prefetch={true}>
-            <Button variant="ghost">Boost Your LinkedIn</Button>
-          </Link>
-          <Link href="/services/cv" prefetch={true}>
-            <Button variant="ghost">Power Your CV & Resume</Button>
-          </Link>
-          <Link href="/dashboard/career-tools" prefetch={true}>
-            <Button variant="ghost">CV Templates</Button>
-          </Link>
-          <Link href="/services/cover-letter" prefetch={true}>
-            <Button variant="ghost">Outstanding Cover Letters</Button>
-          </Link>
+
+          {/* Career Boost dropdown */}
+          <NavigationMenu>
+            <NavigationMenuList>
+              <NavigationMenuItem>
+                <NavigationMenuTrigger className="bg-transparent hover:bg-accent/50 data-[state=open]:bg-accent/50 font-medium h-9 px-3">
+                  Career Boost
+                </NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="grid w-[340px] gap-2 p-3">
+                    {careerBoostLinks.map((link) => (
+                      <li key={link.href}>
+                        <NavigationMenuLink asChild>
+                          <Link
+                            href={link.href}
+                            className="flex items-start gap-3 rounded-md p-3 hover:bg-accent/60 transition-colors no-underline outline-none focus:shadow-md"
+                            prefetch={true}
+                          >
+                            <link.icon className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                            <div>
+                              <div className="text-sm font-semibold leading-none mb-1">
+                                {link.title}
+                              </div>
+                              <p className="text-xs text-muted-foreground leading-snug">
+                                {link.description}
+                              </p>
+                            </div>
+                          </Link>
+                        </NavigationMenuLink>
+                      </li>
+                    ))}
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
+
           <Link href="/blog" prefetch={true}>
             <Button variant="ghost">Blog</Button>
           </Link>
+
           {user ? (
             <>
               <Link href="/dashboard" prefetch={true}>
                 <Button variant="ghost">Dashboard</Button>
               </Link>
               <NotificationBell />
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="icon"
                 onClick={handleSignOut}
                 title="Sign Out"
