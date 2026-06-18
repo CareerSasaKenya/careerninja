@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Briefcase, Users, Trash2, FileText, Edit, BarChart, FileEdit, Search, Settings, UserCircle, Mail, MessageSquare, CheckCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Briefcase, Users, Trash2, FileText, Edit, BarChart, FileEdit, Search, Settings, UserCircle, Mail, MessageSquare, CheckCircle, ChevronLeft, ChevronRight, Star, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 import { useAppSetting, setAppSetting } from "@/hooks/useAppSettings";
 
@@ -25,6 +25,9 @@ interface Job {
   status: string;
   industry: string;
   posted_by: string;
+  is_featured?: boolean | null;
+  is_promoted?: boolean | null;
+  promotion_tier?: string | null;
   education_levels?: {
     name: string;
   } | null | any;
@@ -105,8 +108,14 @@ const AdminDashboard = () => {
           status, 
           industry, 
           posted_by,
+          is_featured,
+          is_promoted,
+          promotion_tier,
           education_levels (name)
-        `).order("created_at", { ascending: false });
+        `)
+        .order("is_featured", { ascending: false, nullsFirst: false })
+        .order("is_promoted", { ascending: false, nullsFirst: false })
+        .order("created_at", { ascending: false });
 
       // Search by title or company
       if (jobSearch.trim()) {
@@ -457,9 +466,23 @@ const AdminDashboard = () => {
                       {filteredJobs.map((job) => (
                         <TableRow key={job.id}>
                           <TableCell className="font-medium">
-                            <Link href={`/jobs/${job.id}`} className="hover:underline">
-                              {job.title}
-                            </Link>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <Link href={`/jobs/${job.id}`} className="hover:underline">
+                                {job.title}
+                              </Link>
+                              {job.is_featured && (
+                                <Badge className="bg-yellow-500 text-white text-[10px] px-1.5 py-0 gap-0.5">
+                                  <Star className="h-2.5 w-2.5 fill-white" />
+                                  Featured
+                                </Badge>
+                              )}
+                              {job.is_promoted && (
+                                <Badge className="bg-blue-500 text-white text-[10px] px-1.5 py-0 gap-0.5">
+                                  <TrendingUp className="h-2.5 w-2.5" />
+                                  Promoted{job.promotion_tier ? ` \u2022 ${job.promotion_tier}` : ''}
+                                </Badge>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell>{job.company}</TableCell>
                           <TableCell>{job.location}</TableCell>
