@@ -9,7 +9,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Plus, Briefcase, Users, Trash2, FileText, Edit, BarChart, FileEdit, Search, Settings, UserCircle, Mail, MessageSquare, CheckCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Briefcase, Users, Trash2, FileText, Edit, BarChart, FileEdit, Search, Settings, UserCircle, Mail, MessageSquare, CheckCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { useAppSetting, setAppSetting } from "@/hooks/useAppSettings";
 
@@ -75,7 +77,9 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalJobs, setTotalJobs] = useState(0);
-  const [jobFilter, setJobFilter] = useState<"all" | "active" | "draft">("all");
+  const [jobSearch, setJobSearch] = useState("");
+  const [jobStatusFilter, setJobStatusFilter] = useState<string>("all");
+  const [jobTypeFilter, setJobTypeFilter] = useState<string>("all");
   const jobsPerPage = 10;
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const whatsappEnabled = useAppSetting('whatsapp_enabled');
@@ -88,9 +92,10 @@ const AdminDashboard = () => {
       // Calculate pagination
       const from = (currentPage - 1) * jobsPerPage;
       const to = from + jobsPerPage - 1;
-      
-      const [jobsResult, jobsCountResult, usersResult, blogPostsResult, commentsResult] = await Promise.all([
-        supabase.from("jobs").select(`
+
+      // Build job query with server-side search/filters
+      const sb = supabase as any;
+      let jobQuery = sb.from("jobs").select(`
           id, 
           title, 
           company, 
@@ -101,8 +106,37 @@ const AdminDashboard = () => {
           industry, 
           posted_by,
           education_levels (name)
-        `).order("created_at", { ascending: false }).range(from, to),
-        supabase.from("jobs").select("id", { count: "exact", head: true }),
+        `).order("created_at", { ascending: false });
+
+      // Search by title or company
+      if (jobSearch.trim()) {
+        jobQuery = jobQuery.or(`title.ilike.%${jobSearch.trim()}%,company.ilike.%${jobSearch.trim()}%`);
+      }
+      // Status filter
+      if (jobStatusFilter !== "all") {
+        jobQuery = jobQuery.eq("status", jobStatusFilter);
+      }
+      // Employment type filter
+      if (jobTypeFilter !== "all") {
+        jobQuery = jobQuery.eq("employment_type", jobTypeFilter);
+      }
+
+      // Count query mirrors filters
+      let countQuery = sb.from("jobs").select("id", { count: "exact", head: true });
+      if (jobSearch.trim()) {
+        countQuery = countQuery.or(`title.ilike.%${jobSearch.trim()}%,company.ilike.%${jobSearch.trim()}%`);
+      }
+      if (jobStatusFilter !== "all") {
+        countQuery = countQuery.eq("status", jobStatusFilter);
+      }
+      if (jobTypeFilter !== "all") {
+        countQuery = countQuery.eq("employment_type", jobTypeFilter);
+      }
+
+      const jobsResult = await jobQuery.range(from, to);
+      const jobsCountResult = await countQuery;
+
+      const [usersResult, blogPostsResult, commentsResult] = await Promise.all([
         supabase.from("user_profiles").select(`
           id,
           full_name,
@@ -158,7 +192,7 @@ const AdminDashboard = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, jobsPerPage]);
+  }, [currentPage, jobsPerPage, jobSearch, jobStatusFilter, jobTypeFilter]);
 
   useEffect(() => {
     fetchData();
@@ -270,15 +304,12 @@ const AdminDashboard = () => {
     }
   };
 
-  const filteredJobs = jobs.filter((job) => {
-    if (jobFilter === "all") return true;
-    if (jobFilter === "active") return job.status === "active";
-    if (jobFilter === "draft") return job.status === "draft";
-    return true;
-  });
+  const filteredJobs = jobs; // server-side filtering now handles this
 
-  const draftCount = jobs.filter((j) => j.status === "draft").length;
-  const activeCount = jobs.filter((j) => j.status === "active").length;
+  const totalPages = Math.ceil(totalJobs / jobsPerPage);
+
+  // Reset to page 1 when filters change
+  useEffect(() => { setCurrentPage(1); }, [jobSearch, jobStatusFilter, jobTypeFilter]);
 
   async function handleToggleWhatsapp(checked: boolean) {
     setTogglingWhatsapp(true);
@@ -362,37 +393,50 @@ const AdminDashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex gap-2 mb-4">
-                <Button
-                  variant={jobFilter === "all" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setJobFilter("all")}
-                >
-                  All ({jobs.length})
-                </Button>
-                <Button
-                  variant={jobFilter === "active" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setJobFilter("active")}
-                >
-                  Active ({activeCount})
-                </Button>
-                <Button
-                  variant={jobFilter === "draft" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setJobFilter("draft")}
-                >
-                  Drafts ({draftCount})
-                </Button>
+              {/* Search + Filters */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by title or company\u2026"
+                    value={jobSearch}
+                    onChange={(e) => setJobSearch(e.target.value)}
+                    className="pl-8 h-9"
+                  />
+                </div>
+                <Select value={jobStatusFilter} onValueChange={setJobStatusFilter}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem value="expired">Expired</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={jobTypeFilter} onValueChange={setJobTypeFilter}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Employment Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="FULL_TIME">Full Time</SelectItem>
+                    <SelectItem value="PART_TIME">Part Time</SelectItem>
+                    <SelectItem value="CONTRACTOR">Contractor</SelectItem>
+                    <SelectItem value="INTERN">Intern</SelectItem>
+                    <SelectItem value="TEMPORARY">Temporary</SelectItem>
+                    <SelectItem value="VOLUNTEER">Volunteer</SelectItem>
+                    <SelectItem value="PER_DIEM">Per Diem</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               {loading ? (
                 <p className="text-muted-foreground">Loading...</p>
               ) : filteredJobs.length === 0 ? (
                 <p className="text-muted-foreground">
-                  {jobFilter === "draft" 
-                    ? "No draft jobs. Save a job as draft to see it here." 
-                    : jobFilter === "active"
-                    ? "No active jobs. Publish a job to see it here."
+                  {jobSearch || jobStatusFilter !== "all" || jobTypeFilter !== "all"
+                    ? "No jobs match your search filters."
                     : "No jobs available."}
                 </p>
               ) : (
@@ -461,55 +505,57 @@ const AdminDashboard = () => {
                 </div>
               )}
               {!loading && filteredJobs.length > 0 && (
-                <div className="flex items-center justify-between mt-4">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4">
                   <p className="text-sm text-muted-foreground">
-                    Showing {((currentPage - 1) * jobsPerPage) + 1} to {Math.min(currentPage * jobsPerPage, totalJobs)} of {totalJobs} jobs
+                    Showing {((currentPage - 1) * jobsPerPage) + 1}–{Math.min(currentPage * jobsPerPage, totalJobs)} of {totalJobs}
                   </p>
-                  <div className="flex gap-2">
+                  <div className="flex items-center gap-1">
                     <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      variant="outline" size="sm"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
                     >
-                      Previous
+                      <ChevronLeft className="h-4 w-4" />
                     </Button>
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: Math.ceil(totalJobs / jobsPerPage) }, (_, i) => i + 1)
-                        .filter(page => {
-                          // Show first page, last page, current page, and pages around current
-                          const totalPages = Math.ceil(totalJobs / jobsPerPage);
-                          return page === 1 || 
-                                 page === totalPages || 
-                                 (page >= currentPage - 1 && page <= currentPage + 1);
-                        })
-                        .map((page, index, array) => {
-                          // Add ellipsis if there's a gap
-                          const prevPage = array[index - 1];
-                          const showEllipsis = prevPage && page - prevPage > 1;
-                          
+                    {/* Scrollable page buttons */}
+                    <div className="flex items-center gap-1 overflow-x-auto max-w-[60vw] scrollbar-none">
+                      {(() => {
+                        const pages: (number | 'ellipsis')[] = [];
+                        const tp = totalPages;
+                        const cp = currentPage;
+                        const windowSize = 2;
+                        pages.push(1);
+                        for (let i = cp - windowSize; i <= cp + windowSize; i++) {
+                          if (i > 1 && i < tp) pages.push(i);
+                        }
+                        if (tp > 1) pages.push(tp);
+                        // Sort & deduplicate
+                        const unique = [...new Set(pages)].sort((a, b) => (a as number) - (b as number));
+                        return unique.map((page, idx) => {
+                          const prev = unique[idx - 1];
+                          const showEllipsis = prev !== undefined && (page as number) - (prev as number) > 1;
                           return (
-                            <div key={page} className="flex items-center">
-                              {showEllipsis && <span className="px-2 text-muted-foreground">...</span>}
+                            <div key={page} className="flex items-center shrink-0">
+                              {showEllipsis && <span className="px-1 text-muted-foreground select-none">…</span>}
                               <Button
                                 variant={currentPage === page ? "default" : "outline"}
                                 size="sm"
-                                onClick={() => setCurrentPage(page)}
-                                className="min-w-[40px]"
+                                onClick={() => setCurrentPage(page as number)}
+                                className="min-w-[36px] px-2"
                               >
                                 {page}
                               </Button>
                             </div>
                           );
-                        })}
+                        });
+                      })()}
                     </div>
                     <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(prev => Math.min(Math.ceil(totalJobs / jobsPerPage), prev + 1))}
-                      disabled={currentPage >= Math.ceil(totalJobs / jobsPerPage)}
+                      variant="outline" size="sm"
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage >= totalPages}
                     >
-                      Next
+                      <ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>

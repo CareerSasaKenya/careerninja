@@ -412,72 +412,39 @@ const Jobs = () => {
     }, 150);
   };
 
-  // Generate pagination buttons with ellipsis
+  // Generate scrollable windowed pagination
   const generatePaginationButtons = () => {
-    const buttons = [];
-    const maxVisiblePages = 10;
-    
-    if (totalPages <= maxVisiblePages) {
-      // Show all pages if total pages is less than or equal to max visible
-      for (let i = 1; i <= totalPages; i++) {
-        buttons.push(
-          <button
-            key={i}
-            onClick={() => handlePageChange(i)}
-            className={`px-3 py-1 rounded-md ${
-              currentPage === i
-                ? "bg-primary text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            {i}
-          </button>
-        );
-      }
-    } else {
-      // Show first 10 pages and last page with ellipsis
-      for (let i = 1; i <= Math.min(maxVisiblePages, totalPages); i++) {
-        buttons.push(
-          <button
-            key={i}
-            onClick={() => handlePageChange(i)}
-            className={`px-3 py-1 rounded-md ${
-              currentPage === i
-                ? "bg-primary text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            {i}
-          </button>
-        );
-      }
-      
-      // Add ellipsis if there are more pages beyond the visible range
-      if (totalPages > maxVisiblePages) {
-        buttons.push(
-          <span key="ellipsis" className="px-2 py-1 text-gray-500">
-            ...
-          </span>
-        );
-        
-        // Add last page button
-        buttons.push(
-          <button
-            key={totalPages}
-            onClick={() => handlePageChange(totalPages)}
-            className={`px-3 py-1 rounded-md ${
-              currentPage === totalPages
-                ? "bg-primary text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            {totalPages}
-          </button>
-        );
-      }
+    const pages: (number | 'ellipsis')[] = [];
+    const windowSize = 2;
+    // Always include page 1
+    pages.push(1);
+    // Window around current page
+    for (let i = currentPage - windowSize; i <= currentPage + windowSize; i++) {
+      if (i > 1 && i < totalPages) pages.push(i);
     }
-    
-    return buttons;
+    // Always include last page
+    if (totalPages > 1) pages.push(totalPages);
+    // Sort & deduplicate
+    const unique = [...new Set(pages)].sort((a, b) => (a as number) - (b as number));
+    return unique.map((page, idx) => {
+      const prev = unique[idx - 1];
+      const showEllipsis = prev !== undefined && (page as number) - (prev as number) > 1;
+      return (
+        <div key={page} className="flex items-center shrink-0">
+          {showEllipsis && <span className="px-1 text-gray-400 select-none">…</span>}
+          <button
+            onClick={() => handlePageChange(page as number)}
+            className={`px-3 py-1 rounded-md shrink-0 ${
+              currentPage === page
+                ? "bg-primary text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            {page}
+          </button>
+        </div>
+      );
+    });
   };
 
   return (
@@ -779,24 +746,26 @@ const Jobs = () => {
                     ))}
                   </div>
                   
-                  {/* Enhanced Pagination */}
+                  {/* Scrollable Pagination */}
                   {totalPages > 1 && (
-                    <div className="flex flex-col items-center mt-8 space-y-4">
-                      <div className="flex items-center space-x-1">
+                    <div className="flex flex-col items-center mt-8 space-y-3">
+                      <div className="flex items-center gap-1">
                         <button
                           onClick={() => handlePageChange(currentPage - 1)}
                           disabled={currentPage === 1}
-                          className="p-2 rounded-md border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                          className="p-2 rounded-md border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 shrink-0"
                         >
                           <ChevronLeft className="h-5 w-5" />
                         </button>
                         
-                        {generatePaginationButtons()}
+                        <div className="flex items-center gap-1 overflow-x-auto max-w-[70vw] scrollbar-none">
+                          {generatePaginationButtons()}
+                        </div>
                         
                         <button
                           onClick={() => handlePageChange(currentPage + 1)}
                           disabled={currentPage === totalPages}
-                          className="p-2 rounded-md border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                          className="p-2 rounded-md border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 shrink-0"
                         >
                           <ChevronRight className="h-5 w-5" />
                         </button>
