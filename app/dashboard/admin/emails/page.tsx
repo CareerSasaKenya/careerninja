@@ -397,15 +397,15 @@ export default function AdminEmailsPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
-          <TabsTrigger value="subscribers">Subscribers</TabsTrigger>
-          <TabsTrigger value="logs">Email Logs</TabsTrigger>
-          <TabsTrigger value="settings">Test & Settings</TabsTrigger>
-          <TabsTrigger value="broadcast">Broadcast</TabsTrigger>
-          <TabsTrigger value="automations">Automations</TabsTrigger>
-          <TabsTrigger value="previews">Previews</TabsTrigger>
+        <TabsList className="overflow-x-auto scrollbar-none max-w-full justify-start">
+          <TabsTrigger value="overview" className="shrink-0">Overview</TabsTrigger>
+          <TabsTrigger value="campaigns" className="shrink-0">Campaigns</TabsTrigger>
+          <TabsTrigger value="subscribers" className="shrink-0">Subscribers</TabsTrigger>
+          <TabsTrigger value="logs" className="shrink-0">Email Logs</TabsTrigger>
+          <TabsTrigger value="settings" className="shrink-0">Test & Settings</TabsTrigger>
+          <TabsTrigger value="broadcast" className="shrink-0">Broadcast</TabsTrigger>
+          <TabsTrigger value="automations" className="shrink-0">Automations</TabsTrigger>
+          <TabsTrigger value="previews" className="shrink-0">Previews</TabsTrigger>
         </TabsList>
 
         {/* ---- OVERVIEW TAB ---- */}
