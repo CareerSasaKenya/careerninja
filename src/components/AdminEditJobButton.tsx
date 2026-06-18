@@ -1,12 +1,11 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Edit } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-
-const ADMIN_EMAIL =
-  process.env.NEXT_PUBLIC_ADMIN_EMAIL || "ejumakona@gmail.com";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AdminEditJobButtonProps {
   jobId: string;
@@ -15,22 +14,38 @@ interface AdminEditJobButtonProps {
 }
 
 /**
- * Renders an "Edit Job" button only when the logged-in user is the site admin.
- * Safe to drop into any client or server-rendered page.
+ * Renders an "Edit Job" button only when the logged-in user has admin role.
+ * Checks user_roles table for 'admin' role.
  */
 export function AdminEditJobButton({
   jobId,
   variant = "card",
 }: AdminEditJobButtonProps) {
   const { user } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  // Only show for logged-in admin
-  if (
-    !user?.email ||
-    user.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()
-  ) {
-    return null;
-  }
+  useEffect(() => {
+    if (!user?.id) {
+      setIsAdmin(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from("user_profiles")
+          .select("role")
+          .eq("id", user.id)
+          .maybeSingle();
+        if (!cancelled) setIsAdmin(data?.role === "admin");
+      } catch {
+        // Silently fail — don't show button on error
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id]);
+
+  if (!isAdmin) return null;
 
   if (variant === "page") {
     return (
