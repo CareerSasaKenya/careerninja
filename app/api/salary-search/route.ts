@@ -182,7 +182,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, data: aiResult, source: "ai" });
     }
 
-    return NextResponse.json({ success: true, data: null, source: "none" });
+    // Check if AI keys are configured at all
+    const hasGemini = [
+      process.env.GEMINI_API_KEY,
+      process.env.GEMINI_API_KEY_2,
+      process.env.GEMINI_API_KEY_3,
+    ].some(Boolean);
+    const hasOpenRouter = Boolean(process.env.OPENROUTER_API_KEY);
+
+    if (!hasGemini && !hasOpenRouter) {
+      return NextResponse.json({
+        success: false,
+        data: null,
+        source: "none",
+        reason: "No AI API keys configured on the server",
+      });
+    }
+
+    return NextResponse.json({
+      success: false,
+      data: null,
+      source: "none",
+      reason: "AI estimate failed — all API providers returned errors",
+    });
   } catch (err: any) {
     console.error("Salary search error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });

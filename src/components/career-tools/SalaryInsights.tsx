@@ -85,9 +85,12 @@ export default function SalaryInsights() {
         setComparison(null);
       } else {
         setInsights(null);
+        const msg = json.reason
+          ? json.reason
+          : 'No salary data available for this search. Try a different job title.';
         toast({
           title: 'No Data',
-          description: 'No salary data available for this search. Try a different job title.',
+          description: msg,
           variant: 'destructive',
         });
       }
