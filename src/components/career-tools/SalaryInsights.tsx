@@ -86,7 +86,7 @@ export default function SalaryInsights() {
       } else {
         setInsights(null);
         const msg = json.reason
-          ? json.reason
+          ? 'Search failed. Try again later.'
           : 'No salary data available for this search. Try a different job title.';
         toast({
           title: 'No Data',
@@ -94,10 +94,10 @@ export default function SalaryInsights() {
           variant: 'destructive',
         });
       }
-    } catch (error: any) {
+    } catch {
       toast({
-        title: 'Error',
-        description: error.message,
+        title: 'Search Failed',
+        description: 'Search failed. Try again later.',
         variant: 'destructive',
       });
     } finally {
