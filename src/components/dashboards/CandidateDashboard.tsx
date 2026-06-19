@@ -92,43 +92,43 @@ const CandidateDashboard = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-3xl font-bold">Job Seeker Dashboard</h1>
-        <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2">
-          <Link href="/dashboard/career-tools" className="w-full sm:w-auto">
+        <div className="flex overflow-x-auto scrollbar-hide sm:flex-row gap-2 pb-1 -mx-1 px-1 snap-x">
+          <Link href="/dashboard/career-tools" className="shrink-0 snap-start">
             <Button variant="default" className="w-full whitespace-nowrap">
               <Briefcase className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">Career Tools</span>
               <span className="sm:hidden">Tools</span>
             </Button>
           </Link>
-          <Link href="/dashboard/profile" className="w-full sm:w-auto">
+          <Link href="/dashboard/profile" className="shrink-0 snap-start">
             <Button variant="outline" className="w-full whitespace-nowrap">
               <FileText className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">My Profile</span>
               <span className="sm:hidden">Profile</span>
             </Button>
           </Link>
-          <Link href="/dashboard/applications" className="w-full sm:w-auto">
+          <Link href="/dashboard/applications" className="shrink-0 snap-start">
             <Button variant="outline" className="w-full whitespace-nowrap">
               <FileText className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">All Applications</span>
               <span className="sm:hidden">Applications</span>
             </Button>
           </Link>
-          <Link href="/dashboard/saved-jobs" className="w-full sm:w-auto">
+          <Link href="/dashboard/saved-jobs" className="shrink-0 snap-start">
             <Button variant="outline" className="w-full whitespace-nowrap">
               <Bookmark className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">Saved Jobs</span>
               <span className="sm:hidden">Saved</span>
             </Button>
           </Link>
-          <Link href="/dashboard/saved-searches" className="w-full sm:w-auto">
+          <Link href="/dashboard/saved-searches" className="shrink-0 snap-start">
             <Button variant="outline" className="w-full whitespace-nowrap">
               <Search className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">Saved Searches</span>
               <span className="sm:hidden">Searches</span>
             </Button>
           </Link>
-          <Link href="/dashboard/compare-jobs" className="col-span-2 sm:col-span-1 w-full sm:w-auto">
+          <Link href="/dashboard/compare-jobs" className="shrink-0 snap-start">
             <Button variant="outline" className="w-full whitespace-nowrap">
               <Scale className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">Compare Jobs</span>

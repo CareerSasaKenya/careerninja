@@ -73,7 +73,7 @@ const Navbar = () => {
   }, [router]);
 
   return (
-    <nav className="border-b border-border/50 bg-card/80 sticky top-0 z-40 backdrop-blur-xl">
+    <nav className="border-b border-border/50 bg-card md:bg-card/80 sticky top-0 z-40 md:backdrop-blur-xl">
       <div className="container mx-auto px-4 py-3 md:py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3 md:gap-4 group" prefetch={true}>
           {logoUrl ? (
