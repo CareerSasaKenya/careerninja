@@ -1,4 +1,6 @@
-// CV Parsing using Gemini API
+import { callAI, hasAIConfigured } from './aiProviders';
+
+// CV Parsing using unified AI provider chain (Gemini → Groq → OpenRouter)
 // Extracts structured data from CV/Resume documents
 
 interface ParsedCVData {
@@ -174,36 +176,30 @@ async function callGeminiAPI(apiKey: string, cvText: string): Promise<ParsedCVDa
 
 export async function parseCVText(
   cvText: string,
-  maxRetries: number = 2
+  _maxRetries: number = 2
 ): Promise<{ response: ParsedCVData; modelUsed: string }> {
-  const geminiApiKeys = [
-    process.env.GEMINI_API_KEY,
-    process.env.GEMINI_API_KEY_2,
-    process.env.GEMINI_API_KEY_3,
-  ].filter(Boolean);
-
-  if (geminiApiKeys.length === 0) {
-    throw new Error('No Gemini API key configured. Please add GEMINI_API_KEY to environment variables.');
+  if (!hasAIConfigured()) {
+    throw new Error('No AI API key configured. Please add GEMINI_API_KEY, GROQ_API_KEY, or OPENROUTER_API_KEY to environment variables.');
   }
 
-  let lastError: any = null;
-
-  // Try each Gemini key
-  for (const apiKey of geminiApiKeys) {
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
-      try {
-        const response = await callGeminiAPI(apiKey!, cvText);
-        return { response, modelUsed: 'gemini-2.0-flash-exp' };
-      } catch (error) {
-        lastError = error;
-        if (attempt < maxRetries) {
-          await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
-        }
+  try {
+    const result = await callAI(
+      `CV TEXT:\n${cvText}`,
+      {
+        systemPrompt: SYSTEM_PROMPT,
+        maxTokens: 8192,
+        temperature: 0.1,
+        json: true,
       }
-    }
-  }
+    );
 
-  throw lastError || new Error('CV parsing failed');
+    return { response: result.parsed as ParsedCVData, modelUsed: result.model };
+  } catch (error: any) {
+    if (error.message?.includes('timed out')) {
+      throw new Error('CV parsing timed out. Please try again.');
+    }
+    throw error;
+  }
 }
 
 // Extract text from PDF using browser's built-in capabilities

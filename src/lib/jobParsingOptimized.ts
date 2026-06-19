@@ -129,6 +129,7 @@ export async function saveToCache(
 }
 
 // Optimized AI API call with timeout and retry
+// Priority chain: Gemini → Groq → OpenRouter
 export async function callAIWithRetry(
   jobText: string,
   systemPrompt: string,
@@ -140,11 +141,12 @@ export async function callAIWithRetry(
     process.env.GEMINI_API_KEY_3,
   ].filter(Boolean);
   
+  const groqApiKey = process.env.GROQ_API_KEY;
   const openRouterApiKey = process.env.OPENROUTER_API_KEY;
   
   let lastError: any = null;
   
-  // Try Gemini keys first (free)
+  // 1. Try Gemini keys first
   for (const apiKey of geminiApiKeys) {
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
@@ -153,18 +155,33 @@ export async function callAIWithRetry(
       } catch (error) {
         lastError = error;
         if (attempt < maxRetries) {
-          await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1))); // Exponential backoff
+          await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
         }
       }
     }
   }
   
-  // Fallback to OpenRouter if Gemini fails
+  // 2. Fallback to Groq
+  if (groqApiKey) {
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const response = await callGroqAPI(groqApiKey, jobText, systemPrompt);
+        return { response, modelUsed: 'llama-3.3-70b-versatile' };
+      } catch (error) {
+        lastError = error;
+        if (attempt < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+        }
+      }
+    }
+  }
+  
+  // 3. Fallback to OpenRouter
   if (openRouterApiKey) {
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         const response = await callOpenRouterAPI(openRouterApiKey, jobText, systemPrompt);
-        return { response, modelUsed: 'claude-3.5-sonnet' };
+        return { response, modelUsed: 'gemini-2.5-flash (openrouter)' };
       } catch (error) {
         lastError = error;
         if (attempt < maxRetries) {
@@ -218,6 +235,50 @@ ${jobText}` }]
       throw new Error('No content in Gemini response');
     }
     
+    return parseAIResponse(content);
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
+}
+
+// Optimized Groq API call (Llama 3.3 70B)
+async function callGroqAPI(apiKey: string, jobText: string, systemPrompt: string): Promise<ParsedJobData> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 20000);
+
+  try {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: `Parse this job posting:\n\n${jobText}` },
+        ],
+        temperature: 0.1,
+        max_tokens: 6000,
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`Groq API error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content;
+
+    if (!content) {
+      throw new Error('No content in Groq response');
+    }
+
     return parseAIResponse(content);
   } catch (error) {
     clearTimeout(timeoutId);
