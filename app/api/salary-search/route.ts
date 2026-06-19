@@ -39,9 +39,10 @@ async function aiSalaryEstimate(
     process.env.GEMINI_API_KEY_3,
   ].filter(Boolean);
 
+  const groqKey = process.env.GROQ_API_KEY;
   const openRouterKey = process.env.OPENROUTER_API_KEY;
 
-  if (geminiKeys.length === 0 && !openRouterKey) return null;
+  if (geminiKeys.length === 0 && !groqKey && !openRouterKey) return null;
 
   const loc = location || "Nairobi, Kenya";
   const level = experienceLevel || "mid";
@@ -106,6 +107,52 @@ Respond ONLY with valid JSON, no markdown or extra text:
     } catch (err: any) {
       errors.push(`Gemini: ${err.message?.slice(0, 100)}`);
       continue;
+    }
+  }
+
+  // Groq fallback (fast, generous free tier, Llama 3.3 70B)
+  if (groqKey) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${groqKey}`,
+        },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          messages: [
+            { role: "system", content: "You are a salary data expert for the Kenyan and East African job market. Respond ONLY with valid JSON, no markdown or extra text." },
+            { role: "user", content: `Job Title: ${jobTitle}\nLocation: ${loc}\nExperience Level: ${level}\n\nReturn monthly salary estimates in KES:\n{"min_salary":<number>,"max_salary":<number>,"median_salary":<number>,"percentile_25":<number>,"percentile_75":<number>,"currency":"KES"}` },
+          ],
+          temperature: 0.2,
+          max_tokens: 500,
+        }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+
+      if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        errors.push(`Groq ${res.status}: ${body.slice(0, 150)}`);
+      } else {
+        const json = await res.json();
+        const text = json?.choices?.[0]?.message?.content;
+        if (!text) {
+          errors.push("Groq: empty response");
+        } else {
+          const cleaned = text.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
+          const parsed = JSON.parse(cleaned);
+          if (typeof parsed.min_salary === "number" && typeof parsed.median_salary === "number") {
+            return { ...parsed, sample_size: 0, ai_generated: true };
+          }
+        }
+      }
+    } catch (err: any) {
+      errors.push(`Groq: ${err.message?.slice(0, 100)}`);
     }
   }
 
@@ -209,9 +256,10 @@ export async function POST(request: NextRequest) {
       process.env.GEMINI_API_KEY_2,
       process.env.GEMINI_API_KEY_3,
     ].some(Boolean);
+    const hasGroq = Boolean(process.env.GROQ_API_KEY);
     const hasOpenRouter = Boolean(process.env.OPENROUTER_API_KEY);
 
-    if (!hasGemini && !hasOpenRouter) {
+    if (!hasGemini && !hasGroq && !hasOpenRouter) {
       return NextResponse.json({
         success: false,
         data: null,
