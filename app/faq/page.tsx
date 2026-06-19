@@ -139,7 +139,7 @@ export default function FAQPage() {
 
   return (
     <>
-      <CanonicalTag path="/faq" />
+      <CanonicalTag url="/faq" />
       <div className="min-h-screen bg-background">
         <Navbar />
 
