@@ -153,7 +153,7 @@ async function cacheSalaryResult(
       median_salary: insight.median_salary,
       currency: insight.currency || "KES",
       sample_size: 0,
-      industry: "AI-Generated",
+      industry: 'Smart Estimate',
       company_size: "any",
       remote_type: "any",
       data_source: "ai_estimate",

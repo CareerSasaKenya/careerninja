@@ -226,12 +226,12 @@ export default function SalaryInsights() {
             <div className="flex items-center justify-between">
               <CardTitle>Market Data</CardTitle>
               {aiGenerated && (
-                <Badge variant="secondary" className="text-xs">AI Estimate</Badge>
+                <Badge variant="secondary" className="text-xs">Smart Estimate</Badge>
               )}
             </div>
             <CardDescription>
               {aiGenerated
-                ? 'AI-generated estimate for the Kenyan market'
+                ? 'Smart estimate for the Kenyan market'
                 : `Based on ${insights.sample_size} data points`}
             </CardDescription>
           </CardHeader>
