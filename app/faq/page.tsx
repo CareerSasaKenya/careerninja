@@ -40,6 +40,22 @@ import {
 } from "lucide-react";
 import { faqData, type FAQCategory } from "@/data/faqData";
 
+/** Parse [text](url) markdown links into Next.js Link components */
+function renderAnswer(text: string) {
+  const parts = text.split(/(\[[^\]]+\]\([^)]+\))/g);
+  return parts.map((part, i) => {
+    const match = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+    if (match) {
+      return (
+        <Link key={i} href={match[2]} className="text-primary underline underline-offset-2 hover:no-underline">
+          {match[1]}
+        </Link>
+      );
+    }
+    return <span key={i}>{part}</span>;
+  });
+}
+
 const iconMap: Record<string, React.ReactNode> = {
   User: <User className="h-4 w-4" />,
   Building2: <Building2 className="h-4 w-4" />,
@@ -91,7 +107,7 @@ function FAQCategorySection({
                 {faq.q}
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground text-sm leading-relaxed">
-                {faq.a}
+                {renderAnswer(faq.a)}
               </AccordionContent>
             </AccordionItem>
           ))}
@@ -193,7 +209,7 @@ export default function FAQPage() {
                       </span>
                     </div>
                     <p className="font-medium text-sm mb-1">{result.q}</p>
-                    <p className="text-sm text-muted-foreground">{result.a}</p>
+                    <p className="text-sm text-muted-foreground">{renderAnswer(result.a)}</p>
                   </CardContent>
                 </Card>
               ))}
@@ -210,7 +226,7 @@ export default function FAQPage() {
                       className="flex items-center gap-2"
                     >
                       {iconMap[section.icon]}
-                      <span className="hidden sm:inline">{section.label}</span>
+                      <span>{section.label}</span>
                     </TabsTrigger>
                   ))}
                 </TabsList>
