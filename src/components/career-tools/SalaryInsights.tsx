@@ -190,7 +190,7 @@ export default function SalaryInsights() {
               <Label htmlFor="location">Location (Optional)</Label>
               <Input
                 id="location"
-                placeholder="e.g., San Francisco"
+                placeholder="e.g., Nairobi"
                 value={searchParams.location}
                 onChange={(e) => setSearchParams({ ...searchParams, location: e.target.value })}
               />
