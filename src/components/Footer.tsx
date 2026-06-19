@@ -107,6 +107,11 @@ export function Footer() {
                     Advertise With Us
                   </Link>
                 </li>
+                <li>
+                  <Link href="/faq" className="text-muted-foreground hover:text-foreground transition-colors" prefetch={true}>
+                    FAQ
+                  </Link>
+                </li>
               </ul>
             </div>
 
