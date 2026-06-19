@@ -25,7 +25,6 @@ import {
   Search,
   User,
   Building2,
-  Shield,
   Rocket,
   Briefcase,
   Search as SearchIcon,
@@ -36,18 +35,14 @@ import {
   Users,
   BarChart3,
   ClipboardList,
-  LayoutDashboard,
-  FileText,
-  Mail,
   ChevronRight,
   HelpCircle,
 } from "lucide-react";
-import { faqData, type FAQSection, type FAQCategory } from "@/data/faqData";
+import { faqData, type FAQCategory } from "@/data/faqData";
 
 const iconMap: Record<string, React.ReactNode> = {
   User: <User className="h-4 w-4" />,
   Building2: <Building2 className="h-4 w-4" />,
-  Shield: <Shield className="h-4 w-4" />,
   Rocket: <Rocket className="h-4 w-4" />,
   Briefcase: <Briefcase className="h-4 w-4" />,
   Search: <SearchIcon className="h-4 w-4" />,
@@ -58,9 +53,6 @@ const iconMap: Record<string, React.ReactNode> = {
   Users: <Users className="h-4 w-4" />,
   BarChart3: <BarChart3 className="h-4 w-4" />,
   ClipboardList: <ClipboardList className="h-4 w-4" />,
-  LayoutDashboard: <LayoutDashboard className="h-4 w-4" />,
-  FileText: <FileText className="h-4 w-4" />,
-  Mail: <Mail className="h-4 w-4" />,
 };
 
 function FAQCategorySection({
@@ -132,11 +124,6 @@ export default function FAQPage() {
     );
   }, [searchQuery]);
 
-  const totalQuestions = faqData.reduce(
-    (sum, s) => s.categories.reduce((cs, c) => cs + c.questions.length, sum),
-    0
-  );
-
   return (
     <>
       <CanonicalTag url="/faq" />
@@ -150,7 +137,7 @@ export default function FAQPage() {
               Frequently Asked Questions
             </h1>
             <p className="text-muted-foreground mb-6 max-w-xl mx-auto">
-              Everything you need to know about CareerSasa. {totalQuestions} questions across candidates, employers, and admin.
+              Everything you need to know about CareerSasa. Find answers for candidates and employers.
             </p>
 
             {/* Search */}
@@ -215,7 +202,7 @@ export default function FAQPage() {
             /* Tabbed browse mode */
             <Tabs value={activeTab} onValueChange={setActiveTab} className="max-w-3xl mx-auto">
               <div className="flex justify-center mb-6">
-                <TabsList className="grid w-full max-w-md grid-cols-3">
+                <TabsList className="grid w-full max-w-md grid-cols-2">
                   {faqData.map((section) => (
                     <TabsTrigger
                       key={section.id}
@@ -231,9 +218,6 @@ export default function FAQPage() {
 
               {faqData.map((section) => (
                 <TabsContent key={section.id} value={section.id} className="space-y-2">
-                  <p className="text-sm text-muted-foreground mb-4 text-center">
-                    {section.categories.reduce((s, c) => s + c.questions.length, 0)} questions in {section.categories.length} categories
-                  </p>
                   {section.categories.map((category, idx) => (
                     <FAQCategorySection
                       key={idx}

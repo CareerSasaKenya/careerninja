@@ -22,7 +22,7 @@ export const faqData: FAQSection[] = [
   // ==========================================================================
   {
     id: "candidates",
-    label: "Candidates",
+    label: "For Candidate",
     icon: "User",
     categories: [
       {
@@ -97,7 +97,7 @@ export const faqData: FAQSection[] = [
   // ==========================================================================
   {
     id: "employers",
-    label: "Employers",
+    label: "For Employer",
     icon: "Building2",
     categories: [
       {
@@ -149,70 +149,4 @@ export const faqData: FAQSection[] = [
     ],
   },
 
-  // ==========================================================================
-  // ADMIN
-  // ==========================================================================
-  {
-    id: "admin",
-    label: "Admin",
-    icon: "Shield",
-    categories: [
-      {
-        title: "Dashboard Overview",
-        icon: "LayoutDashboard",
-        questions: [
-          { q: "What can I see on the admin dashboard?", a: "The admin dashboard shows all jobs (with search/filter), blog posts, all registered users with their roles, and system settings. You have full control over the platform." },
-          { q: "How do I switch between admin sections?", a: "Use the tabs at the top of the admin dashboard: All Jobs, Blog Posts, All Users, and Settings. Additional tools like Email Management and Job Parser Stats are available via the admin sidebar." },
-        ],
-      },
-      {
-        title: "Job Management",
-        icon: "Briefcase",
-        questions: [
-          { q: "How do I manage all job listings?", a: "The All Jobs tab shows every listing on the platform. Use the search bar and filters (status, premium, date) to find specific jobs. You can edit, close, or delete any listing." },
-          { q: "Can I edit jobs posted by employers?", a: "Yes. Admins can edit any job listing using the Edit Job button on job cards. This is useful for correcting errors, enforcing guidelines, or removing inappropriate content." },
-          { q: "How do I feature or promote a job?", a: "Find the job in the All Jobs tab and toggle the 'Featured' or 'Promoted' flags. Featured jobs appear first in search results." },
-        ],
-      },
-      {
-        title: "Blog & Content Management",
-        icon: "FileText",
-        questions: [
-          { q: "How do I create a blog post?", a: "Go to /blog/create or use the admin dashboard's Blog Posts tab. Write your content using the rich editor, set the status (Draft or Published), and save." },
-          { q: "Can I edit existing blog posts?", a: "Yes. From the Blog Posts tab, click 'Edit' on any post. You can update content, change status, and republish." },
-          { q: "What is the Content Editor?", a: "Dashboard > Content Editor lets you manage CMS content across the site: homepage text, marketing copy, and other page content without touching code." },
-          { q: "What is the SEO Editor?", a: "Dashboard > SEO Editor lets you manage meta titles, descriptions, and keywords for any page on the site to improve search engine visibility." },
-        ],
-      },
-      {
-        title: "User Management",
-        icon: "Users",
-        questions: [
-          { q: "How do I view all registered users?", a: "The All Users tab shows every user with their email, role (Candidate, Employer, Admin), and registration date. Use the search bar to find specific users." },
-          { q: "Can I change a user's role?", a: "Yes. Admins can update user roles in the database. If an employer needs to be switched to a candidate or vice versa, this can be done through Supabase." },
-          { q: "Can I see user profile details?", a: "Yes. The All Users section shows profile completion status and key details for each user." },
-        ],
-      },
-      {
-        title: "Email Management",
-        icon: "Mail",
-        questions: [
-          { q: "How do I send email broadcasts?", a: "Go to Admin > Email Management. You can compose and send emails to all users, candidates only, or employers only. Supports HTML templates." },
-          { q: "Can I schedule emails?", a: "Email broadcasts are sent immediately upon confirmation. For scheduled campaigns, use the newsletter system." },
-          { q: "How does the newsletter system work?", a: "Users subscribe via the footer or /newsletter. You can manage subscribers and send newsletter content through the email management system." },
-          { q: "What email templates are available?", a: "The system supports transactional emails (password resets, confirmations) and broadcast emails. Templates can be previewed in Admin > Email Previews." },
-        ],
-      },
-      {
-        title: "System & Settings",
-        icon: "Settings",
-        questions: [
-          { q: "What system settings can I control?", a: "The Settings tab lets you toggle features on/off, manage platform-wide configurations, and control maintenance modes." },
-          { q: "How do I monitor AI parsing usage?", a: "Go to Admin > Job Parser Stats to see how many jobs have been parsed by AI, success/failure rates, and which models were used." },
-          { q: "How do I manually parse a job?", a: "Admin > Parse Job lets you paste job text and run the AI parser to test or debug parsing quality." },
-          { q: "Where are automated cron jobs managed?", a: "Background tasks (job expiry, auto-renewal, cache cleanup) run automatically on Vercel. The status and configuration are managed in vercel.json." },
-        ],
-      },
-    ],
-  },
 ];
