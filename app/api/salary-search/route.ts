@@ -63,13 +63,15 @@ Respond ONLY with valid JSON, no markdown or extra text:
   "currency": "KES"
 }`;
 
+  const errors: string[] = [];
+
   for (const apiKey of geminiKeys) {
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 15000);
 
       const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -81,17 +83,28 @@ Respond ONLY with valid JSON, no markdown or extra text:
         }
       );
       clearTimeout(timeout);
-      if (!res.ok) continue;
+
+      if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        errors.push(`Gemini ${res.status}: ${body.slice(0, 150)}`);
+        continue;
+      }
 
       const json = await res.json();
-      const text = json?.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!text) continue;
+      const raw = json?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!raw) {
+        errors.push("Gemini: empty candidates response");
+        continue;
+      }
 
-      const parsed = JSON.parse(text.trim());
+      // Strip markdown code fences if present
+      const cleaned = raw.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
+      const parsed = JSON.parse(cleaned);
       if (typeof parsed.min_salary === "number" && typeof parsed.median_salary === "number") {
         return { ...parsed, sample_size: 0, ai_generated: true };
       }
-    } catch {
+    } catch (err: any) {
+      errors.push(`Gemini: ${err.message?.slice(0, 100)}`);
       continue;
     }
   }
@@ -108,7 +121,7 @@ Respond ONLY with valid JSON, no markdown or extra text:
           Authorization: `Bearer ${openRouterKey}`,
         },
         body: JSON.stringify({
-          model: "google/gemini-2.0-flash-001",
+          model: "google/gemini-2.5-flash",
           messages: [{ role: "user", content: prompt }],
           temperature: 0.2,
           max_tokens: 500,
@@ -116,22 +129,30 @@ Respond ONLY with valid JSON, no markdown or extra text:
         signal: controller.signal,
       });
       clearTimeout(timeout);
-      if (!res.ok) return null;
 
-      const json = await res.json();
-      const text = json?.choices?.[0]?.message?.content;
-      if (!text) return null;
-
-      const parsed = JSON.parse(text.trim());
-      if (typeof parsed.min_salary === "number" && typeof parsed.median_salary === "number") {
-        return { ...parsed, sample_size: 0, ai_generated: true };
+      if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        errors.push(`OpenRouter ${res.status}: ${body.slice(0, 150)}`);
+      } else {
+        const json = await res.json();
+        const text = json?.choices?.[0]?.message?.content;
+        if (!text) {
+          errors.push("OpenRouter: empty response");
+        } else {
+          const cleaned = text.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
+          const parsed = JSON.parse(cleaned);
+          if (typeof parsed.min_salary === "number" && typeof parsed.median_salary === "number") {
+            return { ...parsed, sample_size: 0, ai_generated: true };
+          }
+        }
       }
-    } catch {
-      return null;
+    } catch (err: any) {
+      errors.push(`OpenRouter: ${err.message?.slice(0, 100)}`);
     }
   }
 
-  return null;
+  console.error("[salary-search] All AI providers failed:", errors);
+  return { _errors: errors };
 }
 
 async function cacheSalaryResult(
@@ -177,7 +198,7 @@ export async function POST(request: NextRequest) {
     }
 
     const aiResult = await aiSalaryEstimate(jobTitle, location, experienceLevel);
-    if (aiResult) {
+    if (aiResult && !aiResult._errors) {
       cacheSalaryResult(jobTitle, location || "Nairobi", experienceLevel || "mid", aiResult);
       return NextResponse.json({ success: true, data: aiResult, source: "ai" });
     }
@@ -203,7 +224,7 @@ export async function POST(request: NextRequest) {
       success: false,
       data: null,
       source: "none",
-      reason: "AI estimate failed — all API providers returned errors",
+      reason: aiResult?._errors?.join("; ") || "AI estimate failed",
     });
   } catch (err: any) {
     console.error("Salary search error:", err);
