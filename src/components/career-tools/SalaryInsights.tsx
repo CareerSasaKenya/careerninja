@@ -11,7 +11,6 @@ import { DollarSign, TrendingUp, TrendingDown, Minus, Search } from 'lucide-reac
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import {
-  getSalaryInsights,
   getUserSalaryExpectations,
   setSalaryExpectation,
   compareSalaryToMarket,
@@ -26,6 +25,7 @@ export default function SalaryInsights() {
   });
   const [insights, setInsights] = useState<SalaryInsight | null>(null);
   const [comparison, setComparison] = useState<any>(null);
+  const [aiGenerated, setAiGenerated] = useState(false);
   const [expectations, setExpectations] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
@@ -61,30 +61,41 @@ export default function SalaryInsights() {
     }
 
     setLoading(true);
+    setAiGenerated(false);
     try {
-      const data = await getSalaryInsights(
-        searchParams.jobTitle,
-        searchParams.location || undefined,
-        searchParams.experienceLevel && searchParams.experienceLevel !== 'any'
-          ? searchParams.experienceLevel
-          : undefined
-      );
+      const expLevel = searchParams.experienceLevel && searchParams.experienceLevel !== 'any'
+        ? searchParams.experienceLevel
+        : undefined;
 
-      setInsights(data);
-      setComparison(null);
+      const res = await fetch('/api/salary-search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jobTitle: searchParams.jobTitle,
+          location: searchParams.location || undefined,
+          experienceLevel: expLevel,
+        }),
+      });
 
-      if (!data) {
+      const json = await res.json();
+
+      if (json.success && json.data) {
+        setInsights(json.data);
+        setAiGenerated(json.source === 'ai');
+        setComparison(null);
+      } else {
+        setInsights(null);
         toast({
           title: 'No Data',
-          description: 'No salary data available for this search',
-          variant: 'destructive'
+          description: 'No salary data available for this search. Try a different job title.',
+          variant: 'destructive',
         });
       }
     } catch (error: any) {
       toast({
         title: 'Error',
         description: error.message,
-        variant: 'destructive'
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -212,9 +223,16 @@ export default function SalaryInsights() {
       {insights && (
         <Card>
           <CardHeader>
-            <CardTitle>Market Data</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>Market Data</CardTitle>
+              {aiGenerated && (
+                <Badge variant="secondary" className="text-xs">AI Estimate</Badge>
+              )}
+            </div>
             <CardDescription>
-              Based on {insights.sample_size} data points
+              {aiGenerated
+                ? 'AI-generated estimate for the Kenyan market'
+                : `Based on ${insights.sample_size} data points`}
             </CardDescription>
           </CardHeader>
           <CardContent>
