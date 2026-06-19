@@ -64,9 +64,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             
             setSession(session);
             setUser(session?.user ?? null);
-            // Ensure admin role whenever auth state changes
-            ensureAdminRole(session?.user ?? null);
-            // Only set loading to false after processing
+            // Only ensure admin role on sign-in events, not sign-out
+            if (event !== 'SIGNED_OUT' && event !== 'TOKEN_REFRESHED') {
+              ensureAdminRole(session?.user ?? null);
+            }
             setLoading(false);
           }
         );

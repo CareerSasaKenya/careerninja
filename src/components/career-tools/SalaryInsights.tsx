@@ -28,6 +28,7 @@ export default function SalaryInsights() {
   const [comparison, setComparison] = useState<any>(null);
   const [expectations, setExpectations] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -36,17 +37,16 @@ export default function SalaryInsights() {
 
   async function loadExpectations() {
     try {
+      setLoadError(false);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
       const data = await getUserSalaryExpectations(user.id);
-      setExpectations(data);
+      setExpectations(Array.isArray(data) ? data : []);
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive'
-      });
+      console.error('SalaryInsights loadExpectations error:', error);
+      setLoadError(true);
+      setExpectations([]);
     }
   }
 
@@ -321,6 +321,11 @@ export default function SalaryInsights() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {loadError && (
+            <div className="mb-4 p-3 bg-muted rounded-lg text-sm text-muted-foreground">
+              Unable to load saved salary expectations. You can still search for market salaries above.
+            </div>
+          )}
           <form action={handleSaveExpectation} className="space-y-4 mb-6">
             <div className="grid gap-4 md:grid-cols-4">
               <div className="md:col-span-2">

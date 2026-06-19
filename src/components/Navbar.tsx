@@ -62,16 +62,13 @@ const Navbar = () => {
 
   const handleSignOut = useCallback(async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        toast.error("Error signing out");
-      } else {
-        toast.success("Signed out successfully");
-        router.push("/");
-      }
-    } catch (error) {
-      console.debug("Error during sign out:", error);
-      toast.error("Error signing out");
+      // Use local scope so sign-out succeeds even if the server session is already expired
+      await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+    } catch {
+      // Swallow all errors — the user should always be able to sign out
+    } finally {
+      toast.success("Signed out successfully");
+      router.push("/");
     }
   }, [router]);
 

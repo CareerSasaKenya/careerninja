@@ -34,21 +34,28 @@ export default function CareerPathPlanner() {
   async function loadData() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
-      const [pathsData, goalsData] = await Promise.all([
-        suggestCareerPaths(user.id),
-        getUserCareerGoals(user.id)
-      ]);
-
-      setSuggestedPaths(Array.isArray(pathsData) ? pathsData : []);
-      setMyGoals(goalsData);
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive'
+      // Load paths and goals independently so one failure doesn't block the other
+      const pathsResult = await suggestCareerPaths(user.id).catch((err) => {
+        console.error('Failed to load career paths:', err);
+        return [];
       });
+
+      const goalsResult = await getUserCareerGoals(user.id).catch((err) => {
+        console.error('Failed to load career goals:', err);
+        return [];
+      });
+
+      setSuggestedPaths(Array.isArray(pathsResult) ? pathsResult : []);
+      setMyGoals(Array.isArray(goalsResult) ? goalsResult : []);
+    } catch (error: any) {
+      console.error('CareerPathPlanner loadData error:', error);
+      setSuggestedPaths([]);
+      setMyGoals([]);
     } finally {
       setLoading(false);
     }

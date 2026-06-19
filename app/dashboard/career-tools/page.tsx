@@ -9,6 +9,7 @@ import CoverLetterGenerator from '@/components/career-tools/CoverLetterGenerator
 import SkillAssessments from '@/components/career-tools/SkillAssessments';
 import CareerPathPlanner from '@/components/career-tools/CareerPathPlanner';
 import SalaryInsights from '@/components/career-tools/SalaryInsights';
+import ToolErrorBoundary from '@/components/ToolErrorBoundary';
 
 export default function CareerToolsPage() {
   const [activeTab, setActiveTab] = useState('cv-builder');
@@ -47,23 +48,33 @@ export default function CareerToolsPage() {
         </TabsList>
 
         <TabsContent value="cv-builder" className="space-y-4">
-          <CVBuilder />
+          <ToolErrorBoundary fallbackTitle="CV Builder is unavailable">
+            <CVBuilder />
+          </ToolErrorBoundary>
         </TabsContent>
 
         <TabsContent value="cover-letter" className="space-y-4">
-          <CoverLetterGenerator />
+          <ToolErrorBoundary fallbackTitle="Cover Letter Generator is unavailable">
+            <CoverLetterGenerator />
+          </ToolErrorBoundary>
         </TabsContent>
 
         <TabsContent value="assessments" className="space-y-4">
-          <SkillAssessments />
+          <ToolErrorBoundary fallbackTitle="Skill Assessments are unavailable">
+            <SkillAssessments />
+          </ToolErrorBoundary>
         </TabsContent>
 
         <TabsContent value="career-path" className="space-y-4">
-          <CareerPathPlanner />
+          <ToolErrorBoundary fallbackTitle="Career Path Planner is unavailable">
+            <CareerPathPlanner />
+          </ToolErrorBoundary>
         </TabsContent>
 
         <TabsContent value="salary" className="space-y-4">
-          <SalaryInsights />
+          <ToolErrorBoundary fallbackTitle="Salary Insights are unavailable">
+            <SalaryInsights />
+          </ToolErrorBoundary>
         </TabsContent>
       </Tabs>
     </div>
