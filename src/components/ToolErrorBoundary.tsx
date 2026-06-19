@@ -45,7 +45,7 @@ export default class ToolErrorBoundary extends Component<Props, State> {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              This tool encountered an error and couldn&apos;t load. This is usually caused by a temporary network issue. Please try again.
+              This tool couldn&apos;t load right now. Please try again, or refresh the page.
             </p>
             <Button variant="outline" onClick={this.handleRetry} className="gap-2">
               <RefreshCw className="h-4 w-4" />

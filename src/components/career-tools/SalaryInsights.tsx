@@ -22,7 +22,7 @@ export default function SalaryInsights() {
   const [searchParams, setSearchParams] = useState({
     jobTitle: '',
     location: '',
-    experienceLevel: ''
+    experienceLevel: 'any'
   });
   const [insights, setInsights] = useState<SalaryInsight | null>(null);
   const [comparison, setComparison] = useState<any>(null);
@@ -65,7 +65,9 @@ export default function SalaryInsights() {
       const data = await getSalaryInsights(
         searchParams.jobTitle,
         searchParams.location || undefined,
-        searchParams.experienceLevel || undefined
+        searchParams.experienceLevel && searchParams.experienceLevel !== 'any'
+          ? searchParams.experienceLevel
+          : undefined
       );
 
       setInsights(data);
@@ -97,7 +99,9 @@ export default function SalaryInsights() {
         searchParams.jobTitle,
         userSalary,
         searchParams.location || undefined,
-        searchParams.experienceLevel || undefined
+        searchParams.experienceLevel && searchParams.experienceLevel !== 'any'
+          ? searchParams.experienceLevel
+          : undefined
       );
 
       setComparison(comparisonData);
@@ -187,7 +191,7 @@ export default function SalaryInsights() {
                   <SelectValue placeholder="Any" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any</SelectItem>
+                  <SelectItem value="any">Any</SelectItem>
                   <SelectItem value="entry">Entry Level</SelectItem>
                   <SelectItem value="mid">Mid Level</SelectItem>
                   <SelectItem value="senior">Senior</SelectItem>
