@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { FileText, Bookmark, Trash2, Search, Scale, Briefcase } from "lucide-react";
 import { toast } from "sonner";
-import { RecommendedJobs } from "@/components/RecommendedJobs";
+import { JobMatches } from "@/components/JobMatches";
 import { JobAlerts } from "@/components/JobAlerts";
 
 interface Application {
@@ -142,8 +142,8 @@ const CandidateDashboard = () => {
         </div>
       </div>
 
-      {/* Recommended Jobs Section */}
-      <RecommendedJobs />
+      {/* Job Matches Section */}
+      <JobMatches />
 
       {/* Job Alerts Section */}
       <JobAlerts />

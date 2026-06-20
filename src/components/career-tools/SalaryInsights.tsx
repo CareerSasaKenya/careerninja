@@ -13,7 +13,6 @@ import { supabase } from '@/integrations/supabase/client';
 import {
   getUserSalaryExpectations,
   setSalaryExpectation,
-  compareSalaryToMarket,
   type SalaryInsight
 } from '@/lib/careerTools';
 
@@ -106,25 +105,55 @@ export default function SalaryInsights() {
   }
 
   async function handleCompare(userSalary: number) {
-    if (!insights || !searchParams.jobTitle) return;
+    if (!insights || !searchParams.jobTitle || isNaN(userSalary) || userSalary <= 0) {
+      toast({
+        title: 'Invalid Input',
+        description: 'Please enter a valid salary amount.',
+        variant: 'destructive',
+      });
+      return;
+    }
 
+    setLoading(true);
     try {
-      const comparisonData = await compareSalaryToMarket(
-        searchParams.jobTitle,
-        userSalary,
-        searchParams.location || undefined,
-        searchParams.experienceLevel && searchParams.experienceLevel !== 'any'
-          ? searchParams.experienceLevel
-          : undefined
-      );
+      const res = await fetch('/api/salary-compare', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jobTitle: searchParams.jobTitle,
+          userSalary,
+          location: searchParams.location || undefined,
+          experienceLevel: searchParams.experienceLevel !== 'any' ? searchParams.experienceLevel : undefined,
+          marketData: {
+            min_salary: insights.min_salary,
+            median_salary: insights.median_salary,
+            max_salary: insights.max_salary,
+            percentile_25: insights.percentile_25,
+            percentile_75: insights.percentile_75,
+            currency: insights.currency,
+          },
+        }),
+      });
 
-      setComparison(comparisonData);
-    } catch (error: any) {
+      const json = await res.json();
+
+      if (json.success && json.data) {
+        setComparison(json.data);
+      } else {
+        toast({
+          title: 'Error',
+          description: json.message || 'Comparison failed. Try again later.',
+          variant: 'destructive',
+        });
+      }
+    } catch {
       toast({
         title: 'Error',
-        description: error.message,
-        variant: 'destructive'
+        description: 'Comparison failed. Try again later.',
+        variant: 'destructive',
       });
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -331,6 +360,14 @@ export default function SalaryInsights() {
                   {' '}{comparison.status === 'above' ? 'above' : comparison.status === 'below' ? 'below' : 'at'}
                   {' '}the market median
                 </p>
+                {comparison.aiAnalysis && (
+                  <div className="mt-3 pt-3 border-t">
+                    <p className="text-sm text-primary/90 italic flex items-start gap-1.5">
+                      <DollarSign className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                      {comparison.aiAnalysis}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>

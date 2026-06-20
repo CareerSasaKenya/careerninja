@@ -5,11 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { getJobRecommendations, saveRecommendations, getSavedRecommendations } from '@/lib/jobRecommendations';
-import { Sparkles, MapPin, Briefcase, DollarSign, TrendingUp, Eye, X } from 'lucide-react';
+import { getSavedRecommendations } from '@/lib/jobRecommendations';
+import { Sparkles, MapPin, Briefcase, DollarSign, TrendingUp, Eye, X, Brain } from 'lucide-react';
 import Link from 'next/link';
 
-interface RecommendedJob {
+interface JobMatch {
   id: string;
   job_id: string;
   match_score: number;
@@ -18,6 +18,7 @@ interface RecommendedJob {
   location_match_score: number;
   salary_match_score: number;
   match_details: any;
+  match_reason?: string;
   viewed: boolean;
   job: {
     id: string;
@@ -32,72 +33,72 @@ interface RecommendedJob {
   };
 }
 
-export function RecommendedJobs() {
-  const [recommendations, setRecommendations] = useState<RecommendedJob[]>([]);
+export function JobMatches() {
+  const [matches, setMatches] = useState<JobMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    loadRecommendations();
+    loadMatches();
   }, []);
 
-  async function loadRecommendations() {
+  async function loadMatches() {
     try {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       if (!user) return;
 
-      // Try to get saved recommendations first
+      // Try to get saved matches first
       const saved = await getSavedRecommendations(user.id, false);
-      
+
       if (saved.length > 0) {
-        setRecommendations(saved);
+        setMatches(saved);
       } else {
-        // Generate new recommendations
-        await generateRecommendations();
+        // Generate new matches via AI
+        await findMatches();
       }
     } catch (error) {
-      console.error('Error loading recommendations:', error);
+      console.error('Error loading matches:', error);
     } finally {
       setLoading(false);
     }
   }
 
-  async function generateRecommendations() {
+  async function findMatches() {
     try {
       setGenerating(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) return;
 
-      const matches = await getJobRecommendations(user.id, 10, 50);
-      
-      if (matches.length === 0) {
+      const res = await fetch('/api/job-matches', { method: 'POST' });
+      const json = await res.json();
+
+      if (!json.success) {
         toast({
-          title: 'No recommendations yet',
-          description: 'Complete your profile to get personalized job recommendations.',
+          title: 'No matches found',
+          description: json.message || 'Complete your profile to get personalized job matches.',
         });
         return;
       }
 
-      // Save to database
-      await saveRecommendations(user.id, matches);
-      
-      // Reload from database
-      const saved = await getSavedRecommendations(user.id, false);
-      setRecommendations(saved);
+      // Reload from database (API route caches results)
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const saved = await getSavedRecommendations(user.id, false);
+        setMatches(saved);
+      }
 
       toast({
-        title: 'Recommendations updated',
-        description: `Found ${matches.length} jobs that match your profile.`,
+        title: 'Matches updated',
+        description: json.count
+          ? `Found ${json.count} jobs that match your profile.`
+          : 'Job matches have been updated.',
       });
     } catch (error) {
-      console.error('Error generating recommendations:', error);
+      console.error('Error finding matches:', error);
       toast({
         title: 'Error',
-        description: 'Failed to generate recommendations. Please try again.',
+        description: 'Unable to find matches right now. Try again later.',
         variant: 'destructive',
       });
     } finally {
@@ -105,38 +106,36 @@ export function RecommendedJobs() {
     }
   }
 
-  async function markAsViewed(recommendationId: string, jobId: string) {
+  async function markAsViewed(matchId: string, jobId: string) {
     try {
       await supabase
         .from('job_recommendations')
         .update({ viewed: true, viewed_at: new Date().toISOString() })
-        .eq('id', recommendationId);
-      
-      // Update local state
-      setRecommendations(prev =>
-        prev.map(rec => rec.id === recommendationId ? { ...rec, viewed: true } : rec)
+        .eq('id', matchId);
+
+      setMatches(prev =>
+        prev.map(m => m.id === matchId ? { ...m, viewed: true } : m)
       );
     } catch (error) {
       console.error('Error marking as viewed:', error);
     }
   }
 
-  async function dismissRecommendation(recommendationId: string) {
+  async function dismissMatch(matchId: string) {
     try {
       await supabase
         .from('job_recommendations')
         .update({ dismissed: true, dismissed_at: new Date().toISOString() })
-        .eq('id', recommendationId);
-      
-      // Remove from local state
-      setRecommendations(prev => prev.filter(rec => rec.id !== recommendationId));
+        .eq('id', matchId);
+
+      setMatches(prev => prev.filter(m => m.id !== matchId));
 
       toast({
-        title: 'Recommendation dismissed',
-        description: 'This job will no longer appear in your recommendations.',
+        title: 'Match dismissed',
+        description: 'This job will no longer appear in your matches.',
       });
     } catch (error) {
-      console.error('Error dismissing recommendation:', error);
+      console.error('Error dismissing match:', error);
     }
   }
 
@@ -159,7 +158,7 @@ export function RecommendedJobs() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5" />
-            Recommended Jobs
+            Job Matches
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -182,49 +181,53 @@ export function RecommendedJobs() {
           <div>
             <CardTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-purple-600" />
-              Recommended Jobs
+              Job Matches
+              <Badge variant="outline" className="ml-1 text-xs gap-1">
+                <Brain className="h-3 w-3" />
+                AI-powered
+              </Badge>
             </CardTitle>
             <CardDescription>
-              Jobs matched to your profile and preferences
+              Jobs matched to your profile using AI analysis
             </CardDescription>
           </div>
           <Button
-            onClick={generateRecommendations}
+            onClick={findMatches}
             disabled={generating}
             variant="outline"
             size="sm"
           >
             <TrendingUp className="h-4 w-4 mr-2" />
-            {generating ? 'Updating...' : 'Refresh'}
+            {generating ? 'Finding Matches...' : 'Find Matches'}
           </Button>
         </div>
       </CardHeader>
       <CardContent>
-        {recommendations.length === 0 ? (
+        {matches.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <Sparkles className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p className="mb-2">No recommendations yet</p>
+            <p className="mb-2">No matches yet</p>
             <p className="text-sm">Complete your profile to get personalized job matches</p>
             <Button
-              onClick={generateRecommendations}
+              onClick={findMatches}
               className="mt-4"
               disabled={generating}
             >
-              Generate Recommendations
+              Find Matches
             </Button>
           </div>
         ) : (
           <div className="space-y-4">
-            {recommendations.map((rec) => (
+            {matches.map((match) => (
               <div
-                key={rec.id}
+                key={match.id}
                 className="border rounded-lg p-4 hover:shadow-md transition-shadow relative"
               >
                 <Button
                   variant="ghost"
                   size="sm"
                   className="absolute top-2 right-2"
-                  onClick={() => dismissRecommendation(rec.id)}
+                  onClick={() => dismissMatch(match.id)}
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -232,36 +235,44 @@ export function RecommendedJobs() {
                 <div className="flex items-start justify-between mb-3 pr-8">
                   <div className="flex-1">
                     <Link
-                      href={`/jobs/${rec.job.id}`}
-                      onClick={() => markAsViewed(rec.id, rec.job_id)}
+                      href={`/jobs/${match.job.id}`}
+                      onClick={() => markAsViewed(match.id, match.job_id)}
                       className="hover:underline"
                     >
-                      <h3 className="font-semibold text-lg">{rec.job.title}</h3>
+                      <h3 className="font-semibold text-lg">{match.job.title}</h3>
                     </Link>
-                    <p className="text-sm text-muted-foreground">{rec.job.company}</p>
+                    <p className="text-sm text-muted-foreground">{match.job.company}</p>
                   </div>
                   <Badge
-                    variant={getMatchBadgeVariant(rec.match_score)}
-                    className={getMatchColor(rec.match_score)}
+                    variant={getMatchBadgeVariant(match.match_score)}
+                    className={getMatchColor(match.match_score)}
                   >
-                    {Math.round(rec.match_score)}% Match
+                    {Math.round(match.match_score)}% Match
                   </Badge>
                 </div>
+
+                {/* AI match reason */}
+                {match.match_details?.reason && (
+                  <p className="text-sm text-primary/80 italic mb-3 flex items-start gap-1.5">
+                    <Brain className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                    {match.match_details.reason}
+                  </p>
+                )}
 
                 <div className="flex flex-wrap gap-3 text-sm text-muted-foreground mb-3">
                   <div className="flex items-center gap-1">
                     <MapPin className="h-4 w-4" />
-                    {rec.job.location}
+                    {match.job.location}
                   </div>
                   <div className="flex items-center gap-1">
                     <Briefcase className="h-4 w-4" />
-                    {rec.job.employment_type || 'Full-time'}
+                    {match.job.employment_type || 'Full-time'}
                   </div>
-                  {rec.job.salary_min && (
+                  {match.job.salary_min && (
                     <div className="flex items-center gap-1">
                       <DollarSign className="h-4 w-4" />
-                      {rec.job.salary_currency} {rec.job.salary_min.toLocaleString()}
-                      {rec.job.salary_max && ` - ${rec.job.salary_max.toLocaleString()}`}
+                      {match.job.salary_currency} {match.job.salary_min.toLocaleString()}
+                      {match.job.salary_max && ` - ${match.job.salary_max.toLocaleString()}`}
                     </div>
                   )}
                 </div>
@@ -270,35 +281,35 @@ export function RecommendedJobs() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
                   <div className="flex flex-col">
                     <span className="text-muted-foreground">Skills</span>
-                    <span className={`font-semibold ${getMatchColor(rec.skills_match_score)}`}>
-                      {Math.round(rec.skills_match_score)}%
+                    <span className={`font-semibold ${getMatchColor(match.skills_match_score)}`}>
+                      {Math.round(match.skills_match_score)}%
                     </span>
                   </div>
                   <div className="flex flex-col">
                     <span className="text-muted-foreground">Experience</span>
-                    <span className={`font-semibold ${getMatchColor(rec.experience_match_score)}`}>
-                      {Math.round(rec.experience_match_score)}%
+                    <span className={`font-semibold ${getMatchColor(match.experience_match_score)}`}>
+                      {Math.round(match.experience_match_score)}%
                     </span>
                   </div>
                   <div className="flex flex-col">
                     <span className="text-muted-foreground">Location</span>
-                    <span className={`font-semibold ${getMatchColor(rec.location_match_score)}`}>
-                      {Math.round(rec.location_match_score)}%
+                    <span className={`font-semibold ${getMatchColor(match.location_match_score)}`}>
+                      {Math.round(match.location_match_score)}%
                     </span>
                   </div>
                   <div className="flex flex-col">
                     <span className="text-muted-foreground">Salary</span>
-                    <span className={`font-semibold ${getMatchColor(rec.salary_match_score)}`}>
-                      {Math.round(rec.salary_match_score)}%
+                    <span className={`font-semibold ${getMatchColor(match.salary_match_score)}`}>
+                      {Math.round(match.salary_match_score)}%
                     </span>
                   </div>
                 </div>
 
-                {rec.match_details?.matchedSkills?.length > 0 && (
+                {match.match_details?.matchedSkills?.length > 0 && (
                   <div className="mt-3 pt-3 border-t">
                     <p className="text-xs text-muted-foreground mb-2">Matched Skills:</p>
                     <div className="flex flex-wrap gap-1">
-                      {rec.match_details.matchedSkills.slice(0, 5).map((skill: string) => (
+                      {match.match_details.matchedSkills.slice(0, 5).map((skill: string) => (
                         <Badge key={skill} variant="secondary" className="text-xs">
                           {skill}
                         </Badge>
@@ -308,12 +319,12 @@ export function RecommendedJobs() {
                 )}
 
                 <div className="mt-3 flex gap-2">
-                  <Link href={`/jobs/${rec.job.id}`} className="flex-1">
+                  <Link href={`/jobs/${match.job.id}`} className="flex-1">
                     <Button
                       variant="default"
                       size="sm"
                       className="w-full"
-                      onClick={() => markAsViewed(rec.id, rec.job_id)}
+                      onClick={() => markAsViewed(match.id, match.job_id)}
                     >
                       <Eye className="h-4 w-4 mr-2" />
                       View Job
