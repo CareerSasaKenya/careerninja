@@ -45,18 +45,48 @@ const ParseJobPage = () => {
   const [showForm, setShowForm] = useState(false);
 
   const handleParsed = async (data: ParsedJobData) => {
-    // Convert education_level_name to education_level_id
+    // Convert education_level_name to education_level_id with fuzzy matching
     if (data.education_level_name) {
       try {
         const { supabase } = await import("@/integrations/supabase/client");
-        const { data: educationLevel } = await supabase
+        // Fetch all education levels for fuzzy matching
+        const { data: allLevels } = await supabase
           .from("education_levels")
-          .select("id")
-          .eq("name", data.education_level_name)
-          .maybeSingle();
+          .select("id, name");
         
-        if (educationLevel) {
-          (data as any).education_level_id = String(educationLevel.id);
+        if (allLevels && allLevels.length > 0) {
+          const parsed = data.education_level_name!.toLowerCase().trim();
+          
+          // Try exact match first
+          let match = allLevels.find(l => l.name.toLowerCase().trim() === parsed);
+          
+          // Try substring match
+          if (!match) {
+            match = allLevels.find(l => {
+              const dbName = l.name.toLowerCase().trim();
+              return dbName.includes(parsed) || parsed.includes(dbName);
+            });
+          }
+          
+          // Try word overlap
+          if (!match) {
+            const parsedWords = parsed.split(/\s+/).filter(w => w.length > 2);
+            let bestMatch: typeof allLevels[0] | null = null;
+            let bestScore = 0;
+            for (const level of allLevels) {
+              const dbWords = level.name.toLowerCase().trim().split(/\s+/).filter(w => w.length > 2);
+              const overlap = parsedWords.filter(pw => dbWords.includes(pw)).length;
+              if (overlap > bestScore) {
+                bestScore = overlap;
+                bestMatch = level;
+              }
+            }
+            if (bestScore > 0) match = bestMatch;
+          }
+          
+          if (match) {
+            (data as any).education_level_id = String(match.id);
+          }
         }
       } catch (error) {
         console.error("Error fetching education level:", error);

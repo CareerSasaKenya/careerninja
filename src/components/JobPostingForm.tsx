@@ -240,6 +240,116 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
     });
   }, [countyName, townName]);
 
+  // Helper: fuzzy-match a parsed name against a list of DB options
+  const fuzzyMatch = (parsedValue: string | undefined, dbNames: string[] | undefined): string | null => {
+    if (!parsedValue || !dbNames || dbNames.length === 0) return null;
+    const normalized = parsedValue.toLowerCase().trim();
+    // Exact match first
+    const exact = dbNames.find(n => n.toLowerCase().trim() === normalized);
+    if (exact) return exact;
+    // Substring match (parsed value is contained in DB name or vice versa)
+    const sub = dbNames.find(n => {
+      const dbNorm = n.toLowerCase().trim();
+      return dbNorm.includes(normalized) || normalized.includes(dbNorm);
+    });
+    if (sub) return sub;
+    // Word overlap: check if any significant word matches
+    const parsedWords = normalized.split(/\s+/).filter(w => w.length > 2);
+    let bestMatch: string | null = null;
+    let bestScore = 0;
+    for (const dbName of dbNames) {
+      const dbWords = dbName.toLowerCase().trim().split(/\s+/).filter(w => w.length > 2);
+      const overlap = parsedWords.filter(pw => dbWords.includes(pw)).length;
+      if (overlap > bestScore) {
+        bestScore = overlap;
+        bestMatch = dbName;
+      }
+    }
+    return bestScore > 0 ? bestMatch : null;
+  };
+
+  // Auto-match parsed text values to DB dropdown options
+  const hasAutoMatchedRef = useRef(false);
+  useEffect(() => {
+    if (!isParsedData || hasAutoMatchedRef.current) return;
+    // Wait for reference data to load
+    if (!counties || counties.length === 0) return;
+
+    let updated = false;
+    const updates: Partial<JobFormData> = {};
+
+    // 1. Auto-select county dropdown
+    if (formData.job_location_county && !selectedCountyId) {
+      const matchedCounty = fuzzyMatch(formData.job_location_county, counties.map(c => c.name));
+      if (matchedCounty) {
+        const countyObj = counties.find(c => c.name === matchedCounty);
+        if (countyObj) {
+          setSelectedCountyId(String(countyObj.id));
+          // Normalize the form value to exact DB name
+          updates.job_location_county = matchedCounty;
+          updated = true;
+        }
+      }
+    }
+
+    // 2. Auto-match industry
+    if (formData.industry && industries && industries.length > 0) {
+      const matchedIndustry = fuzzyMatch(formData.industry, industries.map(i => i.name));
+      if (matchedIndustry && matchedIndustry !== formData.industry) {
+        updates.industry = matchedIndustry;
+        updated = true;
+      }
+    }
+
+    // 3. Auto-match job function
+    if (formData.job_function && jobFunctions && jobFunctions.length > 0) {
+      const matchedFunc = fuzzyMatch(formData.job_function, jobFunctions.map(f => f.name));
+      if (matchedFunc && matchedFunc !== formData.job_function) {
+        updates.job_function = matchedFunc;
+        updated = true;
+      }
+    }
+
+    // 4. Auto-match education level (improve fuzzy matching)
+    if (formData.education_level_id === "none" && educationLevels && educationLevels.length > 0) {
+      // The parsed data may have education_level_name that didn't exact-match in the API route
+      const parsedEdu = (initialData as any)?.education_level_name;
+      if (parsedEdu) {
+        const matchedEdu = fuzzyMatch(parsedEdu, educationLevels.map(e => e.name));
+        if (matchedEdu) {
+          const eduObj = educationLevels.find(e => e.name === matchedEdu);
+          if (eduObj) {
+            updates.education_level_id = String(eduObj.id);
+            updated = true;
+          }
+        }
+      }
+    }
+
+    if (updated) {
+      setFormData(prev => ({ ...prev, ...updates }));
+    }
+    hasAutoMatchedRef.current = true;
+  }, [isParsedData, counties, industries, jobFunctions, educationLevels, formData.job_location_county, formData.industry, formData.job_function, formData.education_level_id]);
+
+  // Auto-select town dropdown once county is selected and towns are loaded
+  const hasAutoMatchedTownRef = useRef(false);
+  useEffect(() => {
+    if (!isParsedData || hasAutoMatchedTownRef.current) return;
+    if (!selectedCountyId || !towns || towns.length === 0) return;
+    if (formData.job_location_city) {
+      const matchedTown = fuzzyMatch(formData.job_location_city, towns.map(t => t.name));
+      if (matchedTown) {
+        const townObj = towns.find(t => t.name === matchedTown);
+        if (townObj) {
+          setSelectedTownId(String(townObj.id));
+          setFormData(prev => ({ ...prev, job_location_city: matchedTown }));
+        }
+      }
+    }
+    hasAutoMatchedTownRef.current = true;
+  }, [isParsedData, selectedCountyId, towns, formData.job_location_city]);
+
   const { data: userCompany } = useQuery({
     queryKey: ["user-company", user?.id],
     queryFn: async () => {
