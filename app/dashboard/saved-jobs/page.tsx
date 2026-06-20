@@ -126,6 +126,8 @@ export default function SavedJobsPage() {
                       title={job.title}
                       company={job.companies?.name || job.company}
                       location={job.location}
+                      locationCity={job.job_location_city}
+                      locationCounty={job.job_location_county}
                       description={job.description}
                       salary={job.salary || undefined}
                       companyId={job.company_id}

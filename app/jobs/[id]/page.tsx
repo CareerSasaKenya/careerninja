@@ -10,6 +10,7 @@ import { ArrowLeft, MapPin, Building2, DollarSign, FileText, Clock, Briefcase, G
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import JobCard from "@/components/JobCard";
+import { formatJobSeoTitle, buildLocationString } from "@/lib/textUtils";
 import JobStructuredData from "@/components/JobStructuredData";
 import ApplySection from "@/components/ApplySection";
 import SocialShare from "@/components/SocialShare";
@@ -138,13 +139,14 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     return { title: "Job Not Found - CareerSasa" };
   }
   
-  // Build SEO-friendly title: "[Job Title] Job in [Location], Kenya"
-  const locationPart = job.job_location_type === "REMOTE"
-    ? "Remote (Kenya)"
-    : job.job_location_county || job.location || "Kenya";
-  const seoTitle = job.job_location_type === "REMOTE"
-    ? `${job.title} Job — ${locationPart} | CareerSasa`
-    : `${job.title} Job in ${locationPart}, Kenya | CareerSasa`;
+  // Build SEO-friendly title: "[Post] at [Company] in [City], [County], Kenya | CareerSasa"
+  const companyName = job.companies?.name || job.company || null;
+  const isRemote = job.job_location_type === 'REMOTE';
+  const seoTitle = isRemote
+    ? `${job.title}${companyName ? ` at ${companyName}` : ''} Job — Remote (Kenya) | CareerSasa`
+    : `${job.title}${companyName ? ` at ${companyName}` : ''} Job in ${buildLocationString(job.job_location_city, job.job_location_county, job.location)} | CareerSasa`;
+  
+  const locationPart = buildLocationString(job.job_location_city, job.job_location_county, job.location);
   
   const description = job.description
     ? job.description.replace(/<[^>]*>/g, '').substring(0, 160)
@@ -239,14 +241,14 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                           )}
                         </div>
                       )}
-                      {/* SEO-friendly visible heading: "[Job Title] in [Location], Kenya" */}
+                      {/* SEO-friendly visible heading: "[Post] at [Company] in [City], [County], Kenya" */}
                       <CardTitle className="text-2xl sm:text-3xl mb-4 break-words">
-                        {job.job_location_type === "REMOTE"
-                          ? `${job.title} — Remote (Kenya)`
-                          : job.location
-                            ? `${job.title} in ${job.location}, Kenya`
-                            : job.title
-                        }
+                        {formatJobSeoTitle(job.title, job.companies?.name || job.company, {
+                          city: job.job_location_city,
+                          county: job.job_location_county,
+                          rawLocation: job.location,
+                          isRemote: job.job_location_type === 'REMOTE',
+                        })}
                       </CardTitle>
                       <div className="flex flex-wrap gap-4 text-muted-foreground">
                         {job.company_id && job.companies ? (
@@ -465,6 +467,8 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                     title={relatedJob.title}
                     company={relatedJob.companies?.name || relatedJob.company}
                     location={relatedJob.location}
+                    locationCity={relatedJob.job_location_city}
+                    locationCounty={relatedJob.job_location_county}
                     description={relatedJob.description}
                     salary={relatedJob.salary || undefined}
                     companyId={relatedJob.company_id}

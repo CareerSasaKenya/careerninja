@@ -15,6 +15,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Autoplay from "embla-carousel-autoplay";
 import { usePageContent, getContentValue } from "@/hooks/usePageContent";
+import { formatJobSeoTitle } from "@/lib/textUtils";
 // Images are now in public folder
 
 export default function Home() {
@@ -282,11 +283,12 @@ export default function Home() {
                             <Clock className="h-4 w-4 text-muted-foreground" />
                           </div>
                           <h3 className="text-xl font-semibold mb-2">
-                            {job.job_location_type === "REMOTE"
-                              ? `${job.title} — Remote (Kenya)`
-                              : job.location
-                                ? `${job.title} in ${job.location}, Kenya`
-                                : job.title}
+                            {formatJobSeoTitle(job.title, job.company, {
+                              city: job.job_location_city,
+                              county: job.job_location_county,
+                              rawLocation: job.location,
+                              isRemote: job.job_location_type === 'REMOTE',
+                            })}
                           </h3>
                           <div className="flex items-center gap-2 text-muted-foreground mb-2">
                             <Building2 className="h-4 w-4" />
@@ -463,11 +465,12 @@ export default function Home() {
                         <span className="text-xs text-muted-foreground">Just posted</span>
                       </div>
                       <h3 className="text-xl font-semibold mb-2 line-clamp-1">
-                        {job.job_location_type === "REMOTE"
-                          ? `${job.title} — Remote (Kenya)`
-                          : job.location
-                            ? `${job.title} in ${job.location}, Kenya`
-                            : job.title}
+                        {formatJobSeoTitle(job.title, job.company, {
+                          city: job.job_location_city,
+                          county: job.job_location_county,
+                          rawLocation: job.location,
+                          isRemote: job.job_location_type === 'REMOTE',
+                        })}
                       </h3>
                       <div className="flex items-center gap-2 text-muted-foreground mb-2">
                         <Building2 className="h-4 w-4 flex-shrink-0" />

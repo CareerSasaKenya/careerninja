@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Building2, DollarSign, FileText, Clock, ExternalLink, Mail, Briefcase, GraduationCap, Star, TrendingUp } from "lucide-react";
-import { stripHtmlTags } from "@/lib/textUtils";
+import { stripHtmlTags, formatJobSeoTitle } from "@/lib/textUtils";
 import { SaveJobButton } from "@/components/SaveJobButton";
 import { AdminEditJobButton } from "@/components/AdminEditJobButton";
 
@@ -38,6 +38,8 @@ interface JobCardProps {
   department?: string | null;
   jobSlug?: string | null; // SEO-friendly slug
   educationLevel?: string | null; // Education level name
+  locationCity?: string | null;
+  locationCounty?: string | null;
   // Featured/Promoted status
   isFeatured?: boolean | null;
   isPromoted?: boolean | null;
@@ -89,6 +91,8 @@ const JobCard = ({
   industry,
   locationType,
   employmentType,
+  locationCity,
+  locationCounty,
   salaryMin,
   salaryMax,
   salaryCurrency,
@@ -112,12 +116,13 @@ const JobCard = ({
     ? `${location || ""}${location && locationType ? " \u2022 " : ""}${toTitleCase(locationType) || ""}`
     : location || "";
   
-  // SEO-friendly heading: "[Job Title] in [Location], Kenya" or "[Job Title] — Remote (Kenya)"
-  const seoTitle = locationType === "REMOTE"
-    ? `${title} — Remote (Kenya)`
-    : location
-      ? `${title} in ${location}, Kenya`
-      : title;
+  // SEO-friendly heading: "[Post] at [Company] in [City], [County], Kenya"
+  const seoTitle = formatJobSeoTitle(title, company, {
+    city: locationCity,
+    county: locationCounty,
+    rawLocation: location,
+    isRemote: locationType === 'REMOTE',
+  });
 
   const salaryMinFmt = formatCurrency(salaryMin, salaryCurrency);
   const salaryMaxFmt = formatCurrency(salaryMax, salaryCurrency);
