@@ -124,7 +124,7 @@ export async function GET(request: NextRequest) {
         type: j.employment_type || 'Full-time',
       }));
 
-      let matchedJobs: Array<{ id: string; title: string; company: string; location: string; type: string }> = [];
+      const matchedJobs: Array<{ id: string; title: string; company: string; location: string; type: string }> = [];
 
       // Try AI-powered matching first
       if (hasAIConfigured() && jobsList.length > 0) {
