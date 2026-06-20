@@ -466,6 +466,36 @@ export async function setSalaryExpectation(expectation: {
   return data;
 }
 
+export async function deleteSalaryExpectation(expectationId: string) {
+  const { error } = await supabase
+    .from('candidate_salary_expectations' as any)
+    .delete()
+    .eq('id', expectationId);
+
+  if (error) throw error;
+}
+
+export async function updateSalaryExpectation(
+  expectationId: string,
+  updates: {
+    job_title?: string;
+    min_salary?: number;
+    max_salary?: number;
+    currency?: string;
+    is_negotiable?: boolean;
+  },
+) {
+  const { data, error } = await supabase
+    .from('candidate_salary_expectations' as any)
+    .update(updates)
+    .eq('id', expectationId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
 export async function compareSalaryToMarket(
   jobTitle: string,
   userSalary: number,

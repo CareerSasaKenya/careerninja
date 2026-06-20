@@ -252,16 +252,17 @@ export default function AdminEmailsPage() {
 
   async function handleDeleteSubscriber(id: string) {
     if (!confirm("Remove this subscriber?")) return;
-    const { error } = await (supabase as any)
-      .from("email_subscribers")
-      .delete()
-      .eq("id", id);
-    if (error) {
+    try {
+      const res = await fetch(`/api/admin/subscribers/${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        toast.error("Failed to remove subscriber");
+      } else {
+        toast.success("Subscriber removed");
+        fetchSubscribers();
+        fetchStats();
+      }
+    } catch {
       toast.error("Failed to remove subscriber");
-    } else {
-      toast.success("Subscriber removed");
-      fetchSubscribers();
-      fetchStats();
     }
   }
 

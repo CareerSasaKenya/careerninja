@@ -7,12 +7,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { DollarSign, TrendingUp, TrendingDown, Minus, Search } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, Minus, Search, Pencil, Trash2, Check, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import {
   getUserSalaryExpectations,
   setSalaryExpectation,
+  deleteSalaryExpectation,
+  updateSalaryExpectation,
   type SalaryInsight
 } from '@/lib/careerTools';
 
@@ -28,6 +30,8 @@ export default function SalaryInsights() {
   const [expectations, setExpectations] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValues, setEditValues] = useState<{ job_title: string; min_salary: string; max_salary: string }>({ job_title: '', min_salary: '', max_salary: '' });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -182,6 +186,39 @@ export default function SalaryInsights() {
         description: error.message,
         variant: 'destructive'
       });
+    }
+  }
+
+  async function handleDeleteExpectation(id: string) {
+    if (!confirm('Delete this salary expectation?')) return;
+    try {
+      await deleteSalaryExpectation(id);
+      await loadExpectations();
+      toast({ title: 'Deleted', description: 'Salary expectation removed.' });
+    } catch (error: any) {
+      toast({ title: 'Error', description: 'Failed to delete expectation.', variant: 'destructive' });
+    }
+  }
+
+  function startEditing(exp: any) {
+    setEditingId(exp.id);
+    setEditValues({ job_title: exp.job_title, min_salary: String(exp.min_salary), max_salary: String(exp.max_salary) });
+  }
+
+  async function handleUpdateExpectation(id: string) {
+    const min = parseInt(editValues.min_salary);
+    const max = parseInt(editValues.max_salary);
+    if (!editValues.job_title || isNaN(min) || isNaN(max)) {
+      toast({ title: 'Invalid', description: 'Please fill in all fields.', variant: 'destructive' });
+      return;
+    }
+    try {
+      await updateSalaryExpectation(id, { job_title: editValues.job_title, min_salary: min, max_salary: max });
+      setEditingId(null);
+      await loadExpectations();
+      toast({ title: 'Updated', description: 'Salary expectation saved.' });
+    } catch (error: any) {
+      toast({ title: 'Error', description: 'Failed to update expectation.', variant: 'destructive' });
     }
   }
 
@@ -427,15 +464,57 @@ export default function SalaryInsights() {
             <div className="space-y-3">
               <h4 className="font-semibold">Saved Expectations</h4>
               {expectations.map((exp) => (
-                <div key={exp.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <p className="font-medium">{exp.job_title}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatCurrency(exp.min_salary, exp.currency)} - {formatCurrency(exp.max_salary, exp.currency)}
-                    </p>
-                  </div>
-                  {exp.is_negotiable && (
-                    <Badge variant="outline">Negotiable</Badge>
+                <div key={exp.id} className="p-3 border rounded-lg">
+                  {editingId === exp.id ? (
+                    <div className="space-y-2">
+                      <div className="grid gap-2 md:grid-cols-3">
+                        <Input
+                          value={editValues.job_title}
+                          onChange={(e) => setEditValues({ ...editValues, job_title: e.target.value })}
+                          placeholder="Job title"
+                        />
+                        <Input
+                          type="number"
+                          value={editValues.min_salary}
+                          onChange={(e) => setEditValues({ ...editValues, min_salary: e.target.value })}
+                          placeholder="Min salary"
+                        />
+                        <Input
+                          type="number"
+                          value={editValues.max_salary}
+                          onChange={(e) => setEditValues({ ...editValues, max_salary: e.target.value })}
+                          placeholder="Max salary"
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" onClick={() => handleUpdateExpectation(exp.id)}>
+                          <Check className="h-4 w-4 mr-1" /> Save
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => setEditingId(null)}>
+                          <X className="h-4 w-4 mr-1" /> Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">{exp.job_title}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {formatCurrency(exp.min_salary, exp.currency)} - {formatCurrency(exp.max_salary, exp.currency)}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {exp.is_negotiable && (
+                          <Badge variant="outline">Negotiable</Badge>
+                        )}
+                        <Button size="sm" variant="ghost" onClick={() => startEditing(exp)} aria-label="Edit">
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => handleDeleteExpectation(exp.id)} aria-label="Delete">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
                   )}
                 </div>
               ))}
