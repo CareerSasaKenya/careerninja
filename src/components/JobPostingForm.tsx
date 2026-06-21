@@ -40,6 +40,7 @@ interface JobFormData {
   application_url: string;
   // STEM/Health/Architecture Fields
   industry: string;
+  industries: string[];
   education_level_id: string;
   area_of_study: string;
   field_of_study: string;
@@ -63,6 +64,7 @@ interface JobFormData {
   // Functional Portal Fields
   tags: string;
   job_function: string;
+  job_functions: string[];
   status: string;
   additional_info: string;
 }
@@ -102,6 +104,7 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
       application_url: "",
       // STEM/Health/Architecture Fields
       industry: "",
+      industries: [],
       education_level_id: "none",
       area_of_study: "",
       field_of_study: "",
@@ -125,6 +128,7 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
       // Functional Portal Fields
       tags: "",
       job_function: "",
+      job_functions: [],
       status: "draft",
       additional_info: "",
     };
@@ -144,6 +148,20 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
         merged.job_location_type = initialData.job_location_types[0];
       } else if (initialData.job_location_type) {
         merged.job_location_types = [initialData.job_location_type];
+      }
+      // Merge parsed industries array
+      if ((initialData as any).industries && Array.isArray((initialData as any).industries) && (initialData as any).industries.length > 0) {
+        merged.industries = (initialData as any).industries;
+        merged.industry = (initialData as any).industries[0];
+      } else if (initialData.industry) {
+        merged.industries = [initialData.industry];
+      }
+      // Merge parsed job_functions array
+      if ((initialData as any).job_functions && Array.isArray((initialData as any).job_functions) && (initialData as any).job_functions.length > 0) {
+        merged.job_functions = (initialData as any).job_functions;
+        merged.job_function = (initialData as any).job_functions[0];
+      } else if (initialData.job_function) {
+        merged.job_functions = [initialData.job_function];
       }
       // If we're going to create a company, clear company_id to avoid conflicts
       if (isParsedData && initialData.company && !initialData.company_id) {
@@ -317,20 +335,43 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
       }
     }
 
-    // 2. Auto-match industry
-    if (formData.industry && industries && industries.length > 0) {
+    // 2. Auto-match industries (array)
+    if (formData.industries && formData.industries.length > 0 && industries && industries.length > 0) {
+      const matchedIndustries = formData.industries.map(ind => {
+        const matched = fuzzyMatch(ind, industries.map(i => i.name));
+        return matched || ind;
+      });
+      // Also set single-value for backward compat
+      updates.industries = matchedIndustries;
+      updates.industry = matchedIndustries[0];
+      updated = true;
+    } else if (formData.industry && industries && industries.length > 0) {
       const matchedIndustry = fuzzyMatch(formData.industry, industries.map(i => i.name));
-      if (matchedIndustry && matchedIndustry !== formData.industry) {
-        updates.industry = matchedIndustry;
+      if (matchedIndustry) {
+        updates.industries = [matchedIndustry];
+        if (matchedIndustry !== formData.industry) {
+          updates.industry = matchedIndustry;
+        }
         updated = true;
       }
     }
 
-    // 3. Auto-match job function
-    if (formData.job_function && jobFunctions && jobFunctions.length > 0) {
+    // 3. Auto-match job functions (array)
+    if (formData.job_functions && formData.job_functions.length > 0 && jobFunctions && jobFunctions.length > 0) {
+      const matchedFuncs = formData.job_functions.map(fn => {
+        const matched = fuzzyMatch(fn, jobFunctions.map(f => f.name));
+        return matched || fn;
+      });
+      updates.job_functions = matchedFuncs;
+      updates.job_function = matchedFuncs[0];
+      updated = true;
+    } else if (formData.job_function && jobFunctions && jobFunctions.length > 0) {
       const matchedFunc = fuzzyMatch(formData.job_function, jobFunctions.map(f => f.name));
-      if (matchedFunc && matchedFunc !== formData.job_function) {
-        updates.job_function = matchedFunc;
+      if (matchedFunc) {
+        updates.job_functions = [matchedFunc];
+        if (matchedFunc !== formData.job_function) {
+          updates.job_function = matchedFunc;
+        }
         updated = true;
       }
     }
@@ -355,7 +396,7 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
       setFormData(prev => ({ ...prev, ...updates }));
     }
     hasAutoMatchedRef.current = true;
-  }, [isParsedData, counties, industries, jobFunctions, educationLevels, formData.job_location_county, formData.industry, formData.job_function, formData.education_level_id]);
+  }, [isParsedData, counties, industries, jobFunctions, educationLevels, formData.job_location_county, formData.industries, formData.industry, formData.job_functions, formData.job_function, formData.education_level_id]);
 
   // Auto-select town dropdown once county is selected and towns are loaded
   const hasAutoMatchedTownRef = useRef(false);
@@ -467,6 +508,9 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
         
         // STEM/Health/Architecture Fields
         industry: existingJob.industry || "",
+        industries: (existingJob as any).industries?.length > 0
+          ? (existingJob as any).industries
+          : existingJob.industry ? [existingJob.industry] : [],
         education_level_id: existingJob.education_level_id ? String(existingJob.education_level_id) : "none",
         area_of_study: (existingJob as any).area_of_study || "",
         field_of_study: (existingJob as any).field_of_study || "",
@@ -494,6 +538,9 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
         // Functional Portal Fields
         tags: existingJob.tags?.toString() || "",
         job_function: existingJob.job_function || "",
+        job_functions: (existingJob as any).job_functions?.length > 0
+          ? (existingJob as any).job_functions
+          : existingJob.job_function ? [existingJob.job_function] : [],
         status: existingJob.status || "active",
         additional_info: existingJob.additional_info?.toString() || "",
       };
@@ -633,6 +680,22 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
         originalCompanyId: data.company_id
       });
 
+      // Resolve industry names to UUIDs
+      const industryIds = (data.industries && data.industries.length > 0 ? data.industries : data.industry ? [data.industry] : [])
+        .map((name: string) => {
+          const match = industries?.find((i: any) => i.name === name);
+          return match?.id || null;
+        })
+        .filter(Boolean);
+
+      // Resolve job function names to UUIDs
+      const jobFunctionIds = (data.job_functions && data.job_functions.length > 0 ? data.job_functions : data.job_function ? [data.job_function] : [])
+        .map((name: string) => {
+          const match = jobFunctions?.find((f: any) => f.name === name);
+          return match?.id || null;
+        })
+        .filter(Boolean);
+
       const jobData: any = {
         // Core fields
         title: data.title,
@@ -659,6 +722,8 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
 
         // STEM/Health/Architecture Fields
         industry: data.industry || null,
+        industries: data.industries && data.industries.length > 0 ? data.industries : data.industry ? [data.industry] : null,
+        industry_ids: industryIds.length > 0 ? industryIds : null,
         required_qualifications: data.required_qualifications || null,
         education_level_id: data.education_level_id && data.education_level_id !== "none" ? parseInt(data.education_level_id) : null,
         area_of_study: data.area_of_study || null,
@@ -689,6 +754,8 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
         // Functional Portal Fields
         tags: data.tags || null,
         job_function: data.job_function || null,
+        job_functions: data.job_functions && data.job_functions.length > 0 ? data.job_functions : data.job_function ? [data.job_function] : null,
+        job_function_ids: jobFunctionIds.length > 0 ? jobFunctionIds : null,
         additional_info: data.additional_info || null,
 
         // Multi-location support
@@ -963,37 +1030,115 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="industry">Industry *</Label>
-              <Select 
-                value={formData.industry} 
-                onValueChange={(value) => setFormData({...formData, industry: value})}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select industry" />
-                </SelectTrigger>
-                <SelectContent>
-                  {industries?.map((industry: any) => (
-                    <SelectItem key={industry.id} value={industry.name}>{industry.name}</SelectItem>
+              <Label>Industry *</Label>
+              {industries && industries.length > 0 ? (
+                <div className="border rounded-md p-3 max-h-48 overflow-y-auto space-y-2">
+                  {industries.map((ind: any) => (
+                    <div key={ind.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`industry-${ind.id}`}
+                        checked={formData.industries.includes(ind.name)}
+                        onCheckedChange={(checked) => {
+                          const newIndustries = checked
+                            ? [...formData.industries, ind.name]
+                            : formData.industries.filter(i => i !== ind.name);
+                          setFormData({
+                            ...formData,
+                            industries: newIndustries,
+                            industry: newIndustries[0] || "",
+                          });
+                        }}
+                      />
+                      <label htmlFor={`industry-${ind.id}`} className="text-sm cursor-pointer">
+                        {ind.name}
+                      </label>
+                    </div>
                   ))}
-                </SelectContent>
-              </Select>
+                </div>
+              ) : (
+                <Select 
+                  value={formData.industry} 
+                  onValueChange={(value) => setFormData({...formData, industry: value, industries: [value]})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select industry" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {industries?.map((industry: any) => (
+                      <SelectItem key={industry.id} value={industry.name}>{industry.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              {formData.industries.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {formData.industries.map((ind, idx) => (
+                    <span key={idx} className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
+                      {ind}
+                      <button type="button" onClick={() => {
+                        const newIndustries = formData.industries.filter(i => i !== ind);
+                        setFormData({...formData, industries: newIndustries, industry: newIndustries[0] || ""});
+                      }} className="hover:text-destructive">×</button>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="job_function">Job Function</Label>
-              <Select 
-                value={formData.job_function} 
-                onValueChange={(value) => setFormData({...formData, job_function: value})}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select job function" />
-                </SelectTrigger>
-                <SelectContent>
-                  {jobFunctions?.map((func: any) => (
-                    <SelectItem key={func.id} value={func.name}>{func.name}</SelectItem>
+              <Label>Job Function</Label>
+              {jobFunctions && jobFunctions.length > 0 ? (
+                <div className="border rounded-md p-3 max-h-48 overflow-y-auto space-y-2">
+                  {jobFunctions.map((func: any) => (
+                    <div key={func.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`func-${func.id}`}
+                        checked={formData.job_functions.includes(func.name)}
+                        onCheckedChange={(checked) => {
+                          const newFuncs = checked
+                            ? [...formData.job_functions, func.name]
+                            : formData.job_functions.filter(f => f !== func.name);
+                          setFormData({
+                            ...formData,
+                            job_functions: newFuncs,
+                            job_function: newFuncs[0] || "",
+                          });
+                        }}
+                      />
+                      <label htmlFor={`func-${func.id}`} className="text-sm cursor-pointer">
+                        {func.name}
+                      </label>
+                    </div>
                   ))}
-                </SelectContent>
-              </Select>
+                </div>
+              ) : (
+                <Select 
+                  value={formData.job_function} 
+                  onValueChange={(value) => setFormData({...formData, job_function: value, job_functions: [value]})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select job function" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {jobFunctions?.map((func: any) => (
+                      <SelectItem key={func.id} value={func.name}>{func.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              {formData.job_functions.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {formData.job_functions.map((fn, idx) => (
+                    <span key={idx} className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
+                      {fn}
+                      <button type="button" onClick={() => {
+                        const newFuncs = formData.job_functions.filter(f => f !== fn);
+                        setFormData({...formData, job_functions: newFuncs, job_function: newFuncs[0] || ""});
+                      }} className="hover:text-destructive">×</button>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

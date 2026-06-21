@@ -29,6 +29,7 @@ export interface ParsedJobData {
   job_location_city?: string;
   additional_locations?: Array<{ county: string; city: string }>;
   industry: string;
+  industries?: string[];
   education_level_name?: string;
   area_of_study?: string;
   field_of_study?: string;
@@ -46,6 +47,7 @@ export interface ParsedJobData {
   additional_info?: string;
   tags?: string;
   job_function?: string;
+  job_functions?: string[];
   valid_through?: string;
 }
 
@@ -527,8 +529,8 @@ CRITICAL FIELDS TO EXTRACT:
 - job_location_county: Kenyan county name (Nairobi, Mombasa, Kiambu, Nakuru, Kisumu, etc.)
 - job_location_city: City or town name
 - additional_locations: Array of {county, city} objects for other locations the job is available in
-- industry: The sector/industry (e.g., "Technology", "Healthcare", "Banking", "Manufacturing", "Education", "Agriculture", "Construction", "NGO", "Government")
-- job_function: The functional area (e.g., "Engineering", "Marketing", "Finance", "Human Resources", "Operations", "Sales", "Legal", "IT", "Administration", "Customer Service")
+- industries: Array of sectors/industries that apply (e.g., ["Technology", "Finance"]). Include ALL that apply.
+- job_functions: Array of functional areas (e.g., ["Engineering", "Product Management"]). Include ALL that apply.
 - valid_through: Application deadline in ISO date format YYYY-MM-DD (e.g., "2025-07-30"). Extract from "deadline", "closing date", "apply by", "valid until" etc.
 - minimum_experience: Minimum years of experience as a number (e.g., "3" from "3+ years", "minimum 5 years")
 - apply_email: Application email address extracted from "send to", "email", "apply to"
@@ -552,8 +554,8 @@ Return JSON structure:
   "job_location_county": "Nairobi",
   "job_location_city": "Nairobi",
   "additional_locations": [{"county": "Mombasa", "city": "Mombasa"}],
-  "industry": "Technology",
-  "job_function": "Engineering",
+  "industries": ["Technology", "Finance"],
+  "job_functions": ["Engineering", "Product Management"],
   "education_level_name": "Bachelor's Degree",
   "area_of_study": "Science",
   "field_of_study": "Computer Science",

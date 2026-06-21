@@ -89,7 +89,7 @@ async function getJobData(id: string) {
   }
 }
 
-async function getRelatedJobs(jobId: string, industry?: string, jobFunction?: string) {
+async function getRelatedJobs(jobId: string, industries?: string[], jobFunctions?: string[]) {
   // If Supabase isn't configured, return empty array
   if (!supabase) {
     console.warn("Supabase not configured - cannot fetch related jobs");
@@ -110,11 +110,11 @@ async function getRelatedJobs(jobId: string, industry?: string, jobFunction?: st
       .neq("id", jobId)
       .limit(6);
 
-    // Prioritize jobs with matching industry or job_function
-    if (industry) {
-      query = query.eq("industry", industry);
-    } else if (jobFunction) {
-      query = query.eq("job_function", jobFunction);
+    // Prioritize jobs with matching industries or job_functions (array overlap)
+    if (industries && industries.length > 0) {
+      query = query.overlaps("industries", industries);
+    } else if (jobFunctions && jobFunctions.length > 0) {
+      query = query.overlaps("job_functions", jobFunctions);
     }
 
     const { data, error } = await query;
@@ -181,7 +181,11 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
   }
   
   // Fetch related jobs
-  const relatedJobs = await getRelatedJobs(job.id, job.industry, job.job_function);
+  const relatedJobs = await getRelatedJobs(
+    job.id,
+    job.industries?.length > 0 ? job.industries : job.industry ? [job.industry] : [],
+    job.job_functions?.length > 0 ? job.job_functions : job.job_function ? [job.job_function] : []
+  );
   
   return (
     <>
@@ -284,9 +288,12 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                         {job.experience_level && (
                           <Badge variant="outline">{job.experience_level}</Badge>
                         )}
-                        {job.industry && (
-                          <Badge className="bg-primary/10 text-primary">{job.industry}</Badge>
-                        )}
+                        {(job.industries?.length > 0 ? job.industries : job.industry ? [job.industry] : []).map((ind: string) => (
+                          <Badge key={ind} className="bg-primary/10 text-primary">{ind}</Badge>
+                        ))}
+                        {(job.job_functions?.length > 0 ? job.job_functions : job.job_function ? [job.job_function] : []).map((fn: string) => (
+                          <Badge key={fn} variant="secondary">{fn}</Badge>
+                        ))}
                         {job.area_of_study && (
                           <Badge variant="secondary">{job.area_of_study}</Badge>
                         )}
@@ -536,10 +543,10 @@ const RoleDetails = ({ job }: { job: any }) => {
       label: "Specialization",
       value: job.specialization
     } : null,
-    job.job_function ? {
+    (job.job_functions?.length > 0 || job.job_function) ? {
       icon: <Target className="h-5 w-5 text-primary mt-0.5" />,
       label: "Job Function",
-      value: job.job_function
+      value: job.job_functions?.length > 0 ? job.job_functions.join(', ') : job.job_function
     } : null,
     job.work_schedule ? {
       icon: <Clock className="h-5 w-5 text-primary mt-0.5" />,

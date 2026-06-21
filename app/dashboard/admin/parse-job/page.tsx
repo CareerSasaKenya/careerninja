@@ -26,6 +26,7 @@ interface ParsedJobData {
   job_location_city?: string;
   additional_locations?: Array<{ county: string; city: string }>;
   industry: string;
+  industries?: string[];
   education_level_name?: string;
   education_level_id?: string;
   area_of_study?: string;
@@ -43,6 +44,7 @@ interface ParsedJobData {
   application_url?: string;
   tags?: string;
   job_function?: string;
+  job_functions?: string[];
   valid_through?: string;
 }
 
@@ -186,9 +188,20 @@ const ParseJobPage = () => {
                           <span className="font-medium">Company:</span> {parsedData.company}
                         </div>
                       )}
-                      {parsedData.industry && (
+                      {(parsedData.industries?.length || parsedData.industry) && (
                         <div>
-                          <span className="font-medium">Industry:</span> {parsedData.industry}
+                          <span className="font-medium">Industry:</span>{' '}
+                          {parsedData.industries?.length
+                            ? parsedData.industries.join(', ')
+                            : parsedData.industry}
+                        </div>
+                      )}
+                      {(parsedData.job_functions?.length || parsedData.job_function) && (
+                        <div>
+                          <span className="font-medium">Job Function:</span>{' '}
+                          {parsedData.job_functions?.length
+                            ? parsedData.job_functions.join(', ')
+                            : parsedData.job_function}
                         </div>
                       )}
                       {parsedData.employment_type && (

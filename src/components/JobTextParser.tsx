@@ -24,6 +24,7 @@ interface ParsedJobData {
   job_location_city?: string;
   additional_locations?: Array<{ county: string; city: string }>;
   industry: string;
+  industries?: string[];
   education_level_name?: string;
   experience_level: string;
   area_of_study?: string;
@@ -40,6 +41,7 @@ interface ParsedJobData {
   application_url?: string;
   tags?: string;
   job_function?: string;
+  job_functions?: string[];
   valid_through?: string;
 }
 
