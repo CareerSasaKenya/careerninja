@@ -5,12 +5,12 @@
 -- 1. ADD NEW ARRAY COLUMNS
 -- ============================================================================
 
--- UUID arrays for filtering/lookups
+-- Integer arrays for filtering/lookups
 ALTER TABLE public.jobs
-  ADD COLUMN IF NOT EXISTS industry_ids UUID[] DEFAULT '{}';
+  ADD COLUMN IF NOT EXISTS industry_ids INTEGER[] DEFAULT '{}';
 
 ALTER TABLE public.jobs
-  ADD COLUMN IF NOT EXISTS job_function_ids UUID[] DEFAULT '{}';
+  ADD COLUMN IF NOT EXISTS job_function_ids INTEGER[] DEFAULT '{}';
 
 -- Text arrays for display (mirrors employment_types / job_location_types pattern)
 ALTER TABLE public.jobs
