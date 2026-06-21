@@ -115,8 +115,8 @@ function getOptimizedSystemPrompt(): string {
 RULES:
 1. Return ONLY JSON, no markdown or explanations
 2. Use clean HTML for text fields (<p>, <ul>, <li>, <strong> only)
-3. employment_type: FULL_TIME, PART_TIME, CONTRACTOR, INTERN, TEMPORARY, VOLUNTEER
-4. job_location_type: ON_SITE, REMOTE, HYBRID
+3. employment_types: Array of FULL_TIME, PART_TIME, CONTRACTOR, INTERN, TEMPORARY, VOLUNTEER (include ALL that apply)
+4. job_location_types: Array of ON_SITE, REMOTE, HYBRID (include ALL that apply)
 5. experience_level: Entry, Mid, Senior, Managerial, Internship
 6. salary_period: HOUR, DAY, WEEK, MONTH, YEAR
 7. salary_currency: KES, USD
@@ -125,10 +125,14 @@ RULES:
 10. Extract ALL fields that are present in the text — be thorough
 
 CRITICAL FIELDS TO EXTRACT:
-- education_level_name: Exact education name like "Bachelor's Degree", "Diploma", "Certificate", "Master's Degree", "PhD", "KCSE", "KCPE"
+- education_level_name: The highest education required, e.g., "Bachelor's Degree", "Diploma", "Certificate", "Master's Degree", "PhD", "KCSE"
+- area_of_study: The general area/discipline if specified, e.g., "Science", "Commerce", "Arts", "Engineering", "Business"
+- field_of_study: The specific course/major if mentioned, e.g., "Industrial Chemistry", "Computer Science", "Electrical Engineering", "Accounting"
+- education_requirements: Full text of education requirements if complex (e.g., multiple accepted degrees)
 - job_location_country: "Kenya" (default if not stated)
 - job_location_county: Kenyan county name (Nairobi, Mombasa, Kiambu, Nakuru, Kisumu, etc.)
 - job_location_city: City or town name
+- additional_locations: Array of {county, city} objects for other locations the job is available in
 - industry: The sector/industry (e.g., "Technology", "Healthcare", "Banking", "Manufacturing", "Education", "Agriculture", "Construction", "NGO", "Government")
 - job_function: The functional area (e.g., "Engineering", "Marketing", "Finance", "Human Resources", "Operations", "Sales", "Legal", "IT", "Administration", "Customer Service")
 - valid_through: Application deadline in ISO date format YYYY-MM-DD (e.g., "2025-07-30"). Extract from "deadline", "closing date", "apply by", "valid until" etc.
@@ -148,14 +152,18 @@ Return JSON structure:
   "description": "<p>Job description</p>",
   "responsibilities": "<ul><li>Task 1</li></ul>",
   "required_qualifications": "<ul><li>Qual 1</li></ul>",
-  "employment_type": "FULL_TIME",
-  "job_location_type": "ON_SITE",
+  "employment_types": ["FULL_TIME", "PART_TIME"],
+  "job_location_types": ["ON_SITE", "REMOTE"],
   "job_location_country": "Kenya",
   "job_location_county": "Nairobi",
   "job_location_city": "Nairobi",
+  "additional_locations": [{"county": "Mombasa", "city": "Mombasa"}],
   "industry": "Technology",
   "job_function": "Engineering",
   "education_level_name": "Bachelor's Degree",
+  "area_of_study": "Science",
+  "field_of_study": "Computer Science",
+  "education_requirements": "Bachelor of Science in Computer Science, IT, or related field",
   "experience_level": "Mid",
   "minimum_experience": "3",
   "valid_through": "2025-07-30",

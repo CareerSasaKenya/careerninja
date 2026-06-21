@@ -18,13 +18,19 @@ interface ParsedJobData {
   required_qualifications: string;
   software_skills?: string;
   employment_type: string;
+  employment_types?: string[];
   job_location_type: string;
+  job_location_types?: string[];
   job_location_country: string;
   job_location_county?: string;
   job_location_city?: string;
+  additional_locations?: Array<{ county: string; city: string }>;
   industry: string;
   education_level_name?: string;
   education_level_id?: string;
+  area_of_study?: string;
+  field_of_study?: string;
+  education_requirements?: string;
   experience_level: string;
   language_requirements?: string;
   salary_min?: string;
@@ -34,6 +40,7 @@ interface ParsedJobData {
   minimum_experience?: string;
   apply_email?: string;
   apply_link?: string;
+  application_url?: string;
   tags?: string;
   job_function?: string;
   valid_through?: string;

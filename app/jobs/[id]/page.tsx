@@ -275,17 +275,23 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-2 mt-4">
-                        {job.employment_type && (
-                          <Badge variant="outline">{job.employment_type.replace(/_/g, ' ')}</Badge>
-                        )}
-                        {job.job_location_type && (
-                          <Badge variant="outline">{job.job_location_type.replace(/_/g, ' ')}</Badge>
-                        )}
+                        {(job.employment_types?.length > 0 ? job.employment_types : job.employment_type ? [job.employment_type] : []).map((type: string) => (
+                          <Badge key={type} variant="outline">{type.replace(/_/g, ' ')}</Badge>
+                        ))}
+                        {(job.job_location_types?.length > 0 ? job.job_location_types : job.job_location_type ? [job.job_location_type] : []).map((type: string) => (
+                          <Badge key={type} variant="outline">{type.replace(/_/g, ' ')}</Badge>
+                        ))}
                         {job.experience_level && (
                           <Badge variant="outline">{job.experience_level}</Badge>
                         )}
                         {job.industry && (
                           <Badge className="bg-primary/10 text-primary">{job.industry}</Badge>
+                        )}
+                        {job.area_of_study && (
+                          <Badge variant="secondary">{job.area_of_study}</Badge>
+                        )}
+                        {job.field_of_study && (
+                          <Badge variant="secondary">{job.field_of_study}</Badge>
                         )}
                       </div>
                       <div className="mt-4">
@@ -553,9 +559,19 @@ const RoleDetails = ({ job }: { job: any }) => {
       label: "Education Level",
       value: job.education_levels.name
     } : null,
+    job.area_of_study ? {
+      icon: <GraduationCap className="h-5 w-5 text-primary mt-0.5" />,
+      label: "Area of Study",
+      value: job.area_of_study
+    } : null,
+    job.field_of_study ? {
+      icon: <GraduationCap className="h-5 w-5 text-primary mt-0.5" />,
+      label: "Field of Study",
+      value: job.field_of_study
+    } : null,
     job.education_requirements ? {
       icon: <GraduationCap className="h-5 w-5 text-primary mt-0.5" />,
-      label: "Education",
+      label: "Education Requirements",
       value: job.education_requirements
     } : null,
     job.license_requirements ? {
@@ -571,6 +587,11 @@ const RoleDetails = ({ job }: { job: any }) => {
   ].filter(Boolean);
 
   const additionalDetails = [
+    job.additional_locations?.length > 0 ? {
+      icon: <MapPin className="h-5 w-5 text-primary mt-0.5" />,
+      label: "Other Locations",
+      value: job.additional_locations.map((loc: any) => [loc.city, loc.county].filter(Boolean).join(', ')).join('; ')
+    } : null,
     job.practice_area ? {
       icon: <Layers className="h-5 w-5 text-primary mt-0.5" />,
       label: "Practice Area",

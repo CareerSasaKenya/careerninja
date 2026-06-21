@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Loader2, Info } from "lucide-react";
+import { Loader2, Info, Plus, Trash2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import RichTextEditor from "@/components/RichTextEditor";
 import { useAuth } from "@/contexts/AuthContext";
@@ -29,15 +29,21 @@ interface JobFormData {
   // Google Job Posting Fields
   valid_through: string;
   employment_type: string;
+  employment_types: string[];
   job_location_type: string;
+  job_location_types: string[];
   job_location_country: string;
   job_location_county: string;
   job_location_city: string;
+  additional_locations: Array<{ county: string; city: string }>;
   direct_apply: boolean;
   application_url: string;
   // STEM/Health/Architecture Fields
   industry: string;
   education_level_id: string;
+  area_of_study: string;
+  field_of_study: string;
+  education_requirements: string;
   experience_level: string;
   language_requirements: string;
   // New fields
@@ -85,15 +91,21 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
       // Google Job Posting Fields
       valid_through: "",
       employment_type: "FULL_TIME",
+      employment_types: ["FULL_TIME"],
       job_location_type: "ON_SITE",
+      job_location_types: ["ON_SITE"],
       job_location_country: "Kenya",
       job_location_county: "",
       job_location_city: "",
+      additional_locations: [],
       direct_apply: true,
       application_url: "",
       // STEM/Health/Architecture Fields
       industry: "",
       education_level_id: "none",
+      area_of_study: "",
+      field_of_study: "",
+      education_requirements: "",
       experience_level: "Mid",
       language_requirements: "",
       // New fields
@@ -120,6 +132,19 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
     // Merge with initialData if provided
     if (initialData) {
       const merged = { ...defaults, ...initialData };
+      // Convert parsed arrays if present
+      if (initialData.employment_types && Array.isArray(initialData.employment_types) && initialData.employment_types.length > 0) {
+        merged.employment_types = initialData.employment_types;
+        merged.employment_type = initialData.employment_types[0];
+      } else if (initialData.employment_type) {
+        merged.employment_types = [initialData.employment_type];
+      }
+      if (initialData.job_location_types && Array.isArray(initialData.job_location_types) && initialData.job_location_types.length > 0) {
+        merged.job_location_types = initialData.job_location_types;
+        merged.job_location_type = initialData.job_location_types[0];
+      } else if (initialData.job_location_type) {
+        merged.job_location_types = [initialData.job_location_type];
+      }
       // If we're going to create a company, clear company_id to avoid conflicts
       if (isParsedData && initialData.company && !initialData.company_id) {
         merged.company_id = "";
@@ -426,16 +451,26 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
         // Google Job Posting Fields
         valid_through: existingJob.valid_through || "",
         employment_type: existingJob.employment_type || "FULL_TIME",
+        employment_types: (existingJob as any).employment_types?.length > 0
+          ? (existingJob as any).employment_types
+          : [existingJob.employment_type || "FULL_TIME"],
         job_location_type: existingJob.job_location_type || "ON_SITE",
+        job_location_types: (existingJob as any).job_location_types?.length > 0
+          ? (existingJob as any).job_location_types
+          : [existingJob.job_location_type || "ON_SITE"],
         job_location_country: existingJob.job_location_country || "Kenya",
         job_location_county: existingJob.job_location_county || "",
         job_location_city: existingJob.job_location_city || "",
+        additional_locations: (existingJob as any).additional_locations || [],
         direct_apply: existingJob.direct_apply ?? true,
         application_url: existingJob.application_url || "",
         
         // STEM/Health/Architecture Fields
         industry: existingJob.industry || "",
         education_level_id: existingJob.education_level_id ? String(existingJob.education_level_id) : "none",
+        area_of_study: (existingJob as any).area_of_study || "",
+        field_of_study: (existingJob as any).field_of_study || "",
+        education_requirements: (existingJob as any).education_requirements || "",
         experience_level: existingJob.experience_level || "Mid",
         language_requirements: existingJob.language_requirements || "",
         
@@ -611,8 +646,10 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
         // Google Job Posting Fields
         valid_through: data.valid_through || null,
         employment_type: data.employment_type,
+        employment_types: data.employment_types && data.employment_types.length > 0 ? data.employment_types : [data.employment_type],
         hiring_organization_name: companyName,
         job_location_type: data.job_location_type,
+        job_location_types: data.job_location_types && data.job_location_types.length > 0 ? data.job_location_types : [data.job_location_type],
         job_location_country: data.job_location_country,
         job_location_county: data.job_location_county || null,
         job_location_city: data.job_location_city || null,
@@ -624,6 +661,9 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
         industry: data.industry || null,
         required_qualifications: data.required_qualifications || null,
         education_level_id: data.education_level_id && data.education_level_id !== "none" ? parseInt(data.education_level_id) : null,
+        area_of_study: data.area_of_study || null,
+        field_of_study: data.field_of_study || null,
+        education_requirements: data.education_requirements || null,
         experience_level: data.experience_level || null,
         language_requirements: data.language_requirements || null,
 
@@ -650,6 +690,11 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
         tags: data.tags || null,
         job_function: data.job_function || null,
         additional_info: data.additional_info || null,
+
+        // Multi-location support
+        additional_locations: data.additional_locations && data.additional_locations.length > 0
+          ? data.additional_locations.filter(loc => loc.county || loc.city)
+          : null,
       };
 
       if (jobId) {
@@ -975,34 +1020,60 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
         <TabsContent value="details" className="space-y-4 mt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="employment_type">Employment Type</Label>
-              <Select value={formData.employment_type} onValueChange={(value) => setFormData({...formData, employment_type: value})}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="FULL_TIME">Full Time</SelectItem>
-                  <SelectItem value="PART_TIME">Part Time</SelectItem>
-                  <SelectItem value="CONTRACTOR">Contractor</SelectItem>
-                  <SelectItem value="INTERN">Intern</SelectItem>
-                  <SelectItem value="TEMPORARY">Temporary</SelectItem>
-                  <SelectItem value="VOLUNTEER">Volunteer</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label>Employment Type (select all that apply)</Label>
+              <div className="grid grid-cols-2 gap-2 p-3 border rounded-md">
+                {[
+                  { value: "FULL_TIME", label: "Full Time" },
+                  { value: "PART_TIME", label: "Part Time" },
+                  { value: "CONTRACTOR", label: "Contractor" },
+                  { value: "INTERN", label: "Intern" },
+                  { value: "TEMPORARY", label: "Temporary" },
+                  { value: "VOLUNTEER", label: "Volunteer" },
+                ].map((opt) => (
+                  <div key={opt.value} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`emp_${opt.value}`}
+                      checked={formData.employment_types.includes(opt.value)}
+                      onCheckedChange={(checked) => {
+                        const newTypes = checked
+                          ? [...formData.employment_types, opt.value]
+                          : formData.employment_types.filter(t => t !== opt.value);
+                        if (newTypes.length > 0) {
+                          setFormData({ ...formData, employment_types: newTypes, employment_type: newTypes[0] });
+                        }
+                      }}
+                    />
+                    <Label htmlFor={`emp_${opt.value}`} className="font-normal text-sm cursor-pointer">{opt.label}</Label>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="job_location_type">Work Location Type</Label>
-              <Select value={formData.job_location_type} onValueChange={(value) => setFormData({...formData, job_location_type: value})}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ON_SITE">On Site</SelectItem>
-                  <SelectItem value="REMOTE">Remote</SelectItem>
-                  <SelectItem value="HYBRID">Hybrid</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label>Work Location Type (select all that apply)</Label>
+              <div className="grid grid-cols-1 gap-2 p-3 border rounded-md">
+                {[
+                  { value: "ON_SITE", label: "On Site" },
+                  { value: "REMOTE", label: "Remote" },
+                  { value: "HYBRID", label: "Hybrid" },
+                ].map((opt) => (
+                  <div key={opt.value} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`loc_${opt.value}`}
+                      checked={formData.job_location_types.includes(opt.value)}
+                      onCheckedChange={(checked) => {
+                        const newTypes = checked
+                          ? [...formData.job_location_types, opt.value]
+                          : formData.job_location_types.filter(t => t !== opt.value);
+                        if (newTypes.length > 0) {
+                          setFormData({ ...formData, job_location_types: newTypes, job_location_type: newTypes[0] });
+                        }
+                      }}
+                    />
+                    <Label htmlFor={`loc_${opt.value}`} className="font-normal text-sm cursor-pointer">{opt.label}</Label>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -1181,6 +1252,60 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
                 </Select>
               </div>
             </div>
+
+            {/* Additional Locations */}
+            <div className="space-y-2">
+              <Label>Additional Locations (optional)</Label>
+              <p className="text-xs text-muted-foreground">Add if this job is available in multiple locations</p>
+              {formData.additional_locations.map((loc, idx) => (
+                <div key={idx} className="flex gap-2 items-center">
+                  <Input
+                    value={loc.county}
+                    onChange={(e) => {
+                      const newLocs = [...formData.additional_locations];
+                      newLocs[idx] = { ...newLocs[idx], county: e.target.value, city: e.target.value };
+                      setFormData({ ...formData, additional_locations: newLocs });
+                    }}
+                    placeholder="County"
+                    className="flex-1"
+                  />
+                  <Input
+                    value={loc.city}
+                    onChange={(e) => {
+                      const newLocs = [...formData.additional_locations];
+                      newLocs[idx] = { ...newLocs[idx], city: e.target.value };
+                      setFormData({ ...formData, additional_locations: newLocs });
+                    }}
+                    placeholder="City/Town"
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const newLocs = formData.additional_locations.filter((_, i) => i !== idx);
+                      setFormData({ ...formData, additional_locations: newLocs });
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setFormData({
+                    ...formData,
+                    additional_locations: [...formData.additional_locations, { county: "", city: "" }],
+                  });
+                }}
+              >
+                <Plus className="h-4 w-4 mr-1" /> Add Location
+              </Button>
+            </div>
           </div>
         </TabsContent>
 
@@ -1197,7 +1322,7 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="education_level_id">Education Level</Label>
+              <Label htmlFor="education_level_id">Minimum Education Level</Label>
               <Select 
                 value={formData.education_level_id} 
                 onValueChange={(value) => setFormData({...formData, education_level_id: value})}
@@ -1215,6 +1340,28 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="area_of_study">Area of Study / Discipline</Label>
+              <Input
+                id="area_of_study"
+                name="area_of_study"
+                value={formData.area_of_study}
+                onChange={handleChange}
+                placeholder="e.g., Science, Commerce, Arts, Engineering, Business"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="field_of_study">Specific Course / Major</Label>
+              <Input
+                id="field_of_study"
+                name="field_of_study"
+                value={formData.field_of_study}
+                onChange={handleChange}
+                placeholder="e.g., Industrial Chemistry, Computer Science, Accounting"
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="language_requirements">Language Requirements</Label>
               <Input
                 id="language_requirements"
@@ -1224,6 +1371,18 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
                 placeholder="e.g., English, Kiswahili"
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="education_requirements">Detailed Education Requirements (optional)</Label>
+            <Input
+              id="education_requirements"
+              name="education_requirements"
+              value={formData.education_requirements}
+              onChange={handleChange}
+              placeholder="e.g., BSc in Food Science, Microbiology, Chemistry, Biotechnology, or related field"
+            />
+            <p className="text-xs text-muted-foreground">Use this for complex requirements with multiple accepted degrees or certifications</p>
           </div>
 
           <div className="space-y-2">
