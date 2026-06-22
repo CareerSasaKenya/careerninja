@@ -129,7 +129,7 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
       tags: "",
       job_function: "",
       job_functions: [],
-      status: "draft",
+      status: "active",
       additional_info: "",
     };
 
