@@ -315,87 +315,118 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
   const hasAutoMatchedRef = useRef(false);
   useEffect(() => {
     if (!isParsedData || hasAutoMatchedRef.current) return;
-    // Wait for reference data to load
     if (!counties || counties.length === 0) return;
 
-    let updated = false;
-    const updates: Partial<JobFormData> = {};
+    let cancelled = false;
 
-    // 1. Auto-select county dropdown
-    if (formData.job_location_county && !selectedCountyId) {
-      const matchedCounty = fuzzyMatch(formData.job_location_county, counties.map(c => c.name));
-      if (matchedCounty) {
-        const countyObj = counties.find(c => c.name === matchedCounty);
-        if (countyObj) {
-          setSelectedCountyId(String(countyObj.id));
-          // Normalize the form value to exact DB name
-          updates.job_location_county = matchedCounty;
-          updated = true;
-        }
-      }
-    }
+    const run = async () => {
+      let updated = false;
+      const updates: Partial<JobFormData> = {};
 
-    // 2. Auto-match industries (array)
-    if (formData.industries && formData.industries.length > 0 && industries && industries.length > 0) {
-      const matchedIndustries = formData.industries.map(ind => {
-        const matched = fuzzyMatch(ind, industries.map(i => i.name));
-        return matched || ind;
-      });
-      // Also set single-value for backward compat
-      updates.industries = matchedIndustries;
-      updates.industry = matchedIndustries[0];
-      updated = true;
-    } else if (formData.industry && industries && industries.length > 0) {
-      const matchedIndustry = fuzzyMatch(formData.industry, industries.map(i => i.name));
-      if (matchedIndustry) {
-        updates.industries = [matchedIndustry];
-        if (matchedIndustry !== formData.industry) {
-          updates.industry = matchedIndustry;
-        }
-        updated = true;
-      }
-    }
-
-    // 3. Auto-match job functions (array)
-    if (formData.job_functions && formData.job_functions.length > 0 && jobFunctions && jobFunctions.length > 0) {
-      const matchedFuncs = formData.job_functions.map(fn => {
-        const matched = fuzzyMatch(fn, jobFunctions.map(f => f.name));
-        return matched || fn;
-      });
-      updates.job_functions = matchedFuncs;
-      updates.job_function = matchedFuncs[0];
-      updated = true;
-    } else if (formData.job_function && jobFunctions && jobFunctions.length > 0) {
-      const matchedFunc = fuzzyMatch(formData.job_function, jobFunctions.map(f => f.name));
-      if (matchedFunc) {
-        updates.job_functions = [matchedFunc];
-        if (matchedFunc !== formData.job_function) {
-          updates.job_function = matchedFunc;
-        }
-        updated = true;
-      }
-    }
-
-    // 4. Auto-match education level (improve fuzzy matching)
-    if (formData.education_level_id === "none" && educationLevels && educationLevels.length > 0) {
-      // The parsed data may have education_level_name that didn't exact-match in the API route
-      const parsedEdu = (initialData as any)?.education_level_name;
-      if (parsedEdu) {
-        const matchedEdu = fuzzyMatch(parsedEdu, educationLevels.map(e => e.name));
-        if (matchedEdu) {
-          const eduObj = educationLevels.find(e => e.name === matchedEdu);
-          if (eduObj) {
-            updates.education_level_id = String(eduObj.id);
+      // 1. Auto-select county dropdown (with town-to-county fallback)
+      if (formData.job_location_county && !selectedCountyId) {
+        const matchedCounty = fuzzyMatch(formData.job_location_county, counties.map(c => c.name));
+        if (matchedCounty) {
+          const countyObj = counties.find(c => c.name === matchedCounty);
+          if (countyObj && !cancelled) {
+            setSelectedCountyId(String(countyObj.id));
+            updates.job_location_county = matchedCounty;
             updated = true;
+          }
+        } else {
+          // Fallback: parsed value might be a town name — look it up in towns table
+          try {
+            const parsedLoc = formData.job_location_county.toLowerCase().trim();
+            const { data: matchedTowns } = await supabase
+              .from("towns")
+              .select("id, name, county_id")
+              .ilike("name", `%${parsedLoc}%`)
+              .limit(5);
+
+            if (!cancelled && matchedTowns && matchedTowns.length > 0) {
+              const exactTown = matchedTowns.find(t => t.name.toLowerCase().trim() === parsedLoc);
+              const bestTown = exactTown || matchedTowns[0];
+              if (bestTown) {
+                const countyObj = counties.find(c => c.id === bestTown.county_id);
+                if (countyObj) {
+                  setSelectedCountyId(String(countyObj.id));
+                  updates.job_location_county = countyObj.name;
+                  updates.job_location_city = bestTown.name;
+                  updated = true;
+                }
+              }
+            }
+          } catch (err) {
+            console.warn("Town lookup failed:", err);
           }
         }
       }
-    }
 
-    if (updated) {
-      setFormData(prev => ({ ...prev, ...updates }));
-    }
-    hasAutoMatchedRef.current = true;
+      // 2. Auto-match industries (array)
+      if (formData.industries && formData.industries.length > 0 && industries && industries.length > 0) {
+        const matchedIndustries = formData.industries.map(ind => {
+          const matched = fuzzyMatch(ind, industries.map(i => i.name));
+          return matched || ind;
+        });
+        updates.industries = matchedIndustries;
+        updates.industry = matchedIndustries[0];
+        updated = true;
+      } else if (formData.industry && industries && industries.length > 0) {
+        const matchedIndustry = fuzzyMatch(formData.industry, industries.map(i => i.name));
+        if (matchedIndustry) {
+          updates.industries = [matchedIndustry];
+          if (matchedIndustry !== formData.industry) {
+            updates.industry = matchedIndustry;
+          }
+          updated = true;
+        }
+      }
+
+      // 3. Auto-match job functions (array)
+      if (formData.job_functions && formData.job_functions.length > 0 && jobFunctions && jobFunctions.length > 0) {
+        const matchedFuncs = formData.job_functions.map(fn => {
+          const matched = fuzzyMatch(fn, jobFunctions.map(f => f.name));
+          return matched || fn;
+        });
+        updates.job_functions = matchedFuncs;
+        updates.job_function = matchedFuncs[0];
+        updated = true;
+      } else if (formData.job_function && jobFunctions && jobFunctions.length > 0) {
+        const matchedFunc = fuzzyMatch(formData.job_function, jobFunctions.map(f => f.name));
+        if (matchedFunc) {
+          updates.job_functions = [matchedFunc];
+          if (matchedFunc !== formData.job_function) {
+            updates.job_function = matchedFunc;
+          }
+          updated = true;
+        }
+      }
+
+      // 4. Auto-match education level
+      if (formData.education_level_id === "none" && educationLevels && educationLevels.length > 0) {
+        const parsedEdu = (initialData as any)?.education_level_name;
+        if (parsedEdu) {
+          const matchedEdu = fuzzyMatch(parsedEdu, educationLevels.map(e => e.name));
+          if (matchedEdu) {
+            const eduObj = educationLevels.find(e => e.name === matchedEdu);
+            if (eduObj) {
+              updates.education_level_id = String(eduObj.id);
+              updated = true;
+            }
+          }
+        }
+      }
+
+      if (!cancelled) {
+        if (updated) {
+          setFormData(prev => ({ ...prev, ...updates }));
+        }
+        hasAutoMatchedRef.current = true;
+      }
+    };
+
+    run();
+    return () => { cancelled = true; };
   }, [isParsedData, counties, industries, jobFunctions, educationLevels, formData.job_location_county, formData.industries, formData.industry, formData.job_functions, formData.job_function, formData.education_level_id]);
 
   // Auto-select town dropdown once county is selected and towns are loaded
