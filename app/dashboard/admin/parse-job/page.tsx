@@ -138,7 +138,7 @@ const ParseJobPage = () => {
               <li>Paste your pre-cleaned job text (90%+ ready)</li>
               <li>AI extracts structured information</li>
               <li>Review and edit the parsed data in the form</li>
-              <li>Save as draft or publish immediately</li>
+              <li>Review the form (defaults to Active / Publish) and submit</li>
             </ol>
           </AlertDescription>
         </Alert>
@@ -235,10 +235,16 @@ const ParseJobPage = () => {
 
 // Wrapper component to pass initial data to JobPostingForm
 const JobPostingFormWrapper = ({ initialData }: { initialData: ParsedJobData }) => {
+  const formKey = `${initialData.title}-${initialData.company}-${initialData.job_location_city || ""}`;
+
   return (
     <Card>
       <CardContent className="pt-6">
-        <JobPostingForm initialData={initialData} isParsedData={true} />
+        <JobPostingForm
+          key={formKey}
+          initialData={{ ...initialData, status: "active" }}
+          isParsedData={true}
+        />
       </CardContent>
     </Card>
   );

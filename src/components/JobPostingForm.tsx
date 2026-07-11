@@ -135,7 +135,9 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
 
     // Merge with initialData if provided
     if (initialData) {
-      const merged = { ...defaults, ...initialData };
+      // Strip status from parsed AI data so publish is always the default after parsing
+      const { status: _parsedStatus, ...parsedFields } = initialData as Partial<JobFormData> & { status?: string };
+      const merged = { ...defaults, ...parsedFields };
       // Convert parsed arrays if present
       if (initialData.employment_types && Array.isArray(initialData.employment_types) && initialData.employment_types.length > 0) {
         merged.employment_types = initialData.employment_types;
@@ -166,6 +168,9 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
       // If we're going to create a company, clear company_id to avoid conflicts
       if (isParsedData && initialData.company && !initialData.company_id) {
         merged.company_id = "";
+      }
+      if (isParsedData) {
+        merged.status = "active";
       }
       return merged;
     }
