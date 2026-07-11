@@ -96,7 +96,7 @@ export async function getCachedResponse(jobText: string): Promise<ParsedJobData 
       .update({ hit_count: (supabase as any).sql`hit_count + 1` })
       .eq('input_hash', hash);
 
-    return data.response_data as ParsedJobData;
+    return sanitizeParsedJobData(data.response_data as ParsedJobData & { status?: string; job_status?: string });
   } catch (error) {
     console.error('Cache lookup error:', error);
     return null;
@@ -342,6 +342,11 @@ async function callOpenRouterAPI(apiKey: string, jobText: string, systemPrompt: 
 }
 
 // Parse AI response with better error handling
+function sanitizeParsedJobData(data: ParsedJobData & { status?: string; job_status?: string }): ParsedJobData {
+  const { status: _status, job_status: _jobStatus, ...clean } = data;
+  return clean as ParsedJobData;
+}
+
 function parseAIResponse(content: string): ParsedJobData {
   let cleanedContent = content.trim();
   
@@ -353,13 +358,13 @@ function parseAIResponse(content: string): ParsedJobData {
   }
   
   try {
-    return JSON.parse(cleanedContent);
+    return sanitizeParsedJobData(JSON.parse(cleanedContent));
   } catch (error) {
     // Try to extract JSON from the response
     const jsonMatch = cleanedContent.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       try {
-        return JSON.parse(jsonMatch[0]);
+        return sanitizeParsedJobData(JSON.parse(jsonMatch[0]));
       } catch (e) {
         throw new Error(`Failed to parse AI response: ${error}`);
       }

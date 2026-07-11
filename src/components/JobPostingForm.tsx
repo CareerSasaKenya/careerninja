@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -135,8 +135,12 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
 
     // Merge with initialData if provided
     if (initialData) {
-      // Strip status from parsed AI data so publish is always the default after parsing
-      const { status: _parsedStatus, ...parsedFields } = initialData as Partial<JobFormData> & { status?: string };
+      // Strip status fields from parsed AI data so publish is always the default after parsing
+      const {
+        status: _parsedStatus,
+        job_status: _parsedJobStatus,
+        ...parsedFields
+      } = initialData as Partial<JobFormData> & { status?: string; job_status?: string };
       const merged = { ...defaults, ...parsedFields };
       // Convert parsed arrays if present
       if (initialData.employment_types && Array.isArray(initialData.employment_types) && initialData.employment_types.length > 0) {
@@ -179,6 +183,12 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
   };
 
   const [formData, setFormData] = useState<JobFormData>(getInitialFormData());
+
+  // Ensure parsed jobs always default to publish, even if another effect runs after mount
+  useLayoutEffect(() => {
+    if (!isParsedData) return;
+    setFormData((prev) => (prev.status === "active" ? prev : { ...prev, status: "active" }));
+  }, [isParsedData, initialData?.title, initialData?.company]);
 
   const [selectedCountyId, setSelectedCountyId] = useState<string>("");
   const [selectedTownId, setSelectedTownId] = useState<string>("");
@@ -512,6 +522,7 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
   const hasLoadedJobRef = useRef(false);
   
   useEffect(() => {
+    if (!jobId || isParsedData) return;
     if (existingJob && !isJobLoading && !hasLoadedJobRef.current) {
       hasLoadedJobRef.current = true;
       
@@ -604,7 +615,7 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
         setNewCompanyName("");
       }
     }
-  }, [existingJob, counties, towns, isJobLoading]);
+  }, [jobId, isParsedData, existingJob, counties, towns, isJobLoading]);
 
   const mutation = useMutation({
     mutationFn: async (data: JobFormData) => {
@@ -1651,9 +1662,12 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
 
           <div className="space-y-2">
             <Label htmlFor="status">Job Status</Label>
-            <Select value={formData.status} onValueChange={(value) => setFormData({...formData, status: value})}>
+            <Select
+              value={formData.status || "active"}
+              onValueChange={(value) => setFormData({...formData, status: value})}
+            >
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder="Active (Publish Now)" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="active">Active (Publish Now)</SelectItem>

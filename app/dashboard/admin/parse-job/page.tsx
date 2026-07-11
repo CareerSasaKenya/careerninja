@@ -51,6 +51,7 @@ interface ParsedJobData {
 const ParseJobPage = () => {
   const router = useRouter();
   const [parsedData, setParsedData] = useState<ParsedJobData | null>(null);
+  const [parseSessionId, setParseSessionId] = useState(0);
   const [showForm, setShowForm] = useState(false);
 
   const handleParsed = async (data: ParsedJobData) => {
@@ -102,12 +103,18 @@ const ParseJobPage = () => {
       }
     }
     
-    setParsedData(data);
+    const { status: _status, job_status: _jobStatus, ...cleanData } = data as ParsedJobData & {
+      status?: string;
+      job_status?: string;
+    };
+    setParsedData(cleanData);
+    setParseSessionId((id) => id + 1);
     setShowForm(true);
   };
 
   const handleReset = () => {
     setParsedData(null);
+    setParseSessionId(0);
     setShowForm(false);
   };
 
@@ -223,7 +230,7 @@ const ParseJobPage = () => {
                   </CardContent>
                 </Card>
                 
-                <JobPostingFormWrapper initialData={parsedData} />
+                <JobPostingFormWrapper initialData={parsedData} parseSessionId={parseSessionId} />
               </>
             )}
           </div>
@@ -234,14 +241,18 @@ const ParseJobPage = () => {
 };
 
 // Wrapper component to pass initial data to JobPostingForm
-const JobPostingFormWrapper = ({ initialData }: { initialData: ParsedJobData }) => {
-  const formKey = `${initialData.title}-${initialData.company}-${initialData.job_location_city || ""}`;
-
+const JobPostingFormWrapper = ({
+  initialData,
+  parseSessionId,
+}: {
+  initialData: ParsedJobData;
+  parseSessionId: number;
+}) => {
   return (
     <Card>
       <CardContent className="pt-6">
         <JobPostingForm
-          key={formKey}
+          key={`parsed-job-${parseSessionId}`}
           initialData={{ ...initialData, status: "active" }}
           isParsedData={true}
         />
