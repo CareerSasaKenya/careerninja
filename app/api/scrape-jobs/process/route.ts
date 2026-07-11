@@ -9,6 +9,7 @@ import {
   generateContentHash as workableHash,
 } from '@/lib/workable-adapter'
 import { mapEducationLevel } from '@/lib/jobMetadataExtraction'
+import { resolveValidThrough } from '@/lib/jobParseNormalization'
 import { parseScrapedJobContent, ScrapedJobInput } from '@/lib/scraperJobParsing'
 import type { WorkableJobDetail } from '@/lib/workable-adapter'
 
@@ -163,7 +164,7 @@ export async function POST(request: NextRequest) {
       source: 'Scraper',
       direct_apply: false,
       application_url: normalized.application_url || queueItem.job_url,
-      valid_through: parsed.deadline || normalized.valid_through,
+      valid_through: resolveValidThrough(parsed.deadline || normalized.valid_through || undefined),
       education_level_id: educationLevelId,
       minimum_experience: parsed.minimum_experience ?? normalized.minimum_experience,
       experience_level: parsed.experience_level || normalized.experience_level,

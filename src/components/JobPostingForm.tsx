@@ -22,6 +22,7 @@ import {
   matchToAllowedOptions,
   limitTags,
   dedupeStrings,
+  resolveValidThrough,
 } from "@/lib/jobParseNormalization";
 
 interface JobFormData {
@@ -196,6 +197,7 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
         if (merged.tags) {
           merged.tags = limitTags(merged.tags);
         }
+        merged.valid_through = resolveValidThrough(merged.valid_through);
       }
       return merged;
     }
@@ -205,12 +207,16 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
 
   const [formData, setFormData] = useState<JobFormData>(getInitialFormData());
 
-  // Ensure parsed jobs default to publish with direct apply unchecked
+  // Ensure parsed jobs default to publish with direct apply unchecked and a valid expiry date
   useLayoutEffect(() => {
     if (!isParsedData) return;
     setFormData((prev) => {
-      if (prev.status === "active" && !prev.direct_apply) return prev;
-      return { ...prev, status: "active", direct_apply: false };
+      const updates: Partial<JobFormData> = {};
+      if (prev.status !== "active") updates.status = "active";
+      if (prev.direct_apply) updates.direct_apply = false;
+      if (!prev.valid_through?.trim()) updates.valid_through = resolveValidThrough(prev.valid_through);
+      if (Object.keys(updates).length === 0) return prev;
+      return { ...prev, ...updates };
     });
   }, [isParsedData, initialData?.title, initialData?.company]);
 
@@ -773,7 +779,9 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
         status: data.status,
 
         // Google Job Posting Fields
-        valid_through: data.valid_through || null,
+        valid_through: jobId
+          ? (data.valid_through?.trim() || null)
+          : resolveValidThrough(data.valid_through),
         employment_type: data.employment_type,
         employment_types: data.employment_types && data.employment_types.length > 0 ? data.employment_types : [data.employment_type],
         hiring_organization_name: companyName,
@@ -1312,6 +1320,9 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
                 value={formData.valid_through}
                 onChange={handleChange}
               />
+              <p className="text-xs text-muted-foreground">
+                Required for Google job listings. Defaults to 30 days after posting if left blank.
+              </p>
             </div>
             
             <div className="space-y-2">

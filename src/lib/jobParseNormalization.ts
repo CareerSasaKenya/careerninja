@@ -101,6 +101,20 @@ export const FALLBACK_JOB_FUNCTIONS = [
 
 export const MAX_JOB_TAGS = 5;
 
+export function getDefaultValidThrough(fromDate = new Date()): string {
+  const expiry = new Date(fromDate);
+  expiry.setDate(expiry.getDate() + 30);
+  return expiry.toISOString().split("T")[0];
+}
+
+export function resolveValidThrough(
+  validThrough: string | null | undefined,
+  postingDate = new Date()
+): string {
+  const trimmed = validThrough?.trim();
+  return trimmed || getDefaultValidThrough(postingDate);
+}
+
 export function fuzzyMatchOption(
   parsedValue: string | undefined,
   allowedNames: string[] | undefined
@@ -208,7 +222,7 @@ CRITICAL FIELDS TO EXTRACT:
 - job_location_county: Kenyan county name (Nairobi, Mombasa, Kiambu, Nakuru, Kisumu, etc.)
 - job_location_city: City or town name
 - additional_locations: Array of {county, city} objects for other locations the job is available in
-- valid_through: Application deadline in ISO date format YYYY-MM-DD (e.g., "2025-07-30")
+- valid_through: Application deadline in ISO date format YYYY-MM-DD (e.g., "2025-07-30"). Extract from deadline/closing date text when stated. ALWAYS include this field — if no deadline is mentioned, use a date 30 days from today.
 - minimum_experience: Minimum years of experience as a number (e.g., "3" from "3+ years", "minimum 5 years")
 - apply_email: Application email address extracted from "send to", "email", "apply to"
 - apply_link: Application URL extracted from "apply at", "apply online", "visit", application link
@@ -255,6 +269,7 @@ export type NormalizableParsedJob = {
   job_function?: string;
   job_functions?: string[];
   tags?: string;
+  valid_through?: string;
   education_requirements?: string;
 };
 
@@ -296,6 +311,8 @@ export function normalizeParsedJobFields<T extends NormalizableParsedJob>(
   if (normalized.tags) {
     normalized.tags = limitTags(normalized.tags);
   }
+
+  normalized.valid_through = resolveValidThrough(normalized.valid_through);
 
   return normalized as T;
 }
