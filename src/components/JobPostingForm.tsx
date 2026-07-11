@@ -17,6 +17,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import RichTextEditor from "@/components/RichTextEditor";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
+import {
+  fuzzyMatchOption,
+  matchToAllowedOptions,
+  limitTags,
+  dedupeStrings,
+} from "@/lib/jobParseNormalization";
 
 interface JobFormData {
   // Core fields
@@ -140,6 +146,7 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
         status: _parsedStatus,
         job_status: _parsedJobStatus,
         direct_apply: _parsedDirectApply,
+        education_requirements: _parsedEducationRequirements,
         ...parsedFields
       } = initialData as Partial<JobFormData> & { status?: string; job_status?: string };
       const merged = { ...defaults, ...parsedFields };
@@ -177,6 +184,18 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
       if (isParsedData) {
         merged.status = "active";
         merged.direct_apply = false;
+        merged.education_requirements = "";
+        if (merged.industries?.length) {
+          merged.industries = dedupeStrings(merged.industries);
+          merged.industry = merged.industries[0] || "";
+        }
+        if (merged.job_functions?.length) {
+          merged.job_functions = dedupeStrings(merged.job_functions);
+          merged.job_function = merged.job_functions[0] || "";
+        }
+        if (merged.tags) {
+          merged.tags = limitTags(merged.tags);
+        }
       }
       return merged;
     }
@@ -304,32 +323,7 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
   }, [countyName, townName]);
 
   // Helper: fuzzy-match a parsed name against a list of DB options
-  const fuzzyMatch = (parsedValue: string | undefined, dbNames: string[] | undefined): string | null => {
-    if (!parsedValue || !dbNames || dbNames.length === 0) return null;
-    const normalized = parsedValue.toLowerCase().trim();
-    // Exact match first
-    const exact = dbNames.find(n => n.toLowerCase().trim() === normalized);
-    if (exact) return exact;
-    // Substring match (parsed value is contained in DB name or vice versa)
-    const sub = dbNames.find(n => {
-      const dbNorm = n.toLowerCase().trim();
-      return dbNorm.includes(normalized) || normalized.includes(dbNorm);
-    });
-    if (sub) return sub;
-    // Word overlap: check if any significant word matches
-    const parsedWords = normalized.split(/\s+/).filter(w => w.length > 2);
-    let bestMatch: string | null = null;
-    let bestScore = 0;
-    for (const dbName of dbNames) {
-      const dbWords = dbName.toLowerCase().trim().split(/\s+/).filter(w => w.length > 2);
-      const overlap = parsedWords.filter(pw => dbWords.includes(pw)).length;
-      if (overlap > bestScore) {
-        bestScore = overlap;
-        bestMatch = dbName;
-      }
-    }
-    return bestScore > 0 ? bestMatch : null;
-  };
+  const fuzzyMatch = fuzzyMatchOption;
 
   // Auto-match parsed text values to DB dropdown options
   const hasAutoMatchedRef = useRef(false);
@@ -382,42 +376,58 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
         }
       }
 
-      // 2. Auto-match industries (array)
+      // 2. Auto-match industries (array) — only keep valid dropdown options
       if (formData.industries && formData.industries.length > 0 && industries && industries.length > 0) {
-        const matchedIndustries = formData.industries.map(ind => {
-          const matched = fuzzyMatch(ind, industries.map(i => i.name));
-          return matched || ind;
-        });
-        updates.industries = matchedIndustries;
-        updates.industry = matchedIndustries[0];
-        updated = true;
+        const matchedIndustries = matchToAllowedOptions(
+          dedupeStrings(formData.industries),
+          industries.map((i) => i.name)
+        );
+        if (matchedIndustries.length > 0) {
+          updates.industries = matchedIndustries;
+          updates.industry = matchedIndustries[0];
+          updated = true;
+        } else {
+          updates.industries = [];
+          updates.industry = "";
+          updated = true;
+        }
       } else if (formData.industry && industries && industries.length > 0) {
-        const matchedIndustry = fuzzyMatch(formData.industry, industries.map(i => i.name));
-        if (matchedIndustry) {
-          updates.industries = [matchedIndustry];
-          if (matchedIndustry !== formData.industry) {
-            updates.industry = matchedIndustry;
-          }
+        const matchedIndustries = matchToAllowedOptions([formData.industry], industries.map((i) => i.name));
+        if (matchedIndustries.length > 0) {
+          updates.industries = matchedIndustries;
+          updates.industry = matchedIndustries[0];
+          updated = true;
+        } else {
+          updates.industries = [];
+          updates.industry = "";
           updated = true;
         }
       }
 
-      // 3. Auto-match job functions (array)
+      // 3. Auto-match job functions (array) — only keep valid dropdown options
       if (formData.job_functions && formData.job_functions.length > 0 && jobFunctions && jobFunctions.length > 0) {
-        const matchedFuncs = formData.job_functions.map(fn => {
-          const matched = fuzzyMatch(fn, jobFunctions.map(f => f.name));
-          return matched || fn;
-        });
-        updates.job_functions = matchedFuncs;
-        updates.job_function = matchedFuncs[0];
-        updated = true;
+        const matchedFuncs = matchToAllowedOptions(
+          dedupeStrings(formData.job_functions),
+          jobFunctions.map((f) => f.name)
+        );
+        if (matchedFuncs.length > 0) {
+          updates.job_functions = matchedFuncs;
+          updates.job_function = matchedFuncs[0];
+          updated = true;
+        } else {
+          updates.job_functions = [];
+          updates.job_function = "";
+          updated = true;
+        }
       } else if (formData.job_function && jobFunctions && jobFunctions.length > 0) {
-        const matchedFunc = fuzzyMatch(formData.job_function, jobFunctions.map(f => f.name));
-        if (matchedFunc) {
-          updates.job_functions = [matchedFunc];
-          if (matchedFunc !== formData.job_function) {
-            updates.job_function = matchedFunc;
-          }
+        const matchedFuncs = matchToAllowedOptions([formData.job_function], jobFunctions.map((f) => f.name));
+        if (matchedFuncs.length > 0) {
+          updates.job_functions = matchedFuncs;
+          updates.job_function = matchedFuncs[0];
+          updated = true;
+        } else {
+          updates.job_functions = [];
+          updates.job_function = "";
           updated = true;
         }
       }
@@ -732,20 +742,24 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
         originalCompanyId: data.company_id
       });
 
-      // Resolve industry names to UUIDs
-      const industryIds = (data.industries && data.industries.length > 0 ? data.industries : data.industry ? [data.industry] : [])
-        .map((name: string) => {
-          const match = industries?.find((i: any) => i.name === name);
-          return match?.id || null;
-        })
+      // Resolve industry names to UUIDs (allowed options only)
+      const allowedIndustryNames = industries?.map((i: any) => i.name) || [];
+      const normalizedIndustries = matchToAllowedOptions(
+        dedupeStrings(data.industries && data.industries.length > 0 ? data.industries : data.industry ? [data.industry] : []),
+        allowedIndustryNames
+      );
+      const industryIds = normalizedIndustries
+        .map((name: string) => industries?.find((i: any) => i.name === name)?.id || null)
         .filter(Boolean);
 
-      // Resolve job function names to UUIDs
-      const jobFunctionIds = (data.job_functions && data.job_functions.length > 0 ? data.job_functions : data.job_function ? [data.job_function] : [])
-        .map((name: string) => {
-          const match = jobFunctions?.find((f: any) => f.name === name);
-          return match?.id || null;
-        })
+      // Resolve job function names to UUIDs (allowed options only)
+      const allowedFunctionNames = jobFunctions?.map((f: any) => f.name) || [];
+      const normalizedJobFunctions = matchToAllowedOptions(
+        dedupeStrings(data.job_functions && data.job_functions.length > 0 ? data.job_functions : data.job_function ? [data.job_function] : []),
+        allowedFunctionNames
+      );
+      const jobFunctionIds = normalizedJobFunctions
+        .map((name: string) => jobFunctions?.find((f: any) => f.name === name)?.id || null)
         .filter(Boolean);
 
       const jobData: any = {
@@ -773,14 +787,14 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
         application_url: data.application_url || null,
 
         // STEM/Health/Architecture Fields
-        industry: data.industry || null,
-        industries: data.industries && data.industries.length > 0 ? data.industries : data.industry ? [data.industry] : null,
+        industry: normalizedIndustries[0] || null,
+        industries: normalizedIndustries.length > 0 ? normalizedIndustries : null,
         industry_ids: industryIds.length > 0 ? industryIds : null,
         required_qualifications: data.required_qualifications || null,
         education_level_id: data.education_level_id && data.education_level_id !== "none" ? parseInt(data.education_level_id) : null,
         area_of_study: data.area_of_study || null,
         field_of_study: data.field_of_study || null,
-        education_requirements: data.education_requirements || null,
+        education_requirements: null,
         experience_level: data.experience_level || null,
         language_requirements: data.language_requirements || null,
 
@@ -804,9 +818,9 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
         apply_email: data.apply_email || null,
 
         // Functional Portal Fields
-        tags: data.tags || null,
-        job_function: data.job_function || null,
-        job_functions: data.job_functions && data.job_functions.length > 0 ? data.job_functions : data.job_function ? [data.job_function] : null,
+        tags: limitTags(data.tags) || null,
+        job_function: normalizedJobFunctions[0] || null,
+        job_functions: normalizedJobFunctions.length > 0 ? normalizedJobFunctions : null,
         job_function_ids: jobFunctionIds.length > 0 ? jobFunctionIds : null,
         additional_info: data.additional_info || null,
 
@@ -1569,19 +1583,7 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
               />
             </div>
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="education_requirements">Detailed Education Requirements (optional)</Label>
-            <Input
-              id="education_requirements"
-              name="education_requirements"
-              value={formData.education_requirements}
-              onChange={handleChange}
-              placeholder="e.g., BSc in Food Science, Microbiology, Chemistry, Biotechnology, or related field"
-            />
-            <p className="text-xs text-muted-foreground">Use this for complex requirements with multiple accepted degrees or certifications</p>
-          </div>
-
+          
           <div className="space-y-2">
             <RichTextEditor
               value={formData.additional_info}
@@ -1601,7 +1603,7 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
               onChange={handleChange}
               placeholder="e.g., engineering, remote, senior (comma-separated)"
             />
-            <p className="text-xs text-muted-foreground">Separate multiple tags with commas</p>
+            <p className="text-xs text-muted-foreground">Add up to 5 of the most relevant tags, separated by commas</p>
           </div>
         </TabsContent>
 

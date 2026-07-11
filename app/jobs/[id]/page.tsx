@@ -19,6 +19,15 @@ import { SaveJobButton } from "@/components/SaveJobButton";
 import { AdminEditJobButton } from "@/components/AdminEditJobButton";
 import JobViewTracker from "@/components/JobViewTracker";
 import CVAdBanner from "@/components/CVAdBanner";
+import { dedupeStrings, parseTagsInput, MAX_JOB_TAGS } from "@/lib/jobParseNormalization";
+
+function getDisplayLabels(values: string[] | null | undefined, fallback?: string | null): string[] {
+  return dedupeStrings(values?.length ? values : fallback ? [fallback] : []);
+}
+
+function getDisplayTags(tags: string | string[] | null | undefined): string[] {
+  return parseTagsInput(tags).slice(0, MAX_JOB_TAGS);
+}
 
 // Create Supabase client for server-side data fetching
 // Check if required environment variables are present
@@ -288,10 +297,10 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                         {job.experience_level && (
                           <Badge variant="outline">{job.experience_level}</Badge>
                         )}
-                        {(job.industries?.length > 0 ? job.industries : job.industry ? [job.industry] : []).map((ind: string) => (
+                        {getDisplayLabels(job.industries, job.industry).map((ind: string) => (
                           <Badge key={ind} className="bg-primary/10 text-primary">{ind}</Badge>
                         ))}
-                        {(job.job_functions?.length > 0 ? job.job_functions : job.job_function ? [job.job_function] : []).map((fn: string) => (
+                        {getDisplayLabels(job.job_functions, job.job_function).map((fn: string) => (
                           <Badge key={fn} variant="secondary">{fn}</Badge>
                         ))}
                         {job.area_of_study && (
@@ -424,13 +433,8 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                   </CardHeader>
                   <CardContent>
                     <div className="flex flex-wrap gap-2">
-                      {(typeof job.tags === 'string' 
-                        ? job.tags.split(',').map((t: string) => t.trim()).filter(Boolean)
-                        : Array.isArray(job.tags) 
-                          ? job.tags 
-                          : []
-                      ).map((tag: string, index: number) => (
-                        <Badge key={index} variant="secondary">{tag}</Badge>
+                      {getDisplayTags(job.tags).map((tag: string) => (
+                        <Badge key={tag} variant="secondary">{tag}</Badge>
                       ))}
                     </div>
                   </CardContent>
@@ -454,13 +458,8 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
-                    {(typeof job.tags === 'string' 
-                      ? job.tags.split(',').map((t: string) => t.trim()).filter(Boolean)
-                      : Array.isArray(job.tags) 
-                        ? job.tags 
-                        : []
-                    ).map((tag: string, index: number) => (
-                      <Badge key={index} variant="secondary">{tag}</Badge>
+                    {getDisplayTags(job.tags).map((tag: string) => (
+                      <Badge key={tag} variant="secondary">{tag}</Badge>
                     ))}
                   </div>
                 </CardContent>
@@ -546,7 +545,7 @@ const RoleDetails = ({ job }: { job: any }) => {
     (job.job_functions?.length > 0 || job.job_function) ? {
       icon: <Target className="h-5 w-5 text-primary mt-0.5" />,
       label: "Job Function",
-      value: job.job_functions?.length > 0 ? job.job_functions.join(', ') : job.job_function
+      value: getDisplayLabels(job.job_functions, job.job_function).join(', ')
     } : null,
     job.work_schedule ? {
       icon: <Clock className="h-5 w-5 text-primary mt-0.5" />,
@@ -575,11 +574,6 @@ const RoleDetails = ({ job }: { job: any }) => {
       icon: <GraduationCap className="h-5 w-5 text-primary mt-0.5" />,
       label: "Field of Study",
       value: job.field_of_study
-    } : null,
-    job.education_requirements ? {
-      icon: <GraduationCap className="h-5 w-5 text-primary mt-0.5" />,
-      label: "Education Requirements",
-      value: job.education_requirements
     } : null,
     job.license_requirements ? {
       icon: <Award className="h-5 w-5 text-primary mt-0.5" />,

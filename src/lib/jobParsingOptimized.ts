@@ -1,5 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '@/integrations/supabase/types';
+import {
+  buildJobParseSystemPrompt,
+  FALLBACK_INDUSTRIES,
+  FALLBACK_JOB_FUNCTIONS,
+  normalizeParsedJobFields,
+} from '@/lib/jobParseNormalization';
 
 // Create a Supabase client for server-side operations
 // Check if required environment variables are present
@@ -33,7 +39,6 @@ export interface ParsedJobData {
   education_level_name?: string;
   area_of_study?: string;
   field_of_study?: string;
-  education_requirements?: string;
   experience_level: string;
   language_requirements?: string;
   salary_min?: string;
@@ -96,7 +101,7 @@ export async function getCachedResponse(jobText: string): Promise<ParsedJobData 
       .update({ hit_count: (supabase as any).sql`hit_count + 1` })
       .eq('input_hash', hash);
 
-    return sanitizeParsedJobData(data.response_data as ParsedJobData & { status?: string; job_status?: string });
+    return finalizeParsedJobData(data.response_data as ParsedJobData & { status?: string; job_status?: string; direct_apply?: boolean });
   } catch (error) {
     console.error('Cache lookup error:', error);
     return null;
@@ -160,7 +165,7 @@ export async function callAIWithRetry(
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         const response = await callGeminiAPI(apiKey!, jobText, systemPrompt);
-        return { response, modelUsed: 'gemini-2.5-flash' };
+        return { response: await finalizeParsedJobData(response), modelUsed: 'gemini-2.5-flash' };
       } catch (error) {
         lastError = error;
         if (attempt < maxRetries) {
@@ -175,7 +180,7 @@ export async function callAIWithRetry(
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         const response = await callGroqAPI(groqApiKey, jobText, systemPrompt);
-        return { response, modelUsed: 'llama-3.3-70b-versatile' };
+        return { response: await finalizeParsedJobData(response), modelUsed: 'llama-3.3-70b-versatile' };
       } catch (error) {
         lastError = error;
         if (attempt < maxRetries) {
@@ -190,7 +195,7 @@ export async function callAIWithRetry(
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         const response = await callOpenRouterAPI(openRouterApiKey, jobText, systemPrompt);
-        return { response, modelUsed: 'gemini-2.5-flash (openrouter)' };
+        return { response: await finalizeParsedJobData(response), modelUsed: 'gemini-2.5-flash (openrouter)' };
       } catch (error) {
         lastError = error;
         if (attempt < maxRetries) {
@@ -342,9 +347,49 @@ async function callOpenRouterAPI(apiKey: string, jobText: string, systemPrompt: 
 }
 
 // Parse AI response with better error handling
-function sanitizeParsedJobData(data: ParsedJobData & { status?: string; job_status?: string; direct_apply?: boolean }): ParsedJobData {
-  const { status: _status, job_status: _jobStatus, direct_apply: _directApply, ...clean } = data;
+function stripParsedMetaFields(
+  data: ParsedJobData & { status?: string; job_status?: string; direct_apply?: boolean; education_requirements?: string }
+): ParsedJobData {
+  const {
+    status: _status,
+    job_status: _jobStatus,
+    direct_apply: _directApply,
+    education_requirements: _educationRequirements,
+    ...clean
+  } = data;
   return clean as ParsedJobData;
+}
+
+export async function getLookupOptions(): Promise<{ industries: string[]; jobFunctions: string[] }> {
+  if (!supabase) {
+    return {
+      industries: [...FALLBACK_INDUSTRIES],
+      jobFunctions: [...FALLBACK_JOB_FUNCTIONS],
+    };
+  }
+
+  const [{ data: industries }, { data: jobFunctions }] = await Promise.all([
+    supabase.from('industries').select('name').order('name'),
+    supabase.from('job_functions').select('name').order('name'),
+  ]);
+
+  return {
+    industries: industries?.map((row) => row.name) || [...FALLBACK_INDUSTRIES],
+    jobFunctions: jobFunctions?.map((row) => row.name) || [...FALLBACK_JOB_FUNCTIONS],
+  };
+}
+
+export async function getJobParseSystemPrompt(): Promise<string> {
+  const { industries, jobFunctions } = await getLookupOptions();
+  return buildJobParseSystemPrompt(industries, jobFunctions);
+}
+
+export async function finalizeParsedJobData(
+  data: ParsedJobData & { status?: string; job_status?: string; direct_apply?: boolean; education_requirements?: string }
+): Promise<ParsedJobData> {
+  const { industries, jobFunctions } = await getLookupOptions();
+  const stripped = stripParsedMetaFields(data);
+  return normalizeParsedJobFields(stripped, industries, jobFunctions);
 }
 
 function parseAIResponse(content: string): ParsedJobData {
@@ -358,13 +403,13 @@ function parseAIResponse(content: string): ParsedJobData {
   }
   
   try {
-    return sanitizeParsedJobData(JSON.parse(cleanedContent));
+    return stripParsedMetaFields(JSON.parse(cleanedContent));
   } catch (error) {
     // Try to extract JSON from the response
     const jsonMatch = cleanedContent.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       try {
-        return sanitizeParsedJobData(JSON.parse(jsonMatch[0]));
+        return stripParsedMetaFields(JSON.parse(jsonMatch[0]));
       } catch (e) {
         throw new Error(`Failed to parse AI response: ${error}`);
       }
@@ -478,7 +523,7 @@ async function processQueuedJob(jobId: string, jobText: string): Promise<void> {
     
     if (!result) {
       // Parse with AI
-      const aiResult = await callAIWithRetry(jobText, getSystemPrompt());
+      const aiResult = await callAIWithRetry(jobText, await getJobParseSystemPrompt());
       result = aiResult.response;
       modelUsed = aiResult.modelUsed;
       
@@ -507,76 +552,4 @@ async function processQueuedJob(jobId: string, jobText: string): Promise<void> {
       })
       .eq('id', jobId);
   }
-}
-
-// Get optimized system prompt (reduced size)
-function getSystemPrompt(): string {
-  return `You are a job posting parser. Extract structured information and return ONLY valid JSON.
-
-RULES:
-1. Return ONLY JSON, no markdown or explanations
-2. Use clean HTML for text fields (<p>, <ul>, <li>, <strong> only)
-3. employment_types: Array of FULL_TIME, PART_TIME, CONTRACTOR, INTERN, TEMPORARY, VOLUNTEER (include ALL that apply)
-4. job_location_types: Array of ON_SITE, REMOTE, HYBRID (include ALL that apply)
-5. experience_level: Entry, Mid, Senior, Managerial, Internship
-6. salary_period: HOUR, DAY, WEEK, MONTH, YEAR
-7. salary_currency: KES, USD
-8. Extract salary as numbers only (e.g., 80000 not "80,000")
-9. If a field is not found in the text, OMIT it from the JSON entirely
-10. Extract ALL fields that are present in the text — be thorough
-
-CRITICAL FIELDS TO EXTRACT:
-- education_level_name: The highest education required, e.g., "Bachelor's Degree", "Diploma", "Certificate", "Master's Degree", "PhD", "KCSE"
-- area_of_study: The general area/discipline if specified, e.g., "Science", "Commerce", "Arts", "Engineering", "Business"
-- field_of_study: The specific course/major if mentioned, e.g., "Industrial Chemistry", "Computer Science", "Electrical Engineering", "Accounting"
-- education_requirements: Full text of education requirements if complex (e.g., multiple accepted degrees)
-- job_location_country: "Kenya" (default if not stated)
-- job_location_county: Kenyan county name (Nairobi, Mombasa, Kiambu, Nakuru, Kisumu, etc.)
-- job_location_city: City or town name
-- additional_locations: Array of {county, city} objects for other locations the job is available in
-- industries: Array of sectors/industries that apply (e.g., ["Technology", "Finance"]). Include ALL that apply.
-- job_functions: Array of functional areas (e.g., ["Engineering", "Product Management"]). Include ALL that apply.
-- valid_through: Application deadline in ISO date format YYYY-MM-DD (e.g., "2025-07-30"). Extract from "deadline", "closing date", "apply by", "valid until" etc.
-- minimum_experience: Minimum years of experience as a number (e.g., "3" from "3+ years", "minimum 5 years")
-- apply_email: Application email address extracted from "send to", "email", "apply to"
-- apply_link: Application URL extracted from "apply at", "apply online", "visit", application link
-- application_url: Company career page URL if different from apply_link
-- tags: Comma-separated relevant keywords/skills for the role
-- language_requirements: Language requirements if mentioned (e.g., "English", "Kiswahili")
-
-ADDITIONAL_INFO: Include application instructions and 4 brief tips for this role type.
-
-Return JSON structure:
-{
-  "title": "Job Title",
-  "company": "Company Name",
-  "description": "<p>Job description</p>",
-  "responsibilities": "<ul><li>Task 1</li></ul>",
-  "required_qualifications": "<ul><li>Qual 1</li></ul>",
-  "employment_types": ["FULL_TIME", "PART_TIME"],
-  "job_location_types": ["ON_SITE", "REMOTE"],
-  "job_location_country": "Kenya",
-  "job_location_county": "Nairobi",
-  "job_location_city": "Nairobi",
-  "additional_locations": [{"county": "Mombasa", "city": "Mombasa"}],
-  "industries": ["Technology", "Finance"],
-  "job_functions": ["Engineering", "Product Management"],
-  "education_level_name": "Bachelor's Degree",
-  "area_of_study": "Science",
-  "field_of_study": "Computer Science",
-  "education_requirements": "Bachelor of Science in Computer Science, IT, or related field",
-  "experience_level": "Mid",
-  "minimum_experience": "3",
-  "valid_through": "2025-07-30",
-  "salary_min": 80000,
-  "salary_max": 120000,
-  "salary_period": "MONTH",
-  "salary_currency": "KES",
-  "apply_email": "careers@company.com",
-  "apply_link": "https://company.com/apply",
-  "application_url": "https://company.com/careers",
-  "tags": "react, nodejs, web development",
-  "language_requirements": "English",
-  "additional_info": "<p><strong>How to Apply:</strong> Instructions here</p><h3>Tips:</h3><p>1. Tip one...</p>"
-}`;
 }
