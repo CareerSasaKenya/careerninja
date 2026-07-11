@@ -139,6 +139,7 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
       const {
         status: _parsedStatus,
         job_status: _parsedJobStatus,
+        direct_apply: _parsedDirectApply,
         ...parsedFields
       } = initialData as Partial<JobFormData> & { status?: string; job_status?: string };
       const merged = { ...defaults, ...parsedFields };
@@ -175,6 +176,7 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
       }
       if (isParsedData) {
         merged.status = "active";
+        merged.direct_apply = false;
       }
       return merged;
     }
@@ -184,10 +186,13 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
 
   const [formData, setFormData] = useState<JobFormData>(getInitialFormData());
 
-  // Ensure parsed jobs always default to publish, even if another effect runs after mount
+  // Ensure parsed jobs default to publish with direct apply unchecked
   useLayoutEffect(() => {
     if (!isParsedData) return;
-    setFormData((prev) => (prev.status === "active" ? prev : { ...prev, status: "active" }));
+    setFormData((prev) => {
+      if (prev.status === "active" && !prev.direct_apply) return prev;
+      return { ...prev, status: "active", direct_apply: false };
+    });
   }, [isParsedData, initialData?.title, initialData?.company]);
 
   const [selectedCountyId, setSelectedCountyId] = useState<string>("");

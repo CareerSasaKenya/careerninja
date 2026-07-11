@@ -103,9 +103,15 @@ const ParseJobPage = () => {
       }
     }
     
-    const { status: _status, job_status: _jobStatus, ...cleanData } = data as ParsedJobData & {
+    const {
+      status: _status,
+      job_status: _jobStatus,
+      direct_apply: _directApply,
+      ...cleanData
+    } = data as ParsedJobData & {
       status?: string;
       job_status?: string;
+      direct_apply?: boolean;
     };
     setParsedData(cleanData);
     setParseSessionId((id) => id + 1);
@@ -253,7 +259,7 @@ const JobPostingFormWrapper = ({
       <CardContent className="pt-6">
         <JobPostingForm
           key={`parsed-job-${parseSessionId}`}
-          initialData={{ ...initialData, status: "active" }}
+          initialData={{ ...initialData, status: "active", direct_apply: false }}
           isParsedData={true}
         />
       </CardContent>

@@ -342,8 +342,8 @@ async function callOpenRouterAPI(apiKey: string, jobText: string, systemPrompt: 
 }
 
 // Parse AI response with better error handling
-function sanitizeParsedJobData(data: ParsedJobData & { status?: string; job_status?: string }): ParsedJobData {
-  const { status: _status, job_status: _jobStatus, ...clean } = data;
+function sanitizeParsedJobData(data: ParsedJobData & { status?: string; job_status?: string; direct_apply?: boolean }): ParsedJobData {
+  const { status: _status, job_status: _jobStatus, direct_apply: _directApply, ...clean } = data;
   return clean as ParsedJobData;
 }
 
