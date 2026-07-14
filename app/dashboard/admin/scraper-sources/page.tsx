@@ -19,6 +19,7 @@ import {
   RefreshCw,
   Rss,
   Building2,
+  Send,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -67,6 +68,7 @@ export default function AdminScraperSourcesPage() {
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [discoveringAll, setDiscoveringAll] = useState(false);
   const [discoveringId, setDiscoveringId] = useState<string | null>(null);
+  const [processingQueue, setProcessingQueue] = useState(false);
   const [filter, setFilter] = useState<"all" | ScraperSourceCategory>("all");
 
   const fetchSources = useCallback(async () => {
@@ -138,6 +140,47 @@ export default function AdminScraperSourcesPage() {
     }
   };
 
+  const runProcess = async (max = 5) => {
+    try {
+      setProcessingQueue(true);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+
+      const response = await fetch("/api/admin/scraper-sources/process", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ max }),
+      });
+
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "Process failed");
+
+      if (body.processed === 0) {
+        toast.info("Process complete: no pending jobs in queue");
+      } else if (body.published > 0) {
+        toast.success(
+          `Published ${body.published} job(s) from ${body.processed} queue item(s)` +
+            (body.skipped > 0 ? ` (${body.skipped} duplicate(s) skipped)` : "")
+        );
+      } else if (body.errors > 0) {
+        toast.error(`Process failed for ${body.errors} item(s) — check queue stats`);
+      } else {
+        toast.info(`Processed ${body.processed} item(s); nothing new published`);
+      }
+
+      await fetchSources();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Process failed";
+      toast.error(message);
+    } finally {
+      setProcessingQueue(false);
+    }
+  };
+
   const runDiscover = async (sourceId?: string) => {
     try {
       if (sourceId) setDiscoveringId(sourceId);
@@ -204,7 +247,7 @@ export default function AdminScraperSourcesPage() {
         <div className="flex flex-col sm:flex-row gap-2">
           <Button
             onClick={() => runDiscover()}
-            disabled={loading || discoveringAll || !!discoveringId}
+            disabled={loading || discoveringAll || !!discoveringId || processingQueue}
           >
             {discoveringAll ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -213,7 +256,19 @@ export default function AdminScraperSourcesPage() {
             )}
             Discover all active
           </Button>
-          <Button variant="outline" onClick={fetchSources} disabled={loading || discoveringAll}>
+          <Button
+            variant="secondary"
+            onClick={() => runProcess(5)}
+            disabled={loading || processingQueue || discoveringAll || !!discoveringId || (data?.totals.pending ?? 0) === 0}
+          >
+            {processingQueue ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4 mr-2" />
+            )}
+            Process queue (5)
+          </Button>
+          <Button variant="outline" onClick={fetchSources} disabled={loading || discoveringAll || processingQueue}>
             {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
             Refresh
           </Button>
@@ -354,7 +409,7 @@ export default function AdminScraperSourcesPage() {
       <Card>
         <CardHeader>
           <CardTitle>Seeded Kenyan sources</CardTitle>
-          <CardDescription>Included in migration <code className="text-xs">20260714_seed_kenyan_scraper_sources.sql</code></CardDescription>
+          <CardDescription>Included in migration <code className="text-xs">20260715_combined_kenyan_scraper_sources.sql</code></CardDescription>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
           <p><strong>Government (full detail):</strong> PSC PDF adverts from <a href="https://www.publicservice.go.ke/jobs/" target="_blank" rel="noopener noreferrer">publicservice.go.ke/jobs</a> — duties, qualifications, salary scales</p>
