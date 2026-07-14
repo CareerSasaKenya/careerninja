@@ -16,8 +16,8 @@ const nextConfig = {
       },
     ],
   },
-  // Enable React strict mode
-  reactStrictMode: true,
+  // PDF parsing (server-only)
+  serverExternalPackages: ['pdf-parse', 'pdfjs-dist'],
   // Disable x-powered-by header
   poweredByHeader: false,
   // Add empty turbopack config to resolve conflict

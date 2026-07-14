@@ -8,6 +8,18 @@ import {
   extractWorkableSlug,
   generateContentHash as workableHash,
 } from '@/lib/workable-adapter'
+import {
+  fetchSmartRecruitersJobDetails,
+  normalizeSmartRecruitersJob,
+  extractSmartRecruitersPostingId,
+  extractSmartRecruitersSlug,
+} from '@/lib/smartrecruiters-adapter'
+import {
+  fetchPscJobRow,
+  normalizePscJob,
+  extractPscAdvertNumber,
+} from '@/lib/psc-adapter'
+import { processPscPdfQueueItem } from '@/lib/psc-pdf-adapter'
 import { mapEducationLevel } from '@/lib/jobMetadataExtraction'
 import { resolveValidThrough } from '@/lib/jobParseNormalization'
 import { parseScrapedJobContent, ScrapedJobInput } from '@/lib/scraperJobParsing'
@@ -18,7 +30,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-export const maxDuration = 60
+export const maxDuration = 120
 
 export async function POST(request: NextRequest) {
   const secret = request.headers.get('x-scraper-secret')
@@ -46,15 +58,36 @@ export async function POST(request: NextRequest) {
     .eq('id', queueItem.id)
 
   const source = queueItem.scraper_sources
-  const isWorkable = (source.selectors as { type?: string }).type === 'workable'
+  const adapterType = (source.selectors as { type?: string }).type || 'html'
+  const hiringCompany = resolveHiringCompany(source.name, adapterType, queueItem.partial_data)
 
   try {
+    if (adapterType === 'psc_pdf') {
+      const scraperUserId = await getScraperUserId()
+      const pdfResult = await processPscPdfQueueItem(queueItem, source, supabase, scraperUserId)
+
+      await supabase
+        .from('scrape_queue')
+        .update({ status: 'done', processed_at: new Date().toISOString() })
+        .eq('id', queueItem.id)
+
+      return NextResponse.json({
+        success: true,
+        source: source.source_id,
+        job_url: queueItem.job_url,
+        pdf_document: true,
+        published: pdfResult.published,
+        duplicates: pdfResult.duplicates,
+        errors: pdfResult.errors,
+        jobs: pdfResult.jobs,
+      })
+    }
+
     let normalized: ReturnType<typeof normalizeJob>
     let rawData: unknown
     let parseInput: ScrapedJobInput
 
-    if (isWorkable) {
-      // ── Workable: fetch via API ──────────────────────────────────────────────
+    if (adapterType === 'workable') {
       const slug = extractWorkableSlug(queueItem.job_url)
       const shortcode = extractWorkableShortcode(queueItem.job_url)
 
@@ -65,13 +98,13 @@ export async function POST(request: NextRequest) {
       const detail: WorkableJobDetail = await fetchWorkableJobDetails(slug, shortcode)
       const filterCountry = (source.selectors as { filterCountry?: string }).filterCountry
 
-      normalized = normalizeWorkableJob(detail, source.name, filterCountry)
+      normalized = normalizeWorkableJob(detail, hiringCompany, filterCountry)
       normalized.application_url = queueItem.job_url
       rawData = detail
 
       parseInput = {
         title: normalized.title,
-        company: source.name,
+        company: hiringCompany,
         location: normalized.location,
         employmentType: normalized.employment_type,
         workplace: normalized.job_location_type,
@@ -80,8 +113,65 @@ export async function POST(request: NextRequest) {
         benefitsSection: detail.benefits,
       }
 
+    } else if (adapterType === 'smartrecruiters') {
+      const config = source.selectors as { slug?: string }
+      const postingId = extractSmartRecruitersPostingId(queueItem.job_url)
+      const slug = extractSmartRecruitersSlug(queueItem.job_url, config.slug)
+
+      if (!slug || !postingId) {
+        throw new Error(`Cannot parse SmartRecruiters slug/posting ID from URL: ${queueItem.job_url}`)
+      }
+
+      const detail = await fetchSmartRecruitersJobDetails(slug, postingId)
+      normalized = normalizeSmartRecruitersJob(detail, hiringCompany)
+      normalized.application_url = detail.applyUrl || detail.postingUrl || queueItem.job_url
+      rawData = detail
+
+      const sections = detail.jobAd?.sections
+      parseInput = {
+        title: normalized.title,
+        company: hiringCompany,
+        location: normalized.location,
+        employmentType: normalized.employment_type,
+        workplace: normalized.job_location_type,
+        descriptionSection: [sections?.companyDescription?.text, sections?.jobDescription?.text].filter(Boolean).join('\n'),
+        requirementsSection: sections?.qualifications?.text,
+        benefitsSection: sections?.additionalInformation?.text,
+      }
+
+    } else if (adapterType === 'psc') {
+      const advertNumber =
+        extractPscAdvertNumber(queueItem.job_url) ||
+        (queueItem.partial_data?.advertNumber as string | undefined)
+
+      if (!advertNumber) {
+        throw new Error(`Cannot parse PSC advert number from URL: ${queueItem.job_url}`)
+      }
+
+      const row = await fetchPscJobRow(source.base_url, advertNumber)
+      if (!row) {
+        throw new Error(`PSC advert ${advertNumber} not found on listing page`)
+      }
+
+      const applyUrl = 'https://www.psckjobs.go.ke/loginPage.aspx'
+      normalized = normalizePscJob(row, applyUrl)
+      rawData = row
+
+      parseInput = {
+        title: normalized.title,
+        company: normalized.company,
+        location: normalized.location,
+        employmentType: normalized.employment_type,
+        descriptionSection: normalized.description,
+        requirementsSection: normalized.required_qualifications,
+        rawContent: [
+          normalized.description,
+          normalized.required_qualifications,
+          `Apply via PSC portal: ${applyUrl}`,
+        ].join('\n\n'),
+      }
+
     } else {
-      // ── HTML scraper ─────────────────────────────────────────────────────────
       const html = await fetchHtml(queueItem.job_url)
       const raw = extractJobDetails(html, queueItem.job_url, source.selectors as ScraperSelectors)
 
@@ -89,12 +179,12 @@ export async function POST(request: NextRequest) {
       if (!raw.location && queueItem.partial_data?.location) raw.location = queueItem.partial_data.location
       if (!raw.title) throw new Error('Could not extract job title from detail page')
 
-      normalized = normalizeJob(raw, source.name)
+      normalized = normalizeJob(raw, hiringCompany)
       rawData = raw
 
       parseInput = {
         title: normalized.title,
-        company: source.name,
+        company: hiringCompany,
         location: normalized.location,
         employmentType: normalized.employment_type,
         descriptionSection: raw.description,
@@ -105,8 +195,12 @@ export async function POST(request: NextRequest) {
 
     if (!normalized.title) throw new Error('Job title is empty after normalization')
 
-    // ── Dedup check ──────────────────────────────────────────────────────────
-    const contentHash = workableHash(normalized.title, source.name, normalized.job_location_city || normalized.job_location_county || '')
+    const dedupCompany = adapterType === 'psc' ? normalized.company : hiringCompany
+    const contentHash = workableHash(
+      normalized.title,
+      dedupCompany,
+      normalized.job_location_city || normalized.job_location_county || ''
+    )
 
     const { data: existing } = await supabase
       .from('scraped_job_sources')
@@ -137,7 +231,7 @@ export async function POST(request: NextRequest) {
     const { data: existingCompany } = await supabase
       .from('companies')
       .select('id')
-      .eq('name', source.name)
+      .eq('name', dedupCompany)
       .maybeSingle()
 
     if (existingCompany) {
@@ -145,7 +239,7 @@ export async function POST(request: NextRequest) {
     } else {
       const { data: newCompany } = await supabase
         .from('companies')
-        .insert({ name: source.name, user_id: scraperUserId })
+        .insert({ name: dedupCompany, user_id: scraperUserId })
         .select('id')
         .single()
       companyId = newCompany?.id ?? null
@@ -160,7 +254,7 @@ export async function POST(request: NextRequest) {
       additional_info: parsed.additional_info || null,
       company_id: companyId,
       user_id: scraperUserId,
-      hiring_organization_name: source.name,
+      hiring_organization_name: dedupCompany,
       source: 'Scraper',
       direct_apply: false,
       application_url: normalized.application_url || queueItem.job_url,
@@ -220,6 +314,17 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ error: message, job_url: queueItem.job_url }, { status: 500 })
   }
+}
+
+function resolveHiringCompany(
+  sourceName: string,
+  adapterType: string,
+  partialData: Record<string, unknown> | null | undefined
+): string {
+  if (adapterType === 'psc' && partialData?.ministry) {
+    return String(partialData.ministry)
+  }
+  return sourceName
 }
 
 let _scraperUserId: string | null = null
