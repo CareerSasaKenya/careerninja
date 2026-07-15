@@ -34,7 +34,8 @@ export async function getJobMetadata(jobId: string): Promise<JobMetadata | null>
         companies (
           id,
           name,
-          logo
+          logo,
+          website
         )
       `)
       .eq('job_slug', jobId)
@@ -55,7 +56,8 @@ export async function getJobMetadata(jobId: string): Promise<JobMetadata | null>
           companies (
             id,
             name,
-            logo
+            logo,
+            website
           )
         `)
         .eq('id', jobId)

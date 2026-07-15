@@ -231,7 +231,8 @@ const Jobs = () => {
             companies (
               id,
               name,
-              logo
+              logo,
+              website
             )
           `)
           .range((currentPage - 1) * JOBS_PER_PAGE, currentPage * JOBS_PER_PAGE - 1);
@@ -723,6 +724,7 @@ const Jobs = () => {
                           salary={job.salary || undefined}
                           companyId={job.company_id}
                           companyLogo={job.companies?.logo}
+                          companyWebsite={job.companies?.website}
                           industry={job.industry}
                           locationType={job.job_location_type}
                           employmentType={job.employment_type}

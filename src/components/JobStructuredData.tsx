@@ -1,5 +1,6 @@
 import Script from 'next/script';
 import { Database } from '@/integrations/supabase/types';
+import { resolveCompanyLogoUrl, resolveCompanyWebsite } from '@/lib/companyLogo';
 
 interface JobStructuredDataProps {
   job: Database['public']['Tables']['jobs']['Row'] & {
@@ -8,20 +9,29 @@ interface JobStructuredDataProps {
 }
 
 export default function JobStructuredData({ job }: JobStructuredDataProps) {
+  const orgName = job.companies?.name || job.company;
+  const orgWebsite = resolveCompanyWebsite(orgName, job.companies?.website || job.hiring_organization_url);
+  const orgLogo = resolveCompanyLogoUrl({
+    logo: job.companies?.logo,
+    website: job.companies?.website || job.hiring_organization_url,
+    companyName: orgName,
+    hiringOrganizationLogo: job.hiring_organization_logo,
+  });
+
   // Format the job data for JSON-LD
   const jobData = {
     "@context": "https://schema.org/",
     "@type": "JobPosting",
     "title": job.title,
-    "description": job.description || `Join ${job.companies?.name || job.company} as a ${job.title}. Find out more about this exciting opportunity.`,
+    "description": job.description || `Join ${orgName} as a ${job.title}. Find out more about this exciting opportunity.`,
     "datePosted": job.date_posted ? new Date(job.date_posted).toISOString() : new Date().toISOString(),
     "validThrough": job.valid_through ? new Date(job.valid_through).toISOString() : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Default to 30 days from now
     "employmentType": job.employment_type || "FULL_TIME",
     "hiringOrganization": {
       "@type": "Organization",
-      "name": job.companies?.name || job.company,
-      "sameAs": job.companies?.website ? `https://${job.companies.website}` : undefined,
-      "logo": job.companies?.logo || undefined
+      "name": orgName,
+      "sameAs": orgWebsite || undefined,
+      "logo": orgLogo || undefined
     },
     "jobLocation": {
       "@type": "Place",

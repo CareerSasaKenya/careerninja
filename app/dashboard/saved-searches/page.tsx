@@ -280,6 +280,7 @@ export default function SavedSearchesPage() {
                   salary={job.salary || undefined}
                   companyId={job.company_id}
                   companyLogo={job.companies?.logo}
+                  companyWebsite={job.companies?.website}
                   industry={job.industry}
                   locationType={job.job_location_type}
                   employmentType={job.employment_type}

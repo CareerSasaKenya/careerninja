@@ -7,6 +7,7 @@ import { NormalizedJob, generateContentHash } from './scraper'
 import { mapEducationLevel } from './jobMetadataExtraction'
 import { resolveValidThrough } from './jobParseNormalization'
 import { parseScrapedJobContent, ScrapedJobInput } from './scraperJobParsing'
+import { buildCompanyLogoEnrichment } from './companyLogo'
 
 export interface PublishScrapedJobParams {
   supabase: SupabaseClient
@@ -85,16 +86,31 @@ export async function publishScrapedJob(
     let companyId: string | null = null
     const { data: existingCompany } = await supabase
       .from('companies')
-      .select('id')
+      .select('id, logo, website')
       .eq('name', dedupCompany)
       .maybeSingle()
 
     if (existingCompany) {
       companyId = existingCompany.id
+      // Backfill logo/website for known or domain-resolvable employers
+      const enrichment = buildCompanyLogoEnrichment({
+        name: dedupCompany,
+        logo: existingCompany.logo,
+        website: existingCompany.website,
+      })
+      if (Object.keys(enrichment).length > 0) {
+        await supabase.from('companies').update(enrichment).eq('id', existingCompany.id)
+      }
     } else {
+      const enrichment = buildCompanyLogoEnrichment({ name: dedupCompany })
       const { data: newCompany } = await supabase
         .from('companies')
-        .insert({ name: dedupCompany, user_id: scraperUserId })
+        .insert({
+          name: dedupCompany,
+          user_id: scraperUserId,
+          logo: enrichment.logo ?? null,
+          website: enrichment.website ?? null,
+        })
         .select('id')
         .single()
       companyId = newCompany?.id ?? null

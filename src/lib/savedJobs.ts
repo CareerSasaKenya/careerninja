@@ -96,7 +96,8 @@ export const getSavedJobs = async () => {
         companies (
           id,
           name,
-          logo
+          logo,
+          website
         )
       )
     `)

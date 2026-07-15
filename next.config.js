@@ -14,6 +14,18 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'randomuser.me',
       },
+      {
+        protocol: 'https',
+        hostname: 'www.google.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 't1.gstatic.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img.logo.dev',
+      },
     ],
   },
   // PDF parsing (server-only)

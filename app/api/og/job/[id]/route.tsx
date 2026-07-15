@@ -1,6 +1,7 @@
 import { ImageResponse } from '@vercel/og';
 import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { companyInitials, resolveCompanyLogoUrl } from '@/lib/companyLogo';
 
 export const runtime = 'edge';
 
@@ -47,9 +48,11 @@ export async function GET(
         salary_currency,
         salary_period,
         job_function,
+        hiring_organization_logo,
         companies (
           name,
-          logo
+          logo,
+          website
         )
       `)
       .eq('job_slug', id)
@@ -69,9 +72,11 @@ export async function GET(
           salary_currency,
           salary_period,
           job_function,
+          hiring_organization_logo,
           companies (
             name,
-            logo
+            logo,
+            website
           )
         `)
         .eq('id', id)
@@ -235,9 +240,15 @@ export async function GET(
       );
     }
 
-    // Extract company name and logo
-    const companyName = (job.companies && job.companies.length > 0 && job.companies[0].name) || job.company || 'Company';
-    const companyLogo = job.companies && job.companies.length > 0 && job.companies[0].logo;
+    // Extract company name and logo (stored → website/domain → known brand CDN)
+    const companyRow = job.companies && job.companies.length > 0 ? job.companies[0] : null;
+    const companyName = companyRow?.name || job.company || 'Company';
+    const companyLogo = resolveCompanyLogoUrl({
+      logo: companyRow?.logo,
+      website: companyRow?.website,
+      companyName,
+      hiringOrganizationLogo: job.hiring_organization_logo,
+    });
     const jobTitle = job.title || 'Job Opening';
     const location = job.location || 'Kenya';
     const salaryMin = job.salary_min;
@@ -274,7 +285,7 @@ export async function GET(
               position: 'relative',
             }}
           >
-            {/* Company Logo Placeholder - Top Left */}
+            {/* Company Logo - Top Left */}
             <div
               style={{
                 position: 'absolute',
@@ -282,17 +293,29 @@ export async function GET(
                 left: '40px',
                 width: '80px',
                 height: '80px',
-                borderRadius: '50%',
-                backgroundColor: COLORS.orange,
+                borderRadius: '16px',
+                backgroundColor: companyLogo ? COLORS.white : COLORS.orange,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '40px',
+                fontSize: '28px',
                 fontWeight: 'bold',
                 color: 'white',
+                overflow: 'hidden',
               }}
             >
-              {companyName.charAt(0).toUpperCase()}
+              {companyLogo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={companyLogo}
+                  alt={companyName}
+                  width={72}
+                  height={72}
+                  style={{ objectFit: 'contain' }}
+                />
+              ) : (
+                companyInitials(companyName)
+              )}
             </div>
             
             {/* Job Title - Top Center */}

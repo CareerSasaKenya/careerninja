@@ -15,6 +15,8 @@ import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { buildCompanyLogoEnrichment, resolveCompanyLogoUrl } from "@/lib/companyLogo";
+import { CompanyLogo } from "@/components/CompanyLogo";
 
 interface Company {
   id: string;
@@ -187,14 +189,23 @@ const CompanyProfileForm = () => {
     setSaving(true);
 
     try {
+      // Auto-fill logo from website / known brand when employer leaves logo blank
+      const enrichment = buildCompanyLogoEnrichment({
+        name: formData.name,
+        logo: formData.logo || null,
+        website: formData.website || null,
+      });
+      const logoToSave = formData.logo || enrichment.logo || null;
+      const websiteToSave = formData.website || enrichment.website || null;
+
       if (company) {
         // Update existing company
         const { error } = await supabase
           .from("companies")
           .update({
             name: formData.name,
-            logo: formData.logo || null,
-            website: formData.website || null,
+            logo: logoToSave,
+            website: websiteToSave,
             industry: formData.industry || null,
             location: formData.location || null,
             size: formData.size || null,
@@ -203,6 +214,10 @@ const CompanyProfileForm = () => {
           .eq("id", company.id);
 
         if (error) throw error;
+
+        if (!formData.logo && logoToSave) {
+          setFormData((prev) => ({ ...prev, logo: logoToSave, website: websiteToSave || prev.website }));
+        }
 
         toast({
           title: "Success",
@@ -213,8 +228,8 @@ const CompanyProfileForm = () => {
         const { error } = await supabase.from("companies").insert({
           user_id: user?.id,
           name: formData.name,
-          logo: formData.logo || null,
-          website: formData.website || null,
+          logo: logoToSave,
+          website: websiteToSave,
           industry: formData.industry || null,
           location: formData.location || null,
           size: formData.size || null,
@@ -269,17 +284,6 @@ const CompanyProfileForm = () => {
           </div>
 
           <div>
-            <Label htmlFor="logo">Logo URL</Label>
-            <Input
-              id="logo"
-              type="url"
-              value={formData.logo}
-              onChange={(e) => setFormData({ ...formData, logo: e.target.value })}
-              placeholder="https://example.com/logo.png"
-            />
-          </div>
-
-          <div>
             <Label htmlFor="website">Website</Label>
             <Input
               id="website"
@@ -288,6 +292,31 @@ const CompanyProfileForm = () => {
               onChange={(e) => setFormData({ ...formData, website: e.target.value })}
               placeholder="https://company.com"
             />
+            <p className="text-xs text-muted-foreground mt-1">
+              If you leave the logo blank, we fetch one from this domain (or a known brand match).
+            </p>
+          </div>
+
+          <div>
+            <Label htmlFor="logo">Logo URL</Label>
+            <div className="flex items-center gap-3">
+              <CompanyLogo
+                name={formData.name || "Company"}
+                logo={formData.logo || resolveCompanyLogoUrl({
+                  companyName: formData.name,
+                  website: formData.website,
+                })}
+                website={formData.website}
+                size="md"
+              />
+              <Input
+                id="logo"
+                type="url"
+                value={formData.logo}
+                onChange={(e) => setFormData({ ...formData, logo: e.target.value })}
+                placeholder="Auto-filled from website if left blank"
+              />
+            </div>
           </div>
 
           <div>

@@ -120,7 +120,8 @@ export const getJobsForSavedSearch = async (searchParams: Record<string, any>) =
       companies (
         id,
         name,
-        logo
+        logo,
+        website
       )
     `);
 

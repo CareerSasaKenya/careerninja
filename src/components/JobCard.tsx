@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Building2, DollarSign, FileText, Clock, ExternalLink, Mail, Briefcase, GraduationCap, Star, TrendingUp } from "lucide-react";
+import { MapPin, DollarSign, FileText, Clock, Briefcase, GraduationCap, Star, TrendingUp } from "lucide-react";
 import { stripHtmlTags, formatJobSeoTitle } from "@/lib/textUtils";
 import { SaveJobButton } from "@/components/SaveJobButton";
 import { AdminEditJobButton } from "@/components/AdminEditJobButton";
+import { CompanyLogo } from "@/components/CompanyLogo";
 
 interface JobCardProps {
   id: string;
@@ -20,6 +20,7 @@ interface JobCardProps {
   salary?: string;
   companyId?: string | null;
   companyLogo?: string | null;
+  companyWebsite?: string | null;
   // New optional fields for richer display
   industry?: string | null;
   locationType?: string | null; // e.g., REMOTE, HYBRID, ONSITE
@@ -88,6 +89,7 @@ const JobCard = ({
   salary,
   companyId,
   companyLogo,
+  companyWebsite,
   industry,
   locationType,
   employmentType,
@@ -184,19 +186,23 @@ const JobCard = ({
         {/* Company row */}
         <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
           {companyId ? (
-            <div className="flex items-center gap-2">
-              {companyLogo && (
-                <div className="h-6 w-6 rounded-md overflow-hidden bg-muted flex items-center justify-center">
-                  <img src={companyLogo} alt={company || "Company"} className="h-5 w-5 object-contain" />
-                </div>
-              )}
-              <Building2 className="h-4 w-4 text-primary" />
-              <span className="font-medium">{company || "Unknown Company"}</span>
+            <div className="flex items-center gap-2 min-w-0">
+              <CompanyLogo
+                name={company}
+                logo={companyLogo}
+                website={companyWebsite}
+                size="sm"
+              />
+              <span className="font-medium truncate">{company || "Unknown Company"}</span>
             </div>
           ) : (
-            <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">{company || "Direct Listing"}</span>
+            <div className="flex items-center gap-2 min-w-0">
+              {company ? (
+                <CompanyLogo name={company} logo={companyLogo} website={companyWebsite} size="sm" />
+              ) : (
+                <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+              )}
+              <span className="font-medium truncate">{company || "Direct Listing"}</span>
               {!company && <Badge variant="secondary">Admin</Badge>}
             </div>
           )}

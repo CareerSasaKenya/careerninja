@@ -24,6 +24,7 @@ import {
   dedupeStrings,
   resolveValidThrough,
 } from "@/lib/jobParseNormalization";
+import { buildCompanyLogoEnrichment } from "@/lib/companyLogo";
 
 interface JobFormData {
   // Core fields
@@ -668,16 +669,17 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
           companyId = existingCompany.id;
           toast.info(`Using existing company "${newCompanyName}"`);
         } else {
-          // Create new company
+          // Create new company (auto-enrich logo/website for known brands)
+          const enrichment = buildCompanyLogoEnrichment({ name: newCompanyName });
           const companyData = {
             user_id: user.id,
             name: newCompanyName,
             industry: data.industry || null,
-            website: null,
+            website: enrichment.website ?? null,
             description: null,
             location: null,
             size: null,
-            logo: null,
+            logo: enrichment.logo ?? null,
           };
 
           const { data: company, error: companyError } = await supabase

@@ -10,6 +10,7 @@ import { ArrowLeft, MapPin, Building2, DollarSign, FileText, Clock, Briefcase, G
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import JobCard from "@/components/JobCard";
+import { CompanyLogo } from "@/components/CompanyLogo";
 import { formatJobSeoTitle, buildLocationString } from "@/lib/textUtils";
 import JobStructuredData from "@/components/JobStructuredData";
 import ApplySection from "@/components/ApplySection";
@@ -58,7 +59,8 @@ async function getJobData(id: string) {
         companies (
           id,
           name,
-          logo
+          logo,
+          website
         ),
         education_levels (
           id,
@@ -77,7 +79,8 @@ async function getJobData(id: string) {
           companies (
             id,
             name,
-            logo
+            logo,
+            website
           ),
           education_levels (
             id,
@@ -113,7 +116,8 @@ async function getRelatedJobs(jobId: string, industries?: string[], jobFunctions
         companies (
           id,
           name,
-          logo
+          logo,
+          website
         )
       `)
       .neq("id", jobId)
@@ -269,16 +273,27 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                             href={`/companies/${job.company_id}`}
                             className="flex items-center gap-2 hover:text-primary transition-colors"
                           >
-                            {job.companies.logo && (
-                              <img src={job.companies.logo} alt={job.companies.name} className="h-6 w-6 object-contain" />
-                            )}
-                            <Building2 className="h-5 w-5 text-primary" />
+                            <CompanyLogo
+                              name={job.companies.name}
+                              logo={job.companies.logo}
+                              website={job.companies.website}
+                              size="md"
+                            />
                             <span className="text-lg">{job.companies.name}</span>
                           </Link>
                         ) : (
                           <div className="flex items-center gap-2">
-                            <FileText className="h-5 w-5 text-muted-foreground" />
-                            <span className="text-lg">{job.company}</span>
+                            {job.company ? (
+                              <CompanyLogo
+                                name={job.company}
+                                logo={job.hiring_organization_logo}
+                                website={job.hiring_organization_url}
+                                size="md"
+                              />
+                            ) : (
+                              <FileText className="h-5 w-5 text-muted-foreground" />
+                            )}
+                            <span className="text-lg">{job.company || "Direct Listing"}</span>
                             <Badge variant="secondary">Direct Listing</Badge>
                           </div>
                         )}
@@ -485,6 +500,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                     salary={relatedJob.salary || undefined}
                     companyId={relatedJob.company_id}
                     companyLogo={relatedJob.companies?.logo}
+                    companyWebsite={relatedJob.companies?.website}
                     industry={relatedJob.industry}
                     locationType={relatedJob.job_location_type}
                     employmentType={relatedJob.employment_type}
