@@ -305,7 +305,9 @@ export default async function CompanyProfilePage({
                   {company.size && (
                     <Badge variant="outline">
                       <Users className="h-3.5 w-3.5 mr-1" />
-                      {company.size} employees
+                      {/employee|staff|people/i.test(company.size)
+                        ? company.size
+                        : `${company.size} employees`}
                     </Badge>
                   )}
                   <Badge variant="secondary">
