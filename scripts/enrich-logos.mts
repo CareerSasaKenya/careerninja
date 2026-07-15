@@ -11,7 +11,10 @@ import { createClient } from '@supabase/supabase-js';
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const UA = 'Mozilla/5.0 (compatible; careersasa-logo-bot/1.0)';
-const MIN_IMAGE_BYTES = 1500; // reject generic gstatic placeholders (726B)
+// Generic gstatic "unknown domain" placeholder is exactly 726B / 16×16.
+// Real logos can be as small as ~900B (e.g. INTERFELK 48×48 JPEG = 1086B).
+const MIN_IMAGE_BYTES = 850;
+const GENERIC_PLACEHOLDER_BYTES = 726;
 
 // ── Known brand map (subset of companyLogo.ts) ───────────────────────────────
 const BRANDS: Record<string, { domain: string; twitter?: string }> = {
@@ -157,18 +160,54 @@ function extractDomain(url: string | null | undefined): string | null {
   } catch { return null; }
 }
 
+function pngDims(buf: ArrayBuffer): { w: number; h: number } | null {
+  const u8 = new Uint8Array(buf);
+  if (u8.length < 24) return null;
+  if (u8[0] !== 0x89 || u8[1] !== 0x50 || u8[2] !== 0x4e || u8[3] !== 0x47) return null;
+  const view = new DataView(buf);
+  return { w: view.getUint32(16), h: view.getUint32(20) };
+}
+
+function jpegDims(buf: ArrayBuffer): { w: number; h: number } | null {
+  const u8 = new Uint8Array(buf);
+  if (u8.length < 4 || u8[0] !== 0xff || u8[1] !== 0xd8) return null;
+  let i = 2;
+  while (i + 9 < u8.length) {
+    if (u8[i] !== 0xff) { i++; continue; }
+    const marker = u8[i + 1];
+    if (marker === 0xc0 || marker === 0xc1 || marker === 0xc2) {
+      return { h: (u8[i + 5] << 8) | u8[i + 6], w: (u8[i + 7] << 8) | u8[i + 8] };
+    }
+    const len = (u8[i + 2] << 8) | u8[i + 3];
+    i += 2 + len;
+  }
+  return null;
+}
+
 async function verifyImage(url: string): Promise<boolean> {
   try {
     const r = await fetch(url, {
       method: 'GET',
-      headers: { 'User-Agent': UA, Range: `bytes=0-${MIN_IMAGE_BYTES - 1}` },
-      signal: AbortSignal.timeout(10000),
+      headers: { 'User-Agent': UA },
+      signal: AbortSignal.timeout(12000),
     });
     if (!r.ok) return false;
-    const ct = r.headers.get('content-type') || '';
-    if (!ct.startsWith('image/') && !ct.includes('svg')) return false;
+    const ct = (r.headers.get('content-type') || '').toLowerCase();
+    if (!ct.startsWith('image/') && !ct.includes('svg') && !ct.includes('icon')) return false;
     const buf = await r.arrayBuffer();
-    return buf.byteLength >= MIN_IMAGE_BYTES;
+    const size = buf.byteLength;
+    if (size === GENERIC_PLACEHOLDER_BYTES || size < 500) return false;
+
+    // Prefer dimension checks — reject 16×16 generic icons even if slightly larger
+    const dims = pngDims(buf) || jpegDims(buf);
+    if (dims) {
+      if (dims.w <= 16 || dims.h <= 16) return false;
+      return dims.w >= 32 || dims.h >= 32;
+    }
+
+    // SVG / ICO / unknown format: accept if big enough to be a real asset
+    if (ct.includes('svg')) return size >= 200;
+    return size >= MIN_IMAGE_BYTES;
   } catch { return false; }
 }
 

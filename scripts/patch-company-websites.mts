@@ -215,7 +215,34 @@ const COMPANY_WEBSITES: Record<string, string> = {
   'association for the physically disabled of kenya (apdk)': 'apdk.org',
   'macheo children\'s organization': 'macheo.org',
   'wts energy': 'wtsenergy.com',
+
+  // Round 2 — user-reported gaps
+  'international fellowship kenya': 'interfelk.org',
+  'international fellowship kenya (interfelk)': 'interfelk.org',
+  'abno softwares international': 'abnosoftwares.com',
+  'smart applications international': 'smartapplicationsgroup.com',
+  'tropikal brands afrika limited': 'tropikal.co.ke',
+  'bwasco water & sewerage plc': 'bwasco.co.ke',
+  'morsan hr': 'morsanhr.co.ke',
+  'progressive credit': 'progressivecr.co.ke',
+  'total security surveillance': 'totalsecuritykenya.com',
+  'total security surveillance ltd': 'totalsecuritykenya.com',
+  'the bungoma national polytechnic': 'bungomapoly.ac.ke',
+  'durham international school kenya': 'durhamkenya.com',
+  'st. andrews turi': 'standrewsturi.com',
+  'people foco': 'peoplefoco.co.ke',
+  'people foco agency': 'peoplefoco.co.ke',
+  'hcs affiliates group': 'hcsaffiliatesgroup.com',
+  'pearl hospital': 'pearlhospital.co.ke',
+  'woodland star international school': 'woodlandstarkenya.com',
+  'rapha hospitals and clinics': 'raphahospitalkenya.com',
+  'juja st. peter\'s school': 'jsps.ac.ke',
+  'westlands specialist hospital': 'wgshospital.com',
+  'kiharu technical college murang\'a': 'kiharutechnical.ac.ke',
+  'kenchic': 'kenchic.com',
+  'tugende': 'gotugende.com',
 };
+
 
 function normalizeKey(name: string): string {
   return name.toLowerCase().trim();

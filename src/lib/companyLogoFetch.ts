@@ -12,35 +12,62 @@ import { extractDomain, getKnownBrandTwitterHandle, lookupBrand } from './compan
 
 const UA = 'Mozilla/5.0 (compatible; careersasa-bot/1.0; +https://careersasa.co.ke)';
 
-// Minimum byte size to consider an image "real" (rules out generic 726B gstatic fallbacks)
-const MIN_IMAGE_BYTES = 1500;
+// Generic gstatic "unknown domain" placeholder is 726B / 16×16.
+// Real logos can be ~900–1400B (e.g. INTERFELK 48×48 JPEG ≈ 1086B).
+const MIN_IMAGE_BYTES = 850;
+const GENERIC_PLACEHOLDER_BYTES = 726;
 
 interface FetchLogoResult {
   url: string;
   source: string;
 }
 
-/** Check that a URL returns a real image (not a generic placeholder). */
+function pngDims(buf: ArrayBuffer): { w: number; h: number } | null {
+  const u8 = new Uint8Array(buf);
+  if (u8.length < 24) return null;
+  if (u8[0] !== 0x89 || u8[1] !== 0x50 || u8[2] !== 0x4e || u8[3] !== 0x47) return null;
+  const view = new DataView(buf);
+  return { w: view.getUint32(16), h: view.getUint32(20) };
+}
+
+function jpegDims(buf: ArrayBuffer): { w: number; h: number } | null {
+  const u8 = new Uint8Array(buf);
+  if (u8.length < 4 || u8[0] !== 0xff || u8[1] !== 0xd8) return null;
+  let i = 2;
+  while (i + 9 < u8.length) {
+    if (u8[i] !== 0xff) { i++; continue; }
+    const marker = u8[i + 1];
+    if (marker === 0xc0 || marker === 0xc1 || marker === 0xc2) {
+      return { h: (u8[i + 5] << 8) | u8[i + 6], w: (u8[i + 7] << 8) | u8[i + 8] };
+    }
+    const len = (u8[i + 2] << 8) | u8[i + 3];
+    i += 2 + len;
+  }
+  return null;
+}
+
+/** Check that a URL returns a real image (not a generic 16×16 placeholder). */
 async function verifyImageUrl(url: string): Promise<boolean> {
   try {
     const res = await fetch(url, {
-      method: 'HEAD',
+      method: 'GET',
       headers: { 'User-Agent': UA },
-      signal: AbortSignal.timeout(8000),
+      signal: AbortSignal.timeout(12000),
     });
     if (!res.ok) return false;
-    const ct = res.headers.get('content-type') || '';
-    if (!ct.startsWith('image/') && !ct.includes('svg')) return false;
-    const cl = parseInt(res.headers.get('content-length') || '0', 10);
-    // Content-Length not always present; if missing, try a small GET
-    if (cl > 0) return cl >= MIN_IMAGE_BYTES;
-    // Fallback: read first bytes to check size
-    const getRes = await fetch(url, {
-      headers: { 'User-Agent': UA, Range: `bytes=0-${MIN_IMAGE_BYTES - 1}` },
-      signal: AbortSignal.timeout(8000),
-    });
-    const buf = await getRes.arrayBuffer();
-    return buf.byteLength >= MIN_IMAGE_BYTES;
+    const ct = (res.headers.get('content-type') || '').toLowerCase();
+    if (!ct.startsWith('image/') && !ct.includes('svg') && !ct.includes('icon')) return false;
+    const buf = await res.arrayBuffer();
+    const size = buf.byteLength;
+    if (size === GENERIC_PLACEHOLDER_BYTES || size < 500) return false;
+
+    const dims = pngDims(buf) || jpegDims(buf);
+    if (dims) {
+      if (dims.w <= 16 || dims.h <= 16) return false;
+      return dims.w >= 32 || dims.h >= 32;
+    }
+    if (ct.includes('svg')) return size >= 200;
+    return size >= MIN_IMAGE_BYTES;
   } catch {
     return false;
   }
