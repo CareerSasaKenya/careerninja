@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Building2 } from "lucide-react";
 import {
   companyInitials,
@@ -10,6 +10,13 @@ import {
 import { cn } from "@/lib/utils";
 
 type LogoSize = "xs" | "sm" | "md" | "lg";
+
+const SIZE_PX: Record<LogoSize, number> = {
+  xs: 20,
+  sm: 28,
+  md: 40,
+  lg: 56,
+};
 
 const SIZE_CLASSES: Record<LogoSize, string> = {
   xs: "h-5 w-5 text-[9px]",
@@ -26,17 +33,24 @@ const ICON_SIZES: Record<LogoSize, string> = {
 };
 
 export interface CompanyLogoProps extends CompanyLogoInput {
-  /** Display name (alias for companyName) */
   name?: string | null;
   size?: LogoSize;
   className?: string;
-  /** Show Building2 when no name/logo can be resolved (direct listings) */
   showBuildingFallback?: boolean;
 }
 
 /**
  * Compact company mark for job cards / details.
- * Uses stored logo, website domain, or known-brand domain; falls back to initials.
+ *
+ * Resolution order:
+ * 1. companies.logo (stored in DB – always trusted)
+ * 2. hiring_organization_logo on the job
+ * 3. companies.website domain → gstatic favicon (filtered: must be > 20×20 pixels)
+ * 4. Company name → known brand domain → gstatic favicon
+ * 5. Initials (coloured, never blank)
+ *
+ * The gstatic service returns a 16×16 generic icon for unknown domains.
+ * We detect this via the rendered naturalWidth/naturalHeight and fall back to initials.
  */
 export function CompanyLogo({
   name,
@@ -55,7 +69,15 @@ export function CompanyLogo({
     companyName: displayName,
     hiringOrganizationLogo,
   });
+
+  // failed: image load errored or resolved to a generic icon (< 20px)
   const [failed, setFailed] = useState(false);
+
+  // Reset failure state when the URL changes (e.g. company prop update)
+  useEffect(() => {
+    setFailed(false);
+  }, [resolved]);
+
   const showImage = !!resolved && !failed;
 
   if (!showImage && !displayName && showBuildingFallback) {
@@ -105,6 +127,14 @@ export function CompanyLogo({
         decoding="async"
         referrerPolicy="no-referrer"
         onError={() => setFailed(true)}
+        onLoad={(e) => {
+          // Discard generic favicons: gstatic returns 16×16 for unknown domains
+          const img = e.currentTarget;
+          const minPx = SIZE_PX[size] <= 20 ? 12 : 20;
+          if (img.naturalWidth <= minPx || img.naturalHeight <= minPx) {
+            setFailed(true);
+          }
+        }}
       />
     </div>
   );

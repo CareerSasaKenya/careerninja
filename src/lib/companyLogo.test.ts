@@ -23,18 +23,18 @@ assert(resolveCompanyDomain("Equity Bank Kenya") === "equitybank.co.ke", "known 
 assert(resolveCompanyDomain("KCB Bank") === "kcbbankgroup.com", "known kcb");
 assert(resolveCompanyDomain("Public Service Commission of Kenya") === "publicservice.go.ke", "known psc");
 
-// Known brands with Twitter handle → unavatar URL
+// Known brands → gstatic favicon from known domain
 assert(
-  resolveCompanyLogoUrl({ companyName: "Safaricom" })?.includes("unavatar.io/twitter/SafaricomPLC"),
-  "logo url for safaricom uses twitter"
+  resolveCompanyLogoUrl({ companyName: "Safaricom" })?.includes("safaricom.co.ke"),
+  "logo url for safaricom uses domain"
 );
 assert(
-  resolveCompanyLogoUrl({ companyName: "KCB Bank" })?.includes("unavatar.io/twitter/KCBGroup"),
-  "logo url for kcb uses twitter"
+  resolveCompanyLogoUrl({ companyName: "KCB Bank" })?.includes("kcbbankgroup.com"),
+  "logo url for kcb uses domain"
 );
 assert(
-  resolveCompanyLogoUrl({ companyName: "Equity Bank" })?.includes("unavatar.io/twitter/EquityBank"),
-  "logo url for equity uses twitter"
+  resolveCompanyLogoUrl({ companyName: "Equity Bank" })?.includes("equitybank.co.ke"),
+  "logo url for equity uses domain"
 );
 
 // Website-derived logo
@@ -51,7 +51,8 @@ assert(
 assert(companyInitials("Equity Bank") === "EB", "initials");
 
 const enrichment = buildCompanyLogoEnrichment({ name: "Safaricom" });
-assert(!!enrichment.logo && !!enrichment.website, "enrichment fills both fields");
-assert(enrichment.logo?.includes("unavatar.io"), "enrichment uses twitter logo");
+// enrichment now only fills website; logo is left for the verified server-side cron
+assert(!!enrichment.website, "enrichment fills website");
+assert(!enrichment.logo, "enrichment does NOT pre-fill logo (avoids storing unverified CDN URLs)");
 
 console.log("companyLogo.test.ts: all assertions passed");

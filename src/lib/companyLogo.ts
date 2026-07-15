@@ -1,23 +1,18 @@
 /**
- * Resolve hiring-company logos for job cards and details.
+ * Company logo resolution utilities.
  *
- * Priority:
- * 1. Explicit stored logo URL (companies.logo / hiring_organization_logo)
- * 2. Domain derived from companies.website → gstatic faviconV2
- * 3. Well-known company → direct logo URL (Twitter via unavatar, then domain favicon)
- * 4. Logo.dev CDN (when NEXT_PUBLIC_LOGO_DEV_TOKEN is set)
- * 5. gstatic faviconV2 (no API key)
+ * Architecture:
+ * - Display-time (client): resolveCompanyLogoUrl()
+ *   Trusts stored companies.logo first, then tries gstatic favicon for website domains.
+ *   Does NOT rely on Twitter/unavatar (unreliable — can return generic placeholders).
  *
- * Display components must still handle image load failures (→ initials).
+ * - Enrichment-time (server): see src/lib/companyLogoFetch.ts
+ *   Verifies real image bytes before writing to companies.logo.
  */
 
-/**
- * Rich brand entry: domain for website resolution, optional Twitter handle
- * for high-quality logo via unavatar.io/twitter/{handle}.
- */
 interface BrandEntry {
   domain: string;
-  /** Twitter/X handle (without @). Gives 400×400 profile picture via unavatar. */
+  /** Twitter/X handle – used by server-side fetcher only, not display. */
   twitter?: string;
 }
 
@@ -94,9 +89,6 @@ export const KNOWN_COMPANY_BRANDS: Record<string, BrandEntry> = {
   "apa insurance": { domain: "apainsurance.org" },
   centum: { domain: "centum.co.ke", twitter: "centum_ke" },
   "centum investment": { domain: "centum.co.ke", twitter: "centum_ke" },
-  "pesalink": { domain: "pesalink.co.ke" },
-  "kenswitch": { domain: "kenswitch.co.ke" },
-  "safaricom investment": { domain: "safaricom.co.ke", twitter: "SafaricomPLC" },
 
   // ── Public / Development ────────────────────────────────────────────
   "public service commission": { domain: "publicservice.go.ke" },
@@ -120,8 +112,8 @@ export const KNOWN_COMPANY_BRANDS: Record<string, BrandEntry> = {
   nhif: { domain: "nhif.or.ke" },
   "national social security fund": { domain: "nssf.or.ke" },
   nssf: { domain: "nssf.or.ke" },
-  "kenya national highways authority": { domain: "kenha.go.ke" },
-  "ketraco": { domain: "ketraco.co.ke" },
+  kengen: { domain: "kengen.co.ke", twitter: "KenGen_Kenya" },
+  "kenya electricity generating company": { domain: "kengen.co.ke", twitter: "KenGen_Kenya" },
   undp: { domain: "undp.org", twitter: "UNDP" },
   unicef: { domain: "unicef.org", twitter: "UNICEF" },
   unhcr: { domain: "unhcr.org", twitter: "Refugees" },
@@ -134,38 +126,32 @@ export const KNOWN_COMPANY_BRANDS: Record<string, BrandEntry> = {
   "giz kenya": { domain: "giz.de", twitter: "giz_gmbh" },
   "british council": { domain: "britishcouncil.org", twitter: "BritishCouncil" },
   "amnesty international": { domain: "amnesty.org", twitter: "amnesty" },
-  "red cross": { domain: "redcross.or.ke" },
   "kenya red cross": { domain: "redcross.or.ke", twitter: "kenyaredcross" },
   "kenya red cross society": { domain: "redcross.or.ke", twitter: "kenyaredcross" },
+  "red cross": { domain: "redcross.or.ke" },
   "save the children": { domain: "savethechildren.org", twitter: "SavetheChildren" },
   "world food programme": { domain: "wfp.org", twitter: "WFP" },
   wfp: { domain: "wfp.org", twitter: "WFP" },
   "plan international": { domain: "plan-international.org", twitter: "PlanIntl" },
-  "world vision": { domain: "worldvision.org", twitter: "worldvisionUSA" },
-  "doctors without borders": { domain: "msf.org", twitter: "MSF_USA" },
+  "world vision": { domain: "worldvision.org" },
   msf: { domain: "msf.org", twitter: "MSF_USA" },
-  "care kenya": { domain: "care.org", twitter: "CARE" },
+  "doctors without borders": { domain: "msf.org", twitter: "MSF_USA" },
   "mercy corps": { domain: "mercycorps.org", twitter: "Mercy_Corps" },
-  "path": { domain: "path.org", twitter: "PATH_tweets" },
-  "population services international": { domain: "psi.org", twitter: "PSInews" },
   psi: { domain: "psi.org" },
 
-  // ── Agriculture / Manufacturing ─────────────────────────────────────
+  // ── Agriculture / FMCG ─────────────────────────────────────────────
   "bidco africa": { domain: "bidcoafrica.com", twitter: "Bidco_Africa" },
   bidco: { domain: "bidcoafrica.com", twitter: "Bidco_Africa" },
   "unga group": { domain: "unga.com" },
   "brookside dairy": { domain: "brookside.co.ke" },
   brookside: { domain: "brookside.co.ke" },
-  "finlays kenya": { domain: "finlays.net", twitter: "JamesFinlay" },
+  "finlays kenya": { domain: "finlays.net" },
   "british american tobacco": { domain: "bat.com", twitter: "BATplc" },
   bat: { domain: "bat.com", twitter: "BATplc" },
   "east african breweries": { domain: "eabl.com", twitter: "EABLplc" },
   eabl: { domain: "eabl.com", twitter: "EABLplc" },
   "kenya breweries": { domain: "eabl.com", twitter: "EABLplc" },
   "bamburi cement": { domain: "bamburicement.com", twitter: "BamburiCement" },
-  "east african portland cement": { domain: "eapccl.com" },
-  "arm cement": { domain: "armcement.com" },
-  "kenya orchards": { domain: "kenyaorchards.com" },
 
   // ── Retail / Consumer ───────────────────────────────────────────────
   "carrefour kenya": { domain: "carrefour.ke", twitter: "CarrefourKenya" },
@@ -175,10 +161,6 @@ export const KNOWN_COMPANY_BRANDS: Record<string, BrandEntry> = {
   quickmart: { domain: "quickmart.co.ke", twitter: "QuickmartSM" },
   "java house": { domain: "javahouse.africa", twitter: "JavaHouseAfrica" },
   "chicken inn": { domain: "chickeninn.co.ke" },
-  "kfc kenya": { domain: "kfckenya.co.ke" },
-  kfc: { domain: "kfc.com", twitter: "kfc" },
-  "mr price": { domain: "mrpricekenya.co.ke" },
-  woolworths: { domain: "woolworths.co.za", twitter: "woolworths_sa" },
 
   // ── Media ───────────────────────────────────────────────────────────
   "nation media": { domain: "nation.africa", twitter: "nationafrica" },
@@ -188,54 +170,34 @@ export const KNOWN_COMPANY_BRANDS: Record<string, BrandEntry> = {
   "standard group": { domain: "standardmedia.co.ke", twitter: "StandardMediaGrp" },
   "royal media": { domain: "royalmedia.co.ke", twitter: "royalmediakenya" },
   "royal media services": { domain: "royalmedia.co.ke", twitter: "royalmediakenya" },
-  "radio africa": { domain: "radioafrica.co.ke" },
 
-  // ── Agriculture Tech / NGOs ─────────────────────────────────────────
+  // ── Agritech / NGOs ─────────────────────────────────────────────────
   inkomoko: { domain: "inkomoko.com", twitter: "Inkomoko" },
   "give directly": { domain: "givedirectly.org", twitter: "GiveDirectly" },
   givedirectly: { domain: "givedirectly.org", twitter: "GiveDirectly" },
   "one acre fund": { domain: "oneacrefund.org", twitter: "OneAcreFund" },
   "living goods": { domain: "livinggoods.org", twitter: "LivingGoods_" },
-  "kenya commercial agriculture": { domain: "kenyacommercialagri.or.ke" },
   "apollo agriculture": { domain: "apolloagriculture.com", twitter: "ApolloAgricultu" },
-  // ── Hospitality / Tourism ───────────────────────────────────────────
-  "sarova hotels": { domain: "sarovahotels.com", twitter: "SarovaHotels" },
-  "serena hotels": { domain: "serenahotels.com", twitter: "SerenaHotels" },
-  "kenya tourism board": { domain: "magicalkenya.com", twitter: "VisitKenyaNow" },
-  "leopard beach resort": { domain: "leopardbeachresort.com" },
-  "heritage hotels": { domain: "heritage-eastafrica.com" },
 
-  // ── Health / Pharma ─────────────────────────────────────────────────
-  "aga khan hospital": { domain: "agakhanhospitals.org", twitter: "AKU_News" },
-  "aga khan health services": { domain: "agakhanhospitals.org", twitter: "AKU_News" },
+  // ── Health ──────────────────────────────────────────────────────────
+  "aga khan hospital": { domain: "agakhanhospitals.org" },
   "nairobi hospital": { domain: "nairobihospital.org", twitter: "NrbHospital" },
   "kenyatta national hospital": { domain: "knh.or.ke" },
   knh: { domain: "knh.or.ke" },
-  "mater hospital": { domain: "materhospital.org" },
-  "gertrude's children hospital": { domain: "gerties.org" },
-  "astrazeneca": { domain: "astrazeneca.com", twitter: "AstraZeneca" },
-  "roche": { domain: "roche.com", twitter: "Roche" },
-  "glaxosmithkline": { domain: "gsk.com", twitter: "GSK" },
   gsk: { domain: "gsk.com", twitter: "GSK" },
-  "johnson and johnson": { domain: "jnj.com", twitter: "JNJNews" },
+  astrazeneca: { domain: "astrazeneca.com", twitter: "AstraZeneca" },
 
-  // ── Energy ──────────────────────────────────────────────────────────
-  "kengen": { domain: "kengen.co.ke", twitter: "KenGen_Kenya" },
-  "kenya electricity generating company": { domain: "kengen.co.ke", twitter: "KenGen_Kenya" },
-  "kerio valley development authority": { domain: "kvda.go.ke" },
-  "petroleum institute of east africa": { domain: "piea.or.ke" },
-
-  // ── Logistics / Transport ───────────────────────────────────────────
+  // ── Logistics ───────────────────────────────────────────────────────
   dhl: { domain: "dhl.com", twitter: "DHLglobal" },
   "dhl express": { domain: "dhl.com", twitter: "DHLglobal" },
-  "kenya post": { domain: "posta.co.ke" },
   "posta kenya": { domain: "posta.co.ke" },
-  "wells fargo kenya": { domain: "wellsfargoke.com" },
-  "siginon freight": { domain: "siginon.com" },
-  "bollore logistics": { domain: "bollore-logistics.com" },
+
+  // ── Hospitality ─────────────────────────────────────────────────────
+  "sarova hotels": { domain: "sarovahotels.com", twitter: "SarovaHotels" },
+  "serena hotels": { domain: "serenahotels.com", twitter: "SerenaHotels" },
 };
 
-/** Backward-compat alias: domain-only lookup */
+/** Backward-compat alias: domain-only lookup (for JSON-LD etc.) */
 export const KNOWN_COMPANY_DOMAINS: Record<string, string> = Object.fromEntries(
   Object.entries(KNOWN_COMPANY_BRANDS).map(([k, v]) => [k, v.domain])
 );
@@ -253,7 +215,6 @@ export function normalizeCompanyKey(name: string): string {
     .replace(/['']/g, "")
     .replace(/&/g, " and ")
     .replace(/[^a-z0-9]+/g, " ")
-    // Strip legal suffixes only (avoid bare "co" — breaks "co operative bank")
     .replace(/\b(ltd|limited|plc|inc|corp|corporation|company)\b/g, " ")
     .replace(/\s+/g, " ")
     .trim();
@@ -263,41 +224,29 @@ export function extractDomain(websiteOrDomain: string | null | undefined): strin
   if (!websiteOrDomain) return null;
   let value = websiteOrDomain.trim();
   if (!value) return null;
-
   try {
-    if (!/^https?:\/\//i.test(value)) {
-      value = `https://${value}`;
-    }
+    if (!/^https?:\/\//i.test(value)) value = `https://${value}`;
     const host = new URL(value).hostname.toLowerCase().replace(/^www\./, "");
     if (!host || !host.includes(".")) return null;
-    // Skip ATS / job-board hosts — they are not the employer brand
     if (
-      /(workable\.com|smartrecruiters\.com|lever\.co|greenhouse\.io|bamboohr\.com|myworkdayjobs\.com|jobs\.|careersasa)/i.test(
-        host
-      )
-    ) {
-      return null;
-    }
+      /(workable\.com|smartrecruiters\.com|lever\.co|greenhouse\.io|bamboohr\.com|myworkdayjobs\.com|jobs\.|careersasa)/i.test(host)
+    ) return null;
     return host;
   } catch {
     return null;
   }
 }
 
-/** Look up the brand entry for a company name. */
-function lookupBrand(companyName: string): BrandEntry | null {
+/** Look up the brand entry for a company name (longest-key match). */
+export function lookupBrand(companyName: string): BrandEntry | null {
   const key = normalizeCompanyKey(companyName);
   if (!key) return null;
   if (KNOWN_COMPANY_BRANDS[key]) return KNOWN_COMPANY_BRANDS[key];
-
-  // Prefer longest known key contained in the normalized name
   let best: { known: string; entry: BrandEntry } | null = null;
   for (const [known, entry] of Object.entries(KNOWN_COMPANY_BRANDS)) {
     if (known.length < 4) continue;
     if (key === known || key.includes(known)) {
-      if (!best || known.length > best.known.length) {
-        best = { known, entry };
-      }
+      if (!best || known.length > best.known.length) best = { known, entry };
     }
   }
   return best?.entry ?? null;
@@ -314,71 +263,49 @@ export function resolveCompanyDomain(
 }
 
 /**
- * Logo URL from Twitter profile picture (via unavatar.io, no API key required).
- * Returns a 400×400 image that unavatar proxies from the Twitter CDN.
- * Images are cached server-side by unavatar so most requests resolve quickly.
+ * Build a favicon CDN URL for a domain (display-time, client-safe).
+ * Uses Logo.dev when token configured, gstatic faviconV2 otherwise.
+ * Note: gstatic returns a 726B generic icon for unknown domains — the
+ * CompanyLogo component handles this via onError → initials fallback.
  */
-function twitterLogoUrl(handle: string): string {
-  return `https://unavatar.io/twitter/${encodeURIComponent(handle)}`;
-}
-
-/** Build a favicon CDN URL for a domain. */
 export function buildLogoCdnUrl(domain: string, size = 128): string {
   const token =
     typeof process !== "undefined"
       ? process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN || process.env.LOGO_DEV_API_KEY
       : undefined;
-
   if (token) {
     return `https://img.logo.dev/${encodeURIComponent(domain)}?token=${encodeURIComponent(token)}&size=${size}&format=png`;
   }
-
-  // gstatic faviconV2 returns full-color brand icons at up to 128px
   return `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://${encodeURIComponent(domain)}&size=${size}`;
 }
 
 export function isUsableLogoUrl(url?: string | null): boolean {
   if (!url) return false;
-  const trimmed = url.trim();
-  if (!trimmed) return false;
-  return /^https?:\/\//i.test(trimmed);
+  return /^https?:\/\//i.test(url.trim());
 }
 
 /**
- * Best logo URL for display, or null when we should show initials/fallback.
- * For known brands we prefer their Twitter profile picture (higher quality
- * than a 16px favicon) when available and no stored logo exists.
+ * Best logo URL for display (client-side, no API calls).
+ *
+ * Priority:
+ * 1. companies.logo (stored & verified in DB) — always trust this
+ * 2. hiring_organization_logo on the job row
+ * 3. companies.website domain → gstatic favicon (best-effort; may fail for small companies)
+ * 4. known brand name → brand domain → gstatic favicon
+ *
+ * The CompanyLogo component MUST handle image load failures via onError
+ * and fall back to initials — gstatic sometimes returns a generic 726B icon
+ * for unknown domains (detectable only by checking image size after load).
  */
 export function resolveCompanyLogoUrl(input: CompanyLogoInput): string | null {
   if (isUsableLogoUrl(input.logo)) return input.logo!.trim();
-  if (isUsableLogoUrl(input.hiringOrganizationLogo)) {
-    return input.hiringOrganizationLogo!.trim();
-  }
+  if (isUsableLogoUrl(input.hiringOrganizationLogo)) return input.hiringOrganizationLogo!.trim();
 
-  // From the stored/provided website domain
   const fromWebsite = input.website ? extractDomain(input.website) : null;
-
-  // Look up brand entry from company name or website
-  const brand =
-    input.companyName ? lookupBrand(input.companyName) : null;
-
-  // Use brand domain or website-derived domain
+  const brand = input.companyName ? lookupBrand(input.companyName) : null;
   const domain = fromWebsite || brand?.domain || null;
 
-  // Twitter avatar first (better quality), then domain favicon
-  if (brand?.twitter) {
-    return twitterLogoUrl(brand.twitter);
-  }
-  if (domain) {
-    return buildLogoCdnUrl(domain);
-  }
-
-  // If we have a website but no brand match, still try favicon
-  if (fromWebsite) {
-    return buildLogoCdnUrl(fromWebsite);
-  }
-
-  return null;
+  return domain ? buildLogoCdnUrl(domain) : null;
 }
 
 /** Website URL to persist when enriching a company from a known name. */
@@ -402,8 +329,10 @@ export function companyInitials(name?: string | null): string {
 }
 
 /**
- * Fields to write when creating/updating a company that is missing logo/website.
- * Prefers Twitter-based logo URL for known brands (stored once, served from DB).
+ * Fields to write when creating/updating a company.
+ * Only writes `website` (from known domain map) — logo is left for the
+ * server-side verified fetcher (enrich-company-logos cron) to populate.
+ * This avoids storing unverified CDN URLs (Twitter placeholders etc.) in the DB.
  */
 export function buildCompanyLogoEnrichment(input: {
   name: string;
@@ -411,16 +340,15 @@ export function buildCompanyLogoEnrichment(input: {
   website?: string | null;
 }): { logo?: string; website?: string } {
   const website = input.website || resolveCompanyWebsite(input.name, null);
-  const logo =
-    input.logo ||
-    resolveCompanyLogoUrl({
-      logo: input.logo,
-      website,
-      companyName: input.name,
-    });
-
   const patch: { logo?: string; website?: string } = {};
   if (!input.website && website) patch.website = website;
-  if (!input.logo && logo) patch.logo = logo;
+  // Logo is intentionally NOT set here — the verified server-side fetcher handles it.
   return patch;
+}
+
+/**
+ * Twitter handle for a known brand — used by server-side logo fetcher only.
+ */
+export function getKnownBrandTwitterHandle(companyName: string): string | null {
+  return lookupBrand(companyName)?.twitter ?? null;
 }
