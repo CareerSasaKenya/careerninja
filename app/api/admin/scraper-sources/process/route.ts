@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/adminAuth'
-import { triggerScrapeProcessBatch } from '@/lib/scraperCron'
+import { runScrapeProcessBatch } from '@/lib/scrapeProcess'
 
 export const runtime = 'nodejs'
 export const maxDuration = 300
 
 /**
  * POST /api/admin/scraper-sources/process
- * Admin-only: process up to max pending queue items (one job per internal call).
+ * Admin-only: process up to max pending queue items in-process.
  * Body: { max?: number } — default 5, capped at 10
  */
 export async function POST(request: NextRequest) {
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     const requested = typeof body.max === 'number' ? body.max : 5
     const maxJobs = Math.min(Math.max(1, Math.floor(requested)), 10)
 
-    const { processed, results } = await triggerScrapeProcessBatch(maxJobs)
+    const { processed, results } = await runScrapeProcessBatch(auth.adminClient, maxJobs)
 
     const published = results.filter(r => r.success && !r.pdf_document).length
     const pdfBatches = results.filter(r => r.pdf_document)

@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { triggerScrapeDiscover } from '@/lib/scraperCron'
+import { createClient } from '@supabase/supabase-js'
+import { runScrapeDiscover } from '@/lib/scrapeDiscover'
 
 export const maxDuration = 60
+
+function getServiceClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,7 +20,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const result = await triggerScrapeDiscover()
+    const result = await runScrapeDiscover(getServiceClient())
 
     return NextResponse.json({
       success: true,

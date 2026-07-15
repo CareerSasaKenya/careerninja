@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { triggerScrapeProcessBatch } from '@/lib/scraperCron'
+import { createClient } from '@supabase/supabase-js'
+import { runScrapeProcessBatch } from '@/lib/scrapeProcess'
 
 export const maxDuration = 300
+
+function getServiceClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,7 +21,7 @@ export async function GET(request: NextRequest) {
     }
 
     const maxJobs = parseInt(request.nextUrl.searchParams.get('max') || '5', 10)
-    const { processed, results } = await triggerScrapeProcessBatch(maxJobs)
+    const { processed, results } = await runScrapeProcessBatch(getServiceClient(), maxJobs)
 
     return NextResponse.json({
       success: true,

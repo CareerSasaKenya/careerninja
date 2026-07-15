@@ -156,9 +156,8 @@ export default function AdminScraperSourcesPage() {
         body: JSON.stringify({ max }),
       });
 
-      const body = await response.json();
+      const body = await parseJsonResponse(response);
       if (!response.ok) throw new Error(body.error || "Process failed");
-
       if (body.processed === 0) {
         toast.info("Process complete: no pending jobs in queue");
       } else if (body.published > 0) {
@@ -432,4 +431,23 @@ function StatCard({ label, value }: { label: string; value: number }) {
       </CardContent>
     </Card>
   );
+}
+
+async function parseJsonResponse(response: Response): Promise<{
+  error?: string
+  processed?: number
+  published?: number
+  skipped?: number
+  errors?: number
+  [key: string]: unknown
+}> {
+  const text = await response.text();
+  try {
+    return text ? JSON.parse(text) : {};
+  } catch {
+    const snippet = text.replace(/\s+/g, " ").slice(0, 120);
+    throw new Error(
+      `Server returned non-JSON (HTTP ${response.status})${snippet ? `: ${snippet}` : ""}`
+    );
+  }
 }
