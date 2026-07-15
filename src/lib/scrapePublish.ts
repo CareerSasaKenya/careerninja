@@ -7,7 +7,7 @@ import { NormalizedJob, generateContentHash } from './scraper'
 import { mapEducationLevel } from './jobMetadataExtraction'
 import { resolveValidThrough } from './jobParseNormalization'
 import { parseScrapedJobContent, ScrapedJobInput } from './scraperJobParsing'
-import { buildCompanyLogoEnrichment } from './companyLogo'
+import { ensureCompanyForJob } from './ensureCompanyForJob'
 
 export interface PublishScrapedJobParams {
   supabase: SupabaseClient
@@ -83,38 +83,12 @@ export async function publishScrapedJob(
       .select('id, name')
     const educationLevelId = mapEducationLevel(parsed.education_level, educationLevels || [])
 
-    let companyId: string | null = null
-    const { data: existingCompany } = await supabase
-      .from('companies')
-      .select('id, logo, website')
-      .eq('name', dedupCompany)
-      .maybeSingle()
-
-    if (existingCompany) {
-      companyId = existingCompany.id
-      // Backfill logo/website for known or domain-resolvable employers
-      const enrichment = buildCompanyLogoEnrichment({
-        name: dedupCompany,
-        logo: existingCompany.logo,
-        website: existingCompany.website,
-      })
-      if (Object.keys(enrichment).length > 0) {
-        await supabase.from('companies').update(enrichment).eq('id', existingCompany.id)
-      }
-    } else {
-      const enrichment = buildCompanyLogoEnrichment({ name: dedupCompany })
-      const { data: newCompany } = await supabase
-        .from('companies')
-        .insert({
-          name: dedupCompany,
-          user_id: scraperUserId,
-          logo: enrichment.logo ?? null,
-          website: enrichment.website ?? null,
-        })
-        .select('id')
-        .single()
-      companyId = newCompany?.id ?? null
-    }
+    // Reuse stored company logo, or fetch+persist once for this employer
+    const ensured = await ensureCompanyForJob(supabase, {
+      name: dedupCompany,
+      userId: scraperUserId,
+    })
+    const companyId = ensured.companyId
 
     const jobPayload = {
       ...normalized,
@@ -125,6 +99,8 @@ export async function publishScrapedJob(
       company_id: companyId,
       user_id: scraperUserId,
       hiring_organization_name: dedupCompany,
+      hiring_organization_logo: ensured.logo,
+      hiring_organization_url: ensured.website,
       source: 'Scraper',
       direct_apply: false,
       application_url: normalized.application_url || jobUrl,

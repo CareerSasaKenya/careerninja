@@ -23,6 +23,7 @@ import { processPscPdfQueueItem } from '@/lib/psc-pdf-adapter'
 import { mapEducationLevel } from '@/lib/jobMetadataExtraction'
 import { resolveValidThrough } from '@/lib/jobParseNormalization'
 import { parseScrapedJobContent, ScrapedJobInput } from '@/lib/scraperJobParsing'
+import { ensureCompanyForJob } from '@/lib/ensureCompanyForJob'
 import type { WorkableJobDetail } from '@/lib/workable-adapter'
 
 const supabase = createClient(
@@ -224,26 +225,13 @@ export async function POST(request: NextRequest) {
       .select('id, name')
     const educationLevelId = mapEducationLevel(parsed.education_level, educationLevels || [])
 
-    // ── Look up or create company ────────────────────────────────────────────
+    // ── Look up/create company + reuse or fetch logo immediately ─────────────
     const scraperUserId = await getScraperUserId()
-    let companyId: string | null = null
-
-    const { data: existingCompany } = await supabase
-      .from('companies')
-      .select('id')
-      .eq('name', dedupCompany)
-      .maybeSingle()
-
-    if (existingCompany) {
-      companyId = existingCompany.id
-    } else {
-      const { data: newCompany } = await supabase
-        .from('companies')
-        .insert({ name: dedupCompany, user_id: scraperUserId })
-        .select('id')
-        .single()
-      companyId = newCompany?.id ?? null
-    }
+    const ensured = await ensureCompanyForJob(supabase, {
+      name: dedupCompany,
+      userId: scraperUserId,
+    })
+    const companyId = ensured.companyId
 
     // ── Insert job ───────────────────────────────────────────────────────────
     const jobPayload = {
@@ -255,6 +243,8 @@ export async function POST(request: NextRequest) {
       company_id: companyId,
       user_id: scraperUserId,
       hiring_organization_name: dedupCompany,
+      hiring_organization_logo: ensured.logo,
+      hiring_organization_url: ensured.website,
       source: 'Scraper',
       direct_apply: false,
       application_url: normalized.application_url || queueItem.job_url,

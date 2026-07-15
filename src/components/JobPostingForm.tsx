@@ -24,8 +24,6 @@ import {
   dedupeStrings,
   resolveValidThrough,
 } from "@/lib/jobParseNormalization";
-import { buildCompanyLogoEnrichment } from "@/lib/companyLogo";
-
 interface JobFormData {
   // Core fields
   title: string;
@@ -644,102 +642,58 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
       if (!user) throw new Error("Not authenticated");
 
       // Determine the company name to use
-      const companyName = shouldCreateCompany && role === "admin" ? newCompanyName : data.company;
-      
-      // Check if we need to create a company first (admin only)
+      const companyName =
+        role === "employer" && userCompany?.name
+          ? userCompany.name
+          : shouldCreateCompany && role === "admin"
+            ? newCompanyName
+            : data.company;
+
       // Convert empty string to null for proper database handling
       let companyId = data.company_id && data.company_id !== "" ? data.company_id : null;
-      
-      // Only create new company if explicitly requested
-      if (role === "admin" && shouldCreateCompany && newCompanyName) {
-        // Check if company already exists
-        const { data: existingCompany, error: checkError } = await supabase
-          .from("companies")
-          .select("id")
-          .eq("name", newCompanyName)
-          .maybeSingle();
+      // Employer posts must attach to their company profile
+      if (role === "employer" && userCompany?.id) {
+        companyId = userCompany.id;
+      }
 
-        if (checkError && checkError.code !== 'PGRST116') {
-          console.error("Error checking existing company:", checkError);
-          throw checkError;
-        }
+      let hiringOrganizationLogo: string | null = userCompany?.logo ?? null;
+      let hiringOrganizationUrl: string | null = userCompany?.website ?? null;
 
-        if (existingCompany) {
-          // Use existing company
-          companyId = existingCompany.id;
-          toast.info(`Using existing company "${newCompanyName}"`);
-        } else {
-          // Create new company (auto-enrich logo/website for known brands)
-          const enrichment = buildCompanyLogoEnrichment({ name: newCompanyName });
-          const companyData = {
-            user_id: user.id,
-            name: newCompanyName,
+      // Ensure company exists and logo is reused or fetched+stored immediately
+      // (scraped / manual / parsed / employer all share this path for reuse).
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const accessToken = sessionData.session?.access_token;
+        const ensureRes = await fetch("/api/companies/ensure-for-job", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          },
+          body: JSON.stringify({
+            name: companyName,
+            companyId,
+            website: userCompany?.website ?? null,
+            logo: userCompany?.logo ?? null,
             industry: data.industry || null,
-            website: enrichment.website ?? null,
-            description: null,
-            location: null,
-            size: null,
-            logo: enrichment.logo ?? null,
-          };
-
-          const { data: company, error: companyError } = await supabase
-            .from("companies")
-            .insert(companyData)
-            .select()
-            .single();
-
-          if (companyError) {
-            if (companyError.code === '23505') {
-              if (companyError.message.includes('name')) {
-                const { data: existingCompany, error: findError } = await supabase
-                  .from("companies")
-                  .select("id")
-                  .eq("name", newCompanyName)
-                  .maybeSingle();
-
-                if (findError) {
-                  throw new Error("A company with this name already exists. Please select it from the dropdown.");
-                }
-
-                if (existingCompany) {
-                  companyId = existingCompany.id;
-                  toast.info(`Using existing company "${newCompanyName}"`);
-                } else {
-                  throw new Error("A company with this name already exists. Please choose a different name or select the existing company from the dropdown.");
-                }
-              } else {
-                console.error("Company creation unique violation:", companyError);
-                throw companyError;
-              }
-            } else if (companyError.code === '409') {
-              const { data: conflictingCompany, error: fetchError } = await supabase
-                .from("companies")
-                .select("id")
-                .eq("name", newCompanyName)
-                .maybeSingle();
-
-              if (fetchError) {
-                throw new Error("A company with this name or details already exists. Please select an existing company or use a different name.");
-              }
-
-              if (conflictingCompany) {
-                companyId = conflictingCompany.id;
-                toast.info(`Using existing company "${newCompanyName}"`);
-              } else {
-                throw new Error("A company with this name or details already exists. Please select an existing company or use a different name.");
-              }
-            } else {
-              console.error("Company creation error:", companyError);
-              throw companyError;
+          }),
+        });
+        if (ensureRes.ok) {
+          const ensured = await ensureRes.json();
+          if (ensured.companyId) {
+            if (shouldCreateCompany && role === "admin" && companyId !== ensured.companyId) {
+              toast.success(`Company "${companyName}" ready`);
             }
-          } else {
-            companyId = company.id;
-            queryClient.invalidateQueries({ queryKey: ["all-companies"] });
-            queryClient.invalidateQueries({ queryKey: ["jobs"] });
-            queryClient.invalidateQueries({ queryKey: ["relatedJobs"] });
-            toast.success(`Company "${company.name}" created successfully!`);
+            companyId = ensured.companyId;
           }
+          if (ensured.logo) hiringOrganizationLogo = ensured.logo;
+          if (ensured.website) hiringOrganizationUrl = ensured.website;
+          queryClient.invalidateQueries({ queryKey: ["all-companies"] });
+        } else {
+          console.warn("ensure-for-job failed:", await ensureRes.text());
         }
+      } catch (ensureErr) {
+        console.warn("ensure-for-job error:", ensureErr);
       }
 
       console.log("Final company values:", {
@@ -747,7 +701,8 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
         companyId,
         shouldCreateCompany,
         newCompanyName,
-        originalCompanyId: data.company_id
+        originalCompanyId: data.company_id,
+        hiringOrganizationLogo,
       });
 
       // Resolve industry names to UUIDs (allowed options only)
@@ -787,6 +742,8 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
         employment_type: data.employment_type,
         employment_types: data.employment_types && data.employment_types.length > 0 ? data.employment_types : [data.employment_type],
         hiring_organization_name: companyName,
+        hiring_organization_logo: hiringOrganizationLogo,
+        hiring_organization_url: hiringOrganizationUrl,
         job_location_type: data.job_location_type,
         job_location_types: data.job_location_types && data.job_location_types.length > 0 ? data.job_location_types : [data.job_location_type],
         job_location_country: data.job_location_country,

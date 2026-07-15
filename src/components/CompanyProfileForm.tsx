@@ -189,17 +189,16 @@ const CompanyProfileForm = () => {
     setSaving(true);
 
     try {
-      // Auto-fill logo from website / known brand when employer leaves logo blank
+      // Persist profile fields first (manual logo/website win when provided)
       const enrichment = buildCompanyLogoEnrichment({
         name: formData.name,
         logo: formData.logo || null,
         website: formData.website || null,
       });
-      const logoToSave = formData.logo || enrichment.logo || null;
-      const websiteToSave = formData.website || enrichment.website || null;
+      let logoToSave = formData.logo || enrichment.logo || null;
+      let websiteToSave = formData.website || enrichment.website || null;
 
       if (company) {
-        // Update existing company
         const { error } = await supabase
           .from("companies")
           .update({
@@ -214,17 +213,7 @@ const CompanyProfileForm = () => {
           .eq("id", company.id);
 
         if (error) throw error;
-
-        if (!formData.logo && logoToSave) {
-          setFormData((prev) => ({ ...prev, logo: logoToSave, website: websiteToSave || prev.website }));
-        }
-
-        toast({
-          title: "Success",
-          description: "Company profile updated successfully",
-        });
       } else {
-        // Create new company
         const { error } = await supabase.from("companies").insert({
           user_id: user?.id,
           name: formData.name,
@@ -237,13 +226,58 @@ const CompanyProfileForm = () => {
         });
 
         if (error) throw error;
+      }
 
-        toast({
-          title: "Success",
-          description: "Company profile created successfully",
+      // Fetch + store a real logo immediately when logo is blank but website/brand exists
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const accessToken = sessionData.session?.access_token;
+        const ensureRes = await fetch("/api/companies/ensure-for-job", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          },
+          body: JSON.stringify({
+            name: formData.name,
+            companyId: company?.id ?? null,
+            website: websiteToSave,
+            logo: logoToSave,
+            industry: formData.industry || null,
+          }),
         });
+        if (ensureRes.ok) {
+          const ensured = await ensureRes.json();
+          if (ensured.logo) logoToSave = ensured.logo;
+          if (ensured.website) websiteToSave = ensured.website;
+        }
+      } catch (ensureErr) {
+        console.warn("ensure-for-job on company profile:", ensureErr);
+      }
 
+      if (!formData.logo && logoToSave) {
+        setFormData((prev) => ({
+          ...prev,
+          logo: logoToSave || prev.logo,
+          website: websiteToSave || prev.website,
+        }));
+      }
+
+      toast({
+        title: "Success",
+        description: company
+          ? "Company profile updated successfully"
+          : "Company profile created successfully",
+      });
+
+      if (!company) {
         fetchCompany();
+      } else {
+        setCompany((prev) =>
+          prev
+            ? { ...prev, logo: logoToSave, website: websiteToSave, name: formData.name }
+            : prev
+        );
       }
     } catch (error: any) {
       toast({
