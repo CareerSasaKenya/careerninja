@@ -237,13 +237,21 @@ export function extractDomain(websiteOrDomain: string | null | undefined): strin
   }
 }
 
-/** Look up the brand entry for a company name (longest-key match). */
+/**
+ * Pre-normalized brand map: map keys go through the same normalizeCompanyKey
+ * transform so hyphenated names like "co-operative bank" match correctly.
+ */
+const _normalizedBrands: Map<string, BrandEntry> = new Map(
+  Object.entries(KNOWN_COMPANY_BRANDS).map(([k, v]) => [normalizeCompanyKey(k), v])
+);
+
+/** Look up the brand entry for a company name (longest normalized-key match). */
 export function lookupBrand(companyName: string): BrandEntry | null {
   const key = normalizeCompanyKey(companyName);
   if (!key) return null;
-  if (KNOWN_COMPANY_BRANDS[key]) return KNOWN_COMPANY_BRANDS[key];
+  if (_normalizedBrands.has(key)) return _normalizedBrands.get(key)!;
   let best: { known: string; entry: BrandEntry } | null = null;
-  for (const [known, entry] of Object.entries(KNOWN_COMPANY_BRANDS)) {
+  for (const [known, entry] of _normalizedBrands) {
     if (known.length < 4) continue;
     if (key === known || key.includes(known)) {
       if (!best || known.length > best.known.length) best = { known, entry };
