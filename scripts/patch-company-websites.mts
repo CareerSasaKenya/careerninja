@@ -241,42 +241,92 @@ const COMPANY_WEBSITES: Record<string, string> = {
   'kiharu technical college murang\'a': 'kiharutechnical.ac.ke',
   'kenchic': 'kenchic.com',
   'tugende': 'gotugende.com',
+
+  // Round 3 — remaining no-website employers
+  'talent grid africa': 'talentgridafrica.com',
+  'talent nexus': 'talentnexus.co.ke',
+  'switch media limited': 'switchmedia.ke',
+  "l'oréal": 'loreal.com',
+  'l’oréal': 'loreal.com',
+  'loreal': 'loreal.com',
+  "macheo children's organization": 'macheo.org',
+  'macheo children’s organization': 'macheo.org',
+  'zebra coffee': 'zebracoffee.co.ke',
+  'county sacco society ltd': 'countysacco.co.ke',
+  'jm associates': 'jmassociates.co.ke',
+  'piedmont global': 'piedmontglobal.com',
+  'work global careers limited': 'workglobalcareers.com',
+  'swinton consulting limited': 'swintonconsulting.com',
+  'ravine dairies limited': 'ravinedairies.co.ke',
+  'adpath laboratories': 'adpathlabs.com',
+  'lainisha sacco': 'lainisha.co.ke',
+  'globalhunt associates': 'globalhuntassociates.com',
+  'human asset consultants limited': 'humanasset.co.ke',
+  'msvl group': 'msvlgroup.com',
+  'newmark group': 'newmark.co.ke',
+  'transnep insurance brokers ltd': 'transnep.co.ke',
+  'sporty h2o': 'sportyh2o.com',
+  'skm africa': 'skmafrica.com',
+  'premier audio visual limited': 'premierav.co.ke',
+  'amplus international ltd': 'amplusinternational.com',
+  'world network systems': 'worldnetworksystems.com',
 };
 
 
 function normalizeKey(name: string): string {
-  return name.toLowerCase().trim();
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[\u2018\u2019\u201A\u2032']/g, "'")
+    .replace(/\s+/g, ' ');
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
 
-// Fetch companies with no website
+/** Force-correct known bad / suboptimal domains even when website is already set. */
+const WEBSITE_CORRECTIONS: Record<string, string> = {
+  'university of nairobi': 'uonbi.ac.ke',
+  'q-sourcing servtec group': 'q-sourcing.com',
+  'q-sourcing': 'q-sourcing.com',
+  'victory farms': 'victoryfarms.com',
+  'bank of africa kenya limited (boa-kenya)': 'bankofafrica.co.ke',
+};
+
+// Fetch companies with no website + companies needing corrections
 const { data: companies, error } = await supabase
   .from('companies')
   .select('id, name, website')
-  .is('website', null)
   .limit(500);
 
 if (error) { console.error('Error:', error.message); process.exit(1); }
 
-console.log(`\nCompanies without website: ${companies?.length}\n`);
+const missing = (companies || []).filter((c) => !c.website);
+console.log(`\nCompanies without website: ${missing.length}\n`);
 
-let patched = 0, nomatch = 0;
+let patched = 0, corrected = 0, nomatch = 0;
 const unmatched: string[] = [];
 
 for (const company of companies || []) {
   const key = normalizeKey(company.name);
-  const domain = COMPANY_WEBSITES[key];
+  const correction = WEBSITE_CORRECTIONS[key];
+  const domain = correction || (!company.website ? COMPANY_WEBSITES[key] : null);
 
   if (!domain) {
-    nomatch++;
-    unmatched.push(company.name);
+    if (!company.website) {
+      nomatch++;
+      unmatched.push(company.name);
+    }
     continue;
   }
 
   const website = `https://${domain}`;
+  const currentDomain = company.website
+    ? company.website.replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/\/$/, '')
+    : null;
+  if (currentDomain === domain) continue;
+
   const { error: uErr } = await supabase
     .from('companies')
     .update({ website })
@@ -285,13 +335,16 @@ for (const company of companies || []) {
   if (uErr) {
     console.log(`  ERROR ${company.name}: ${uErr.message}`);
   } else {
-    console.log(`  ✓ ${company.name.padEnd(55)} → ${website}`);
-    patched++;
+    const tag = company.website ? '↻' : '✓';
+    console.log(`  ${tag} ${company.name.padEnd(55)} → ${website}`);
+    if (company.website) corrected++;
+    else patched++;
   }
 }
 
 console.log(`\n────────────────────────────────────────`);
 console.log(`Patched:    ${patched}`);
+console.log(`Corrected:  ${corrected}`);
 console.log(`No match:   ${nomatch}`);
 console.log(`────────────────────────────────────────`);
 if (unmatched.length) {

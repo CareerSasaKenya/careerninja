@@ -80,6 +80,16 @@ async function trygstatic(domain: string): Promise<string | null> {
   return null;
 }
 
+/**
+ * icon.horse often returns a real brand icon, but also recycles placeholders.
+ * We reject tiny / 16×16 images via verifyImageUrl; cron/script does hash dedupe.
+ */
+async function tryIconHorse(domain: string): Promise<string | null> {
+  const url = `https://icon.horse/icon/${domain}`;
+  if (await verifyImageUrl(url)) return url;
+  return null;
+}
+
 /** Try Clearbit logo API (free, no key). Works from Vercel production IPs. */
 async function tryClearbit(domain: string): Promise<string | null> {
   const url = `https://logo.clearbit.com/${domain}?size=128`;
@@ -181,21 +191,25 @@ export async function fetchCompanyLogoUrl(
   const effectiveDomain = domain || (companyName ? lookupBrand(companyName)?.domain : null);
 
   if (effectiveDomain) {
-    // 1. Clearbit (best quality, free, works from Vercel)
-    const clearbit = await tryClearbit(effectiveDomain);
-    if (clearbit) return { url: clearbit, source: 'clearbit' };
+    // 1. Scrape company website HTML (most accurate when reachable)
+    const scraped = await scrapeWebsiteForLogo(effectiveDomain);
+    if (scraped) return { url: scraped, source: 'scraped' };
 
     // 2. Direct asset paths on the company website
     const direct = await tryDirectAssets(effectiveDomain);
     if (direct) return { url: direct, source: 'direct-asset' };
 
-    // 3. gstatic favicon (filtered to real images ≥ 1.5KB)
+    // 3. Clearbit (best quality when reachable; often blocked from some IPs)
+    const clearbit = await tryClearbit(effectiveDomain);
+    if (clearbit) return { url: clearbit, source: 'clearbit' };
+
+    // 4. gstatic favicon (filtered to real images, rejects 16×16 placeholders)
     const gstatic = await trygstatic(effectiveDomain);
     if (gstatic) return { url: gstatic, source: 'gstatic' };
 
-    // 4. Scrape company website HTML
-    const scraped = await scrapeWebsiteForLogo(effectiveDomain);
-    if (scraped) return { url: scraped, source: 'scraped' };
+    // 5. icon.horse (verifyImageUrl rejects tiny placeholders)
+    const iconHorse = await tryIconHorse(effectiveDomain);
+    if (iconHorse) return { url: iconHorse, source: 'iconhorse' };
   }
 
   // 5. Twitter profile picture (only for known brands with verified handles)

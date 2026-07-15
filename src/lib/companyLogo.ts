@@ -181,11 +181,30 @@ export const KNOWN_COMPANY_BRANDS: Record<string, BrandEntry> = {
 
   // ── Health ──────────────────────────────────────────────────────────
   "aga khan hospital": { domain: "agakhanhospitals.org" },
+  "aga khan academies": { domain: "agakhanacademies.org" },
+  "aga khan academy": { domain: "agakhanacademies.org" },
   "nairobi hospital": { domain: "nairobihospital.org", twitter: "NrbHospital" },
   "kenyatta national hospital": { domain: "knh.or.ke" },
   knh: { domain: "knh.or.ke" },
   gsk: { domain: "gsk.com", twitter: "GSK" },
   astrazeneca: { domain: "astrazeneca.com", twitter: "AstraZeneca" },
+
+  // ── Staffing / Education / Public ───────────────────────────────────
+  "talent grid africa": { domain: "talentgridafrica.com" },
+  "talent nexus": { domain: "talentnexus.co.ke" },
+  "university of nairobi": { domain: "uonbi.ac.ke" },
+  uon: { domain: "uonbi.ac.ke" },
+  "bank of africa kenya limited (boa-kenya)": { domain: "bankofafrica.co.ke" },
+  "bank of africa": { domain: "bankofafrica.co.ke" },
+  unops: { domain: "unops.org", twitter: "UNOPS" },
+  "q-sourcing": { domain: "q-sourcing.com" },
+  "q-sourcing servtec group": { domain: "q-sourcing.com" },
+  "victory farms": { domain: "victoryfarms.com" },
+  "international school of kenya (isk)": { domain: "isk.ac.ke" },
+  "majid al futtaim retail": { domain: "majidalfuttaim.com" },
+  "public service commission kenya (psck)": { domain: "publicservice.go.ke" },
+  "l'oréal": { domain: "loreal.com", twitter: "Loreal" },
+  "l’oréal": { domain: "loreal.com", twitter: "Loreal" },
 
   // ── Logistics ───────────────────────────────────────────────────────
   dhl: { domain: "dhl.com", twitter: "DHLglobal" },

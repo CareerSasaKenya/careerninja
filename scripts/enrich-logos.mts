@@ -6,6 +6,7 @@
  * tries to find a real logo for each one, and writes it back.
  */
 
+import { createHash } from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -211,6 +212,28 @@ async function verifyImage(url: string): Promise<boolean> {
   } catch { return false; }
 }
 
+/** icon.horse recycles the same PNG for many unknown domains — reject those hashes. */
+const iconHorsePlaceholderHashes = new Set<string>();
+const iconHorseSeenHashes = new Map<string, string>(); // hash → first domain
+
+async function sha1Hex(buf: ArrayBuffer): Promise<string> {
+  return createHash('sha1').update(Buffer.from(buf)).digest('hex');
+}
+
+async function warmIconHorsePlaceholders() {
+  for (const d of ['unknownxyz123.com', 'notarealcompany999.net', 'zzzzzinvaliddomain.io']) {
+    try {
+      const r = await fetch(`https://icon.horse/icon/${d}`, {
+        headers: { 'User-Agent': UA },
+        signal: AbortSignal.timeout(12000),
+      });
+      if (!r.ok) continue;
+      iconHorsePlaceholderHashes.add(await sha1Hex(await r.arrayBuffer()));
+    } catch { /* ignore */ }
+  }
+  console.log(`Icon.horse placeholder hashes loaded: ${iconHorsePlaceholderHashes.size}`);
+}
+
 async function tryClearbit(domain: string): Promise<string | null> {
   const url = `https://logo.clearbit.com/${domain}?size=128`;
   return (await verifyImage(url)) ? url : null;
@@ -222,38 +245,115 @@ async function tryGstatic(domain: string): Promise<string | null> {
 }
 
 async function tryDirectAssets(domain: string): Promise<string | null> {
-  for (const p of [
-    '/apple-touch-icon.png', '/apple-touch-icon-precomposed.png',
-    '/android-chrome-192x192.png', '/favicon-192x192.png', '/favicon-196x196.png',
-    '/logo.png', '/logo.svg',
-  ]) {
-    const url = `https://${domain}${p}`;
-    if (await verifyImage(url)) return url;
+  for (const host of [domain, domain.startsWith('www.') ? domain : `www.${domain}`]) {
+    for (const p of [
+      '/apple-touch-icon.png', '/apple-touch-icon-precomposed.png',
+      '/android-chrome-192x192.png', '/favicon-192x192.png', '/favicon-196x196.png',
+      '/favicon.ico', '/logo.png', '/logo.svg',
+    ]) {
+      const url = `https://${host}${p}`;
+      if (await verifyImage(url)) return url;
+    }
   }
   return null;
 }
 
 async function scrapeWebsite(domain: string): Promise<string | null> {
-  try {
-    const res = await fetch(`https://${domain}`, {
-      headers: { 'User-Agent': UA, Accept: 'text/html' },
-      signal: AbortSignal.timeout(15000),
-      redirect: 'follow',
-    });
-    if (!res.ok) return null;
-    const html = await res.text();
-    const candidates: string[] = [];
-    for (const m of html.matchAll(/<link[^>]+rel=["'][^"']*apple-touch-icon[^"']*["'][^>]*href=["']([^"']+)["']/gi)) candidates.push(m[1]);
-    for (const m of html.matchAll(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/gi)) candidates.push(m[1]);
-    for (const m of html.matchAll(/<link[^>]+sizes=["']([0-9]+)x[0-9]+["'][^>]*href=["']([^"']+)["']/gi)) {
-      if (parseInt(m[1]) >= 128) candidates.push(m[2]);
-    }
-    for (const c of candidates) {
-      const abs = c.startsWith('http') ? c : c.startsWith('//') ? `https:${c}` : `https://${domain}${c.startsWith('/') ? '' : '/'}${c}`;
-      if (await verifyImage(abs)) return abs;
-    }
-  } catch { /* ignore */ }
+  for (const host of [domain, `www.${domain}`]) {
+    try {
+      const res = await fetch(`https://${host}`, {
+        headers: { 'User-Agent': UA, Accept: 'text/html' },
+        signal: AbortSignal.timeout(15000),
+        redirect: 'follow',
+      });
+      if (!res.ok) continue;
+      const html = await res.text();
+      const candidates: string[] = [];
+      for (const m of html.matchAll(/<link[^>]+rel=["'][^"']*apple-touch-icon[^"']*["'][^>]*href=["']([^"']+)["']/gi)) {
+        candidates.push(m[1]);
+      }
+      for (const m of html.matchAll(/<link[^>]+rel=["'][^"']*icon[^"']*["'][^>]*href=["']([^"']+)["']/gi)) {
+        candidates.push(m[1]);
+      }
+      for (const m of html.matchAll(/<link[^>]+sizes=["']([0-9]+)x[0-9]+["'][^>]*href=["']([^"']+)["']/gi)) {
+        if (parseInt(m[1]) >= 96) candidates.push(m[2]);
+      }
+      for (const m of html.matchAll(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/gi)) {
+        candidates.push(m[1]);
+      }
+      for (const m of html.matchAll(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/gi)) {
+        candidates.push(m[1]);
+      }
+      for (const c of candidates) {
+        const abs = c.startsWith('http')
+          ? c
+          : c.startsWith('//')
+            ? `https:${c}`
+            : `https://${host}${c.startsWith('/') ? '' : '/'}${c}`;
+        if (await verifyImage(abs)) return abs;
+      }
+    } catch { /* try next host */ }
+  }
   return null;
+}
+
+async function fetchIconHorseMeta(domain: string): Promise<{ url: string; hash: string; ok: boolean } | null> {
+  const url = `https://icon.horse/icon/${domain}`;
+  try {
+    const r = await fetch(url, {
+      method: 'GET',
+      headers: { 'User-Agent': UA },
+      signal: AbortSignal.timeout(12000),
+    });
+    if (!r.ok) return null;
+    const ct = (r.headers.get('content-type') || '').toLowerCase();
+    if (!ct.startsWith('image/') && !ct.includes('icon')) return null;
+    const buf = await r.arrayBuffer();
+    const size = buf.byteLength;
+    if (size < 500 || size === GENERIC_PLACEHOLDER_BYTES) return null;
+
+    const hash = await sha1Hex(buf);
+    const dims = pngDims(buf) || jpegDims(buf);
+    if (dims) {
+      if (dims.w <= 16 || dims.h <= 16) return null;
+      if (dims.w < 32 && dims.h < 32) return null;
+    } else if (size < MIN_IMAGE_BYTES) {
+      return null;
+    }
+    return { url, hash, ok: true };
+  } catch {
+    return null;
+  }
+}
+
+const iconHorseApproved = new Map<string, string>(); // domain → url
+
+/** Pre-scan icon.horse for this batch; mark any reused hash as a placeholder. */
+async function prefilterIconHorse(domains: string[]) {
+  const hashCounts = new Map<string, number>();
+  const byDomain = new Map<string, { url: string; hash: string }>();
+
+  for (const domain of domains) {
+    const meta = await fetchIconHorseMeta(domain);
+    if (!meta) continue;
+    byDomain.set(domain, { url: meta.url, hash: meta.hash });
+    hashCounts.set(meta.hash, (hashCounts.get(meta.hash) || 0) + 1);
+  }
+
+  for (const [domain, meta] of byDomain) {
+    if (iconHorsePlaceholderHashes.has(meta.hash) || (hashCounts.get(meta.hash) || 0) > 1) {
+      iconHorsePlaceholderHashes.add(meta.hash);
+      continue;
+    }
+    iconHorseSeenHashes.set(meta.hash, domain);
+    iconHorseApproved.set(domain, meta.url);
+  }
+
+  console.log(`Icon.horse unique logos in batch: ${iconHorseApproved.size}/${byDomain.size}`);
+}
+
+async function tryIconHorse(domain: string): Promise<string | null> {
+  return iconHorseApproved.get(domain) || null;
 }
 
 async function tryTwitter(handle: string): Promise<string | null> {
@@ -275,17 +375,21 @@ async function tryTwitter(handle: string): Promise<string | null> {
 
 async function fetchLogo(domain: string | null, name: string): Promise<{ url: string; src: string } | null> {
   if (domain) {
-    const cb = await tryClearbit(domain);
-    if (cb) return { url: cb, src: 'clearbit' };
+    // Prefer site-owned assets first — Clearbit is often blocked from this environment
+    const sc = await scrapeWebsite(domain);
+    if (sc) return { url: sc, src: 'scraped' };
 
     const da = await tryDirectAssets(domain);
     if (da) return { url: da, src: 'direct' };
 
+    const cb = await tryClearbit(domain);
+    if (cb) return { url: cb, src: 'clearbit' };
+
     const gs = await tryGstatic(domain);
     if (gs) return { url: gs, src: 'gstatic' };
 
-    const sc = await scrapeWebsite(domain);
-    if (sc) return { url: sc, src: 'scraped' };
+    const ih = await tryIconHorse(domain);
+    if (ih) return { url: ih, src: 'iconhorse' };
   }
 
   const brand = lookupBrand(name);
@@ -320,13 +424,23 @@ const error = res1.error || res2.error;
 if (error) { console.error('Supabase error:', error.message); process.exit(1); }
 if (!companies?.length) { console.log('No companies with null logo found.'); process.exit(0); }
 
+await warmIconHorsePlaceholders();
 console.log(`\nFound ${companies.length} companies missing logos. Processing...\n`);
+
+const batchDomains = [
+  ...new Set(
+    companies
+      .map((c) => extractDomain(c.website) || lookupBrand(c.name)?.domain || null)
+      .filter((d): d is string => !!d),
+  ),
+];
+await prefilterIconHorse(batchDomains);
 
 let updated = 0, notFound = 0, errors = 0;
 
 for (const company of companies) {
   const brand = lookupBrand(company.name);
-  let domain = extractDomain(company.website) || brand?.domain || null;
+  const domain = extractDomain(company.website) || brand?.domain || null;
   const websitePatch = !company.website && brand?.domain ? { website: `https://${brand.domain}` } : {};
 
   process.stdout.write(`  ${company.name.padEnd(40)} `);

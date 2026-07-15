@@ -3,9 +3,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Search, Briefcase, ArrowRight, Clock, MapPin, Building2, CheckCircle2, Star } from "lucide-react";
+import { Search, Briefcase, ArrowRight, Clock, MapPin, CheckCircle2, Star } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import CanonicalTag from "@/components/CanonicalTag";
+import { CompanyLogo } from "@/components/CompanyLogo";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
@@ -16,7 +17,25 @@ import { useRouter } from "next/navigation";
 import Autoplay from "embla-carousel-autoplay";
 import { usePageContent, getContentValue } from "@/hooks/usePageContent";
 import { formatJobSeoTitle } from "@/lib/textUtils";
-// Images are now in public folder
+
+type HomeJobCompany = {
+  id?: string | null;
+  name?: string | null;
+  logo?: string | null;
+  website?: string | null;
+} | null;
+
+function homeJobCompanyName(job: {
+  company?: string | null;
+  companies?: HomeJobCompany | HomeJobCompany[];
+}) {
+  const company = Array.isArray(job.companies) ? job.companies[0] : job.companies;
+  return company?.name || job.company || "";
+}
+
+function homeJobHref(job: { id: string; job_slug?: string | null }) {
+  return `/jobs/${job.job_slug || job.id}`;
+}
 
 export default function Home() {
   const router = useRouter();
@@ -120,7 +139,7 @@ export default function Home() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("jobs")
-        .select("*")
+        .select("*, companies(id, name, logo, website)")
         .eq("status", "active")
         .order("is_featured", { ascending: false, nullsFirst: false })
         .order("is_promoted", { ascending: false, nullsFirst: false })
@@ -138,7 +157,7 @@ export default function Home() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("jobs")
-        .select("*")
+        .select("*, companies(id, name, logo, website)")
         .eq("status", "active")
         .order("is_featured", { ascending: false, nullsFirst: false })
         .order("is_promoted", { ascending: false, nullsFirst: false })
@@ -259,7 +278,10 @@ export default function Home() {
                 onMouseLeave={plugin.current.reset}
               >
                 <CarouselContent className="-ml-2 md:-ml-4">
-                  {featuredJobs.map((job) => (
+                  {featuredJobs.map((job) => {
+                    const company = Array.isArray(job.companies) ? job.companies[0] : job.companies;
+                    const companyName = homeJobCompanyName(job);
+                    return (
                     <CarouselItem key={job.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
                       <Card className={`glass hover:shadow-xl transition-all duration-300 hover:scale-105 ${job.is_featured ? 'border-2 border-yellow-500/50' : ''} ${job.is_promoted ? 'border-2 border-blue-500/50' : ''}`}>
                         <CardContent className="p-6">
@@ -283,7 +305,7 @@ export default function Home() {
                             <Clock className="h-4 w-4 text-muted-foreground" />
                           </div>
                           <h3 className="text-xl font-semibold mb-2">
-                            {formatJobSeoTitle(job.title, job.company, {
+                            {formatJobSeoTitle(job.title, companyName, {
                               city: job.job_location_city,
                               county: job.job_location_county,
                               rawLocation: job.location,
@@ -291,8 +313,13 @@ export default function Home() {
                             })}
                           </h3>
                           <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                            <Building2 className="h-4 w-4" />
-                            <span>{job.company}</span>
+                            <CompanyLogo
+                              name={companyName}
+                              logo={company?.logo}
+                              website={company?.website}
+                              size="sm"
+                            />
+                            <span className="line-clamp-1">{companyName}</span>
                           </div>
                           <div className="flex items-center gap-2 text-muted-foreground mb-4">
                             <MapPin className="h-4 w-4" />
@@ -301,7 +328,7 @@ export default function Home() {
                           {job.salary && (
                             <div className="text-primary font-semibold mb-4">{job.salary}</div>
                           )}
-                          <Link href={`/jobs/${job.id}`} prefetch={true}>
+                          <Link href={homeJobHref(job)} prefetch={true}>
                             <Button className="w-full" variant="outline">
                               View Details
                             </Button>
@@ -309,7 +336,8 @@ export default function Home() {
                         </CardContent>
                       </Card>
                     </CarouselItem>
-                  ))}
+                    );
+                  })}
                 </CarouselContent>
                 <CarouselPrevious className="md:hidden" style={{ backgroundColor: '#f97316', color: 'white', border: 'none' }} />
                 <CarouselNext className="md:hidden" style={{ backgroundColor: '#f97316', color: 'white', border: 'none' }} />
@@ -442,7 +470,10 @@ export default function Home() {
           ) : (
             <>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                {latestJobs.map((job) => (
+                {latestJobs.map((job) => {
+                  const company = Array.isArray(job.companies) ? job.companies[0] : job.companies;
+                  const companyName = homeJobCompanyName(job);
+                  return (
                   <Card key={job.id} className={`glass hover:shadow-xl transition-all duration-300 hover:scale-105 ${job.is_featured ? 'border-2 border-yellow-500/50 shadow-lg' : ''} ${job.is_promoted ? 'border-2 border-blue-500/50' : ''}`}>
                     <CardContent className="p-6">
                       <div className="flex justify-between items-start mb-4">
@@ -465,7 +496,7 @@ export default function Home() {
                         <span className="text-xs text-muted-foreground">Just posted</span>
                       </div>
                       <h3 className="text-xl font-semibold mb-2 line-clamp-1">
-                        {formatJobSeoTitle(job.title, job.company, {
+                        {formatJobSeoTitle(job.title, companyName, {
                           city: job.job_location_city,
                           county: job.job_location_county,
                           rawLocation: job.location,
@@ -473,8 +504,13 @@ export default function Home() {
                         })}
                       </h3>
                       <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                        <Building2 className="h-4 w-4 flex-shrink-0" />
-                        <span className="line-clamp-1">{job.company}</span>
+                        <CompanyLogo
+                          name={companyName}
+                          logo={company?.logo}
+                          website={company?.website}
+                          size="sm"
+                        />
+                        <span className="line-clamp-1">{companyName}</span>
                       </div>
                       <div className="flex items-center gap-2 text-muted-foreground mb-4">
                         <MapPin className="h-4 w-4 flex-shrink-0" />
@@ -483,14 +519,15 @@ export default function Home() {
                       {job.salary && (
                         <div className="text-primary font-semibold mb-4">{job.salary}</div>
                       )}
-                      <Link href={`/jobs/${job.id}`} prefetch={true}>
+                      <Link href={homeJobHref(job)} prefetch={true}>
                         <Button className="w-full">
                           Apply Now
                         </Button>
                       </Link>
                     </CardContent>
                   </Card>
-                ))}
+                  );
+                })}
               </div>
               
               <div className="flex justify-center">
