@@ -25,9 +25,10 @@ export async function triggerScrapeProcess(): Promise<Record<string, unknown>> {
 }
 
 /** Process up to maxJobs pending queue items (one per in-process call). */
-export async function triggerScrapeProcessBatch(maxJobs: number = 5): Promise<{
+export async function triggerScrapeProcessBatch(maxJobs: number = 1): Promise<{
   processed: number
   results: Record<string, unknown>[]
+  stopped_early?: string
 }> {
-  return runScrapeProcessBatch(getServiceClient(), maxJobs)
+  return runScrapeProcessBatch(getServiceClient(), { maxJobs, budgetMs: 45_000 })
 }

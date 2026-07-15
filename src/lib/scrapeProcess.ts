@@ -317,15 +317,40 @@ export async function runScrapeProcessOne(
   }
 }
 
+export interface ScrapeProcessBatchOptions {
+  maxJobs?: number
+  /**
+   * Soft time budget in ms. Stop before starting another item once exceeded.
+   * Helps avoid Vercel Hobby/Pro hard timeouts that return HTML error pages
+   * instead of JSON (FUNCTION_INVOCATION_TIMEOUT / 500).
+   * Default: 45s (safe under Hobby's common 60s cap without Fluid).
+   */
+  budgetMs?: number
+}
+
 /** Process up to maxJobs pending queue items (one at a time). */
 export async function runScrapeProcessBatch(
   supabase: SupabaseClient,
-  maxJobs: number = 5
-): Promise<{ processed: number; results: ScrapeProcessResult[] }> {
+  maxJobsOrOptions: number | ScrapeProcessBatchOptions = 1
+): Promise<{ processed: number; results: ScrapeProcessResult[]; stopped_early?: string }> {
+  const options: ScrapeProcessBatchOptions =
+    typeof maxJobsOrOptions === 'number' ? { maxJobs: maxJobsOrOptions } : maxJobsOrOptions
+
+  const maxJobs = Math.min(Math.max(1, Math.floor(options.maxJobs ?? 1)), 10)
+  const budgetMs = options.budgetMs ?? 45_000
+  const startedAt = Date.now()
+
   const results: ScrapeProcessResult[] = []
   let processed = 0
+  let stoppedEarly: string | undefined
 
   for (let i = 0; i < maxJobs; i++) {
+    const elapsed = Date.now() - startedAt
+    if (i > 0 && elapsed >= budgetMs) {
+      stoppedEarly = `Stopped after ${processed} item(s) to stay within Vercel time limits (${Math.round(elapsed / 1000)}s elapsed)`
+      break
+    }
+
     const result = await runScrapeProcessOne(supabase)
 
     if (result.processed === 0 || result.message === 'No pending jobs in queue') {
@@ -346,7 +371,7 @@ export async function runScrapeProcessBatch(
     }
   }
 
-  return { processed, results }
+  return { processed, results, ...(stoppedEarly ? { stopped_early: stoppedEarly } : {}) }
 }
 
 function resolveHiringCompany(

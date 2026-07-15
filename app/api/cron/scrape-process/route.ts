@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { runScrapeProcessBatch } from '@/lib/scrapeProcess'
 
-export const maxDuration = 300
+export const maxDuration = 60
 
 function getServiceClient() {
   return createClient(
@@ -20,12 +20,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const maxJobs = parseInt(request.nextUrl.searchParams.get('max') || '5', 10)
-    const { processed, results } = await runScrapeProcessBatch(getServiceClient(), maxJobs)
+    const maxJobs = parseInt(request.nextUrl.searchParams.get('max') || '1', 10)
+    const { processed, results, stopped_early } = await runScrapeProcessBatch(getServiceClient(), {
+      maxJobs: Math.min(Math.max(1, maxJobs), 5),
+      budgetMs: 45_000,
+    })
 
     return NextResponse.json({
       success: true,
       processed,
+      stopped_early: stopped_early || null,
       results,
       timestamp: new Date().toISOString(),
     })

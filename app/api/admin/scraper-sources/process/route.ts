@@ -3,12 +3,13 @@ import { requireAdmin } from '@/lib/adminAuth'
 import { runScrapeProcessBatch } from '@/lib/scrapeProcess'
 
 export const runtime = 'nodejs'
-export const maxDuration = 300
+/** 60s works on Hobby without Fluid; Fluid Hobby/Pro can go higher. */
+export const maxDuration = 60
 
 /**
  * POST /api/admin/scraper-sources/process
  * Admin-only: process up to max pending queue items in-process.
- * Body: { max?: number } — default 5, capped at 10
+ * Body: { max?: number } — default 1 (Hobby-safe), capped at 5
  */
 export async function POST(request: NextRequest) {
   const auth = await requireAdmin(request)
@@ -18,10 +19,13 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json().catch(() => ({}))
-    const requested = typeof body.max === 'number' ? body.max : 5
-    const maxJobs = Math.min(Math.max(1, Math.floor(requested)), 10)
+    const requested = typeof body.max === 'number' ? body.max : 1
+    const maxJobs = Math.min(Math.max(1, Math.floor(requested)), 5)
 
-    const { processed, results } = await runScrapeProcessBatch(auth.adminClient, maxJobs)
+    const { processed, results, stopped_early } = await runScrapeProcessBatch(auth.adminClient, {
+      maxJobs,
+      budgetMs: 45_000,
+    })
 
     const published = results.filter(r => r.success && !r.pdf_document).length
     const pdfBatches = results.filter(r => r.pdf_document)
@@ -37,11 +41,18 @@ export async function POST(request: NextRequest) {
       published: published + pdfPublished,
       skipped,
       errors,
+      stopped_early: stopped_early || null,
       results,
     })
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err)
     console.error('[admin/scraper-sources/process] Error:', message)
-    return NextResponse.json({ error: message }, { status: 500 })
+    return NextResponse.json(
+      {
+        error: message,
+        hint: 'If this persists on Vercel Hobby, process 1 job at a time and check Runtime Logs for timeouts/OOM.',
+      },
+      { status: 500 }
+    )
   }
 }
