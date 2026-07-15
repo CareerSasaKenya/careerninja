@@ -97,7 +97,6 @@ export function CompanyLogo({
         className
       )}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={resolved}
         alt={displayName ? `${displayName} logo` : "Company logo"}
