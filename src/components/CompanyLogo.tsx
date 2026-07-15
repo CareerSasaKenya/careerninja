@@ -9,13 +9,15 @@ import {
 } from "@/lib/companyLogo";
 import { cn } from "@/lib/utils";
 
-type LogoSize = "xs" | "sm" | "md" | "lg";
+type LogoSize = "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
 
 const SIZE_PX: Record<LogoSize, number> = {
   xs: 20,
   sm: 28,
   md: 40,
   lg: 56,
+  xl: 80,
+  "2xl": 112,
 };
 
 const SIZE_CLASSES: Record<LogoSize, string> = {
@@ -23,6 +25,8 @@ const SIZE_CLASSES: Record<LogoSize, string> = {
   sm: "h-7 w-7 text-[10px]",
   md: "h-10 w-10 text-xs",
   lg: "h-14 w-14 text-sm",
+  xl: "h-20 w-20 text-base",
+  "2xl": "h-28 w-28 text-xl",
 };
 
 const ICON_SIZES: Record<LogoSize, string> = {
@@ -30,6 +34,8 @@ const ICON_SIZES: Record<LogoSize, string> = {
   sm: "h-3.5 w-3.5",
   md: "h-5 w-5",
   lg: "h-6 w-6",
+  xl: "h-8 w-8",
+  "2xl": "h-12 w-12",
 };
 
 export interface CompanyLogoProps extends CompanyLogoInput {

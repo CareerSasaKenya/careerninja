@@ -38,20 +38,42 @@ export default {
       
       if (error) {
         console.error('Error fetching jobs for sitemap:', error);
-        return result;
-      }
-      
-      // Add job URLs to sitemap
-      jobs.forEach(job => {
-        result.push({
-          loc: `/jobs/${job.job_slug || job.id}`,
-          lastmod: job.updated_at,
-          changefreq: 'daily',
-          priority: 0.8,
+      } else {
+        // Add job URLs to sitemap
+        jobs.forEach(job => {
+          result.push({
+            loc: `/jobs/${job.job_slug || job.id}`,
+            lastmod: job.updated_at,
+            changefreq: 'daily',
+            priority: 0.8,
+          });
         });
-      });
+      }
     } catch (error) {
       console.error('Error generating job URLs for sitemap:', error);
+    }
+
+    try {
+      // Public company profile pages
+      const { data: companies, error: companiesError } = await supabase
+        .from('companies')
+        .select('id, updated_at')
+        .order('updated_at', { ascending: false });
+
+      if (companiesError) {
+        console.error('Error fetching companies for sitemap:', companiesError);
+      } else {
+        companies.forEach(company => {
+          result.push({
+            loc: `/companies/${company.id}`,
+            lastmod: company.updated_at,
+            changefreq: 'weekly',
+            priority: 0.7,
+          });
+        });
+      }
+    } catch (error) {
+      console.error('Error generating company URLs for sitemap:', error);
     }
     
     return result;
