@@ -26,6 +26,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'img.logo.dev',
       },
+      {
+        protocol: 'https',
+        hostname: 'unavatar.io',
+      },
     ],
   },
   // PDF parsing (server-only)
