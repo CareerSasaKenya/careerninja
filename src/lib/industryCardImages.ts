@@ -1,7 +1,8 @@
 /**
  * Background imagery for industry cards.
- * Prefer East African / Kenyan-relevant scenes where a clear fit exists;
- * otherwise use sector-authentic photography that still feels grounded.
+ * Prefer Black / African people and East African / Kenyan scenes where a
+ * clear fit exists; otherwise use sector-authentic photography that still
+ * feels grounded.
  *
  * Sources: Unsplash (stable photo IDs via images.unsplash.com).
  */
@@ -22,21 +23,21 @@ export const ALL_INDUSTRIES_IMAGE = unsplash("photo-1611348524140-53c9a25263d6")
  */
 export const INDUSTRY_CARD_IMAGES: Record<string, string> = {
   "Accounting, Auditing & Finance": unsplash("photo-1554224155-6726b3ff858f"),
-  "Advertising, Media & Communications": unsplash("photo-1557804506-669a67965ba0"),
+  "Advertising, Media & Communications": unsplash("photo-1655720357872-ce227e4164ba"),
   "Agriculture & Agribusiness": unsplash("photo-1625246333195-78d9c38ad449"),
   "Agriculture, Fishing & Forestry": unsplash("photo-1464226184884-fa280b87c399"),
   "Arts, Culture & Heritage": unsplash("photo-1528127269322-539801943592"),
   "Automotive & Aviation": unsplash("photo-1436491865332-7a61a109cc05"),
   "Banking, Insurance & Financial Services": unsplash("photo-1611974789855-9c2a0a7236a3"),
   "Building, Construction & Real Estate": unsplash("photo-1503387762-592deb58ef4e"),
-  "Business Process Outsourcing (BPO)": unsplash("photo-1521737604893-d14cc237f11d"),
-  "Charity, NGO & Non-Profit": unsplash("photo-1488521787991-ed7bbaae773c"),
+  "Business Process Outsourcing (BPO)": unsplash("photo-1531482615713-2afd69097998"),
+  "Charity, NGO & Non-Profit": unsplash("photo-1637148602945-433108982492"),
   "Chemical & Process Industry": unsplash("photo-1532187863486-abf9dbad1b69"),
   "Community & Social Services": unsplash("photo-1469571486292-0ba58a3f068b"),
-  "Consulting & Professional Services": unsplash("photo-1556761175-5973dc0f32e7"),
+  "Consulting & Professional Services": unsplash("photo-1653669486397-b802144ae64a"),
   "Creative Arts, Entertainment & Design": unsplash("photo-1513364776144-60967b0f800f"),
-  "Education & Training": unsplash("photo-1509062522246-3755977927d7"),
-  "Education Technology (EdTech)": unsplash("photo-1588196749597-9ff075ee6b5b"),
+  "Education & Training": unsplash("photo-1637148778990-621fbe8a8358"),
+  "Education Technology (EdTech)": unsplash("photo-1573166953836-06864dc70a21"),
   "Energy, Utilities & Waste Management": unsplash("photo-1473341304170-971dccb5ac1e"),
   "Engineering & Technical Services": unsplash("photo-1581094794329-c8112a89af12"),
   "Environment & Natural Resources": unsplash("photo-1516026672322-bc52d61a55d5"),
@@ -56,7 +57,7 @@ export const INDUSTRY_CARD_IMAGES: Record<string, string> = {
   "Marketing & Public Relations": unsplash("photo-1460925895917-afdab827c52f"),
   "Media, Film & Broadcasting": unsplash("photo-1485846234645-a62644f84728"),
   "Mining, Oil & Gas": unsplash("photo-1504917595217-d4dc5ebe6122"),
-  "NGO, NPO & Charity": unsplash("photo-1469571486292-0ba58a3f068b"),
+  "NGO, NPO & Charity": unsplash("photo-1637148602945-433108982492"),
   "Non-classified / Miscellaneous": unsplash("photo-1497366216548-37526070297c"),
   "Printing, Publishing & Packaging": unsplash("photo-1456324504439-367cee3b3c32"),
   "Real Estate & Property Management": unsplash("photo-1560518883-ce09059eeffa"),
