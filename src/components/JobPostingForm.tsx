@@ -691,7 +691,8 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
             companyId,
             website: userCompany?.website ?? null,
             logo: userCompany?.logo ?? null,
-            industry: data.industry || null,
+            // Company industry comes from the employer profile / inference — not the job's industry
+            industry: userCompany?.industry ?? null,
           }),
         });
         if (ensureRes.ok) {

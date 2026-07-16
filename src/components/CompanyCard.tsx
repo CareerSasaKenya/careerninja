@@ -22,10 +22,27 @@ interface CompanyCardProps {
   style?: CSSProperties;
 }
 
+/** Collapse whitespace and ensure a trailing ellipsis for card blurbs. */
+export function formatCompanyBlurb(
+  description: string | null | undefined,
+  maxChars = 180
+): string | null {
+  if (!description) return null;
+  let text = description.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  if (!text) return null;
+
+  if (text.length > maxChars) {
+    const sliced = text.slice(0, maxChars);
+    const lastSpace = sliced.lastIndexOf(" ");
+    text = (lastSpace > 80 ? sliced.slice(0, lastSpace) : sliced).trim();
+  }
+
+  text = text.replace(/[.…]+$/, "");
+  return `${text}…`;
+}
+
 export function CompanyCard({ company, className, style }: CompanyCardProps) {
-  const blurb = company.description
-    ? company.description.replace(/<[^>]*>/g, "").trim()
-    : null;
+  const blurb = formatCompanyBlurb(company.description);
 
   return (
     <Link
@@ -53,19 +70,17 @@ export function CompanyCard({ company, className, style }: CompanyCardProps) {
             {company.name}
           </h2>
           {company.industry ? (
-            <p className="mt-1.5 text-[11px] font-medium uppercase tracking-[0.14em] text-primary/80 line-clamp-1">
+            <p className="mt-1.5 text-sm text-primary/90 leading-snug">
               {company.industry}
             </p>
           ) : (
-            <p className="mt-1.5 text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground/70">
-              Employer
-            </p>
+            <p className="mt-1.5 text-sm text-muted-foreground">Employer</p>
           )}
         </div>
       </div>
 
       {blurb && (
-        <p className="mt-4 text-sm text-muted-foreground leading-relaxed line-clamp-2">
+        <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
           {blurb}
         </p>
       )}

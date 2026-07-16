@@ -24,6 +24,7 @@ import {
 } from './companyLogo';
 import { fetchCompanyLogoUrl } from './companyLogoFetch';
 import { normalizeCompanyIdentityKey } from './companyIdentity';
+import { inferCompanyIndustry } from './companyIndustryInference';
 
 export type EnsureCompanyForJobInput = {
   name: string;
@@ -32,6 +33,10 @@ export type EnsureCompanyForJobInput = {
   website?: string | null;
   /** Manual, parsed, or profile logo URL — stored after basic validation. */
   logo?: string | null;
+  /**
+   * Optional employer-profile industry only.
+   * Do NOT pass the job posting's industry — agencies/gov advertise across sectors.
+   */
   industry?: string | null;
 };
 
@@ -142,6 +147,11 @@ async function createCompany(
   });
   const website = input.website?.trim() || enrichment.website || null;
   const logo = isUsableLogoUrl(input.logo) ? input.logo!.trim() : null;
+  // Prefer explicit profile industry, else infer from employer identity — never from the job role.
+  const industry =
+    input.industry?.trim() ||
+    inferCompanyIndustry(name, website) ||
+    null;
 
   const { data, error } = await supabase
     .from('companies')
@@ -150,7 +160,7 @@ async function createCompany(
       user_id: input.userId,
       website,
       logo,
-      industry: input.industry ?? null,
+      industry,
     })
     .select('id, name, logo, website')
     .single();
