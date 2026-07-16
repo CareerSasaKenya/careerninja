@@ -5,12 +5,17 @@ import type { CSSProperties } from "react";
 import { cn } from "@/lib/utils";
 import type { IndustryCardData } from "@/lib/companyDirectory";
 import { ALL_INDUSTRIES_SLUG } from "@/lib/companyDirectory";
+import {
+  ALL_INDUSTRIES_IMAGE,
+  getIndustryCardImage,
+} from "@/lib/industryCardImages";
 
 interface IndustryCardProps {
   title: string;
   href: string;
   companyCount: number;
   openJobs: number;
+  imageUrl: string;
   featured?: boolean;
   className?: string;
   style?: CSSProperties;
@@ -21,6 +26,7 @@ export function IndustryCard({
   href,
   companyCount,
   openJobs,
+  imageUrl,
   featured = false,
   className,
   style,
@@ -30,53 +36,70 @@ export function IndustryCard({
       href={href}
       prefetch={true}
       className={cn(
-        "group block h-full rounded-xl border p-5 transition-all duration-300",
+        "group relative block overflow-hidden rounded-2xl border border-border/40",
+        "min-h-[220px] md:min-h-[240px]",
+        "shadow-md transition-all duration-500",
+        "hover:shadow-xl hover:-translate-y-1 hover:border-primary/40",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-        featured
-          ? "border-primary/30 bg-gradient-to-br from-primary/10 via-card to-accent/5 shadow-md hover:shadow-lg hover:border-primary/50"
-          : "border-border/60 bg-card shadow-sm hover:border-primary/40 hover:shadow-lg hover:-translate-y-0.5",
+        featured && "sm:col-span-2 xl:col-span-1 md:min-h-[260px]",
         className
       )}
       style={style}
     >
-      <p
-        className={cn(
-          "text-[11px] uppercase tracking-[0.14em] mb-2",
-          featured ? "text-primary" : "text-muted-foreground"
-        )}
-      >
-        {featured ? "Browse everything" : "Industry"}
-      </p>
-      <h2
-        className={cn(
-          "font-semibold leading-snug group-hover:text-primary transition-colors",
-          featured ? "text-xl md:text-2xl" : "text-lg"
-        )}
-      >
-        {title}
-      </h2>
+      {/* Background image */}
+      <div
+        className="absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-105"
+        style={{ backgroundImage: `url(${imageUrl})` }}
+        aria-hidden
+      />
 
-      <div className="mt-5 pt-4 border-t border-border/50 flex items-end justify-between gap-3">
+      {/* Readable gradient — deeper at the bottom where copy lives */}
+      <div
+        className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/15"
+        aria-hidden
+      />
+      <div
+        className="absolute inset-0 bg-gradient-to-br from-primary/25 via-transparent to-transparent opacity-80"
+        aria-hidden
+      />
+
+      <div className="relative z-10 flex h-full min-h-[inherit] flex-col justify-between p-5 md:p-6 text-white">
         <div>
-          <p className="text-2xl font-semibold tabular-nums leading-none tracking-tight text-foreground">
-            {companyCount}
+          <p className="text-[11px] uppercase tracking-[0.16em] text-white/75 mb-2">
+            {featured ? "Browse everything" : "Industry"}
           </p>
-          <p className="mt-1 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
-            {companyCount === 1 ? "company" : "companies"}
-          </p>
-        </div>
-        <div className="text-right">
-          <p
+          <h2
             className={cn(
-              "text-lg font-semibold tabular-nums leading-none",
-              openJobs > 0 ? "text-foreground" : "text-muted-foreground/50"
+              "font-semibold leading-snug text-white drop-shadow-sm",
+              featured ? "text-2xl md:text-3xl" : "text-xl md:text-[1.35rem]"
             )}
           >
-            {openJobs}
-          </p>
-          <p className="mt-1 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
-            {openJobs === 1 ? "open role" : "open roles"}
-          </p>
+            {title}
+          </h2>
+        </div>
+
+        <div className="mt-8 flex items-end justify-between gap-4 border-t border-white/20 pt-4">
+          <div>
+            <p className="text-2xl md:text-3xl font-semibold tabular-nums leading-none tracking-tight">
+              {companyCount}
+            </p>
+            <p className="mt-1 text-[11px] uppercase tracking-[0.12em] text-white/70">
+              {companyCount === 1 ? "company" : "companies"}
+            </p>
+          </div>
+          <div className="text-right">
+            <p
+              className={cn(
+                "text-xl md:text-2xl font-semibold tabular-nums leading-none",
+                openJobs > 0 ? "text-white" : "text-white/40"
+              )}
+            >
+              {openJobs}
+            </p>
+            <p className="mt-1 text-[11px] uppercase tracking-[0.12em] text-white/70">
+              {openJobs === 1 ? "open role" : "open roles"}
+            </p>
+          </div>
         </div>
       </div>
     </Link>
@@ -94,7 +117,6 @@ export function IndustryCardsGrid({
   totalCompanies,
   totalOpenJobs,
 }: IndustryCardsGridProps) {
-  // Alphabetical industry cards; "All industries" is always first
   const sorted = [...industries].sort((a, b) => a.name.localeCompare(b.name));
 
   return (
@@ -104,8 +126,9 @@ export function IndustryCardsGrid({
         href={`/companies/industry/${ALL_INDUSTRIES_SLUG}`}
         companyCount={totalCompanies}
         openJobs={totalOpenJobs}
+        imageUrl={ALL_INDUSTRIES_IMAGE}
         featured
-        className="animate-fade-in sm:col-span-2 xl:col-span-1"
+        className="animate-fade-in"
       />
       {sorted.map((industry, index) => (
         <IndustryCard
@@ -114,6 +137,7 @@ export function IndustryCardsGrid({
           href={`/companies/industry/${industry.slug}`}
           companyCount={industry.companyCount}
           openJobs={industry.openJobs}
+          imageUrl={getIndustryCardImage(industry.name)}
           className="animate-fade-in"
           style={{ animationDelay: `${Math.min(index + 1, 12) * 40}ms` }}
         />
