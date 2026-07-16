@@ -3,29 +3,35 @@
 import { useMemo, useState } from "react";
 import { Search, Building2, Briefcase } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { CompanyCard, type CompanyCardData } from "@/components/CompanyCard";
+
+const ALL_INDUSTRIES = "__all__";
 
 interface CompaniesDirectoryProps {
   companies: CompanyCardData[];
+  /** Canonical industry names from the same `industries` table used when posting jobs. */
+  industries: string[];
 }
 
-export function CompaniesDirectory({ companies }: CompaniesDirectoryProps) {
+export function CompaniesDirectory({
+  companies,
+  industries,
+}: CompaniesDirectoryProps) {
   const [search, setSearch] = useState("");
-  const [industry, setIndustry] = useState<string | null>(null);
-
-  const industries = useMemo(() => {
-    const set = new Set<string>();
-    for (const c of companies) {
-      if (c.industry?.trim()) set.add(c.industry.trim());
-    }
-    return Array.from(set).sort((a, b) => a.localeCompare(b));
-  }, [companies]);
+  const [industry, setIndustry] = useState<string>(ALL_INDUSTRIES);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return companies.filter((c) => {
-      const matchesIndustry = !industry || c.industry === industry;
+      const matchesIndustry =
+        industry === ALL_INDUSTRIES || c.industry === industry;
       if (!matchesIndustry) return false;
       if (!q) return true;
       return (
@@ -37,22 +43,42 @@ export function CompaniesDirectory({ companies }: CompaniesDirectoryProps) {
     });
   }, [companies, search, industry]);
 
-  const hiringCount = companies.filter((c) => c.openJobs > 0).length;
-  const openRoles = companies.reduce((sum, c) => sum + c.openJobs, 0);
+  const hiringCount = filtered.filter((c) => c.openJobs > 0).length;
+  const openRoles = filtered.reduce((sum, c) => sum + c.openJobs, 0);
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="relative flex-1 max-w-xl">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search companies by name, industry, or location…"
-            className="pl-10 h-11 bg-background/80"
-            aria-label="Search companies"
-          />
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div className="flex flex-col sm:flex-row gap-3 flex-1 max-w-3xl">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search companies by name or location…"
+              className="pl-10 h-11 bg-background/80"
+              aria-label="Search companies"
+            />
+          </div>
+
+          <Select value={industry} onValueChange={setIndustry}>
+            <SelectTrigger
+              className="h-11 w-full sm:w-[280px] bg-background/80"
+              aria-label="Filter by industry"
+            >
+              <SelectValue placeholder="All industries" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL_INDUSTRIES}>All industries</SelectItem>
+              {industries.map((ind) => (
+                <SelectItem key={ind} value={ind}>
+                  {ind}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
+
         <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
           <span className="inline-flex items-center gap-1.5">
             <Building2 className="h-4 w-4 text-primary" />
@@ -64,30 +90,6 @@ export function CompaniesDirectory({ companies }: CompaniesDirectoryProps) {
           </span>
         </div>
       </div>
-
-      {industries.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={() => setIndustry(null)}>
-            <Badge
-              variant={industry === null ? "default" : "outline"}
-              className="cursor-pointer px-3 py-1"
-            >
-              All industries
-            </Badge>
-          </button>
-          {industries.slice(0, 16).map((ind) => (
-            <button key={ind} type="button" onClick={() => setIndustry(ind === industry ? null : ind)}>
-              <Badge
-                variant={industry === ind ? "default" : "outline"}
-                className="cursor-pointer px-3 py-1 max-w-[14rem] truncate"
-                title={ind}
-              >
-                {ind}
-              </Badge>
-            </button>
-          ))}
-        </div>
-      )}
 
       {filtered.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 md:gap-6">
@@ -105,14 +107,14 @@ export function CompaniesDirectory({ companies }: CompaniesDirectoryProps) {
           <Building2 className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
           <p className="text-lg font-medium">No companies match your search</p>
           <p className="text-muted-foreground mt-1 max-w-md mx-auto">
-            Try a different name or clear the industry filter.
+            Try a different name or choose another industry.
           </p>
           <button
             type="button"
             className="mt-4 text-sm font-medium text-primary hover:underline"
             onClick={() => {
               setSearch("");
-              setIndustry(null);
+              setIndustry(ALL_INDUSTRIES);
             }}
           >
             Clear filters

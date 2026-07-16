@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { CompaniesDirectory } from "@/components/CompaniesDirectory";
 import type { CompanyCardData } from "@/components/CompanyCard";
+import { fuzzyMatchOption } from "@/lib/jobParseNormalization";
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ||
@@ -40,25 +41,36 @@ export const metadata: Metadata = {
   },
 };
 
-async function getCompaniesWithJobCounts(): Promise<CompanyCardData[]> {
-  if (!supabase) return [];
+type DirectoryData = {
+  companies: CompanyCardData[];
+  industries: string[];
+};
+
+async function getDirectoryData(): Promise<DirectoryData> {
+  if (!supabase) return { companies: [], industries: [] };
 
   try {
-    const [{ data: companies, error: companiesError }, { data: jobs, error: jobsError }] =
-      await Promise.all([
-        supabase
-          .from("companies")
-          .select("id, name, logo, website, industry, location, description")
-          .order("name"),
-        supabase
-          .from("jobs")
-          .select("company_id")
-          .eq("status", "active")
-          .not("company_id", "is", null),
-      ]);
+    const [
+      { data: companies, error: companiesError },
+      { data: jobs, error: jobsError },
+      { data: industryRows, error: industriesError },
+    ] = await Promise.all([
+      supabase
+        .from("companies")
+        .select("id, name, logo, website, industry, location, description")
+        .order("name"),
+      supabase
+        .from("jobs")
+        .select("company_id")
+        .eq("status", "active")
+        .not("company_id", "is", null),
+      // Same source as JobPostingForm / CompanyProfileForm
+      supabase.from("industries").select("id, name").order("name"),
+    ]);
 
     if (companiesError) throw companiesError;
     if (jobsError) throw jobsError;
+    if (industriesError) throw industriesError;
 
     type CompanyRow = {
       id: string;
@@ -70,9 +82,13 @@ async function getCompaniesWithJobCounts(): Promise<CompanyCardData[]> {
       description: string | null;
     };
     type JobRow = { company_id: string | null };
+    type IndustryRow = { id: number | string; name: string };
 
     const companyRows = (companies || []) as CompanyRow[];
     const jobRows = (jobs || []) as JobRow[];
+    const industries = ((industryRows || []) as IndustryRow[])
+      .map((row) => row.name.trim())
+      .filter(Boolean);
 
     const openJobsByCompany = new Map<string, number>();
     for (const job of jobRows) {
@@ -83,16 +99,23 @@ async function getCompaniesWithJobCounts(): Promise<CompanyCardData[]> {
       );
     }
 
-    const rows: CompanyCardData[] = companyRows.map((company) => ({
-      id: company.id,
-      name: company.name,
-      logo: company.logo,
-      website: company.website,
-      industry: company.industry,
-      location: company.location,
-      description: company.description,
-      openJobs: openJobsByCompany.get(company.id) || 0,
-    }));
+    const rows: CompanyCardData[] = companyRows.map((company) => {
+      // Map free-text / legacy industry values onto the official job-posting list
+      const canonicalIndustry = company.industry
+        ? fuzzyMatchOption(company.industry, industries) || company.industry
+        : null;
+
+      return {
+        id: company.id,
+        name: company.name,
+        logo: company.logo,
+        website: company.website,
+        industry: canonicalIndustry,
+        location: company.location,
+        description: company.description,
+        openJobs: openJobsByCompany.get(company.id) || 0,
+      };
+    });
 
     // Hiring companies first, then alphabetical
     rows.sort((a, b) => {
@@ -100,15 +123,15 @@ async function getCompaniesWithJobCounts(): Promise<CompanyCardData[]> {
       return a.name.localeCompare(b.name);
     });
 
-    return rows;
+    return { companies: rows, industries };
   } catch (error) {
     console.error("Error loading companies directory:", error);
-    return [];
+    return { companies: [], industries: [] };
   }
 }
 
 export default async function CompaniesPage() {
-  const companies = await getCompaniesWithJobCounts();
+  const { companies, industries } = await getDirectoryData();
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -132,7 +155,7 @@ export default async function CompaniesPage() {
       </section>
 
       <main className="container mx-auto px-4 py-8 md:py-12 flex-1">
-        <CompaniesDirectory companies={companies} />
+        <CompaniesDirectory companies={companies} industries={industries} />
       </main>
 
       <Footer />
