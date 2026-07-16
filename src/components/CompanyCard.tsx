@@ -2,9 +2,7 @@
 
 import Link from "next/link";
 import type { CSSProperties } from "react";
-import { Briefcase, Building2, MapPin } from "lucide-react";
 import { CompanyLogo } from "@/components/CompanyLogo";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 export type CompanyCardData = {
@@ -25,8 +23,6 @@ interface CompanyCardProps {
 }
 
 export function CompanyCard({ company, className, style }: CompanyCardProps) {
-  const jobLabel =
-    company.openJobs === 1 ? "1 open job" : `${company.openJobs} open jobs`;
   const blurb = company.description
     ? company.description.replace(/<[^>]*>/g, "").trim()
     : null;
@@ -56,18 +52,15 @@ export function CompanyCard({ company, className, style }: CompanyCardProps) {
           <h2 className="text-lg font-semibold text-foreground leading-snug group-hover:text-primary transition-colors line-clamp-2">
             {company.name}
           </h2>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {company.industry ? (
-              <Badge className="bg-primary/10 text-primary hover:bg-primary/15 font-normal">
-                <Building2 className="h-3 w-3 mr-1" />
-                {company.industry}
-              </Badge>
-            ) : (
-              <Badge variant="outline" className="font-normal text-muted-foreground">
-                Employer
-              </Badge>
-            )}
-          </div>
+          {company.industry ? (
+            <p className="mt-1.5 text-[11px] font-medium uppercase tracking-[0.14em] text-primary/80 line-clamp-1">
+              {company.industry}
+            </p>
+          ) : (
+            <p className="mt-1.5 text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground/70">
+              Employer
+            </p>
+          )}
         </div>
       </div>
 
@@ -77,21 +70,24 @@ export function CompanyCard({ company, className, style }: CompanyCardProps) {
         </p>
       )}
 
-      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-        <span
-          className={cn(
-            "inline-flex items-center gap-1.5 font-medium",
-            company.openJobs > 0 ? "text-primary" : "text-muted-foreground"
-          )}
-        >
-          <Briefcase className="h-3.5 w-3.5" />
-          {jobLabel}
-        </span>
+      <div className="mt-5 pt-4 border-t border-border/50 flex items-end justify-between gap-3">
+        <div>
+          <p
+            className={cn(
+              "text-2xl font-semibold tabular-nums leading-none tracking-tight",
+              company.openJobs > 0 ? "text-foreground" : "text-muted-foreground/50"
+            )}
+          >
+            {company.openJobs}
+          </p>
+          <p className="mt-1 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+            {company.openJobs === 1 ? "open role" : "open roles"}
+          </p>
+        </div>
         {company.location && (
-          <span className="inline-flex items-center gap-1.5">
-            <MapPin className="h-3.5 w-3.5" />
-            <span className="truncate max-w-[12rem]">{company.location}</span>
-          </span>
+          <p className="text-sm text-muted-foreground text-right leading-snug line-clamp-2 max-w-[55%]">
+            {company.location}
+          </p>
         )}
       </div>
     </Link>
