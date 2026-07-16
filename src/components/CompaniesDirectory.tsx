@@ -20,11 +20,11 @@ function StatFigure({
   label: string;
 }) {
   return (
-    <div className="min-w-[5.5rem]">
-      <p className="text-2xl font-semibold tabular-nums tracking-tight text-foreground leading-none">
+    <div className="min-w-0 px-1 sm:px-2 text-center">
+      <p className="text-xl sm:text-2xl font-semibold tabular-nums tracking-tight text-foreground leading-none">
         {value}
       </p>
-      <p className="mt-1 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+      <p className="mt-1.5 text-[10px] sm:text-[11px] uppercase tracking-[0.12em] text-muted-foreground leading-tight">
         {label}
       </p>
     </div>
@@ -70,17 +70,19 @@ export function CompaniesDirectory({
           />
         </div>
 
-        <div className="flex flex-wrap items-start gap-6 sm:gap-8">
+        <div
+          className="grid w-full grid-cols-3 items-start gap-0 divide-x divide-border/70 rounded-xl border border-border/60 bg-muted/20 py-3 sm:w-auto sm:min-w-[22rem] lg:min-w-[24rem]"
+          role="group"
+          aria-label="Industry company stats"
+        >
           <StatFigure
             value={filtered.length}
             label={filtered.length === 1 ? "company" : "companies"}
           />
-          <div className="hidden sm:block w-px self-stretch bg-border/70" aria-hidden />
           <StatFigure
             value={openRoles}
             label={openRoles === 1 ? "open role" : "open roles"}
           />
-          <div className="hidden sm:block w-px self-stretch bg-border/70" aria-hidden />
           <StatFigure value={hiringCount} label="hiring now" />
         </div>
       </div>

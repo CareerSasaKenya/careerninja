@@ -10,6 +10,10 @@ import {
   getCompanyDirectoryData,
   resolveIndustryFromSlug,
 } from "@/lib/companyDirectory";
+import {
+  ALL_INDUSTRIES_IMAGE,
+  getIndustryCardImage,
+} from "@/lib/industryCardImages";
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ||
@@ -84,29 +88,44 @@ export default async function CompaniesByIndustryPage({ params }: PageProps) {
   const subcopy = isAll
     ? "Every employer listed on CareerSasa, across all sectors."
     : `Employers in ${industryName} hiring on CareerSasa.`;
+  const imageUrl = isAll
+    ? ALL_INDUSTRIES_IMAGE
+    : getIndustryCardImage(industryName);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
       <section className="relative overflow-hidden border-b border-border/50">
-        <div className="absolute inset-0 bg-gradient-mesh opacity-70" aria-hidden />
-        <div className="absolute inset-0 bg-gradient-subtle" aria-hidden />
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${imageUrl})` }}
+          aria-hidden
+        />
+        <div
+          className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/55 to-black/35"
+          aria-hidden
+        />
+        <div
+          className="absolute inset-0 bg-gradient-to-br from-primary/30 via-transparent to-transparent"
+          aria-hidden
+        />
+
         <div className="container relative mx-auto px-4 py-10 md:py-14">
           <Link
             href="/companies"
-            className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-6"
+            className="inline-flex items-center text-sm text-white/80 hover:text-white transition-colors mb-6"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             All industries
           </Link>
-          <p className="text-sm font-medium text-primary mb-2 tracking-wide">
+          <p className="text-[11px] uppercase tracking-[0.16em] text-white/75 mb-2">
             Companies
           </p>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3 text-white drop-shadow-sm">
             {heading}
           </h1>
-          <p className="text-muted-foreground text-base md:text-lg max-w-2xl leading-relaxed">
+          <p className="text-white/85 text-base md:text-lg max-w-2xl leading-relaxed">
             {subcopy}
           </p>
         </div>
