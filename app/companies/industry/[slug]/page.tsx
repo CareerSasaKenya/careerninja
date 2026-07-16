@@ -1,0 +1,122 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
+import { CompaniesDirectory } from "@/components/CompaniesDirectory";
+import {
+  ALL_INDUSTRIES_SLUG,
+  getCompanyDirectoryData,
+  resolveIndustryFromSlug,
+} from "@/lib/companyDirectory";
+
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  process.env.SITE_URL ||
+  "https://www.careersasa.co.ke";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+type PageProps = {
+  params: Promise<{ slug: string }>;
+};
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const { industries } = await getCompanyDirectoryData();
+
+  if (slug === ALL_INDUSTRIES_SLUG) {
+    const url = `${SITE_URL.replace(/\/$/, "")}/companies/industry/all`;
+    return {
+      title: "All Companies | CareerSasa",
+      description:
+        "Browse all employers hiring on CareerSasa across every industry in Kenya.",
+      alternates: { canonical: url },
+      openGraph: {
+        title: "All Companies | CareerSasa",
+        description:
+          "Browse all employers hiring on CareerSasa across every industry in Kenya.",
+        url,
+        type: "website",
+        siteName: "CareerSasa",
+      },
+    };
+  }
+
+  const industry = resolveIndustryFromSlug(slug, industries);
+  if (!industry) {
+    return { title: "Industry Not Found | CareerSasa" };
+  }
+
+  const url = `${SITE_URL.replace(/\/$/, "")}/companies/industry/${slug}`;
+  return {
+    title: `${industry} Companies | CareerSasa`,
+    description: `Explore ${industry} employers hiring on CareerSasa. View company profiles and open jobs in Kenya.`,
+    alternates: { canonical: url },
+    openGraph: {
+      title: `${industry} Companies | CareerSasa`,
+      description: `Explore ${industry} employers hiring on CareerSasa. View company profiles and open jobs in Kenya.`,
+      url,
+      type: "website",
+      siteName: "CareerSasa",
+    },
+  };
+}
+
+export default async function CompaniesByIndustryPage({ params }: PageProps) {
+  const { slug } = await params;
+  const { companies, industries } = await getCompanyDirectoryData();
+
+  const isAll = slug === ALL_INDUSTRIES_SLUG;
+  const industryName = isAll ? null : resolveIndustryFromSlug(slug, industries);
+
+  if (!isAll && !industryName) {
+    notFound();
+  }
+
+  const filtered = isAll
+    ? companies
+    : companies.filter((c) => c.industry === industryName);
+
+  const heading = isAll ? "All industries" : industryName!;
+  const subcopy = isAll
+    ? "Every employer listed on CareerSasa, across all sectors."
+    : `Employers in ${industryName} hiring on CareerSasa.`;
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
+      <Navbar />
+
+      <section className="relative overflow-hidden border-b border-border/50">
+        <div className="absolute inset-0 bg-gradient-mesh opacity-70" aria-hidden />
+        <div className="absolute inset-0 bg-gradient-subtle" aria-hidden />
+        <div className="container relative mx-auto px-4 py-10 md:py-14">
+          <Link
+            href="/companies"
+            className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-6"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            All industries
+          </Link>
+          <p className="text-sm font-medium text-primary mb-2 tracking-wide">
+            Companies
+          </p>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3">
+            {heading}
+          </h1>
+          <p className="text-muted-foreground text-base md:text-lg max-w-2xl leading-relaxed">
+            {subcopy}
+          </p>
+        </div>
+      </section>
+
+      <main className="container mx-auto px-4 py-8 md:py-12 flex-1">
+        <CompaniesDirectory companies={filtered} industryName={industryName} />
+      </main>
+
+      <Footer />
+    </div>
+  );
+}

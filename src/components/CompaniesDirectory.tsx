@@ -1,23 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { CompanyCard, type CompanyCardData } from "@/components/CompanyCard";
-
-const ALL_INDUSTRIES = "__all__";
 
 interface CompaniesDirectoryProps {
   companies: CompanyCardData[];
-  /** Canonical industry names from the same `industries` table used when posting jobs. */
-  industries: string[];
+  /** Display title for the current industry filter (null = all). */
+  industryName?: string | null;
 }
 
 function StatFigure({
@@ -41,26 +33,21 @@ function StatFigure({
 
 export function CompaniesDirectory({
   companies,
-  industries,
+  industryName = null,
 }: CompaniesDirectoryProps) {
   const [search, setSearch] = useState("");
-  const [industry, setIndustry] = useState<string>(ALL_INDUSTRIES);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return companies.filter((c) => {
-      const matchesIndustry =
-        industry === ALL_INDUSTRIES || c.industry === industry;
-      if (!matchesIndustry) return false;
-      if (!q) return true;
-      return (
+    if (!q) return companies;
+    return companies.filter(
+      (c) =>
         c.name.toLowerCase().includes(q) ||
         (c.industry || "").toLowerCase().includes(q) ||
         (c.location || "").toLowerCase().includes(q) ||
         (c.description || "").toLowerCase().includes(q)
-      );
-    });
-  }, [companies, search, industry]);
+    );
+  }, [companies, search]);
 
   const hiringCount = filtered.filter((c) => c.openJobs > 0).length;
   const openRoles = filtered.reduce((sum, c) => sum + c.openJobs, 0);
@@ -68,34 +55,19 @@ export function CompaniesDirectory({
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-        <div className="flex flex-col sm:flex-row gap-3 flex-1 max-w-3xl">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search companies by name or location…"
-              className="pl-10 h-11 bg-background/80"
-              aria-label="Search companies"
-            />
-          </div>
-
-          <Select value={industry} onValueChange={setIndustry}>
-            <SelectTrigger
-              className="h-11 w-full sm:w-[280px] bg-background/80"
-              aria-label="Filter by industry"
-            >
-              <SelectValue placeholder="All industries" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL_INDUSTRIES}>All industries</SelectItem>
-              {industries.map((ind) => (
-                <SelectItem key={ind} value={ind}>
-                  {ind}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="relative flex-1 max-w-xl">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={
+              industryName
+                ? `Search companies in ${industryName}…`
+                : "Search companies by name or location…"
+            }
+            className="pl-10 h-11 bg-background/80"
+            aria-label="Search companies"
+          />
         </div>
 
         <div className="flex flex-wrap items-start gap-6 sm:gap-8">
@@ -109,10 +81,7 @@ export function CompaniesDirectory({
             label={openRoles === 1 ? "open role" : "open roles"}
           />
           <div className="hidden sm:block w-px self-stretch bg-border/70" aria-hidden />
-          <StatFigure
-            value={hiringCount}
-            label="hiring now"
-          />
+          <StatFigure value={hiringCount} label="hiring now" />
         </div>
       </div>
 
@@ -132,20 +101,33 @@ export function CompaniesDirectory({
           <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground mb-3">
             No matches
           </p>
-          <p className="text-lg font-medium">Nothing in this filter yet</p>
-          <p className="text-muted-foreground mt-1 max-w-md mx-auto">
-            Try a different name or choose another industry.
+          <p className="text-lg font-medium">
+            {companies.length === 0
+              ? "No companies in this industry yet"
+              : "Nothing matches your search"}
           </p>
-          <button
-            type="button"
-            className="mt-4 text-sm font-medium text-primary hover:underline"
-            onClick={() => {
-              setSearch("");
-              setIndustry(ALL_INDUSTRIES);
-            }}
-          >
-            Clear filters
-          </button>
+          <p className="text-muted-foreground mt-1 max-w-md mx-auto">
+            {companies.length === 0
+              ? "Try another industry or browse all employers."
+              : "Try a different name or clear your search."}
+          </p>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-4">
+            {search && (
+              <button
+                type="button"
+                className="text-sm font-medium text-primary hover:underline"
+                onClick={() => setSearch("")}
+              >
+                Clear search
+              </button>
+            )}
+            <Link
+              href="/companies"
+              className="text-sm font-medium text-primary hover:underline"
+            >
+              Back to industries
+            </Link>
+          </div>
         </div>
       )}
     </div>

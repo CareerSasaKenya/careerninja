@@ -23,6 +23,11 @@ export default {
         changefreq: 'daily',
         priority: 0.8,
       },
+      {
+        loc: '/companies/industry/all',
+        changefreq: 'daily',
+        priority: 0.75,
+      },
     ];
     
     // Import Supabase client
@@ -80,6 +85,36 @@ export default {
       }
     } catch (error) {
       console.error('Error generating company URLs for sitemap:', error);
+    }
+
+    try {
+      const { data: industries, error: industriesError } = await supabase
+        .from('industries')
+        .select('name')
+        .order('name');
+
+      if (industriesError) {
+        console.error('Error fetching industries for sitemap:', industriesError);
+      } else {
+        const toSlug = (name) =>
+          String(name || '')
+            .toLowerCase()
+            .trim()
+            .replace(/&/g, ' and ')
+            .replace(/[^\w\s-]/g, '')
+            .replace(/[\s_-]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+
+        industries.forEach((industry) => {
+          result.push({
+            loc: `/companies/industry/${toSlug(industry.name)}`,
+            changefreq: 'daily',
+            priority: 0.7,
+          });
+        });
+      }
+    } catch (error) {
+      console.error('Error generating industry URLs for sitemap:', error);
     }
     
     return result;
