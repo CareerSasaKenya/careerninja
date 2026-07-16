@@ -17,7 +17,13 @@ export default {
     ],
   },
   additionalPaths: async (config) => {
-    const result = [];
+    const result = [
+      {
+        loc: '/companies',
+        changefreq: 'daily',
+        priority: 0.8,
+      },
+    ];
     
     // Import Supabase client
     const { createClient } = await import('@supabase/supabase-js').then(m => m);

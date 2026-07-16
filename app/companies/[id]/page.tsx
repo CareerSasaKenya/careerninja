@@ -263,11 +263,11 @@ export default async function CompanyProfilePage({
           />
           <div className="container relative mx-auto px-4 py-10 md:py-14">
             <Link
-              href="/jobs"
+              href="/companies"
               className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-8"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to jobs
+              Back to companies
             </Link>
 
             <div className="flex flex-col sm:flex-row sm:items-center gap-6 md:gap-8 animate-fade-in">

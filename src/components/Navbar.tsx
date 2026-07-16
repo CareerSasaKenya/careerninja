@@ -102,6 +102,10 @@ const Navbar = () => {
             <Button variant="ghost">Browse Jobs</Button>
           </Link>
 
+          <Link href="/companies" prefetch={true}>
+            <Button variant="ghost">Companies</Button>
+          </Link>
+
           {/* Career Boost dropdown */}
           <NavigationMenu>
             <NavigationMenuList>
