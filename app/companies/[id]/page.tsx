@@ -358,15 +358,12 @@ export default async function CompanyProfilePage({
                         asChild
                         variant="gradient"
                         size="lg"
-                        className="w-full min-w-0 px-3 sm:px-6"
+                        className="w-full min-w-0 px-2.5 sm:px-6 text-sm sm:text-base"
                       >
-                        <a href="#open-jobs">
-                          <Briefcase className="mr-1.5 sm:mr-2 h-4 w-4 shrink-0" />
-                          <span className="truncate">
-                            <span className="sm:hidden">Open roles</span>
-                            <span className="hidden sm:inline">
-                              View open roles
-                            </span>
+                        <a href="#open-jobs" className="justify-center">
+                          <span className="sm:hidden">Open roles</span>
+                          <span className="hidden sm:inline">
+                            View open roles
                           </span>
                         </a>
                       </Button>
@@ -376,14 +373,15 @@ export default async function CompanyProfilePage({
                         asChild
                         variant="outline"
                         size="lg"
-                        className="w-full min-w-0 px-3 sm:px-6 border-white/40 bg-black/25 text-white hover:bg-black/40 hover:text-white"
+                        className="w-full min-w-0 px-2.5 sm:px-6 text-sm sm:text-base border-white/40 bg-black/25 text-white hover:bg-black/40 hover:text-white"
                       >
                         <a
                           href={externalWebsite!}
                           target="_blank"
                           rel="noopener noreferrer"
+                          className="justify-center whitespace-nowrap"
                         >
-                          <span className="truncate">Visit website</span>
+                          Visit website
                           <ExternalLink className="ml-1.5 sm:ml-2 h-4 w-4 shrink-0" />
                         </a>
                       </Button>
