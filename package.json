@@ -9,6 +9,9 @@
     "start": "next start",
     "lint": "next lint",
     "test:slug": "npx tsx src/lib/testSlug.ts",
+    "test:company-identity": "npx tsx src/lib/companyIdentity.test.ts",
+    "merge:companies": "npx tsx scripts/merge-duplicate-companies.mts",
+    "merge:companies:apply": "npx tsx scripts/merge-duplicate-companies.mts --apply",
     "postbuild": "next-sitemap"
   },
   "dependencies": {

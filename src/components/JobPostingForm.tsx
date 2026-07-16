@@ -24,6 +24,7 @@ import {
   dedupeStrings,
   resolveValidThrough,
 } from "@/lib/jobParseNormalization";
+import { companiesShareIdentity } from "@/lib/companyIdentity";
 interface JobFormData {
   // Core fields
   title: string;
@@ -231,17 +232,32 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
     isParsedData && initialData?.company && !initialData?.company_id ? initialData.company : ""
   );
   
-  // Check if company already exists (for UI feedback)
+  // Check if company already exists (exact or identity variant, for UI feedback)
   const { data: existingCompanyCheck } = useQuery({
     queryKey: ["check-company", newCompanyName],
     queryFn: async () => {
       if (!newCompanyName || !shouldCreateCompany) return null;
-      const { data } = await supabase
+      const trimmed = newCompanyName.trim();
+      const { data: exact } = await supabase
         .from("companies")
         .select("id, name")
-        .eq("name", newCompanyName)
-        .maybeSingle();
-      return data;
+        .ilike("name", trimmed)
+        .limit(5);
+      const exactMatch = exact?.find(
+        (row) => row.name.trim().toLowerCase() === trimmed.toLowerCase()
+      );
+      if (exactMatch) return exactMatch;
+
+      const token = trimmed.split(/\s+/).find((part) => part.length >= 3) || trimmed;
+      const { data: candidates } = await supabase
+        .from("companies")
+        .select("id, name")
+        .ilike("name", `%${token}%`)
+        .limit(50);
+      return (
+        candidates?.find((row) => companiesShareIdentity(row.name, trimmed)) ||
+        null
+      );
     },
     enabled: !!newCompanyName && shouldCreateCompany,
   });

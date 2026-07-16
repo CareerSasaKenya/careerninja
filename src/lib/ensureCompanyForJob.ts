@@ -7,6 +7,11 @@
  * 3. Otherwise fetch a verified logo from website / known brand and store it
  *    so the next job for this company skips the fetch.
  *
+ * Matching order:
+ * 1. Explicit companyId
+ * 2. Case-insensitive exact name
+ * 3. Identity key (Equity Bank Group → Equity Bank)
+ *
  * Server-only — imports companyLogoFetch.
  */
 
@@ -18,6 +23,7 @@ import {
   resolveCompanyWebsite,
 } from './companyLogo';
 import { fetchCompanyLogoUrl } from './companyLogoFetch';
+import { normalizeCompanyIdentityKey } from './companyIdentity';
 
 export type EnsureCompanyForJobInput = {
   name: string;
@@ -44,6 +50,64 @@ type CompanyRow = {
   website: string | null;
 };
 
+async function findCompanyByExactName(
+  supabase: SupabaseClient,
+  name: string,
+): Promise<CompanyRow | null> {
+  const trimmed = name.trim();
+  if (!trimmed) return null;
+
+  // Case-insensitive exact match (DB unique index is LOWER(name))
+  const { data } = await supabase
+    .from('companies')
+    .select('id, name, logo, website')
+    .ilike('name', trimmed)
+    .limit(5);
+
+  if (!data?.length) return null;
+
+  const exact = data.find(
+    (row) => row.name.trim().toLowerCase() === trimmed.toLowerCase(),
+  );
+  return exact ?? data[0] ?? null;
+}
+
+/**
+ * Match variant names ("Equity Bank Group" ↔ "Equity Bank") via identity key.
+ * Uses a token ILIKE prefilter then exact identity-key compare in memory.
+ */
+async function findCompanyByIdentity(
+  supabase: SupabaseClient,
+  name: string,
+): Promise<CompanyRow | null> {
+  const key = normalizeCompanyIdentityKey(name);
+  if (!key) return null;
+
+  const token =
+    key.split(/\s+/).find((part) => part.length >= 3) || key.split(/\s+/)[0];
+  if (!token) return null;
+
+  const { data, error } = await supabase
+    .from('companies')
+    .select('id, name, logo, website')
+    .ilike('name', `%${token}%`)
+    .limit(100);
+
+  if (error || !data?.length) return null;
+
+  const matches = data.filter(
+    (row) => normalizeCompanyIdentityKey(row.name) === key,
+  );
+  if (!matches.length) return null;
+
+  // Prefer the row with a logo/website already filled
+  matches.sort((a, b) => {
+    const score = (c: CompanyRow) => (c.logo ? 2 : 0) + (c.website ? 1 : 0);
+    return score(b) - score(a);
+  });
+  return matches[0] ?? null;
+}
+
 async function findCompany(
   supabase: SupabaseClient,
   input: EnsureCompanyForJobInput,
@@ -60,12 +124,10 @@ async function findCompany(
   const name = input.name.trim();
   if (!name) return null;
 
-  const { data } = await supabase
-    .from('companies')
-    .select('id, name, logo, website')
-    .eq('name', name)
-    .maybeSingle();
-  return data;
+  const exact = await findCompanyByExactName(supabase, name);
+  if (exact) return exact;
+
+  return findCompanyByIdentity(supabase, name);
 }
 
 async function createCompany(
@@ -95,12 +157,10 @@ async function createCompany(
 
   if (!error && data) return data;
 
-  // Race / unique constraint — re-read by name
-  const { data: raced } = await supabase
-    .from('companies')
-    .select('id, name, logo, website')
-    .eq('name', name)
-    .maybeSingle();
+  // Race / unique constraint — re-read by exact name (case-insensitive) or identity
+  const raced =
+    (await findCompanyByExactName(supabase, name)) ||
+    (await findCompanyByIdentity(supabase, name));
   return raced;
 }
 
