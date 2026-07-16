@@ -198,7 +198,7 @@ export function inferCompanyIndustry(
     return matchAllowed(FINTECH, allowedIndustries);
   }
   if (
-    /\b(ngo|non profit|non\-profit|foundation|red cross|unicef|unhcr|world vision|care kenya|oxfam|amnesty|relief services|catholic relief)\b/.test(
+    /\b(ngo|non profit|non-profit|foundation|red cross|unicef|unhcr|world vision|care kenya|oxfam|amnesty|relief services|catholic relief)\b/.test(
       key
     )
   ) {
