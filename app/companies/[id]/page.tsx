@@ -19,6 +19,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { resolveCompanyLogoUrl, resolveCompanyWebsite } from "@/lib/companyLogo";
+import {
+  DEFAULT_INDUSTRY_IMAGE,
+  getIndustryCardImage,
+} from "@/lib/industryCardImages";
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ||
@@ -244,6 +248,12 @@ export default async function CompanyProfilePage({
   );
   const jobCountLabel =
     jobs.length === 1 ? "1 open role" : `${jobs.length} open roles`;
+  const heroImage = company.industry
+    ? getIndustryCardImage(company.industry)
+    : DEFAULT_INDUSTRY_IMAGE;
+  const showJobsCta = jobs.length > 0;
+  const showWebsiteCta = Boolean(externalWebsite);
+  const dualCtas = showJobsCta && showWebsiteCta;
 
   return (
     <>
@@ -251,20 +261,26 @@ export default async function CompanyProfilePage({
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
 
-        {/* Brand hero */}
+        {/* Brand hero — industry (or default) full-bleed image */}
         <section className="relative overflow-hidden border-b border-border/50">
           <div
-            className="absolute inset-0 bg-gradient-mesh opacity-80"
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${heroImage})` }}
             aria-hidden
           />
           <div
-            className="absolute inset-0 bg-gradient-subtle"
+            className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/60 to-black/40"
             aria-hidden
           />
+          <div
+            className="absolute inset-0 bg-gradient-to-br from-primary/30 via-transparent to-transparent"
+            aria-hidden
+          />
+
           <div className="container relative mx-auto px-4 py-10 md:py-14">
             <Link
               href="/companies"
-              className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-8"
+              className="inline-flex items-center text-sm text-white/80 hover:text-white transition-colors mb-8"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to companies
@@ -276,74 +292,104 @@ export default async function CompanyProfilePage({
                 logo={company.logo}
                 website={company.website}
                 size="2xl"
-                className="rounded-xl border border-border/60 bg-background shadow-lg ring-1 ring-primary/10"
+                className="rounded-xl border border-white/25 bg-background shadow-lg ring-1 ring-primary/10 shrink-0"
               />
 
               <div className="min-w-0 flex-1 space-y-4">
                 <div>
-                  <p className="text-sm font-medium text-primary mb-1 tracking-wide">
+                  <p className="text-[11px] uppercase tracking-[0.16em] text-white/75 mb-2">
                     Hiring on CareerSasa
                   </p>
-                  <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground">
+                  <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white drop-shadow-sm">
                     {company.name}
                   </h1>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
                   {company.industry && (
-                    <Badge className="bg-primary/10 text-primary hover:bg-primary/15">
+                    <Badge className="bg-white/15 text-white hover:bg-white/25 border border-white/20">
                       <Building2 className="h-3.5 w-3.5 mr-1" />
                       {company.industry}
                     </Badge>
                   )}
                   {company.location && (
-                    <Badge variant="outline">
+                    <Badge
+                      variant="outline"
+                      className="border-white/30 bg-black/20 text-white"
+                    >
                       <MapPin className="h-3.5 w-3.5 mr-1" />
                       {company.location}
                     </Badge>
                   )}
                   {company.size && (
-                    <Badge variant="outline">
+                    <Badge
+                      variant="outline"
+                      className="border-white/30 bg-black/20 text-white"
+                    >
                       <Users className="h-3.5 w-3.5 mr-1" />
                       {/employee|staff|people/i.test(company.size)
                         ? company.size
                         : `${company.size} employees`}
                     </Badge>
                   )}
-                  <Badge variant="secondary">
+                  <Badge
+                    variant="outline"
+                    className="border-white/30 bg-black/20 text-white"
+                  >
                     <Briefcase className="h-3.5 w-3.5 mr-1" />
                     {jobCountLabel}
                   </Badge>
                 </div>
 
                 {company.description && (
-                  <p className="text-muted-foreground max-w-2xl line-clamp-3 leading-relaxed">
+                  <p className="text-white/85 max-w-2xl line-clamp-3 leading-relaxed">
                     {company.description.replace(/<[^>]*>/g, "")}
                   </p>
                 )}
 
-                <div className="flex flex-wrap gap-3 pt-1">
-                  {jobs.length > 0 && (
-                    <Button asChild variant="gradient" size="lg">
-                      <a href="#open-jobs">
-                        <Briefcase className="mr-2 h-4 w-4" />
-                        View open roles
-                      </a>
-                    </Button>
-                  )}
-                  {externalWebsite && (
-                    <Button asChild variant="outline" size="lg">
-                      <a
-                        href={externalWebsite}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                {(showJobsCta || showWebsiteCta) && (
+                  <div
+                    className={`grid w-full max-w-lg gap-2 pt-1 ${
+                      dualCtas ? "grid-cols-2" : "grid-cols-1 sm:max-w-xs"
+                    }`}
+                  >
+                    {showJobsCta && (
+                      <Button
+                        asChild
+                        variant="gradient"
+                        size="lg"
+                        className="w-full min-w-0 px-3 sm:px-6"
                       >
-                        Visit website
-                        <ExternalLink className="ml-2 h-4 w-4" />
-                      </a>
-                    </Button>
-                  )}
-                </div>
+                        <a href="#open-jobs">
+                          <Briefcase className="mr-1.5 sm:mr-2 h-4 w-4 shrink-0" />
+                          <span className="truncate">
+                            <span className="sm:hidden">Open roles</span>
+                            <span className="hidden sm:inline">
+                              View open roles
+                            </span>
+                          </span>
+                        </a>
+                      </Button>
+                    )}
+                    {showWebsiteCta && (
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="lg"
+                        className="w-full min-w-0 px-3 sm:px-6 border-white/40 bg-black/25 text-white hover:bg-black/40 hover:text-white"
+                      >
+                        <a
+                          href={externalWebsite!}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <span className="truncate">Visit website</span>
+                          <ExternalLink className="ml-1.5 sm:ml-2 h-4 w-4 shrink-0" />
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
