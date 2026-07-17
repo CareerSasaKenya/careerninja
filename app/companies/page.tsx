@@ -40,7 +40,7 @@ export default async function CompaniesPage() {
       <section className="relative overflow-hidden border-b border-border/50">
         <div className="absolute inset-0 bg-gradient-mesh opacity-70" aria-hidden />
         <div className="absolute inset-0 bg-gradient-subtle" aria-hidden />
-        <div className="container relative mx-auto px-4 py-10 md:py-14">
+        <div className="container relative mx-auto px-4 py-8 md:py-10">
           <p className="text-sm font-medium text-primary mb-2 tracking-wide">
             Employers on CareerSasa
           </p>
@@ -54,7 +54,7 @@ export default async function CompaniesPage() {
         </div>
       </section>
 
-      <main className="container mx-auto px-4 py-8 md:py-12 flex-1">
+      <main className="container mx-auto px-4 py-6 md:py-8 flex-1">
         <IndustryCardsGrid
           industries={industryCards}
           totalCompanies={companies.length}

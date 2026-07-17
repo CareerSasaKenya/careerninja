@@ -111,7 +111,7 @@ export default async function CompaniesByIndustryPage({ params }: PageProps) {
           aria-hidden
         />
 
-        <div className="container relative mx-auto px-4 py-10 md:py-14">
+        <div className="container relative mx-auto px-4 py-8 md:py-10">
           <Link
             href="/companies"
             className="inline-flex items-center text-sm text-white/80 hover:text-white transition-colors mb-6"
@@ -131,7 +131,7 @@ export default async function CompaniesByIndustryPage({ params }: PageProps) {
         </div>
       </section>
 
-      <main className="container mx-auto px-4 py-8 md:py-12 flex-1">
+      <main className="container mx-auto px-4 py-6 md:py-8 flex-1">
         <CompaniesDirectory companies={filtered} industryName={industryName} />
       </main>
 

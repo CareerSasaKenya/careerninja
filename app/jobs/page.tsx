@@ -452,8 +452,8 @@ const Jobs = () => {
     <div className="min-h-screen bg-background" suppressHydrationWarning>
       <Navbar />
       
-      <div className="container mx-auto px-4 py-8 md:py-12">
-        <div className="mb-8 md:mb-12 text-center animate-fade-in">
+      <div className="container mx-auto px-4 py-6 md:py-8">
+        <div className="mb-6 md:mb-8 text-center animate-fade-in">
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-3 md:mb-4 bg-gradient-primary bg-clip-text text-transparent px-4">
             Find Your Next Job in Kenya
           </h1>
@@ -710,7 +710,7 @@ const Jobs = () => {
                 </div>
               ) : data && data.data && data.data.length > 0 ? (
                 <>
-                  <div className="grid grid-cols-1 gap-6 md:gap-8">
+                  <div className="grid grid-cols-1 gap-4 md:gap-6">
                     {data.data.map((job, index) => (
                       <div key={job.id} style={{ animationDelay: `${index * 50}ms` }} className="animate-fade-in">
                         <JobCard

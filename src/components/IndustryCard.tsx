@@ -63,7 +63,7 @@ export function IndustryCard({
         aria-hidden
       />
 
-      <div className="relative z-10 flex h-full min-h-[inherit] flex-col justify-between p-5 md:p-6 text-white">
+      <div className="relative z-10 flex h-full min-h-[inherit] flex-col justify-between p-4 md:p-5 text-white">
         <div>
           <p className="text-[11px] uppercase tracking-[0.16em] text-white/75 mb-2">
             {featured ? "Browse everything" : "Industry"}
@@ -78,7 +78,7 @@ export function IndustryCard({
           </h2>
         </div>
 
-        <div className="mt-8 flex items-end justify-between gap-4 border-t border-white/20 pt-4">
+        <div className="mt-6 flex items-end justify-between gap-4 border-t border-white/20 pt-4">
           <div>
             <p className="text-2xl md:text-3xl font-semibold tabular-nums leading-none tracking-tight">
               {companyCount}
@@ -120,7 +120,7 @@ export function IndustryCardsGrid({
   const sorted = [...industries].sort((a, b) => a.name.localeCompare(b.name));
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 md:gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5">
       <IndustryCard
         title="All industries"
         href={`/companies/industry/${ALL_INDUSTRIES_SLUG}`}

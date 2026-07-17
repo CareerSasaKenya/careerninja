@@ -108,7 +108,7 @@ function BlogPageInner() {
         {/* Hero Section */}
         <section className="relative overflow-hidden border-b border-border/40">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5" />
-          <div className="container mx-auto px-4 py-16 md:py-24 relative">
+          <div className="container mx-auto px-4 py-10 md:py-14 relative">
             <div className="max-w-3xl mx-auto text-center">
               <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full text-sm font-medium mb-6">
                 <BookOpen className="h-4 w-4" />
@@ -172,14 +172,14 @@ function BlogPageInner() {
         )}
 
         {/* Content */}
-        <section className="container mx-auto px-4 py-12 md:py-16">
+        <section className="container mx-auto px-4 py-8 md:py-10">
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-24">
+            <div className="flex flex-col items-center justify-center py-16">
               <div className="h-10 w-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin mb-4" />
               <p className="text-muted-foreground">Loading articles...</p>
             </div>
           ) : filteredPosts.length === 0 ? (
-            <div className="text-center py-24">
+            <div className="text-center py-16">
               <BookOpen className="h-16 w-16 text-muted-foreground/40 mx-auto mb-4" />
               <h2 className="text-2xl font-bold mb-2">No articles found</h2>
               <p className="text-muted-foreground mb-6">Try adjusting your search or category filters</p>
@@ -188,7 +188,7 @@ function BlogPageInner() {
               </Button>
             </div>
           ) : (
-            <div className="space-y-12">
+            <div className="space-y-8">
               {/* Featured Post (first post, full-width) */}
               {featuredPost && (
                 <div>
@@ -197,7 +197,7 @@ function BlogPageInner() {
                     <span className="text-xs font-semibold uppercase tracking-wider text-primary">Featured</span>
                   </div>
                   <Link href={`/blog/${featuredPost.slug}`} prefetch={true}>
-                    <article className="group grid md:grid-cols-2 gap-6 md:gap-10 rounded-2xl border border-border/60 bg-card hover:shadow-2xl hover:border-primary/20 transition-all duration-300 overflow-hidden">
+                    <article className="group grid md:grid-cols-2 gap-5 md:gap-6 rounded-2xl border border-border/60 bg-card hover:shadow-2xl hover:border-primary/20 transition-all duration-300 overflow-hidden">
                       <div className="relative aspect-[16/10] md:aspect-auto overflow-hidden">
                         {featuredPost.featured_image ? (
                           <img
@@ -243,7 +243,7 @@ function BlogPageInner() {
 
               {/* Rest of the posts in a grid */}
               {restPosts.length > 0 && (
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                   {restPosts.map((post) => (
                     <Link key={post.id} href={`/blog/${post.slug}`} prefetch={true}>
                       <article className="group h-full rounded-xl border border-border/60 bg-card hover:shadow-xl hover:border-primary/20 hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col">

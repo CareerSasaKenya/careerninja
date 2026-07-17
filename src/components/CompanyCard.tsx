@@ -49,7 +49,7 @@ export function CompanyCard({ company, className, style }: CompanyCardProps) {
       href={`/companies/${company.id}`}
       prefetch={true}
       className={cn(
-        "group block h-full rounded-xl border border-border/60 bg-card p-5",
+        "group block h-full rounded-xl border border-border/60 bg-card p-4",
         "shadow-sm transition-all duration-300",
         "hover:border-primary/40 hover:shadow-lg hover:-translate-y-0.5",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
