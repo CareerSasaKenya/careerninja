@@ -1,11 +1,17 @@
 import HomePage from "@/components/HomePage";
-import { getCompanyDirectoryData } from "@/lib/companyDirectory";
+import {
+  getCompanyDirectoryData,
+  getHomepageStats,
+} from "@/lib/companyDirectory";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function Page() {
-  const { industryCards, companies } = await getCompanyDirectoryData();
+  const [{ industryCards, companies }, stats] = await Promise.all([
+    getCompanyDirectoryData(),
+    getHomepageStats(),
+  ]);
 
   const topIndustries = [...industryCards]
     .filter((industry) => industry.openJobs > 0)
@@ -20,6 +26,11 @@ export default async function Page() {
     .slice(0, 6);
 
   return (
-    <HomePage topIndustries={topIndustries} topCompanies={topCompanies} />
+    <HomePage
+      topIndustries={topIndustries}
+      topCompanies={topCompanies}
+      activeJobsCount={stats.activeJobs}
+      companiesCount={stats.companies}
+    />
   );
 }

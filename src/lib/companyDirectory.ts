@@ -28,6 +28,11 @@ export type CompanyDirectoryData = {
   industryCards: IndustryCardData[];
 };
 
+export type HomepageStats = {
+  activeJobs: number;
+  companies: number;
+};
+
 /** URL slug for an industry name (or "all"). */
 export function industryToSlug(name: string): string {
   if (!name || name === ALL_INDUSTRIES_SLUG) return ALL_INDUSTRIES_SLUG;
@@ -145,5 +150,36 @@ export async function getCompanyDirectoryData(): Promise<CompanyDirectoryData> {
   } catch (error) {
     console.error("Error loading companies directory:", error);
     return { companies: [], industries: [], industryCards: [] };
+  }
+}
+
+/** Live counts for homepage counters. */
+export async function getHomepageStats(): Promise<HomepageStats> {
+  if (!supabase) {
+    return { activeJobs: 0, companies: 0 };
+  }
+
+  try {
+    const [
+      { count: activeJobs, error: jobsError },
+      { count: companies, error: companiesError },
+    ] = await Promise.all([
+      supabase
+        .from("jobs")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "active"),
+      supabase.from("companies").select("id", { count: "exact", head: true }),
+    ]);
+
+    if (jobsError) throw jobsError;
+    if (companiesError) throw companiesError;
+
+    return {
+      activeJobs: activeJobs ?? 0,
+      companies: companies ?? 0,
+    };
+  } catch (error) {
+    console.error("Error loading homepage stats:", error);
+    return { activeJobs: 0, companies: 0 };
   }
 }

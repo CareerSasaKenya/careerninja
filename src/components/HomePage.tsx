@@ -43,11 +43,15 @@ function homeJobHref(job: { id: string; job_slug?: string | null }) {
 type HomePageProps = {
   topIndustries: IndustryCardData[];
   topCompanies: CompanyCardData[];
+  activeJobsCount: number;
+  companiesCount: number;
 };
 
 export default function HomePage({
   topIndustries,
   topCompanies,
+  activeJobsCount,
+  companiesCount,
 }: HomePageProps) {
   const router = useRouter();
   const [searchKeyword, setSearchKeyword] = useState("");
@@ -62,8 +66,8 @@ export default function HomePage({
 
   const heroTitle = getContentValue(content, "hero_title", "Stop Searching. Start Getting Hired.");
   const heroSubtitle = getContentValue(content, "hero_subtitle", "You've sent dozens of applications with zero callbacks. CareerSasa changes that. We match your skills directly to employers who are hiring right now, so you skip the black hole and land your next interview faster.");
-  const statsJobsTarget = parseInt(getContentValue(content, "stats_jobs", "1070"));
-  const statsCompaniesTarget = parseInt(getContentValue(content, "stats_companies", "103"));
+  const statsJobsTarget = Math.max(0, activeJobsCount);
+  const statsCompaniesTarget = Math.max(0, companiesCount);
   const statsSuccessRateTarget = parseInt(getContentValue(content, "stats_success_rate", "90"));
   const ctaTitle = getContentValue(content, "cta_title", "Your Next Interview Is 60 Seconds Away");
   const ctaSubtitle = getContentValue(content, "cta_subtitle", "CareerSasa matches your skills directly to employer requirements, not just keywords. That's why our users get 3x more interview callbacks than on other job boards. Join free today.");
@@ -73,43 +77,38 @@ export default function HomePage({
   );
 
   useEffect(() => {
+    const intervals: ReturnType<typeof setInterval>[] = [];
+
+    const animateCount = (
+      target: number,
+      setter: (value: number) => void,
+      preferredSteps = 40
+    ) => {
+      if (target <= 0) {
+        setter(0);
+        return;
+      }
+      const step = Math.max(1, Math.ceil(target / preferredSteps));
+      let current = 0;
+      const interval = setInterval(() => {
+        current += step;
+        if (current >= target) {
+          setter(target);
+          clearInterval(interval);
+        } else {
+          setter(current);
+        }
+      }, 30);
+      intervals.push(interval);
+    };
+
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && !hasAnimated) {
           setHasAnimated(true);
-
-          let jobCount = 0;
-          const jobInterval = setInterval(() => {
-            jobCount += 25;
-            if (jobCount >= statsJobsTarget) {
-              setActiveJobs(statsJobsTarget);
-              clearInterval(jobInterval);
-            } else {
-              setActiveJobs(jobCount);
-            }
-          }, 30);
-
-          let companyCount = 0;
-          const companyInterval = setInterval(() => {
-            companyCount += 3;
-            if (companyCount >= statsCompaniesTarget) {
-              setCompanies(statsCompaniesTarget);
-              clearInterval(companyInterval);
-            } else {
-              setCompanies(companyCount);
-            }
-          }, 30);
-
-          let rateCount = 0;
-          const rateInterval = setInterval(() => {
-            rateCount += 2;
-            if (rateCount >= statsSuccessRateTarget) {
-              setSuccessRate(statsSuccessRateTarget);
-              clearInterval(rateInterval);
-            } else {
-              setSuccessRate(rateCount);
-            }
-          }, 30);
+          animateCount(statsJobsTarget, setActiveJobs);
+          animateCount(statsCompaniesTarget, setCompanies, 35);
+          animateCount(statsSuccessRateTarget, setSuccessRate, 45);
         }
       },
       { threshold: 0.5 }
@@ -119,7 +118,10 @@ export default function HomePage({
       observer.observe(statsRef.current);
     }
 
-    return () => observer.disconnect();
+    return () => {
+      intervals.forEach(clearInterval);
+      observer.disconnect();
+    };
   }, [hasAnimated, statsJobsTarget, statsCompaniesTarget, statsSuccessRateTarget]);
 
   const handleSearch = () => {
@@ -248,7 +250,7 @@ export default function HomePage({
             >
               <div className="text-center px-1">
                 <div className="text-2xl sm:text-3xl font-bold text-primary tabular-nums">
-                  {activeJobs}+
+                  {activeJobs.toLocaleString()}
                 </div>
                 <div className="text-[10px] sm:text-sm text-muted-foreground uppercase tracking-wide mt-1">
                   Active Jobs
@@ -256,7 +258,7 @@ export default function HomePage({
               </div>
               <div className="text-center px-1">
                 <div className="text-2xl sm:text-3xl font-bold text-primary tabular-nums">
-                  {companies}+
+                  {companies.toLocaleString()}
                 </div>
                 <div className="text-[10px] sm:text-sm text-muted-foreground uppercase tracking-wide mt-1">
                   Companies
