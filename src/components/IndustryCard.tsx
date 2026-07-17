@@ -37,11 +37,11 @@ export function IndustryCard({
       prefetch={true}
       className={cn(
         "group relative block overflow-hidden rounded-2xl border border-border/40",
-        "min-h-[220px] md:min-h-[240px]",
+        "min-h-[200px] md:min-h-[220px]",
         "shadow-md transition-all duration-500",
         "hover:shadow-xl hover:-translate-y-1 hover:border-primary/40",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-        featured && "sm:col-span-2 xl:col-span-1 md:min-h-[260px]",
+        featured && "sm:col-span-2 xl:col-span-1 md:min-h-[240px]",
         className
       )}
       style={style}

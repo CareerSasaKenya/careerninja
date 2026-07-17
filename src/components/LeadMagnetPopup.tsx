@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { X, Gift, CheckCircle2, Loader2 } from "lucide-react";
+import { CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -134,100 +134,77 @@ export function LeadMagnetPopup() {
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/45 backdrop-blur-[1px]"
         onClick={close}
       />
 
-      {/* Modal */}
-      <div className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        {/* Close button */}
+      {/* Compact modal — mirrors footer subscribe box */}
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="lead-magnet-title"
+        className="relative w-full max-w-[22rem] bg-background rounded-xl border border-border/60 shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+      >
         <button
+          type="button"
           onClick={close}
-          className="absolute top-3 right-3 z-10 p-1 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          className="absolute top-1.5 right-2 z-10 flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors text-2xl leading-none font-light"
           aria-label="Close"
         >
-          <X className="w-5 h-5" />
+          ×
         </button>
 
         {isSuccess ? (
-          /* Success State */
-          <div className="p-8 text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 mb-4">
-              <CheckCircle2 className="w-8 h-8 text-green-600" />
+          <div className="px-4 py-5 text-center">
+            <div className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-green-100 dark:bg-green-900/30 mb-2">
+              <CheckCircle2 className="w-4 h-4 text-green-600" />
             </div>
-            <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">
-              Almost There!
+            <h2 className="text-base font-bold mb-0.5 text-foreground">
+              You&apos;re in!
             </h2>
-            <p className="text-gray-600 dark:text-gray-300 mb-2">
-              Check your inbox for the confirmation email.
-            </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Once confirmed, your free toolkit download link will be in the same email.
+            <p className="text-xs text-muted-foreground">
+              Redirecting to your free toolkit…
             </p>
           </div>
         ) : (
-          <>
-            {/* Header with gradient */}
-            <div className="bg-gradient-to-r from-[#0A66C2] to-[#0077B5] px-8 pt-8 pb-6 text-white text-center">
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-white/20 mb-4">
-                <Gift className="w-7 h-7 text-white" />
-              </div>
-              <h2 className="text-2xl font-bold mb-2">
-                Free: The Kenyan Job Seeker&apos;s Toolkit
-              </h2>
-              <p className="text-blue-100 text-sm">
-                Join 1,000+ Kenyan professionals getting weekly jobs, salary insights, and free career tools.
-              </p>
-            </div>
+          <div className="px-4 pt-5 pb-4 text-center space-y-2.5 bg-gradient-to-br from-[#0A66C2]/10 via-background to-[#E8712B]/10">
+            <h2
+              id="lead-magnet-title"
+              className="text-lg font-bold leading-snug pr-6"
+            >
+              Subscribe &{" "}
+              <span className="text-[#0A66C2]">Get Hired Faster</span>
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Grab Free Career Toolkit:
+            </p>
+            <p className="text-[11px] font-medium tracking-wide text-foreground/90 leading-snug">
+              CV Template &bull; Cover Letter &bull; Interview Checklist &bull; Salary Guide
+            </p>
 
-            {/* Content */}
-            <div className="px-8 py-6">
-              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                What you get inside:
-              </p>
-              <ul className="space-y-2 mb-6">
-                {[
-                  "Professional CV template (ATS-friendly)",
-                  "Cover letter template that gets read",
-                  "Interview prep checklist",
-                  "Salary negotiation script",
-                  "Weekly job picks before anyone else",
-                ].map((item, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
-                    <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-
-              <form onSubmit={handleSubmit} className="space-y-3">
-                <Input
-                  type="email"
-                  placeholder="Your email address"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="h-12 text-base"
-                  required
-                  autoFocus
-                />
-                <Button
-                  type="submit"
-                  className="w-full h-12 text-base font-semibold bg-[#0A66C2] hover:bg-[#004182] text-white"
-                  disabled={isSubmitting || !email}
-                >
-                  {isSubmitting ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    "Get My Free Toolkit"
-                  )}
-                </Button>
-              </form>
-
-              <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-3">
-                100% free. Unsubscribe anytime. No spam.
-              </p>
-            </div>
-          </>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-2 pt-0.5">
+              <Input
+                type="email"
+                placeholder="Enter your email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="h-9 text-sm"
+                required
+                autoFocus
+              />
+              <Button
+                type="submit"
+                className="w-full h-9 text-sm font-semibold bg-orange-500 hover:bg-orange-600 text-white"
+                disabled={isSubmitting || !email}
+              >
+                {isSubmitting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  "Get Instant Access"
+                )}
+              </Button>
+            </form>
+          </div>
         )}
       </div>
     </div>
