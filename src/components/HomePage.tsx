@@ -59,8 +59,8 @@ export default function HomePage({
   const [activeJobs, setActiveJobs] = useState(0);
   const [companies, setCompanies] = useState(0);
   const [successRate, setSuccessRate] = useState(0);
-  const [hasAnimated, setHasAnimated] = useState(false);
   const statsRef = useRef<HTMLDivElement>(null);
+  const hasAnimatedRef = useRef(false);
 
   const { data: content } = usePageContent("home");
 
@@ -77,6 +77,11 @@ export default function HomePage({
   );
 
   useEffect(() => {
+    hasAnimatedRef.current = false;
+    setActiveJobs(0);
+    setCompanies(0);
+    setSuccessRate(0);
+
     const intervals: ReturnType<typeof setInterval>[] = [];
 
     const animateCount = (
@@ -104,8 +109,8 @@ export default function HomePage({
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !hasAnimated) {
-          setHasAnimated(true);
+        if (entries[0].isIntersecting && !hasAnimatedRef.current) {
+          hasAnimatedRef.current = true;
           animateCount(statsJobsTarget, setActiveJobs);
           animateCount(statsCompaniesTarget, setCompanies, 35);
           animateCount(statsSuccessRateTarget, setSuccessRate, 45);
@@ -122,7 +127,7 @@ export default function HomePage({
       intervals.forEach(clearInterval);
       observer.disconnect();
     };
-  }, [hasAnimated, statsJobsTarget, statsCompaniesTarget, statsSuccessRateTarget]);
+  }, [statsJobsTarget, statsCompaniesTarget, statsSuccessRateTarget]);
 
   const handleSearch = () => {
     const params = new URLSearchParams();
