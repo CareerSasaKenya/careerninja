@@ -23,7 +23,7 @@ export default async function Page() {
 
   const topCompanies = companies
     .filter((company) => company.openJobs > 0)
-    .slice(0, 6);
+    .slice(0, 12);
 
   return (
     <HomePage

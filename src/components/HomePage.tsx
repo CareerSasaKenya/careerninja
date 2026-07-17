@@ -75,6 +75,9 @@ export default function HomePage({
   const plugin = useRef(
     Autoplay({ delay: 4000, stopOnInteraction: true })
   );
+  const companiesPlugin = useRef(
+    Autoplay({ delay: 3500, stopOnInteraction: true })
+  );
 
   useEffect(() => {
     hasAnimatedRef.current = false;
@@ -477,16 +480,34 @@ export default function HomePage({
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 md:gap-6">
-              {topCompanies.map((company, index) => (
-                <CompanyCard
-                  key={company.id}
-                  company={company}
-                  className="animate-fade-in"
-                  style={{ animationDelay: `${Math.min(index, 5) * 60}ms` }}
-                />
-              ))}
-            </div>
+            <Carousel
+              className="w-full"
+              opts={{ align: "start", loop: true }}
+              plugins={[companiesPlugin.current]}
+              onMouseEnter={companiesPlugin.current.stop}
+              onMouseLeave={companiesPlugin.current.reset}
+            >
+              <CarouselContent className="-ml-2 md:-ml-4">
+                {topCompanies.map((company) => (
+                  <CarouselItem
+                    key={company.id}
+                    className="pl-2 md:pl-4 basis-[85%] sm:basis-1/2 lg:basis-1/3"
+                  >
+                    <CompanyCard company={company} className="h-full" />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious
+                className="md:hidden"
+                style={{ backgroundColor: "#f97316", color: "white", border: "none" }}
+              />
+              <CarouselNext
+                className="md:hidden"
+                style={{ backgroundColor: "#f97316", color: "white", border: "none" }}
+              />
+              <CarouselPrevious className="hidden md:flex" />
+              <CarouselNext className="hidden md:flex" />
+            </Carousel>
 
             <div className="mt-6 flex justify-center sm:hidden">
               <Link href="/companies/industry/all" prefetch={true}>
