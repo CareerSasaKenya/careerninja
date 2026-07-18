@@ -136,14 +136,65 @@ export async function fetchGreenhouseJobDetails(
     throw new Error(`Greenhouse detail API error ${response.status} for job ${jobId}`)
   }
 
-  return (await response.json()) as GreenhouseJob
+  const job = (await response.json()) as GreenhouseJob
+  // Greenhouse Job Board API returns content with HTML entities escaped
+  // (&lt;p&gt;…&lt;/p&gt;). Decode so section splitters / cheerio see real tags.
+  if (job.content) {
+    job.content = decodeGreenhouseHtml(job.content)
+  }
+  return job
+}
+
+/**
+ * Greenhouse encodes the entire job HTML body as entities in JSON
+ * (`&lt;p&gt;…&lt;/p&gt;`). Decode so cheerio / section splitters see real tags.
+ */
+export function decodeGreenhouseHtml(content: string): string {
+  if (!content) return ''
+  let html = content.trim()
+
+  // Fully entity-encoded blob (no real tags yet) — decode until tags appear
+  for (let i = 0; i < 3 && /&lt;[a-z/]/i.test(html) && !hasHtmlTags(html); i++) {
+    html = decodeHtmlEntities(html)
+  }
+
+  // Leftover text entities inside real HTML (e.g. R&amp;D, &nbsp;)
+  if (/&(?:amp|nbsp|quot|apos|#\d+|#x[0-9a-f]+);/i.test(html)) {
+    html = decodeHtmlEntities(html)
+  }
+
+  return html
+}
+
+function hasHtmlTags(value: string): boolean {
+  return /<(p|div|ul|ol|li|h[1-6]|br|span|strong|em|a)\b/i.test(value)
+}
+
+function decodeHtmlEntities(value: string): string {
+  // Decode &amp; first so &amp;lt; → &lt; before &lt; → <.
+  return value
+    .replace(/&amp;/gi, '&')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&#(\d+);/g, (match, n) => {
+      const code = Number(n)
+      return Number.isFinite(code) ? String.fromCodePoint(code) : match
+    })
+    .replace(/&#x([0-9a-f]+);/gi, (match, h) => {
+      const code = parseInt(h, 16)
+      return Number.isFinite(code) ? String.fromCodePoint(code) : match
+    })
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
 }
 
 export function normalizeGreenhouseJob(
   job: GreenhouseJob,
   companyName: string
 ): NormalizedJob {
-  const descriptionHtml = job.content || ''
+  const descriptionHtml = decodeGreenhouseHtml(job.content || '')
   const location = job.location?.name || 'Kenya'
 
   return {
