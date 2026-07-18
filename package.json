@@ -15,6 +15,7 @@
     "merge:companies:apply": "npx tsx scripts/merge-duplicate-companies.mts --apply",
     "enrich:companies": "npx tsx scripts/enrich-company-profiles.mts",
     "enrich:companies:apply": "npx tsx scripts/enrich-company-profiles.mts --apply",
+    "update:blog-images": "npx tsx scripts/update-blog-images.mts",
     "postbuild": "next-sitemap"
   },
   "dependencies": {
