@@ -320,6 +320,11 @@ export async function processPscPdfQueueItem(
     } else if (outcome.status === 'duplicate') {
       duplicates++
       results.push({ title: outcome.title || normalized.title, status: 'duplicate' })
+    } else if (outcome.status === 'expired') {
+      results.push({
+        title: outcome.title || normalized.title,
+        status: 'expired',
+      })
     } else {
       errors.push(`${extracted.title}: ${outcome.error}`)
       results.push({ title: extracted.title, status: 'error' })

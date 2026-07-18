@@ -26,11 +26,15 @@ import {
 } from '@/lib/psc-adapter'
 import { processPscPdfQueueItem } from '@/lib/psc-pdf-adapter'
 import { mapEducationLevel } from '@/lib/jobMetadataExtraction'
-import { resolveValidThrough } from '@/lib/jobParseNormalization'
+import { limitTags } from '@/lib/jobParseNormalization'
+import {
+  expiresAtFromValidThrough,
+  normalizeJobUrl,
+  resolveScrapedDeadline,
+} from '@/lib/scraperDeadline'
 import { parseScrapedJobContent, ScrapedJobInput } from '@/lib/scraperJobParsing'
 import { ensureCompanyForJob } from '@/lib/ensureCompanyForJob'
 import { inferCompanyIndustry } from '@/lib/companyIndustryInference'
-import { limitTags } from '@/lib/jobParseNormalization'
 import type { WorkableJobDetail } from '@/lib/workable-adapter'
 
 export type ScrapeProcessResult = Record<string, unknown>
@@ -207,14 +211,30 @@ export async function runScrapeProcessOne(
       dedupCompany,
       normalized.job_location_city || normalized.job_location_county || ''
     )
+    const canonicalUrl = normalizeJobUrl(queueItem.job_url)
+    const applicationUrl = normalizeJobUrl(normalized.application_url || queueItem.job_url)
 
-    const { data: existing } = await supabase
+    // Deduplicate by content hash, canonical source URL, or application URL
+    const { data: existingByHash } = await supabase
       .from('scraped_job_sources')
-      .select('id')
+      .select('id, job_url')
       .eq('content_hash', contentHash)
       .maybeSingle()
 
-    if (existing) {
+    const { data: existingByUrl } = await supabase
+      .from('scraped_job_sources')
+      .select('id, job_url')
+      .eq('job_url', canonicalUrl)
+      .maybeSingle()
+
+    const { data: existingByAppUrl } = await supabase
+      .from('jobs')
+      .select('id')
+      .eq('source', 'Scraper')
+      .eq('application_url', applicationUrl)
+      .maybeSingle()
+
+    if (existingByHash || existingByUrl || existingByAppUrl) {
       await supabase
         .from('scrape_queue')
         .update({ status: 'done', processed_at: new Date().toISOString() })
@@ -223,6 +243,11 @@ export async function runScrapeProcessOne(
         message: 'Duplicate job skipped',
         processed: 1,
         job_url: queueItem.job_url,
+        duplicate_reason: existingByHash
+          ? 'content_hash'
+          : existingByUrl
+            ? 'job_url'
+            : 'application_url',
       }
     }
 
@@ -240,6 +265,46 @@ export async function runScrapeProcessOne(
       industryNames,
       jobFunctionNames,
     })
+
+    const deadline = resolveScrapedDeadline(
+      parsed.deadline || normalized.valid_through || null
+    )
+    if (deadline.action === 'skip_expired') {
+      await supabase
+        .from('scrape_queue')
+        .update({
+          status: 'done',
+          processed_at: new Date().toISOString(),
+          error_message: `Skipped: job expired on ${deadline.validThrough}`,
+        })
+        .eq('id', queueItem.id)
+
+      // Record so discover won't re-queue this URL
+      await supabase.from('scraped_job_sources').upsert(
+        {
+          source_id: source.source_id,
+          job_url: canonicalUrl,
+          content_hash: contentHash,
+          job_id: null,
+          status: 'skipped',
+          raw_data: {
+            ...(typeof rawData === 'object' && rawData ? rawData : {}),
+            skip_reason: 'expired',
+            expired_on: deadline.validThrough,
+          },
+        },
+        { onConflict: 'job_url' }
+      )
+
+      return {
+        message: 'Expired job skipped',
+        processed: 1,
+        expired: true,
+        valid_through: deadline.validThrough,
+        job_url: queueItem.job_url,
+        title: normalized.title,
+      }
+    }
 
     const educationLevelId = mapEducationLevel(parsed.education_level, educationLevels || [])
     const inferredCompanyIndustry = inferCompanyIndustry(dedupCompany)
@@ -284,8 +349,9 @@ export async function runScrapeProcessOne(
       hiring_organization_url: ensured.website,
       source: 'Scraper',
       direct_apply: false,
-      application_url: normalized.application_url || queueItem.job_url,
-      valid_through: resolveValidThrough(parsed.deadline || normalized.valid_through || undefined),
+      application_url: applicationUrl,
+      valid_through: deadline.validThrough,
+      expires_at: expiresAtFromValidThrough(deadline.validThrough),
       education_level_id: educationLevelId,
       minimum_experience: parsed.minimum_experience ?? normalized.minimum_experience,
       experience_level: sanitizeExperienceLevel(
@@ -317,7 +383,7 @@ export async function runScrapeProcessOne(
 
     await supabase.from('scraped_job_sources').insert({
       source_id: source.source_id,
-      job_url: queueItem.job_url,
+      job_url: canonicalUrl,
       content_hash: contentHash,
       job_id: insertedJob.id,
       status: 'published',
@@ -411,9 +477,14 @@ export async function runScrapeProcessBatch(
     results.push(result)
     processed++
 
-    // Continue through duplicates and per-item failures so cron can drain the
-    // backlog (stale Workable 404s, etc.) without aborting the whole batch.
-    if (result.message === 'Duplicate job skipped' || result.success || result.error) {
+    // Continue through duplicates, expiries, and per-item failures so cron can
+    // drain the backlog without aborting the whole batch.
+    if (
+      result.message === 'Duplicate job skipped' ||
+      result.message === 'Expired job skipped' ||
+      result.success ||
+      result.error
+    ) {
       continue
     }
   }

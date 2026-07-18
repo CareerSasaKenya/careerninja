@@ -107,12 +107,29 @@ export function getDefaultValidThrough(fromDate = new Date()): string {
   return expiry.toISOString().split("T")[0];
 }
 
+/**
+ * Resolve a posting deadline for manual/AI parse flows.
+ * Empty → 30 days from postingDate. Non-empty values are kept as-is
+ * (callers that need expiry gating should use resolveScrapedDeadline).
+ */
 export function resolveValidThrough(
   validThrough: string | null | undefined,
   postingDate = new Date()
 ): string {
   const trimmed = validThrough?.trim();
-  return trimmed || getDefaultValidThrough(postingDate);
+  if (!trimmed) return getDefaultValidThrough(postingDate);
+
+  // Prefer YYYY-MM-DD; if a past date is supplied by a form/parser, keep it
+  // so the UI can show the chosen value (scrapers use resolveScrapedDeadline).
+  const isoDay = trimmed.match(/^(\d{4}-\d{2}-\d{2})/);
+  if (isoDay) return isoDay[1];
+
+  const parsed = new Date(trimmed);
+  if (!Number.isNaN(parsed.getTime())) {
+    return parsed.toISOString().split("T")[0];
+  }
+
+  return getDefaultValidThrough(postingDate);
 }
 
 export function fuzzyMatchOption(
