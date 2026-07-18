@@ -491,9 +491,13 @@ export default function HomePage({
                 {topCompanies.map((company) => (
                   <CarouselItem
                     key={company.id}
-                    className="pl-2 md:pl-3 basis-[85%] sm:basis-1/2 lg:basis-1/3"
+                    className="pl-2 md:pl-3 basis-[70%] sm:basis-1/3 lg:basis-1/4 xl:basis-1/5"
                   >
-                    <CompanyCard company={company} className="h-full" />
+                    <CompanyCard
+                      company={company}
+                      variant="compact"
+                      className="h-full"
+                    />
                   </CarouselItem>
                 ))}
               </CarouselContent>
