@@ -183,7 +183,9 @@ export function normalizeWorkableJob(
     location: [city, county, targetLoc?.country].filter(Boolean).join(', '),
     apply_link: '',   // Workable uses direct apply via their platform
     application_url: WORKABLE_JOB_URL('__SLUG__', detail.shortcode), // slug injected by caller
-    valid_through: detail.published || null,  // Workable API doesn't expose deadline
+    // Workable exposes `published` (posting date), NOT a closing deadline.
+    // Leave null so resolveScrapedDeadline defaults to publication + 30 days.
+    valid_through: null,
     salary_min: null,
     salary_max: null,
     salary_currency: 'KES',

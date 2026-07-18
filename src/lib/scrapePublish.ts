@@ -5,7 +5,11 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 import { NormalizedJob, generateContentHash } from './scraper'
 import { mapEducationLevel } from './jobMetadataExtraction'
-import { resolveValidThrough } from './jobParseNormalization'
+import {
+  expiresAtFromValidThrough,
+  normalizeJobUrl,
+  resolveScrapedDeadline,
+} from './scraperDeadline'
 import { parseScrapedJobContent, ScrapedJobInput } from './scraperJobParsing'
 import { ensureCompanyForJob } from './ensureCompanyForJob'
 
@@ -22,10 +26,11 @@ export interface PublishScrapedJobParams {
 }
 
 export interface PublishScrapedJobResult {
-  status: 'published' | 'duplicate' | 'error'
+  status: 'published' | 'duplicate' | 'expired' | 'error'
   job_id?: string
   title?: string
   error?: string
+  valid_through?: string
 }
 
 export async function publishScrapedJob(
@@ -48,14 +53,22 @@ export async function publishScrapedJob(
     dedupCompany,
     normalized.job_location_city || normalized.job_location_county || ''
   )
+  const canonicalUrl = normalizeJobUrl(jobUrl)
+  const applicationUrl = normalizeJobUrl(normalized.application_url || jobUrl)
 
-  const { data: existing } = await supabase
-    .from('scraped_job_sources')
-    .select('id')
-    .eq('content_hash', contentHash)
-    .maybeSingle()
+  const [{ data: existingByHash }, { data: existingByUrl }, { data: existingByAppUrl }] =
+    await Promise.all([
+      supabase.from('scraped_job_sources').select('id').eq('content_hash', contentHash).maybeSingle(),
+      supabase.from('scraped_job_sources').select('id').eq('job_url', canonicalUrl).maybeSingle(),
+      supabase
+        .from('jobs')
+        .select('id')
+        .eq('source', 'Scraper')
+        .eq('application_url', applicationUrl)
+        .maybeSingle(),
+    ])
 
-  if (existing) {
+  if (existingByHash || existingByUrl || existingByAppUrl) {
     return { status: 'duplicate', title: normalized.title }
   }
 
@@ -71,12 +84,40 @@ export async function publishScrapedJob(
           minimum_experience: normalized.minimum_experience,
           experience_level: normalized.experience_level,
           industry: normalized.industry,
+          job_function: null,
+          tags: normalized.tags || '',
           salary_min: normalized.salary_min,
           salary_max: normalized.salary_max,
           salary_currency: normalized.salary_currency,
           salary_period: normalized.salary_period,
         }
       : await parseScrapedJobContent(parseInput)
+
+    const deadline = resolveScrapedDeadline(
+      parsed.deadline || normalized.valid_through || null
+    )
+    if (deadline.action === 'skip_expired') {
+      await supabase.from('scraped_job_sources').upsert(
+        {
+          source_id: sourceId,
+          job_url: canonicalUrl,
+          content_hash: contentHash,
+          job_id: null,
+          status: 'skipped',
+          raw_data: {
+            ...(typeof rawData === 'object' && rawData ? (rawData as object) : {}),
+            skip_reason: 'expired',
+            expired_on: deadline.validThrough,
+          },
+        },
+        { onConflict: 'job_url' }
+      )
+      return {
+        status: 'expired',
+        title: normalized.title,
+        valid_through: deadline.validThrough,
+      }
+    }
 
     const { data: educationLevels } = await supabase
       .from('education_levels')
@@ -103,8 +144,9 @@ export async function publishScrapedJob(
       hiring_organization_url: ensured.website,
       source: 'Scraper',
       direct_apply: false,
-      application_url: normalized.application_url || jobUrl,
-      valid_through: resolveValidThrough(parsed.deadline || normalized.valid_through || undefined),
+      application_url: applicationUrl,
+      valid_through: deadline.validThrough,
+      expires_at: expiresAtFromValidThrough(deadline.validThrough),
       education_level_id: educationLevelId,
       minimum_experience: parsed.minimum_experience ?? normalized.minimum_experience,
       experience_level: parsed.experience_level || normalized.experience_level,
@@ -125,14 +167,19 @@ export async function publishScrapedJob(
 
     await supabase.from('scraped_job_sources').insert({
       source_id: sourceId,
-      job_url: jobUrl,
+      job_url: canonicalUrl,
       content_hash: contentHash,
       job_id: insertedJob.id,
       status: 'published',
       raw_data: rawData,
     })
 
-    return { status: 'published', job_id: insertedJob.id, title: normalized.title }
+    return {
+      status: 'published',
+      job_id: insertedJob.id,
+      title: normalized.title,
+      valid_through: deadline.validThrough,
+    }
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err)
     return { status: 'error', error: message, title: normalized.title }

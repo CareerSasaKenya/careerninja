@@ -4,6 +4,7 @@ import { discoverWorkableJobs, WorkableSourceConfig } from './workable-adapter'
 import { discoverSmartRecruitersJobs, SmartRecruitersSourceConfig } from './smartrecruiters-adapter'
 import { discoverPscJobs } from './psc-adapter'
 import { discoverPscPdfDocuments, PscPdfSourceConfig } from './psc-pdf-adapter'
+import { normalizeJobUrl } from './scraperDeadline'
 
 export interface DiscoverSourceResult {
   source_id: string
@@ -79,7 +80,12 @@ export async function runScrapeDiscover(
         continue
       }
 
-      const urls = discovered.map(j => j.job_url)
+      // Canonicalize URLs so trailing slashes / tracking params don't bypass dedupe
+      const discoveredNormalized = discovered.map(j => ({
+        ...j,
+        job_url: normalizeJobUrl(j.job_url),
+      }))
+      const urls = [...new Set(discoveredNormalized.map(j => j.job_url))]
 
       const [{ data: alreadyQueued }, { data: alreadyPublished }] = await Promise.all([
         supabase.from('scrape_queue').select('job_url').in('job_url', urls),
@@ -87,11 +93,11 @@ export async function runScrapeDiscover(
       ])
 
       const knownUrls = new Set([
-        ...(alreadyQueued || []).map((r: { job_url: string }) => r.job_url),
-        ...(alreadyPublished || []).map((r: { job_url: string }) => r.job_url),
+        ...(alreadyQueued || []).map((r: { job_url: string }) => normalizeJobUrl(r.job_url)),
+        ...(alreadyPublished || []).map((r: { job_url: string }) => normalizeJobUrl(r.job_url)),
       ])
 
-      const newJobs = discovered.filter(j => !knownUrls.has(j.job_url))
+      const newJobs = discoveredNormalized.filter(j => !knownUrls.has(j.job_url))
 
       if (newJobs.length === 0) {
         results.push(sourceResult)
