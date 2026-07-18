@@ -52,5 +52,10 @@ assert.equal(
   normalizeJobUrl('https://apply.workable.com/tatucity/j/ABC123/'),
   'https://apply.workable.com/tatucity/j/ABC123'
 )
+// Greenhouse custom career pages encode the job id in gh_jid — keep it
+assert.equal(
+  normalizeJobUrl('https://oneacrefund.org/vacancies/?gh_jid=8066822&utm_source=x'),
+  'https://oneacrefund.org/vacancies?gh_jid=8066822'
+)
 
 console.log('scraperDeadline.test.ts: all assertions passed')

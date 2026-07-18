@@ -20,6 +20,12 @@ import {
   extractSmartRecruitersSlug,
 } from '@/lib/smartrecruiters-adapter'
 import {
+  fetchGreenhouseJobDetails,
+  normalizeGreenhouseJob,
+  extractGreenhouseJobId,
+  extractGreenhouseSlug,
+} from '@/lib/greenhouse-adapter'
+import {
   fetchPscJobRow,
   normalizePscJob,
   extractPscAdvertNumber,
@@ -149,6 +155,29 @@ export async function runScrapeProcessOne(
         benefitsSection: sections?.additionalInformation?.text,
         industryHint: detail.industry?.label || detail.department?.label || null,
         jobFunctionHint: detail.function?.label || null,
+        tagsHint: normalized.tags,
+      }
+    } else if (adapterType === 'greenhouse') {
+      const config = source.selectors as { slug?: string; filterCountry?: string }
+      const jobId = extractGreenhouseJobId(queueItem.job_url, queueItem.partial_data)
+      const slug = extractGreenhouseSlug(queueItem.job_url, config.slug)
+
+      if (!slug || !jobId) {
+        throw new Error(`Cannot parse Greenhouse slug/job ID from URL: ${queueItem.job_url}`)
+      }
+
+      const detail = await fetchGreenhouseJobDetails(slug, jobId)
+      normalized = normalizeGreenhouseJob(detail, hiringCompany, config.filterCountry)
+      normalized.application_url = detail.absolute_url || queueItem.job_url
+      rawData = detail
+
+      parseInput = {
+        title: normalized.title,
+        company: hiringCompany,
+        location: normalized.location,
+        employmentType: normalized.employment_type,
+        workplace: normalized.job_location_type,
+        descriptionSection: normalized.description,
         tagsHint: normalized.tags,
       }
     } else if (adapterType === 'psc') {

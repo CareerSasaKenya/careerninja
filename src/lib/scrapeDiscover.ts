@@ -2,6 +2,7 @@ import { SupabaseClient } from '@supabase/supabase-js'
 import { fetchHtml, extractJobLinks, ScraperSelectors } from './scraper'
 import { discoverWorkableJobs, WorkableSourceConfig } from './workable-adapter'
 import { discoverSmartRecruitersJobs, SmartRecruitersSourceConfig } from './smartrecruiters-adapter'
+import { discoverGreenhouseJobs, GreenhouseSourceConfig } from './greenhouse-adapter'
 import { discoverPscJobs } from './psc-adapter'
 import { discoverPscPdfDocuments, PscPdfSourceConfig } from './psc-pdf-adapter'
 import { normalizeJobUrl } from './scraperDeadline'
@@ -64,6 +65,8 @@ export async function runScrapeDiscover(
         discovered = await discoverWorkableJobs(source.selectors as WorkableSourceConfig)
       } else if (config.type === 'smartrecruiters') {
         discovered = await discoverSmartRecruitersJobs(source.selectors as SmartRecruitersSourceConfig)
+      } else if (config.type === 'greenhouse') {
+        discovered = await discoverGreenhouseJobs(source.selectors as GreenhouseSourceConfig)
       } else if (config.type === 'psc') {
         discovered = await discoverPscJobs(source.base_url)
       } else if (config.type === 'psc_pdf') {
