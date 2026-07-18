@@ -35,23 +35,32 @@ const nextConfig = {
   // PDF parsing (server-only). Keep canvas external so the native binary
   // is available at runtime on Vercel (needed for pdfjs DOMMatrix polyfill).
   serverExternalPackages: ['pdf-parse', 'pdfjs-dist', '@napi-rs/canvas'],
-  // Ensure native canvas binaries are traced into serverless functions that
-  // may parse PSC PDFs (process routes). Discover no longer loads pdf-parse.
+  // Ensure native canvas + pdfjs worker files are traced into serverless
+  // functions that parse PSC PDFs. Discover no longer loads pdf-parse.
   outputFileTracingIncludes: {
     '/api/admin/scraper-sources/**/*': [
       './node_modules/@napi-rs/canvas/**/*',
       './node_modules/@napi-rs/canvas-linux-x64-gnu/**/*',
       './node_modules/@napi-rs/canvas-linux-x64-musl/**/*',
+      './node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs',
+      './node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs',
+      './node_modules/pdf-parse/dist/worker/**/*',
     ],
     '/api/cron/scrape-process/**/*': [
       './node_modules/@napi-rs/canvas/**/*',
       './node_modules/@napi-rs/canvas-linux-x64-gnu/**/*',
       './node_modules/@napi-rs/canvas-linux-x64-musl/**/*',
+      './node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs',
+      './node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs',
+      './node_modules/pdf-parse/dist/worker/**/*',
     ],
     '/api/scrape-jobs/**/*': [
       './node_modules/@napi-rs/canvas/**/*',
       './node_modules/@napi-rs/canvas-linux-x64-gnu/**/*',
       './node_modules/@napi-rs/canvas-linux-x64-musl/**/*',
+      './node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs',
+      './node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs',
+      './node_modules/pdf-parse/dist/worker/**/*',
     ],
   },
   // Disable x-powered-by header
