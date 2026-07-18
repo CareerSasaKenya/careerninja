@@ -12,11 +12,8 @@ async function ensurePdfDomPolyfills(): Promise<void> {
   if (polyfillsReady) return polyfillsReady
 
   polyfillsReady = (async () => {
-    const g = globalThis as typeof globalThis & {
-      DOMMatrix?: unknown
-      ImageData?: unknown
-      Path2D?: unknown
-    }
+    // Use a loose bag — @napi-rs/canvas DOMMatrix is not identical to DOM lib types.
+    const g = globalThis as Record<string, unknown>
 
     if (typeof g.DOMMatrix === 'function') return
 
