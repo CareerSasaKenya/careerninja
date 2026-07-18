@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
+import {
+  getDefaultPopupNewsletterWelcome,
+  getEmailTemplate,
+  POPUP_NEWSLETTER_WELCOME_SLUG,
+  renderEmailTemplate,
+} from '@/lib/emailTemplates';
 
 /**
  * GET /api/emails/preview?template=welcome
  * Renders email templates as HTML for browser preview (dev/admin only).
  *
- * Available templates: welcome, application-confirmation, application-status,
- * employer-new-application, new-message, password-reset, subscription-confirmation,
- * campaign, job-alert-digest, weekly-digest, test
+ * Available templates: popup-newsletter-welcome, welcome, application-confirmation,
+ * application-status, employer-new-application, new-message, password-reset,
+ * subscription-confirmation, campaign, job-alert-digest, weekly-digest, test
  */
 
 function getSiteUrl(): string {
@@ -344,6 +350,11 @@ const INDEX_HTML = `
   <h1>CareerSasa Email Templates</h1>
   <p>Click any template to preview it rendered with sample data.</p>
   <div class="grid">
+    <a href="/api/emails/preview?template=popup-newsletter-welcome">
+      <div class="name">Popup Newsletter Welcome</div>
+      <div class="desc">Homepage subscription popup welcome + toolkit</div>
+      <span class="badge mk">Marketing</span>
+    </a>
     <a href="/api/emails/preview?template=welcome">
       <div class="name">Welcome Email</div>
       <div class="desc">Sent to new users on signup</div>
@@ -398,6 +409,22 @@ const INDEX_HTML = `
 </body>
 </html>`;
 
+async function renderPopupNewsletterWelcomePreview(): Promise<string> {
+  const siteUrl = getSiteUrl();
+  const stored = await getEmailTemplate(POPUP_NEWSLETTER_WELCOME_SLUG);
+  const template = stored?.html_body
+    ? stored
+    : getDefaultPopupNewsletterWelcome();
+  return renderEmailTemplate(template.html_body, {
+    name: 'John',
+    email: 'john@example.com',
+    site_url: siteUrl,
+    toolkit_url: `${siteUrl}/toolkit`,
+    unsubscribe_url: `${siteUrl}/newsletter/unsubscribe?email=${encodeURIComponent('john@example.com')}`,
+    year: String(new Date().getFullYear()),
+  });
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const template = searchParams.get('template');
@@ -409,10 +436,28 @@ export async function GET(request: NextRequest) {
     });
   }
 
+  if (template === 'popup-newsletter-welcome') {
+    try {
+      const body = await renderPopupNewsletterWelcomePreview();
+      const html = body.includes('<!DOCTYPE') || body.includes('<html')
+        ? body
+        : `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Preview: ${template}</title></head><body>${body}</body></html>`;
+      return new NextResponse(html, {
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      });
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : 'Failed to render template';
+      return NextResponse.json({ error: msg }, { status: 500 });
+    }
+  }
+
   const renderer = TEMPLATES[template];
   if (!renderer) {
     return NextResponse.json(
-      { error: `Unknown template: ${template}`, available: Object.keys(TEMPLATES) },
+      {
+        error: `Unknown template: ${template}`,
+        available: ['popup-newsletter-welcome', ...Object.keys(TEMPLATES)],
+      },
       { status: 404 }
     );
   }

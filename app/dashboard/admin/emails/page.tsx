@@ -6,12 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Mail, Send, Users, BarChart3, FileText, Plus,
   Loader2, RefreshCw, CheckCircle, XCircle, AlertCircle, Eye, Trash2,
-  Radio, Settings2, Play
+  Radio, Settings2, Play, LayoutTemplate, Save
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -65,6 +66,19 @@ interface Campaign {
   sent_at: string | null;
 }
 
+interface EmailTemplate {
+  slug: string;
+  name: string;
+  description: string | null;
+  subject: string;
+  html_body: string;
+  placeholders: string[];
+  metadata: Record<string, unknown>;
+  is_active: boolean;
+  updated_at: string | null;
+  storage: string;
+}
+
 // =====================================================
 // COMPONENT
 // =====================================================
@@ -101,6 +115,16 @@ export default function AdminEmailsPage() {
   const [automationRules, setAutomationRules] = useState<any[]>([]);
   const [loadingAutomations, setLoadingAutomations] = useState(false);
 
+  // Templates
+  const [emailTemplates, setEmailTemplates] = useState<EmailTemplate[]>([]);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
+  const [selectedTemplateSlug, setSelectedTemplateSlug] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editSubject, setEditSubject] = useState("");
+  const [editHtml, setEditHtml] = useState("");
+  const [savingTemplate, setSavingTemplate] = useState(false);
+
   const fetchAll = useCallback(async () => {
     try {
       setLoading(true);
@@ -117,6 +141,9 @@ export default function AdminEmailsPage() {
   useEffect(() => {
     if (activeTab === "automations" && automationRules.length === 0) {
       fetchAutomations();
+    }
+    if (activeTab === "templates" && emailTemplates.length === 0) {
+      fetchTemplates();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
@@ -342,6 +369,76 @@ export default function AdminEmailsPage() {
     setLoadingAutomations(false);
   }
 
+  async function fetchTemplates() {
+    setLoadingTemplates(true);
+    try {
+      const res = await fetch("/api/admin/email-templates", {
+        headers: await getAuthHeaders(),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to load templates");
+      const templates = (data.templates ?? []) as EmailTemplate[];
+      setEmailTemplates(templates);
+      if (templates.length > 0 && !selectedTemplateSlug) {
+        selectTemplate(templates[0]);
+      } else if (selectedTemplateSlug) {
+        const current = templates.find((t) => t.slug === selectedTemplateSlug);
+        if (current) selectTemplate(current);
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to load templates";
+      toast.error(msg);
+    } finally {
+      setLoadingTemplates(false);
+    }
+  }
+
+  function selectTemplate(template: EmailTemplate) {
+    setSelectedTemplateSlug(template.slug);
+    setEditName(template.name);
+    setEditDescription(template.description ?? "");
+    setEditSubject(template.subject);
+    setEditHtml(template.html_body);
+  }
+
+  async function handleSaveTemplate() {
+    if (!selectedTemplateSlug) return;
+    if (!editName.trim() || !editSubject.trim() || !editHtml.trim()) {
+      toast.error("Name, subject, and HTML body are required");
+      return;
+    }
+    setSavingTemplate(true);
+    try {
+      const existing = emailTemplates.find((t) => t.slug === selectedTemplateSlug);
+      const res = await fetch(`/api/admin/email-templates/${selectedTemplateSlug}`, {
+        method: "PUT",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify({
+          name: editName.trim(),
+          description: editDescription.trim() || null,
+          subject: editSubject.trim(),
+          html_body: editHtml,
+          placeholders: existing?.placeholders,
+          metadata: existing?.metadata,
+          is_active: existing?.is_active ?? true,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to save template");
+      toast.success("Template saved");
+      const updated = data.template as EmailTemplate;
+      setEmailTemplates((prev) =>
+        prev.map((t) => (t.slug === updated.slug ? updated : t)),
+      );
+      selectTemplate(updated);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to save template";
+      toast.error(msg);
+    } finally {
+      setSavingTemplate(false);
+    }
+  }
+
   async function toggleAutomation(id: string, enabled: boolean) {
     await (supabase as any)
       .from("email_automation_rules")
@@ -406,6 +503,7 @@ export default function AdminEmailsPage() {
           <TabsTrigger value="settings" className="shrink-0">Test & Settings</TabsTrigger>
           <TabsTrigger value="broadcast" className="shrink-0">Broadcast</TabsTrigger>
           <TabsTrigger value="automations" className="shrink-0">Automations</TabsTrigger>
+          <TabsTrigger value="templates" className="shrink-0">Templates</TabsTrigger>
           <TabsTrigger value="previews" className="shrink-0">Previews</TabsTrigger>
         </TabsList>
 
@@ -869,6 +967,137 @@ export default function AdminEmailsPage() {
           </Card>
         </TabsContent>
 
+        {/* ---- MANAGED TEMPLATES TAB ---- */}
+        <TabsContent value="templates" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <LayoutTemplate className="h-5 w-5" />
+                    Email Templates
+                  </CardTitle>
+                  <CardDescription>
+                    Edit stored templates used by automations and the homepage subscription popup
+                  </CardDescription>
+                </div>
+                <Button variant="outline" size="sm" onClick={fetchTemplates} disabled={loadingTemplates}>
+                  {loadingTemplates ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                  <span className="ml-2">Reload</span>
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {loadingTemplates && emailTemplates.length === 0 ? (
+                <div className="flex items-center gap-2 text-muted-foreground py-8 justify-center">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Loading templates…
+                </div>
+              ) : emailTemplates.length === 0 ? (
+                <p className="text-muted-foreground text-sm py-6 text-center">
+                  No templates found. Reload to seed the popup welcome template.
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="space-y-2">
+                    {emailTemplates.map((t) => (
+                      <button
+                        key={t.slug}
+                        type="button"
+                        onClick={() => selectTemplate(t)}
+                        className={`w-full text-left p-3 rounded-lg border transition-all ${
+                          selectedTemplateSlug === t.slug
+                            ? "border-primary bg-primary/5"
+                            : "hover:border-primary/50"
+                        }`}
+                      >
+                        <div className="font-medium text-sm">{t.name}</div>
+                        <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                          {t.description || t.slug}
+                        </div>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge variant="secondary" className="text-[10px]">{t.slug}</Badge>
+                          {t.is_active ? (
+                            <Badge className="text-[10px] bg-green-100 text-green-800 hover:bg-green-100">Active</Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px]">Inactive</Badge>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+
+                  {selectedTemplateSlug && (
+                    <div className="lg:col-span-2 space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="tpl-name">Name</Label>
+                        <Input
+                          id="tpl-name"
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="tpl-desc">Description</Label>
+                        <Input
+                          id="tpl-desc"
+                          value={editDescription}
+                          onChange={(e) => setEditDescription(e.target.value)}
+                          placeholder="When this email is sent"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="tpl-subject">Subject</Label>
+                        <Input
+                          id="tpl-subject"
+                          value={editSubject}
+                          onChange={(e) => setEditSubject(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="tpl-html">HTML body</Label>
+                        <Textarea
+                          id="tpl-html"
+                          value={editHtml}
+                          onChange={(e) => setEditHtml(e.target.value)}
+                          className="min-h-[320px] font-mono text-xs"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Placeholders:{" "}
+                          {(emailTemplates.find((t) => t.slug === selectedTemplateSlug)?.placeholders ?? [])
+                            .map((p) => `{{${p}}}`)
+                            .join(", ") || "{{name}}, {{site_url}}, {{toolkit_url}}, {{unsubscribe_url}}, {{year}}"}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Button onClick={handleSaveTemplate} disabled={savingTemplate}>
+                          {savingTemplate ? (
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          ) : (
+                            <Save className="h-4 w-4 mr-2" />
+                          )}
+                          Save template
+                        </Button>
+                        {selectedTemplateSlug === "popup_newsletter_welcome" && (
+                          <Button variant="outline" asChild>
+                            <Link
+                              href="/api/emails/preview?template=popup-newsletter-welcome"
+                              target="_blank"
+                            >
+                              <Eye className="h-4 w-4 mr-2" />
+                              Preview
+                            </Link>
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* ---- TEMPLATE PREVIEWS TAB ---- */}
         <TabsContent value="previews">
           <Card>
@@ -879,6 +1108,7 @@ export default function AdminEmailsPage() {
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[
+                  { slug: 'popup-newsletter-welcome', name: 'Popup Newsletter Welcome', desc: 'Homepage subscription popup welcome + toolkit', badge: 'Marketing', color: 'bg-amber-100 text-amber-800' },
                   { slug: 'welcome', name: 'Welcome Email', desc: 'Sent to new users on signup', badge: 'Transactional', color: 'bg-blue-100 text-blue-800' },
                   { slug: 'application-confirmation', name: 'Application Confirmation', desc: 'Sent to candidate after applying', badge: 'Transactional', color: 'bg-blue-100 text-blue-800' },
                   { slug: 'application-status', name: 'Application Status', desc: 'Employer updates candidate status', badge: 'Transactional', color: 'bg-blue-100 text-blue-800' },
