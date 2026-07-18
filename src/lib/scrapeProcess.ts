@@ -175,13 +175,15 @@ export async function runScrapeProcessOne(
       normalized.application_url = detail.absolute_url || queueItem.job_url
       rawData = detail
 
+      // detail.content is decoded in fetchGreenhouseJobDetails; use the same
+      // HTML for section splitting so requirements/responsibilities populate.
       parseInput = {
         title: normalized.title,
         company: hiringCompany,
         location: normalized.location,
         employmentType: normalized.employment_type,
         workplace: normalized.job_location_type,
-        descriptionSection: detail.content || '',
+        descriptionSection: detail.content || normalized.description || '',
         requirementsSection: '',
         industryHint: detail.departments?.[0]?.name || null,
         jobFunctionHint: detail.departments?.[0]?.name || null,

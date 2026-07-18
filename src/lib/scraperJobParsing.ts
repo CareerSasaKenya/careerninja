@@ -73,9 +73,9 @@ const EMPTY_METADATA: Omit<
 
 const SECTION_PATTERNS = {
   responsibilities:
-    /responsibilit|duties|what you.{0,12}do|key tasks|your role|role overview|activities|kpis?|competenc/i,
+    /responsibilit|accountabilit|duties|what you.{0,12}do|key tasks|your role|role overview|activities|kpis?|competenc|deliverables/i,
   qualifications:
-    /qualification|requirement|skills|experience required|who you are|what we.?re looking|must have|preferred/i,
+    /qualification|requirement|skills|experience required|who you are|what we.?re looking|must have|preferred|you bring/i,
   benefits: /benefits|what we offer|perks|why join|compensation package|what.?s in it/i,
   additional:
     /how to apply|application process|equal opportunity|about us|about the company|work environment/i,

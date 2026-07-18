@@ -102,6 +102,22 @@ assert.equal(
   'Charity, NGO & Non-Profit'
 )
 
+// Greenhouse-style: entity-escaped HTML must be decoded before split
+import { decodeGreenhouseHtml } from './greenhouse-adapter'
+const greenhouseEncoded =
+  '&lt;h3&gt;About the role&lt;/h3&gt;&lt;p&gt;Intro with R&amp;amp;D.&lt;/p&gt;' +
+  '&lt;p&gt;&lt;strong&gt;Accountabilities include:&lt;/strong&gt;&lt;/p&gt;' +
+  '&lt;ul&gt;&lt;li&gt;Ship features&lt;/li&gt;&lt;/ul&gt;' +
+  '&lt;p&gt;&lt;strong&gt;Skills and qualifications&lt;/strong&gt;&lt;/p&gt;' +
+  '&lt;ul&gt;&lt;li&gt;5 years experience&lt;/li&gt;&lt;/ul&gt;'
+const greenhouseHtml = decodeGreenhouseHtml(greenhouseEncoded)
+assert.ok(greenhouseHtml.includes('<h3>About the role</h3>'), 'decodes tags')
+assert.ok(greenhouseHtml.includes('R&D'), 'decodes ampersands')
+const ghSplit = splitHtmlByHeadings(greenhouseHtml)
+assert.ok(ghSplit.description.includes('Intro'), 'greenhouse description')
+assert.ok(ghSplit.responsibilities.includes('Ship features'), 'accountabilities → responsibilities')
+assert.ok(ghSplit.required_qualifications.includes('5 years'), 'skills/qualifications → requirements')
+
 const tatuParsed = await parseScrapedJobContent(
   {
     title: 'Community Relations Manager',
