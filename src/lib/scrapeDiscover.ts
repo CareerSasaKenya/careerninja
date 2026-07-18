@@ -2,6 +2,7 @@ import { SupabaseClient } from '@supabase/supabase-js'
 import { fetchHtml, extractJobLinks, ScraperSelectors } from './scraper'
 import { discoverWorkableJobs, WorkableSourceConfig } from './workable-adapter'
 import { discoverSmartRecruitersJobs, SmartRecruitersSourceConfig } from './smartrecruiters-adapter'
+import { discoverGreenhouseJobs, GreenhouseSourceConfig } from './greenhouse-adapter'
 import { discoverPscJobs } from './psc-adapter'
 import { discoverPscPdfDocuments, PscPdfSourceConfig } from './psc-pdf-adapter'
 import { normalizeJobUrl } from './scraperDeadline'
@@ -18,11 +19,30 @@ export interface DiscoverRunResult {
   sources_processed: number
   total_queued: number
   results: DiscoverSourceResult[]
+  stopped_early?: string
 }
+
+export interface DiscoverRunOptions {
+  sourceId?: string
+  /**
+   * Soft time budget in ms. Stop before starting another source once exceeded.
+   * Prevents Vercel hard timeouts that return HTML error pages instead of JSON.
+   */
+  budgetMs?: number
+}
+
+const SUPPORTED_TYPES = new Set([
+  'workable',
+  'smartrecruiters',
+  'greenhouse',
+  'psc',
+  'psc_pdf',
+  'html',
+])
 
 export async function runScrapeDiscover(
   supabase: SupabaseClient,
-  options?: { sourceId?: string }
+  options?: DiscoverRunOptions
 ): Promise<DiscoverRunResult> {
   let query = supabase.from('scraper_sources').select('*').eq('is_active', true)
 
@@ -42,9 +62,19 @@ export async function runScrapeDiscover(
     }
   }
 
+  const budgetMs = options?.budgetMs ?? 240_000
+  const startedAt = Date.now()
   const results: DiscoverSourceResult[] = []
+  let stoppedEarly: string | undefined
 
-  for (const source of sources) {
+  for (let i = 0; i < sources.length; i++) {
+    const source = sources[i]
+    const elapsed = Date.now() - startedAt
+    if (i > 0 && elapsed >= budgetMs) {
+      stoppedEarly = `Stopped after ${results.length} source(s) to stay within Vercel time limits (${Math.round(elapsed / 1000)}s elapsed). Run Discover again or per-source.`
+      break
+    }
+
     const sourceResult: DiscoverSourceResult = {
       source_id: source.source_id,
       found: 0,
@@ -58,15 +88,25 @@ export async function runScrapeDiscover(
       }
 
       const config = source.selectors as { type?: string }
+      const adapterType = config.type || 'html'
+
+      if (!SUPPORTED_TYPES.has(adapterType)) {
+        throw new Error(
+          `Unsupported scraper type "${adapterType}". Supported: ${[...SUPPORTED_TYPES].join(', ')}`
+        )
+      }
+
       let discovered: Array<{ job_url: string; partial_data: Record<string, unknown> }>
 
-      if (config.type === 'workable') {
+      if (adapterType === 'workable') {
         discovered = await discoverWorkableJobs(source.selectors as WorkableSourceConfig)
-      } else if (config.type === 'smartrecruiters') {
+      } else if (adapterType === 'smartrecruiters') {
         discovered = await discoverSmartRecruitersJobs(source.selectors as SmartRecruitersSourceConfig)
-      } else if (config.type === 'psc') {
+      } else if (adapterType === 'greenhouse') {
+        discovered = await discoverGreenhouseJobs(source.selectors as GreenhouseSourceConfig)
+      } else if (adapterType === 'psc') {
         discovered = await discoverPscJobs(source.base_url)
-      } else if (config.type === 'psc_pdf') {
+      } else if (adapterType === 'psc_pdf') {
         discovered = await discoverPscPdfDocuments(source.base_url, source.selectors as PscPdfSourceConfig)
       } else {
         const html = await fetchHtml(source.base_url)
@@ -87,20 +127,27 @@ export async function runScrapeDiscover(
       }))
       const urls = [...new Set(discoveredNormalized.map(j => j.job_url))]
 
-      const [{ data: alreadyQueued }, { data: alreadyPublished }] = await Promise.all([
-        supabase.from('scrape_queue').select('job_url').in('job_url', urls),
-        supabase.from('scraped_job_sources').select('job_url').in('job_url', urls),
-      ])
-
-      const knownUrls = new Set([
-        ...(alreadyQueued || []).map((r: { job_url: string }) => normalizeJobUrl(r.job_url)),
-        ...(alreadyPublished || []).map((r: { job_url: string }) => normalizeJobUrl(r.job_url)),
-      ])
+      // Supabase .in() caps around ~100–200 items; chunk to avoid errors
+      const knownUrls = new Set<string>()
+      const chunkSize = 100
+      for (let c = 0; c < urls.length; c += chunkSize) {
+        const chunk = urls.slice(c, c + chunkSize)
+        const [{ data: alreadyQueued }, { data: alreadyPublished }] = await Promise.all([
+          supabase.from('scrape_queue').select('job_url').in('job_url', chunk),
+          supabase.from('scraped_job_sources').select('job_url').in('job_url', chunk),
+        ])
+        for (const r of alreadyQueued || []) knownUrls.add(normalizeJobUrl(r.job_url))
+        for (const r of alreadyPublished || []) knownUrls.add(normalizeJobUrl(r.job_url))
+      }
 
       const newJobs = discoveredNormalized.filter(j => !knownUrls.has(j.job_url))
 
       if (newJobs.length === 0) {
         results.push(sourceResult)
+        await supabase
+          .from('scraper_sources')
+          .update({ last_discovered_at: new Date().toISOString() })
+          .eq('source_id', source.source_id)
         continue
       }
 
@@ -133,8 +180,9 @@ export async function runScrapeDiscover(
 
   return {
     success: true,
-    sources_processed: sources.length,
+    sources_processed: results.length,
     total_queued: totalQueued,
     results,
+    ...(stoppedEarly ? { stopped_early: stoppedEarly } : {}),
   }
 }

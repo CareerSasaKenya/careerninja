@@ -140,7 +140,7 @@ export default function AdminScraperSourcesPage() {
     }
   };
 
-  const runProcess = async (max = 10) => {
+  const runProcess = async (max = 3) => {
     try {
       setProcessingQueue(true);
 
@@ -204,20 +204,26 @@ export default function AdminScraperSourcesPage() {
         body: JSON.stringify(sourceId ? { source_id: sourceId } : {}),
       });
 
-      const body = await response.json();
+      const body = await parseJsonResponse(response);
       if (!response.ok) throw new Error(body.error || "Discover failed");
 
-      const result = body.results?.[0];
+      const result = body.results?.[0] as
+        | { source_id?: string; error?: string | null }
+        | undefined;
       const label = sourceId
         ? result?.source_id || sourceId
         : `${body.sources_processed} source(s)`;
 
-      if (body.total_queued > 0) {
+      if (typeof body.total_queued === "number" && body.total_queued > 0) {
         toast.success(`Discover complete: ${body.total_queued} new item(s) queued (${label})`);
       } else if (result?.error) {
         toast.error(`Discover failed for ${label}: ${result.error}`);
       } else {
         toast.info(`Discover complete: no new jobs found (${label})`);
+      }
+
+      if (typeof body.stopped_early === "string" && body.stopped_early) {
+        toast.message(body.stopped_early);
       }
 
       await fetchSources();
@@ -264,7 +270,7 @@ export default function AdminScraperSourcesPage() {
           </Button>
           <Button
             variant="secondary"
-            onClick={() => runProcess(10)}
+            onClick={() => runProcess(3)}
             disabled={loading || processingQueue || discoveringAll || !!discoveringId || (data?.totals.pending ?? 0) === 0}
           >
             {processingQueue ? (
@@ -447,15 +453,18 @@ async function parseJsonResponse(response: Response): Promise<{
   skipped?: number
   errors?: number
   stopped_early?: string | null
+  total_queued?: number
+  sources_processed?: number
+  results?: unknown[]
   [key: string]: unknown
 }> {
   const text = await response.text();
   try {
     return text ? JSON.parse(text) : {};
   } catch {
-    if (response.status === 500 || response.status === 504) {
+    if (response.status === 500 || response.status === 504 || response.status === 408) {
       throw new Error(
-        `Process timed out or crashed on the server (HTTP ${response.status}). Check Vercel Runtime Logs.`
+        `Request timed out or crashed on the server (HTTP ${response.status}). Try Discover on one source, or Process Queue with fewer items. Check Vercel Runtime Logs if it keeps failing.`
       );
     }
     const snippet = text.replace(/\s+/g, " ").slice(0, 120);

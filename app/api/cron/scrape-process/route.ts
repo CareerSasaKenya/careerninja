@@ -23,8 +23,8 @@ export async function GET(request: NextRequest) {
 
     const maxJobs = parseInt(request.nextUrl.searchParams.get('max') || '10', 10)
     const { processed, results, stopped_early } = await runScrapeProcessBatch(getServiceClient(), {
-      maxJobs: Math.min(Math.max(1, maxJobs), 20),
-      budgetMs: 270_000,
+      maxJobs: Math.min(Math.max(1, maxJobs), 10),
+      budgetMs: 240_000,
     })
 
     return NextResponse.json({

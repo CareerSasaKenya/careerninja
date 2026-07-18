@@ -87,6 +87,7 @@ export async function discoverWorkableJobs(
         'User-Agent': 'Mozilla/5.0 (compatible; careersasa-scraper/1.0)',
       },
       body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(15000),
     })
 
     if (!response.ok) {
@@ -143,6 +144,7 @@ export async function fetchWorkableJobDetails(
       'Referer': `https://apply.workable.com/${slug}/j/${shortcode}/`,
       'User-Agent': 'Mozilla/5.0 (compatible; careersasa-scraper/1.0)',
     },
+    signal: AbortSignal.timeout(15000),
   })
 
   if (!response.ok) {

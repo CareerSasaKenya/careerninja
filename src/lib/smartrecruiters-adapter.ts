@@ -84,6 +84,7 @@ export async function discoverSmartRecruitersJobs(
         Accept: 'application/json',
         'User-Agent': 'Mozilla/5.0 (compatible; careersasa-scraper/1.0)',
       },
+      signal: AbortSignal.timeout(15000),
     })
 
     if (!response.ok) {
@@ -119,6 +120,7 @@ export async function fetchSmartRecruitersJobDetails(
       Accept: 'application/json',
       'User-Agent': 'Mozilla/5.0 (compatible; careersasa-scraper/1.0)',
     },
+    signal: AbortSignal.timeout(15000),
   })
 
   if (!response.ok) {
