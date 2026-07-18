@@ -73,9 +73,9 @@ export function CompanyCard({
           size="lg"
           className="rounded-lg ring-1 ring-border/50 group-hover:ring-primary/30 transition-all"
         />
-        <h2 className="mt-3 text-base font-semibold text-foreground leading-snug group-hover:text-primary transition-colors line-clamp-2">
+        <h3 className="mt-3 text-base font-semibold text-foreground leading-snug group-hover:text-primary transition-colors line-clamp-2">
           {company.name}
-        </h2>
+        </h3>
         <p className="mt-1 text-xs text-primary/90 leading-snug line-clamp-2">
           {company.industry || "Employer"}
         </p>
@@ -110,9 +110,9 @@ export function CompanyCard({
           className="rounded-lg ring-1 ring-border/50 group-hover:ring-primary/30 transition-all"
         />
         <div className="min-w-0 flex-1">
-          <h2 className="text-lg font-semibold text-foreground leading-snug group-hover:text-primary transition-colors line-clamp-2">
+          <h3 className="text-lg font-semibold text-foreground leading-snug group-hover:text-primary transition-colors line-clamp-2">
             {company.name}
-          </h2>
+          </h3>
           {company.industry ? (
             <p className="mt-1.5 text-sm text-primary/90 leading-snug">
               {company.industry}
