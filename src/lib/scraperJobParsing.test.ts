@@ -3,7 +3,11 @@ import {
   splitHtmlByHeadings,
   parseScrapedJobFallback,
   matchIndustryName,
+  matchJobFunctionName,
+  inferJobFunctionFromTitle,
+  parseScrapedJobContent,
 } from './scraperJobParsing'
+import { inferCompanyIndustry } from './companyIndustryInference'
 
 const workable = `
 <p>About the role intro.</p>
@@ -58,5 +62,58 @@ assert.notEqual(
   matchIndustryName('Information Technology And Services', industries),
   'Banking, Insurance & Financial Services'
 )
+
+const functions = [
+  'Engineering & Technology',
+  'Sales',
+  'Legal Services',
+  'Building & Architecture',
+  'Real Estate & Construction',
+  'Health & Safety',
+  'Accounting, Auditing & Finance',
+  'IT & Software',
+  'Human Resources & Recruitment',
+  'Community & Social Services',
+  'Admin & Office',
+]
+assert.equal(inferJobFunctionFromTitle('Material Engineer', functions), 'Engineering & Technology')
+assert.equal(inferJobFunctionFromTitle('Sales Representative - Fahari Link', functions), 'Sales')
+assert.equal(inferJobFunctionFromTitle('Project Architect, Kiswishi City', functions), 'Building & Architecture')
+assert.equal(inferJobFunctionFromTitle('Senior HSE Officer', functions), 'Health & Safety')
+assert.equal(inferJobFunctionFromTitle('Legal Assistant', functions, 'Legal Department'), 'Legal Services')
+assert.equal(inferJobFunctionFromTitle('Executive Assistant', functions), 'Admin & Office')
+assert.equal(
+  matchJobFunctionName('Legal Department', functions),
+  'Legal Services'
+)
+
+const industryList = [
+  'Building, Construction & Real Estate',
+  'Real Estate & Property Management',
+  'Charity, NGO & Non-Profit',
+  'ICT & Telecommunications',
+]
+assert.equal(
+  inferCompanyIndustry('Tatu City', 'https://tatucity.com', industryList),
+  'Building, Construction & Real Estate'
+)
+assert.equal(
+  inferCompanyIndustry('Inkomoko', 'https://inkomoko.com', industryList),
+  'Charity, NGO & Non-Profit'
+)
+
+const tatuParsed = await parseScrapedJobContent(
+  {
+    title: 'Community Relations Manager',
+    company: 'Tatu City',
+    descriptionSection: '<p>About Tatu City.</p>',
+    requirementsSection: '<ul><li>Bachelor’s degree</li><li>10 years experience</li></ul>',
+    tagsHint: 'City Management Department',
+    jobFunctionHint: 'City Management Department',
+  },
+  { industryNames: industryList, jobFunctionNames: functions }
+)
+assert.equal(tatuParsed.industry, 'Building, Construction & Real Estate')
+assert.equal(tatuParsed.job_function, 'Community & Social Services')
 
 console.log('scraperJobParsing.test.ts: all assertions passed')

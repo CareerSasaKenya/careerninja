@@ -21,8 +21,11 @@ config({ path: '.env' })
 config({ path: '.env.local', override: true })
 
 const apply = process.argv.includes('--apply')
+const missingOnly = process.argv.includes('--missing-only')
 const limitArg = process.argv.find(a => a.startsWith('--limit='))
 const limit = limitArg ? parseInt(limitArg.split('=')[1], 10) : 500
+const sourceArg = process.argv.find(a => a.startsWith('--source='))
+const sourceFilter = sourceArg ? sourceArg.split('=').slice(1).join('=') : null
 
 type RawWorkable = {
   description?: string
@@ -81,13 +84,17 @@ function buildInput(
 
   const w = raw as RawWorkable
   if (w.description || w.requirements) {
+    const deptHint = Array.isArray(w.department)
+      ? w.department.filter(Boolean).join(', ')
+      : null
     return {
       title,
       company,
       descriptionSection: w.description || '',
       requirementsSection: w.requirements || '',
       benefitsSection: w.benefits || '',
-      tagsHint: Array.isArray(w.department) ? w.department.join(', ') : null,
+      jobFunctionHint: Array.isArray(w.department) ? w.department[0] || null : null,
+      tagsHint: deptHint,
     }
   }
 
@@ -111,7 +118,7 @@ async function main() {
   const industryNames = (industries || []).map(i => i.name)
   const jobFunctionNames = (jobFunctions || []).map(j => j.name)
 
-  const { data: rows, error } = await supabase
+  let query = supabase
     .from('scraped_job_sources')
     .select('id, source_id, job_id, raw_data, job_url')
     .eq('status', 'published')
@@ -119,13 +126,23 @@ async function main() {
     .order('scraped_at', { ascending: false })
     .limit(limit)
 
+  if (sourceFilter) {
+    query = query.eq('source_id', sourceFilter)
+  }
+
+  const { data: rows, error } = await query
+
   if (error) throw error
   if (!rows?.length) {
     console.log('No published scraped jobs found')
     return
   }
 
-  console.log(`${apply ? 'APPLY' : 'DRY-RUN'}: re-enrich ${rows.length} scraped jobs`)
+  console.log(
+    `${apply ? 'APPLY' : 'DRY-RUN'}: re-enrich ${rows.length} scraped jobs` +
+      `${sourceFilter ? ` (source=${sourceFilter})` : ''}` +
+      `${missingOnly ? ' (missing industry/function only)' : ''}`
+  )
 
   let updated = 0
   let skipped = 0
@@ -133,11 +150,18 @@ async function main() {
   for (const row of rows) {
     const { data: job } = await supabase
       .from('jobs')
-      .select('id, title, hiring_organization_name, company, description, responsibilities, tags')
+      .select(
+        'id, title, hiring_organization_name, company, description, responsibilities, tags, industry, job_function'
+      )
       .eq('id', row.job_id)
       .maybeSingle()
 
     if (!job) {
+      skipped++
+      continue
+    }
+
+    if (missingOnly && job.industry && job.job_function) {
       skipped++
       continue
     }
