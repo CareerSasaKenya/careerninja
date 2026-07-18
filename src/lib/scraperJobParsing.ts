@@ -73,13 +73,13 @@ const EMPTY_METADATA: Omit<
 
 const SECTION_PATTERNS = {
   responsibilities:
-    /responsibilit|accountabilit|duties|what you.{0,12}do|key tasks|your role|role overview|activities|kpis?|competenc|deliverables/i,
+    /responsibilit|accountabilit|duties|what you.{0,20}do|key tasks|your role|role overview|activities|kpis?|competenc|deliverables|make an impact|how you will|you will:/i,
   qualifications:
-    /qualification|requirement|skills|experience required|who you are|what we.?re looking|must have|preferred|you bring/i,
-  benefits: /benefits|what we offer|perks|why join|compensation package|what.?s in it/i,
+    /qualification|requirement|skills|experience required|who you are|what we.?re looking|must have|preferred|you bring|ideal candidate|an ideal/i,
+  benefits: /benefits|what we offer|perks|why join|compensation package|what.?s in it|how you can grow|grow with us/i,
   additional:
     /how to apply|application process|equal opportunity|about us|about the company|work environment/i,
-  overview: /purpose|overview|about the role|the role|summary|introduction/i,
+  overview: /purpose|overview|about the role|the role|summary|introduction|the opportunity/i,
 }
 
 function wrapSection(heading: string, html: string): string {
@@ -112,7 +112,7 @@ function bucketForHeading(headingText: string, current: ContentBucket = 'descrip
 /** True when a block is effectively a section title (h1-h4 or bold-only short line). */
 function extractPseudoHeading($: cheerio.CheerioAPI, el: DomElement): string | null {
   const tag = el.tagName?.toLowerCase()
-  if (tag && /^h[1-4]$/.test(tag)) {
+  if (tag && /^h[1-6]$/.test(tag)) {
     const text = $(el).text().replace(/[:：]\s*$/, '').trim()
     return text || null
   }
@@ -130,6 +130,20 @@ function extractPseudoHeading($: cheerio.CheerioAPI, el: DomElement): string | n
     /^<(strong|b)[^>]*>([^<]{3,80})<\/\1>(?:<br\s*\/?>|\s*)$/i.test(html)
 
   if (boldOnly || startsWithBoldTitle) return text
+
+  // All visible text is inside bold/strong (possibly via nested <span>s) — treat as heading.
+  // Catches <p><strong><span ...>Title</span></strong></p> (e.g. Instiglio / Word-pasted HTML).
+  const boldText = $el.find('strong, b').text().replace(/\s+/g, ' ').replace(/[:：]\s*$/, '').trim()
+  if (boldText && boldText === text) return text
+
+  // Plain <p> with no inline markup that looks exactly like a section heading
+  // (short, no trailing sentence-ending punctuation, matches a section keyword).
+  // Handles ATS boards that use bare <p> for section labels.
+  const isPlainText = !/<[a-z]/i.test(html)
+  const noTrailingPeriod = !/[.!?]$/.test(text)
+  const isSectionKeyword = Object.values(SECTION_PATTERNS).some(re => re.test(text))
+  if (isPlainText && noTrailingPeriod && isSectionKeyword && text.length >= 4) return text
+
   return null
 }
 
