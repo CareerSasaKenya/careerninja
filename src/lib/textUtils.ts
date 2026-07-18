@@ -99,3 +99,42 @@ export function formatJobSeoTitle(
 
   return parts.join(' ');
 }
+
+/**
+ * Relative age for jobs listed on the site.
+ * "Just posted" only within the first 6 hours; after that, whole-number units.
+ */
+export function jobPostedLabel(iso?: string | null, nowMs: number = Date.now()): string {
+  if (!iso) return "";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const diffMs = nowMs - date.getTime();
+  if (diffMs < 0) return "Just posted";
+
+  const totalHours = diffMs / (1000 * 60 * 60);
+  if (totalHours < 6) return "Just posted";
+
+  const hours = Math.floor(totalHours);
+  if (hours < 24) {
+    return hours === 1 ? "1 hour ago" : `${hours} hours ago`;
+  }
+
+  const days = Math.floor(hours / 24);
+  if (days < 7) {
+    return days === 1 ? "1 day ago" : `${days} days ago`;
+  }
+
+  const weeks = Math.floor(days / 7);
+  if (weeks < 5) {
+    return weeks === 1 ? "1 week ago" : `${weeks} weeks ago`;
+  }
+
+  const months = Math.floor(days / 30);
+  if (months < 12) {
+    return months === 1 ? "1 month ago" : `${months} months ago`;
+  }
+
+  const years = Math.floor(days / 365);
+  return years === 1 ? "1 year ago" : `${years} years ago`;
+}
