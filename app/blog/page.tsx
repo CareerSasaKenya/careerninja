@@ -113,25 +113,26 @@ function BlogPageInner() {
             aria-hidden
             className="absolute inset-0 h-full w-full object-cover object-[center_30%] md:object-center animate-fade-in"
           />
+          {/* Soft vignette: clearer photo, contrast kept behind text */}
           <div
-            className="absolute inset-0 bg-[#0a1628]/55 md:bg-[#0a1628]/60"
+            className="absolute inset-0 bg-[#0a1628]/20 md:bg-[#0a1628]/15"
             aria-hidden
           />
           <div
-            className="absolute inset-0 bg-gradient-to-t from-[#0a1628]/80 via-[#0a1628]/45 to-[#0a1628]/40"
+            className="absolute inset-0 bg-gradient-to-t from-[#0a1628]/70 via-[#0a1628]/25 to-[#0a1628]/30"
             aria-hidden
           />
 
           <div className="container relative z-10 mx-auto py-12 md:py-16 px-4">
             <div className="max-w-3xl animate-fade-in md:mx-auto md:text-center">
-              <div className="inline-flex items-center gap-2 bg-white/15 text-sky-200 border border-white/25 px-4 py-1.5 rounded-full text-sm font-medium mb-5 backdrop-blur-sm">
+              <div className="inline-flex items-center gap-2 bg-black/25 text-sky-100 border border-white/30 px-4 py-1.5 rounded-full text-sm font-medium mb-5 backdrop-blur-sm drop-shadow-[0_1px_6px_rgba(0,0,0,0.45)]">
                 <BookOpen className="h-4 w-4" />
                 CareerSasa Blog
               </div>
-              <h1 className="text-4xl sm:text-5xl md:text-[3.25rem] font-bold mb-4 text-white leading-[1.1] drop-shadow-sm">
+              <h1 className="text-4xl sm:text-5xl md:text-[3.25rem] font-bold mb-4 text-white leading-[1.1] drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]">
                 Insights That Move Your Career Forward
               </h1>
-              <p className="text-base md:text-lg text-white/85 mb-6 max-w-xl leading-relaxed md:mx-auto">
+              <p className="text-base md:text-lg text-white mb-6 max-w-xl leading-relaxed md:mx-auto drop-shadow-[0_1px_8px_rgba(0,0,0,0.5)]">
                 Expert career advice, job market analysis, and insider tips from top employers — all in one place.
               </p>
 
