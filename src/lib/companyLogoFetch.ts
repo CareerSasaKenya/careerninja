@@ -22,6 +22,42 @@ interface FetchLogoResult {
   source: string;
 }
 
+/**
+ * WordPress and other CMS pages often emit HTML-encoded URL bits
+ * (e.g. &#038; for &). Decode those before probing, or verify fails.
+ */
+export function sanitizeLogoCandidateUrl(raw: string, domain?: string): string | null {
+  if (!raw?.trim()) return null;
+  let value = raw.trim();
+
+  // Decode common HTML entities (named + numeric)
+  value = value
+    .replace(/&amp;/gi, '&')
+    .replace(/&#0*38;/g, '&')
+    .replace(/&#x0*26;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#0*39;/g, "'")
+    .replace(/&#x0*27;/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>');
+
+  // Strip trailing junk left by broken entity decoding (e.g. "...svg&#")
+  value = value.replace(/&#+$/g, '').replace(/&+$/g, '');
+
+  if (value.startsWith('//')) value = `https:${value}`;
+  if (!/^https?:\/\//i.test(value) && domain) {
+    value = `https://${domain}${value.startsWith('/') ? '' : '/'}${value}`;
+  }
+
+  try {
+    const parsed = new URL(value);
+    if (!/^https?:$/i.test(parsed.protocol)) return null;
+    return parsed.toString();
+  } catch {
+    return null;
+  }
+}
+
 function pngDims(buf: ArrayBuffer): { w: number; h: number } | null {
   const u8 = new Uint8Array(buf);
   if (u8.length < 24) return null;
@@ -153,13 +189,14 @@ async function scrapeWebsiteForLogo(domain: string): Promise<string | null> {
     }
 
     for (const candidate of candidates) {
-      const absolute = candidate.startsWith('http')
-        ? candidate
-        : candidate.startsWith('//')
-        ? `https:${candidate}`
-        : `https://${domain}${candidate.startsWith('/') ? '' : '/'}${candidate}`;
+      const absolute = sanitizeLogoCandidateUrl(candidate, domain);
+      if (!absolute) continue;
 
-      // Skip very large images (they're page banners, not logos)
+      // Skip obvious page banners / photos masquerading as logos
+      if (/\.(jpe?g)(\?|$)/i.test(absolute) && /scaled|household|banner|hero|cover/i.test(absolute)) {
+        continue;
+      }
+
       if (await verifyImageUrl(absolute)) {
         return absolute;
       }

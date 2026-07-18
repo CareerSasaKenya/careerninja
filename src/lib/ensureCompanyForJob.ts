@@ -23,6 +23,7 @@ import {
   resolveCompanyWebsite,
 } from './companyLogo';
 import { fetchCompanyLogoUrl } from './companyLogoFetch';
+import { resolveCompanyDomainSmart } from './companyDomainLookup';
 import { normalizeCompanyIdentityKey } from './companyIdentity';
 import { inferCompanyIndustry } from './companyIndustryInference';
 
@@ -240,7 +241,22 @@ export async function ensureCompanyForJob(
   if (isUsableLogoUrl(input.logo)) {
     patch.logo = input.logo!.trim();
   } else {
-    const domain = extractDomain(patch.website || company.website || input.website || null);
+    let domain = extractDomain(patch.website || company.website || input.website || null);
+
+    // If no domain yet, ask AI (Gemini waterfall) for the official site, then verify logo.
+    if (!domain) {
+      const smart = await resolveCompanyDomainSmart(company.name, {
+        websiteHint: input.website,
+        allowAI: true,
+      });
+      if (smart.domain) {
+        domain = smart.domain;
+        if (!company.website && !patch.website) {
+          patch.website = `https://${smart.domain}`;
+        }
+      }
+    }
+
     const result = await fetchCompanyLogoUrl(domain, company.name);
     if (result) {
       patch.logo = result.url;
