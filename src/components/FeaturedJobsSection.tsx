@@ -29,7 +29,7 @@ export function FeaturedJobsSection({ limit = 6 }: { limit?: number }) {
 
   if (loading) {
     return (
-      <section className="py-12 bg-muted/30">
+      <section className="py-6 md:py-8 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center">Loading featured jobs...</div>
         </div>
@@ -42,9 +42,9 @@ export function FeaturedJobsSection({ limit = 6 }: { limit?: number }) {
   }
 
   return (
-    <section className="py-12 bg-muted/30">
+    <section className="py-6 md:py-8 bg-muted/30">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-8">
+        <div className="text-center mb-4 md:mb-6">
           <div className="flex items-center justify-center gap-2 mb-2">
             <Star className="h-6 w-6 text-yellow-500 fill-yellow-500" />
             <h2 className="text-3xl font-bold">Featured Jobs</h2>
@@ -54,7 +54,7 @@ export function FeaturedJobsSection({ limit = 6 }: { limit?: number }) {
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:gap-5 md:grid-cols-2 lg:grid-cols-3">
           {jobs.map((job) => (
             <Card key={job.id} className="hover:shadow-lg transition-shadow border-2 border-primary/20">
               <CardHeader>

@@ -316,10 +316,10 @@ export default function BlogPostPage() {
           {/* Related Posts */}
           {relatedPosts.length > 0 && (
             <section className="border-t border-border/60 bg-muted/20 mt-12">
-              <div className="container mx-auto px-4 py-12 max-w-5xl">
+              <div className="container mx-auto px-4 py-8 max-w-5xl">
                 <h2 className="text-2xl font-bold mb-2">More in {post.category}</h2>
-                <p className="text-muted-foreground mb-8">Continue reading related articles</p>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <p className="text-muted-foreground mb-5 md:mb-6">Continue reading related articles</p>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
                   {relatedPosts.map((rp) => (
                     <Link key={rp.id} href={`/blog/${rp.slug}`} prefetch={true}>
                       <article className="group h-full rounded-xl border border-border/60 bg-card hover:shadow-lg hover:border-primary/20 hover:-translate-y-0.5 transition-all duration-300 overflow-hidden flex flex-col">

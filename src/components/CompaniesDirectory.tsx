@@ -53,8 +53,8 @@ export function CompaniesDirectory({
   const openRoles = filtered.reduce((sum, c) => sum + c.openJobs, 0);
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="relative flex-1 max-w-xl">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -88,7 +88,7 @@ export function CompaniesDirectory({
       </div>
 
       {filtered.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 md:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5">
           {filtered.map((company, index) => (
             <CompanyCard
               key={company.id}

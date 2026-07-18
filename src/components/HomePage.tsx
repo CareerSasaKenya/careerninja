@@ -75,6 +75,9 @@ export default function HomePage({
   const plugin = useRef(
     Autoplay({ delay: 4000, stopOnInteraction: true })
   );
+  const companiesPlugin = useRef(
+    Autoplay({ delay: 3500, stopOnInteraction: true })
+  );
 
   useEffect(() => {
     hasAnimatedRef.current = false;
@@ -208,7 +211,7 @@ export default function HomePage({
           aria-hidden
         />
 
-        <div className="container relative mx-auto grid lg:grid-cols-2 gap-8 lg:gap-10 items-center py-10 md:py-14 px-4">
+        <div className="container relative mx-auto grid lg:grid-cols-2 gap-6 lg:gap-8 items-center py-8 md:py-10 px-4">
           <div className="animate-fade-in z-10">
             <p className="text-[11px] uppercase tracking-[0.18em] text-primary mb-3 font-medium">
               CareerSasa · Kenya
@@ -292,9 +295,9 @@ export default function HomePage({
       </section>
 
       {/* Featured Jobs */}
-      <section className="py-10 md:py-12 px-4 bg-gradient-subtle">
+      <section className="py-6 md:py-8 px-4 bg-gradient-subtle">
         <div className="container mx-auto">
-          <div className="mb-6 md:mb-8 text-center">
+          <div className="mb-4 md:mb-6 text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-2">Featured Opportunities</h2>
             <p className="text-muted-foreground">
               Hand-picked roles from top Kenyan employers, with new jobs added daily
@@ -306,23 +309,23 @@ export default function HomePage({
           ) : (
             <>
               <Carousel
-                className="w-full mb-6"
+                className="w-full mb-4"
                 plugins={[plugin.current]}
                 onMouseEnter={plugin.current.stop}
                 onMouseLeave={plugin.current.reset}
               >
-                <CarouselContent className="-ml-2 md:-ml-4">
+                <CarouselContent className="-ml-2 md:-ml-3">
                   {featuredJobs.map((job) => {
                     const company = Array.isArray(job.companies) ? job.companies[0] : job.companies;
                     const companyName = homeJobCompanyName(job);
                     return (
-                      <CarouselItem key={job.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
+                      <CarouselItem key={job.id} className="pl-2 md:pl-3 md:basis-1/2 lg:basis-1/3">
                         <Card
                           className={`glass hover:shadow-xl transition-all duration-300 hover:scale-105 ${
                             job.is_featured ? "border-2 border-yellow-500/50" : ""
                           } ${job.is_promoted ? "border-2 border-blue-500/50" : ""}`}
                         >
-                          <CardContent className="p-6">
+                          <CardContent className="p-5">
                             <div className="flex justify-between items-start mb-4">
                               <div className="flex gap-2">
                                 {job.is_featured && (
@@ -403,9 +406,9 @@ export default function HomePage({
 
       {/* Top industries by open roles */}
       {topIndustries.length > 0 && (
-        <section className="py-10 md:py-12 px-4">
+        <section className="py-6 md:py-8 px-4">
           <div className="container mx-auto">
-            <div className="mb-6 md:mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+            <div className="mb-4 md:mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.16em] text-primary mb-2 font-medium">
                   Hot sectors
@@ -424,7 +427,7 @@ export default function HomePage({
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5">
               {topIndustries.map((industry, index) => (
                 <IndustryCard
                   key={industry.slug}
@@ -439,7 +442,7 @@ export default function HomePage({
               ))}
             </div>
 
-            <div className="mt-6 flex justify-center sm:hidden">
+            <div className="mt-4 flex justify-center sm:hidden">
               <Link href="/companies" prefetch={true}>
                 <Button variant="outline" className="whitespace-nowrap">
                   Browse all industries <ArrowRight className="ml-2 h-4 w-4" />
@@ -452,9 +455,9 @@ export default function HomePage({
 
       {/* Top companies by open roles */}
       {topCompanies.length > 0 && (
-        <section className="py-10 md:py-12 px-4 bg-gradient-subtle">
+        <section className="py-6 md:py-8 px-4 bg-gradient-subtle">
           <div className="container mx-auto">
-            <div className="mb-6 md:mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+            <div className="mb-4 md:mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.16em] text-primary mb-2 font-medium">
                   Employers
@@ -477,18 +480,36 @@ export default function HomePage({
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 md:gap-6">
-              {topCompanies.map((company, index) => (
-                <CompanyCard
-                  key={company.id}
-                  company={company}
-                  className="animate-fade-in"
-                  style={{ animationDelay: `${Math.min(index, 5) * 60}ms` }}
-                />
-              ))}
-            </div>
+            <Carousel
+              className="w-full"
+              opts={{ align: "start", loop: true }}
+              plugins={[companiesPlugin.current]}
+              onMouseEnter={companiesPlugin.current.stop}
+              onMouseLeave={companiesPlugin.current.reset}
+            >
+              <CarouselContent className="-ml-2 md:-ml-3">
+                {topCompanies.map((company) => (
+                  <CarouselItem
+                    key={company.id}
+                    className="pl-2 md:pl-3 basis-[85%] sm:basis-1/2 lg:basis-1/3"
+                  >
+                    <CompanyCard company={company} className="h-full" />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious
+                className="md:hidden"
+                style={{ backgroundColor: "#f97316", color: "white", border: "none" }}
+              />
+              <CarouselNext
+                className="md:hidden"
+                style={{ backgroundColor: "#f97316", color: "white", border: "none" }}
+              />
+              <CarouselPrevious className="hidden md:flex" />
+              <CarouselNext className="hidden md:flex" />
+            </Carousel>
 
-            <div className="mt-6 flex justify-center sm:hidden">
+            <div className="mt-4 flex justify-center sm:hidden">
               <Link href="/companies/industry/all" prefetch={true}>
                 <Button variant="outline" className="whitespace-nowrap">
                   Browse all companies <ArrowRight className="ml-2 h-4 w-4" />
@@ -500,8 +521,8 @@ export default function HomePage({
       )}
 
       {/* Why Choose Us */}
-      <section className="py-10 md:py-12 px-4">
-        <div className="container mx-auto grid lg:grid-cols-2 gap-8 lg:gap-10 items-center">
+      <section className="py-6 md:py-8 px-4">
+        <div className="container mx-auto grid lg:grid-cols-2 gap-6 lg:gap-8 items-center">
           <div>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Why 95% of Our Users Land Interviews Within 3 Months
@@ -552,17 +573,17 @@ export default function HomePage({
       </section>
 
       {/* Testimonials */}
-      <section className="py-10 md:py-12 px-4 bg-gradient-subtle">
+      <section className="py-6 md:py-8 px-4 bg-gradient-subtle">
         <div className="container mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-2">
             From &quot;No Callbacks&quot; to &quot;When Can You Start?&quot;
           </h2>
-          <p className="text-center text-muted-foreground mb-6 md:mb-8 max-w-2xl mx-auto">
+          <p className="text-center text-muted-foreground mb-4 md:mb-6 max-w-2xl mx-auto">
             Real Kenyans. Real results. Here&apos;s what happens when your CV meets the right
             platform.
           </p>
 
-          <div className="grid md:grid-cols-3 gap-5 md:gap-6">
+          <div className="grid md:grid-cols-3 gap-4 md:gap-5">
             {[
               {
                 name: "David Kamau",
@@ -591,7 +612,7 @@ export default function HomePage({
                 className="glass hover:shadow-xl transition-all duration-300 hover:scale-105 animate-fade-in"
                 style={{ animationDelay: `${idx * 120}ms` }}
               >
-                <CardContent className="p-6">
+                <CardContent className="p-5">
                   <div className="flex gap-1 mb-4">
                     {[...Array(5)].map((_, i) => (
                       <Star key={i} className="h-5 w-5 fill-primary text-primary" />
@@ -619,9 +640,9 @@ export default function HomePage({
       </section>
 
       {/* Latest Jobs */}
-      <section className="py-10 md:py-12 px-4">
+      <section className="py-6 md:py-8 px-4">
         <div className="container mx-auto">
-          <div className="mb-6 md:mb-8 text-center">
+          <div className="mb-4 md:mb-6 text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-2">Latest Job Openings</h2>
             <p className="text-muted-foreground">
               Fresh opportunities posted today. Early applicants get 4x more callbacks
@@ -632,7 +653,7 @@ export default function HomePage({
             <div className="text-center py-10">Loading latest jobs...</div>
           ) : (
             <>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6 mb-6">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mb-4">
                 {latestJobs.map((job) => {
                   const company = Array.isArray(job.companies) ? job.companies[0] : job.companies;
                   const companyName = homeJobCompanyName(job);
@@ -643,7 +664,7 @@ export default function HomePage({
                         job.is_featured ? "border-2 border-yellow-500/50 shadow-lg" : ""
                       } ${job.is_promoted ? "border-2 border-blue-500/50" : ""}`}
                     >
-                      <CardContent className="p-6">
+                      <CardContent className="p-5">
                         <div className="flex justify-between items-start mb-4">
                           <div className="flex gap-2">
                             {job.is_featured && (
@@ -707,17 +728,17 @@ export default function HomePage({
       </section>
 
       {/* Success Stories */}
-      <section className="py-10 md:py-12 px-4 bg-gradient-subtle">
+      <section className="py-6 md:py-8 px-4 bg-gradient-subtle">
         <div className="container mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-2">
             Your Career, Transformed
           </h2>
-          <p className="text-center text-muted-foreground mb-6 md:mb-8 max-w-2xl mx-auto">
+          <p className="text-center text-muted-foreground mb-4 md:mb-6 max-w-2xl mx-auto">
             From fresh graduates to senior executives, CareerSasa has helped thousands of
             Kenyans level up.
           </p>
 
-          <div className="grid md:grid-cols-2 gap-5 md:gap-6">
+          <div className="grid md:grid-cols-2 gap-4 md:gap-5">
             <Card className="glass overflow-hidden hover:shadow-xl transition-all duration-300">
               <div className="overflow-hidden h-[22rem] md:h-[26rem]">
                 <img
@@ -726,7 +747,7 @@ export default function HomePage({
                   className="w-full h-full object-cover object-center"
                 />
               </div>
-              <CardContent className="p-6">
+              <CardContent className="p-5">
                 <h3 className="text-2xl font-semibold mb-3">
                   From Graduate to Senior Manager in 3 Years
                 </h3>
@@ -755,7 +776,7 @@ export default function HomePage({
                   className="w-full h-full object-cover object-center"
                 />
               </div>
-              <CardContent className="p-6">
+              <CardContent className="p-5">
                 <h3 className="text-2xl font-semibold mb-3">
                   Career Change Without Starting Over
                 </h3>
@@ -782,9 +803,9 @@ export default function HomePage({
 
       {/* Blog */}
       {blogPosts.length > 0 && (
-        <section className="py-10 md:py-12 px-4">
+        <section className="py-6 md:py-8 px-4">
           <div className="container mx-auto">
-            <div className="mb-6 md:mb-8 text-center">
+            <div className="mb-4 md:mb-6 text-center">
               <h2 className="text-3xl md:text-4xl font-bold mb-2">
                 Career Insights That Actually Get You Hired
               </h2>
@@ -793,7 +814,7 @@ export default function HomePage({
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-5 md:gap-6 mb-6">
+            <div className="grid md:grid-cols-3 gap-4 md:gap-5 mb-4">
               {blogPosts.map((post) => (
                 <Link key={post.id} href={`/blog/${post.slug}`} prefetch={true}>
                   <Card className="glass hover:shadow-xl transition-all duration-300 hover:scale-105 h-full">
@@ -804,7 +825,7 @@ export default function HomePage({
                         className="w-full h-48 object-cover rounded-t-xl"
                       />
                     )}
-                    <CardContent className="p-6">
+                    <CardContent className="p-5">
                       {post.category && (
                         <Badge variant="secondary" className="mb-3">
                           {post.category}
@@ -830,7 +851,7 @@ export default function HomePage({
       )}
 
       {/* Final CTA */}
-      <section className="py-12 md:py-14 px-4 bg-gradient-primary text-primary-foreground">
+      <section className="py-8 md:py-10 px-4 bg-gradient-primary text-primary-foreground">
         <div className="container mx-auto text-center">
           <h2 className="text-3xl md:text-5xl font-bold mb-4">{ctaTitle}</h2>
           <p className="text-lg md:text-xl mb-6 max-w-2xl mx-auto opacity-90">

@@ -277,7 +277,7 @@ export default async function CompanyProfilePage({
             aria-hidden
           />
 
-          <div className="container relative mx-auto px-4 py-10 md:py-14">
+          <div className="container relative mx-auto px-4 py-8 md:py-10">
             <Link
               href="/companies"
               className="inline-flex items-center text-sm text-white/80 hover:text-white transition-colors mb-8"
@@ -393,7 +393,7 @@ export default async function CompanyProfilePage({
           </div>
         </section>
 
-        <main className="container mx-auto px-4 py-10 md:py-12 flex-1 space-y-10">
+        <main className="container mx-auto px-4 py-6 md:py-8 flex-1 space-y-6 md:space-y-8">
           {/* About */}
           {(company.description ||
             company.industry ||
@@ -499,7 +499,7 @@ export default async function CompanyProfilePage({
             </div>
 
             {jobs.length > 0 ? (
-              <div className="grid grid-cols-1 gap-6 md:gap-8">
+              <div className="grid grid-cols-1 gap-4 md:gap-6">
                 {jobs.map((job, index) => (
                   <div
                     key={job.id}
