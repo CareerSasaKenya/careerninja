@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Search, Briefcase, ArrowRight, Clock, MapPin, CheckCircle2, Star } from "lucide-react";
+import { Search, Briefcase, ArrowRight, MapPin, CheckCircle2, Star } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import CanonicalTag from "@/components/CanonicalTag";
 import { CompanyLogo } from "@/components/CompanyLogo";
@@ -17,7 +17,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Autoplay from "embla-carousel-autoplay";
 import { usePageContent, getContentValue } from "@/hooks/usePageContent";
-import { formatJobSeoTitle } from "@/lib/textUtils";
+import { formatJobSeoTitle, jobPostedLabel } from "@/lib/textUtils";
 import type { IndustryCardData } from "@/lib/companyDirectory";
 import { getIndustryCardImage } from "@/lib/industryCardImages";
 
@@ -72,9 +72,6 @@ export default function HomePage({
   const ctaTitle = getContentValue(content, "cta_title", "Your Next Interview Is 60 Seconds Away");
   const ctaSubtitle = getContentValue(content, "cta_subtitle", "CareerSasa matches your skills directly to employer requirements, not just keywords. That's why our users get 3x more interview callbacks than on other job boards. Join free today.");
 
-  const plugin = useRef(
-    Autoplay({ delay: 4000, stopOnInteraction: true })
-  );
   const companiesPlugin = useRef(
     Autoplay({ delay: 3500, stopOnInteraction: true })
   );
@@ -145,23 +142,6 @@ export default function HomePage({
     }
   };
 
-  const { data: featuredJobs = [], isLoading: loadingFeatured } = useQuery({
-    queryKey: ["featured-jobs"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("jobs")
-        .select("*, companies(id, name, logo, website)")
-        .eq("status", "active")
-        .order("is_featured", { ascending: false, nullsFirst: false })
-        .order("is_promoted", { ascending: false, nullsFirst: false })
-        .order("created_at", { ascending: false })
-        .limit(6);
-
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
   const { data: latestJobs = [], isLoading: loadingLatest } = useQuery({
     queryKey: ["latest-jobs"],
     queryFn: async () => {
@@ -198,32 +178,36 @@ export default function HomePage({
       <CanonicalTag url="/" />
       <Navbar />
 
-      {/* Hero */}
-      <section className="relative overflow-hidden border-b border-border/40">
-        <div className="absolute inset-0 bg-gradient-mesh opacity-60" aria-hidden />
-        <div className="absolute inset-0 bg-gradient-subtle" aria-hidden />
+      {/* Hero — full-bleed image with overlay content */}
+      <section className="relative overflow-hidden border-b border-border/40 min-h-[min(88vh,720px)] flex items-center">
+        <img
+          src="/assets/hero-professional.jpg"
+          alt=""
+          aria-hidden
+          className="absolute inset-0 h-full w-full object-cover object-[center_20%] animate-fade-in"
+        />
         <div
-          className="pointer-events-none absolute -right-24 top-10 h-72 w-72 rounded-full bg-primary/15 blur-3xl animate-pulse"
+          className="absolute inset-0 bg-gradient-to-r from-[#0a1628]/92 via-[#0a1628]/75 to-[#0a1628]/35"
           aria-hidden
         />
         <div
-          className="pointer-events-none absolute -left-16 bottom-0 h-56 w-56 rounded-full bg-secondary/20 blur-3xl"
+          className="absolute inset-0 bg-gradient-to-t from-[#0a1628]/70 via-transparent to-[#0a1628]/25"
           aria-hidden
         />
 
-        <div className="container relative mx-auto grid lg:grid-cols-2 gap-6 lg:gap-8 items-center py-8 md:py-10 px-4">
-          <div className="animate-fade-in z-10">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-primary mb-3 font-medium">
+        <div className="container relative z-10 mx-auto py-12 md:py-16 px-4">
+          <div className="max-w-2xl animate-fade-in">
+            <p className="text-[11px] uppercase tracking-[0.22em] text-sky-300 mb-3 font-semibold">
               CareerSasa · Kenya
             </p>
-            <h1 className="text-4xl sm:text-5xl md:text-[3.25rem] font-bold mb-4 bg-gradient-primary bg-clip-text text-transparent leading-[1.1]">
+            <h1 className="text-4xl sm:text-5xl md:text-[3.25rem] font-bold mb-4 text-white leading-[1.1] drop-shadow-sm">
               {heroTitle}
             </h1>
-            <p className="text-base md:text-lg text-muted-foreground mb-6 max-w-xl leading-relaxed">
+            <p className="text-base md:text-lg text-white/85 mb-6 max-w-xl leading-relaxed">
               {heroSubtitle}
             </p>
 
-            <div className="glass p-4 sm:p-5 rounded-2xl mb-5 shadow-lg border border-border/50">
+            <div className="bg-white/95 backdrop-blur-md p-4 sm:p-5 rounded-2xl mb-5 shadow-xl border border-white/40">
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="flex-1">
                   <input
@@ -232,7 +216,7 @@ export default function HomePage({
                     value={searchKeyword}
                     onChange={(e) => setSearchKeyword(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    className="w-full px-4 py-3 rounded-lg bg-background/50 border border-border focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-4 py-3 rounded-lg bg-white border border-border focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
                 <div className="flex-1">
@@ -242,7 +226,7 @@ export default function HomePage({
                     value={searchLocation}
                     onChange={(e) => setSearchLocation(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    className="w-full px-4 py-3 rounded-lg bg-background/50 border border-border focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-4 py-3 rounded-lg bg-white border border-border focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
                 <Button variant="gradient" size="lg" className="sm:w-auto" onClick={handleSearch}>
@@ -254,153 +238,34 @@ export default function HomePage({
 
             <div
               ref={statsRef}
-              className="grid grid-cols-3 gap-2 sm:gap-4 divide-x divide-border/60 rounded-xl border border-border/50 bg-background/60 backdrop-blur-sm py-3"
+              className="grid grid-cols-3 gap-2 sm:gap-4 divide-x divide-white/25 rounded-xl border border-white/25 bg-white/10 backdrop-blur-md py-3 animate-slide-up"
             >
               <div className="text-center px-1">
-                <div className="text-2xl sm:text-3xl font-bold text-primary tabular-nums">
+                <div className="text-2xl sm:text-3xl font-bold text-white tabular-nums">
                   {activeJobs.toLocaleString()}
                 </div>
-                <div className="text-[10px] sm:text-sm text-muted-foreground uppercase tracking-wide mt-1">
+                <div className="text-[10px] sm:text-sm text-white/70 uppercase tracking-wide mt-1">
                   Active Jobs
                 </div>
               </div>
               <div className="text-center px-1">
-                <div className="text-2xl sm:text-3xl font-bold text-primary tabular-nums">
+                <div className="text-2xl sm:text-3xl font-bold text-white tabular-nums">
                   {companies.toLocaleString()}
                 </div>
-                <div className="text-[10px] sm:text-sm text-muted-foreground uppercase tracking-wide mt-1">
+                <div className="text-[10px] sm:text-sm text-white/70 uppercase tracking-wide mt-1">
                   Companies
                 </div>
               </div>
               <div className="text-center px-1">
-                <div className="text-2xl sm:text-3xl font-bold text-primary tabular-nums">
+                <div className="text-2xl sm:text-3xl font-bold text-white tabular-nums">
                   {successRate}%
                 </div>
-                <div className="text-[10px] sm:text-sm text-muted-foreground uppercase tracking-wide mt-1">
+                <div className="text-[10px] sm:text-sm text-white/70 uppercase tracking-wide mt-1">
                   Success Rate
                 </div>
               </div>
             </div>
           </div>
-
-          <div className="relative animate-slide-up">
-            <div className="absolute -inset-3 bg-gradient-primary opacity-15 rounded-[2rem] blur-2xl" aria-hidden />
-            <img
-              src="/assets/hero-professional.jpg"
-              alt="Professional Kenyan Business Woman"
-              className="relative rounded-3xl shadow-2xl w-full h-[380px] md:h-[460px] object-cover ring-1 ring-border/40"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Jobs */}
-      <section className="py-6 md:py-8 px-4 bg-gradient-subtle">
-        <div className="container mx-auto">
-          <div className="mb-4 md:mb-6 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-2">Featured Opportunities</h2>
-            <p className="text-muted-foreground">
-              Hand-picked roles from top Kenyan employers, with new jobs added daily
-            </p>
-          </div>
-
-          {loadingFeatured ? (
-            <div className="text-center py-10">Loading featured jobs...</div>
-          ) : (
-            <>
-              <Carousel
-                className="w-full mb-4"
-                plugins={[plugin.current]}
-                onMouseEnter={plugin.current.stop}
-                onMouseLeave={plugin.current.reset}
-              >
-                <CarouselContent className="-ml-2 md:-ml-3">
-                  {featuredJobs.map((job) => {
-                    const company = Array.isArray(job.companies) ? job.companies[0] : job.companies;
-                    const companyName = homeJobCompanyName(job);
-                    return (
-                      <CarouselItem key={job.id} className="pl-2 md:pl-3 md:basis-1/2 lg:basis-1/3">
-                        <Card
-                          className={`glass hover:shadow-xl transition-all duration-300 hover:scale-105 ${
-                            job.is_featured ? "border-2 border-yellow-500/50" : ""
-                          } ${job.is_promoted ? "border-2 border-blue-500/50" : ""}`}
-                        >
-                          <CardContent className="p-5">
-                            <div className="flex justify-between items-start mb-4">
-                              <div className="flex gap-2">
-                                {job.is_featured && (
-                                  <Badge className="bg-yellow-500 text-white gap-1">
-                                    <Star className="h-3 w-3 fill-white" />
-                                    Featured
-                                  </Badge>
-                                )}
-                                {job.is_promoted && (
-                                  <Badge className="bg-blue-500 text-white">Promoted</Badge>
-                                )}
-                                {!job.is_featured && !job.is_promoted && (
-                                  <Badge className="bg-gradient-primary text-primary-foreground">
-                                    New
-                                  </Badge>
-                                )}
-                              </div>
-                              <Clock className="h-4 w-4 text-muted-foreground" />
-                            </div>
-                            <h3 className="text-xl font-semibold mb-2">
-                              {formatJobSeoTitle(job.title, companyName, {
-                                city: job.job_location_city,
-                                county: job.job_location_county,
-                                rawLocation: job.location,
-                                isRemote: job.job_location_type === "REMOTE",
-                              })}
-                            </h3>
-                            <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                              <CompanyLogo
-                                name={companyName}
-                                logo={company?.logo}
-                                website={company?.website}
-                                size="sm"
-                              />
-                              <span className="line-clamp-1">{companyName}</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-muted-foreground mb-4">
-                              <MapPin className="h-4 w-4" />
-                              <span>{job.location}</span>
-                            </div>
-                            {job.salary && (
-                              <div className="text-primary font-semibold mb-4">{job.salary}</div>
-                            )}
-                            <Link href={homeJobHref(job)} prefetch={true}>
-                              <Button className="w-full" variant="outline">
-                                View Details
-                              </Button>
-                            </Link>
-                          </CardContent>
-                        </Card>
-                      </CarouselItem>
-                    );
-                  })}
-                </CarouselContent>
-                <CarouselPrevious
-                  className="md:hidden"
-                  style={{ backgroundColor: "#f97316", color: "white", border: "none" }}
-                />
-                <CarouselNext
-                  className="md:hidden"
-                  style={{ backgroundColor: "#f97316", color: "white", border: "none" }}
-                />
-                <CarouselPrevious className="hidden md:flex" />
-                <CarouselNext className="hidden md:flex" />
-              </Carousel>
-
-              <div className="flex justify-center">
-                <Link href="/jobs" prefetch={true}>
-                  <Button variant="outline" className="whitespace-nowrap">
-                    Browse all jobs <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
-              </div>
-            </>
-          )}
         </div>
       </section>
 
@@ -661,6 +526,7 @@ export default function HomePage({
                 {latestJobs.map((job) => {
                   const company = Array.isArray(job.companies) ? job.companies[0] : job.companies;
                   const companyName = homeJobCompanyName(job);
+                  const postedLabel = jobPostedLabel(job.created_at || job.date_posted);
                   return (
                     <Card
                       key={job.id}
@@ -684,7 +550,11 @@ export default function HomePage({
                               <Badge variant="secondary">New</Badge>
                             )}
                           </div>
-                          <span className="text-xs text-muted-foreground">Just posted</span>
+                          {postedLabel ? (
+                            <span className="text-xs text-muted-foreground whitespace-nowrap">
+                              {postedLabel}
+                            </span>
+                          ) : null}
                         </div>
                         <h3 className="text-xl font-semibold mb-2 line-clamp-1">
                           {formatJobSeoTitle(job.title, companyName, {
