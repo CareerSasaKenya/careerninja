@@ -35,6 +35,25 @@ const nextConfig = {
   // PDF parsing (server-only). Keep canvas external so the native binary
   // is available at runtime on Vercel (needed for pdfjs DOMMatrix polyfill).
   serverExternalPackages: ['pdf-parse', 'pdfjs-dist', '@napi-rs/canvas'],
+  // Ensure native canvas binaries are traced into serverless functions that
+  // may parse PSC PDFs (process routes). Discover no longer loads pdf-parse.
+  outputFileTracingIncludes: {
+    '/api/admin/scraper-sources/**/*': [
+      './node_modules/@napi-rs/canvas/**/*',
+      './node_modules/@napi-rs/canvas-linux-x64-gnu/**/*',
+      './node_modules/@napi-rs/canvas-linux-x64-musl/**/*',
+    ],
+    '/api/cron/scrape-process/**/*': [
+      './node_modules/@napi-rs/canvas/**/*',
+      './node_modules/@napi-rs/canvas-linux-x64-gnu/**/*',
+      './node_modules/@napi-rs/canvas-linux-x64-musl/**/*',
+    ],
+    '/api/scrape-jobs/**/*': [
+      './node_modules/@napi-rs/canvas/**/*',
+      './node_modules/@napi-rs/canvas-linux-x64-gnu/**/*',
+      './node_modules/@napi-rs/canvas-linux-x64-musl/**/*',
+    ],
+  },
   // Disable x-powered-by header
   poweredByHeader: false,
   // Add empty turbopack config to resolve conflict
