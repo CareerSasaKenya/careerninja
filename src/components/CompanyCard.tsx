@@ -20,6 +20,8 @@ interface CompanyCardProps {
   company: CompanyCardData;
   className?: string;
   style?: CSSProperties;
+  /** Homepage carousel: centered logo + name/industry, no blurb. */
+  variant?: "default" | "compact";
 }
 
 /** Collapse whitespace and ensure a trailing ellipsis for card blurbs. */
@@ -41,8 +43,50 @@ export function formatCompanyBlurb(
   return `${text}…`;
 }
 
-export function CompanyCard({ company, className, style }: CompanyCardProps) {
+export function CompanyCard({
+  company,
+  className,
+  style,
+  variant = "default",
+}: CompanyCardProps) {
   const blurb = formatCompanyBlurb(company.description);
+  const isCompact = variant === "compact";
+
+  if (isCompact) {
+    return (
+      <Link
+        href={`/companies/${company.id}`}
+        prefetch={true}
+        className={cn(
+          "group flex h-full flex-col items-center rounded-xl border border-border/60 bg-card px-3 py-4 text-center",
+          "shadow-sm transition-all duration-300",
+          "hover:border-primary/40 hover:shadow-lg hover:-translate-y-0.5",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+          className
+        )}
+        style={style}
+      >
+        <CompanyLogo
+          name={company.name}
+          logo={company.logo}
+          website={company.website}
+          size="lg"
+          className="rounded-lg ring-1 ring-border/50 group-hover:ring-primary/30 transition-all"
+        />
+        <h2 className="mt-3 text-base font-semibold text-foreground leading-snug group-hover:text-primary transition-colors line-clamp-2">
+          {company.name}
+        </h2>
+        <p className="mt-1 text-xs text-primary/90 leading-snug line-clamp-2">
+          {company.industry || "Employer"}
+        </p>
+        {company.openJobs > 0 && (
+          <p className="mt-2 text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+            {company.openJobs} {company.openJobs === 1 ? "open role" : "open roles"}
+          </p>
+        )}
+      </Link>
+    );
+  }
 
   return (
     <Link
