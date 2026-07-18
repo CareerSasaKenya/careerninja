@@ -9,8 +9,11 @@
 
 import * as cheerio from 'cheerio'
 import { fetchHtml, NormalizedJob } from './scraper'
-import { downloadPdfBuffer, extractTextFromPdfBuffer } from './pdfText'
 import { callAI } from './aiProviders'
+
+// Intentionally do NOT static-import ./pdfText here.
+// Discover only scrapes HTML listing pages; loading pdf-parse/pdfjs at
+// import time crashes Vercel (DOMMatrix / @napi-rs/canvas missing).
 
 export const PSC_PDF_JOB_FRAGMENT = '#psc-job-'
 
@@ -170,6 +173,7 @@ export function extractPscPdfJobSuffix(jobUrl: string): string | null {
 }
 
 export async function downloadAndExtractPscPdfText(downloadUrl: string): Promise<string> {
+  const { downloadPdfBuffer, extractTextFromPdfBuffer } = await import('./pdfText')
   const buffer = await downloadPdfBuffer(downloadUrl)
   const text = await extractTextFromPdfBuffer(buffer)
   if (!text || text.length < 100) {
