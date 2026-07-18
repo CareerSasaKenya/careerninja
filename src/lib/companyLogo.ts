@@ -193,7 +193,7 @@ export const KNOWN_COMPANY_BRANDS: Record<string, BrandEntry> = {
   "royal media services": { domain: "royalmedia.co.ke", twitter: "royalmediakenya" },
 
   // ── Agritech / NGOs ─────────────────────────────────────────────────
-  inkomoko: { domain: "inkomoko.com", twitter: "Inkomoko" },
+  // inkomoko is defined under scraped Kenyan employers above
   "give directly": { domain: "givedirectly.org", twitter: "GiveDirectly" },
   givedirectly: { domain: "givedirectly.org", twitter: "GiveDirectly" },
   "one acre fund": { domain: "oneacrefund.org", twitter: "OneAcreFund" },
