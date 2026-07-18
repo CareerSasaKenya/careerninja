@@ -105,35 +105,46 @@ function BlogPageInner() {
       <Navbar />
 
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="relative overflow-hidden border-b border-border/40">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5" />
-          <div className="container mx-auto px-4 py-10 md:py-14 relative">
-            <div className="max-w-3xl mx-auto text-center">
-              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full text-sm font-medium mb-6">
+        {/* Hero — full-bleed image (mirrors homepage & jobs heroes) */}
+        <section className="relative overflow-hidden border-b border-border/40 min-h-[min(72vh,640px)] flex items-center">
+          <img
+            src="/assets/hero-blog.jpg"
+            alt=""
+            aria-hidden
+            className="absolute inset-0 h-full w-full object-cover object-[center_30%] md:object-center animate-fade-in"
+          />
+          <div
+            className="absolute inset-0 bg-[#0a1628]/55 md:bg-[#0a1628]/60"
+            aria-hidden
+          />
+          <div
+            className="absolute inset-0 bg-gradient-to-t from-[#0a1628]/80 via-[#0a1628]/45 to-[#0a1628]/40"
+            aria-hidden
+          />
+
+          <div className="container relative z-10 mx-auto py-12 md:py-16 px-4">
+            <div className="max-w-3xl animate-fade-in md:mx-auto md:text-center">
+              <div className="inline-flex items-center gap-2 bg-white/15 text-sky-200 border border-white/25 px-4 py-1.5 rounded-full text-sm font-medium mb-5 backdrop-blur-sm">
                 <BookOpen className="h-4 w-4" />
                 CareerSasa Blog
               </div>
-              <h1 className="text-4xl md:text-6xl font-extrabold mb-6 tracking-tight leading-tight">
-                Insights That{" "}
-                <span className="bg-gradient-primary bg-clip-text text-transparent">
-                  Move Your Career
-                </span>{" "}
-                Forward
+              <h1 className="text-4xl sm:text-5xl md:text-[3.25rem] font-bold mb-4 text-white leading-[1.1] drop-shadow-sm">
+                Insights That Move Your Career Forward
               </h1>
-              <p className="text-lg md:text-xl text-muted-foreground mb-8 leading-relaxed">
+              <p className="text-base md:text-lg text-white/85 mb-6 max-w-xl leading-relaxed md:mx-auto">
                 Expert career advice, job market analysis, and insider tips from top employers — all in one place.
               </p>
 
-              {/* Search */}
-              <div className="relative max-w-xl mx-auto">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  placeholder="Search articles by topic, title, or keyword..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-12 pr-4 h-14 text-base rounded-xl bg-background/80 backdrop-blur border-border/60 shadow-sm"
-                />
+              <div className="bg-white/95 backdrop-blur-md p-4 sm:p-5 rounded-2xl shadow-xl border border-white/40 max-w-xl md:mx-auto">
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    placeholder="Search articles by topic, title, or keyword..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-12 pr-4 h-12 text-base rounded-xl bg-white border-border focus-visible:ring-primary"
+                  />
+                </div>
               </div>
             </div>
           </div>
