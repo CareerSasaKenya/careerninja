@@ -29,6 +29,8 @@ import { mapEducationLevel } from '@/lib/jobMetadataExtraction'
 import { resolveValidThrough } from '@/lib/jobParseNormalization'
 import { parseScrapedJobContent, ScrapedJobInput } from '@/lib/scraperJobParsing'
 import { ensureCompanyForJob } from '@/lib/ensureCompanyForJob'
+import { inferCompanyIndustry } from '@/lib/companyIndustryInference'
+import { limitTags } from '@/lib/jobParseNormalization'
 import type { WorkableJobDetail } from '@/lib/workable-adapter'
 
 export type ScrapeProcessResult = Record<string, unknown>
@@ -108,6 +110,9 @@ export async function runScrapeProcessOne(
         descriptionSection: detail.description,
         requirementsSection: detail.requirements,
         benefitsSection: detail.benefits,
+        tagsHint: Array.isArray(detail.department)
+          ? detail.department.join(', ')
+          : normalized.tags,
       }
     } else if (adapterType === 'smartrecruiters') {
       const config = source.selectors as { slug?: string }
@@ -130,11 +135,14 @@ export async function runScrapeProcessOne(
         location: normalized.location,
         employmentType: normalized.employment_type,
         workplace: normalized.job_location_type,
-        descriptionSection: [sections?.companyDescription?.text, sections?.jobDescription?.text]
-          .filter(Boolean)
-          .join('\n'),
+        // Keep company blurb separate from duties so UI sections populate correctly
+        descriptionSection: sections?.companyDescription?.text || '',
+        responsibilitiesSection: sections?.jobDescription?.text || '',
         requirementsSection: sections?.qualifications?.text,
         benefitsSection: sections?.additionalInformation?.text,
+        industryHint: detail.industry?.label || detail.department?.label || null,
+        jobFunctionHint: detail.function?.label || null,
+        tagsHint: normalized.tags,
       }
     } else if (adapterType === 'psc') {
       const advertNumber =
@@ -218,10 +226,35 @@ export async function runScrapeProcessOne(
       }
     }
 
-    const parsed = await parseScrapedJobContent(parseInput)
+    const [{ data: educationLevels }, { data: industries }, { data: jobFunctions }] =
+      await Promise.all([
+        supabase.from('education_levels').select('id, name'),
+        supabase.from('industries').select('id, name'),
+        supabase.from('job_functions').select('id, name'),
+      ])
 
-    const { data: educationLevels } = await supabase.from('education_levels').select('id, name')
+    const industryNames = (industries || []).map(i => i.name)
+    const jobFunctionNames = (jobFunctions || []).map(j => j.name)
+
+    const parsed = await parseScrapedJobContent(parseInput, {
+      industryNames,
+      jobFunctionNames,
+    })
+
     const educationLevelId = mapEducationLevel(parsed.education_level, educationLevels || [])
+    const inferredCompanyIndustry = inferCompanyIndustry(dedupCompany)
+    const industryName =
+      parsed.industry ||
+      (inferredCompanyIndustry && industryNames.includes(inferredCompanyIndustry)
+        ? inferredCompanyIndustry
+        : null)
+    const jobFunctionName = parsed.job_function || null
+    const industryRow = industryName
+      ? (industries || []).find(i => i.name === industryName)
+      : null
+    const jobFunctionRow = jobFunctionName
+      ? (jobFunctions || []).find(j => j.name === jobFunctionName)
+      : null
 
     const scraperUserId = await getScraperUserId()
     const ensured = await ensureCompanyForJob(supabase, {
@@ -230,13 +263,20 @@ export async function runScrapeProcessOne(
     })
     const companyId = ensured.companyId
 
+    const tags = limitTags(
+      parsed.tags || normalized.tags || '',
+      5
+    )
+
     const jobPayload = {
       ...normalized,
       description: parsed.description || normalized.description,
-      responsibilities: parsed.responsibilities || null,
+      responsibilities:
+        parsed.responsibilities || normalized.responsibilities || null,
       required_qualifications:
         parsed.required_qualifications || normalized.required_qualifications || null,
-      additional_info: parsed.additional_info || null,
+      additional_info:
+        parsed.additional_info || null,
       company_id: companyId,
       user_id: scraperUserId,
       hiring_organization_name: dedupCompany,
@@ -252,7 +292,15 @@ export async function runScrapeProcessOne(
         parsed.experience_level || normalized.experience_level
       ),
       job_location_type: sanitizeJobLocationType(normalized.job_location_type),
-      industry: parsed.industry || normalized.industry || null,
+      industry: industryName,
+      industries: industryName ? [industryName] : null,
+      industry_id: industryRow?.id ?? null,
+      industry_ids: industryRow?.id != null ? [industryRow.id] : null,
+      job_function: jobFunctionName,
+      job_functions: jobFunctionName ? [jobFunctionName] : null,
+      job_function_id: jobFunctionRow?.id ?? null,
+      job_function_ids: jobFunctionRow?.id != null ? [jobFunctionRow.id] : null,
+      tags,
       salary_min: normalized.salary_min ?? parsed.salary_min ?? null,
       salary_max: normalized.salary_max ?? parsed.salary_max ?? null,
       salary_currency: normalized.salary_currency || parsed.salary_currency || 'KES',

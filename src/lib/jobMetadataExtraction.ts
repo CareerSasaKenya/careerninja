@@ -139,16 +139,39 @@ export function mapEducationLevel(
 ): number | null {
   if (!level) return null
 
-  const normalized = level.toLowerCase()
+  const normalize = (s: string) => s.toLowerCase().replace(/['’]/g, "'").trim()
+  const normalized = normalize(level)
 
-  // Try exact match first
-  const exact = educationLevels.find(e => e.name.toLowerCase() === normalized)
+  // Prefer more specific matches (Master's before bare "Degree")
+  const ranked = [...educationLevels].sort(
+    (a, b) => normalize(b.name).length - normalize(a.name).length
+  )
+
+  const exact = ranked.find(e => normalize(e.name) === normalized)
   if (exact) return exact.id
 
-  // Try partial match
-  const partial = educationLevels.find(e =>
-    e.name.toLowerCase().includes(normalized) ||
-    normalized.includes(e.name.toLowerCase())
-  )
-  return partial?.id ?? null
+  const partial = ranked.find(e => {
+    const name = normalize(e.name)
+    return name.includes(normalized) || normalized.includes(name.split('(')[0].trim())
+  })
+  if (partial) return partial.id
+
+  // Keyword fallbacks
+  if (normalized.includes('phd') || normalized.includes('doctorate')) {
+    return ranked.find(e => /phd|doctorate/i.test(e.name))?.id ?? null
+  }
+  if (normalized.includes('master')) {
+    return ranked.find(e => /master/i.test(e.name))?.id ?? null
+  }
+  if (normalized.includes('bachelor')) {
+    return ranked.find(e => /bachelor/i.test(e.name))?.id ?? null
+  }
+  if (normalized.includes('diploma')) {
+    return ranked.find(e => /^diploma$/i.test(normalize(e.name)))?.id ?? null
+  }
+  if (normalized.includes('kcse')) {
+    return ranked.find(e => /kcse/i.test(e.name))?.id ?? null
+  }
+
+  return null
 }

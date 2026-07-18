@@ -43,11 +43,13 @@ interface SmartRecruitersPosting {
   typeOfEmployment?: { id?: string; label?: string }
   experienceLevel?: { label?: string }
   department?: { label?: string }
+  industry?: { id?: string; label?: string }
+  function?: { id?: string; label?: string }
   postingUrl?: string
   applyUrl?: string
 }
 
-interface SmartRecruitersDetail extends SmartRecruitersPosting {
+export interface SmartRecruitersDetail extends SmartRecruitersPosting {
   jobAd?: {
     sections?: {
       companyDescription?: { text?: string }
@@ -135,16 +137,18 @@ export function normalizeSmartRecruitersJob(
   const city = loc?.city || ''
 
   const sections = detail.jobAd?.sections
-  const description = [
-    sections?.companyDescription?.text,
-    sections?.jobDescription?.text,
-  ].filter(Boolean).join('\n')
+  // Keep company blurb in description; duties live in responsibilities for the UI.
+  const description = sections?.companyDescription?.text || ''
+  const responsibilities = sections?.jobDescription?.text || ''
+  const industryHint = detail.industry?.label || detail.department?.label || null
+  const functionHint = detail.function?.label || null
+  const tags = [functionHint, industryHint, detail.department?.label].filter(Boolean).join(', ')
 
   return {
     title: detail.name,
     company: companyName,
     description,
-    responsibilities: sections?.jobDescription?.text || '',
+    responsibilities,
     required_qualifications: sections?.qualifications?.text || '',
     employment_type: normalizeEmploymentType(detail.typeOfEmployment?.id),
     job_location_type: loc?.remote ? 'REMOTE' : loc?.hybrid ? 'HYBRID' : 'ON_SITE',
@@ -162,10 +166,10 @@ export function normalizeSmartRecruitersJob(
     salary_visibility: 'Hide',
     experience_level: normalizeExperienceLevel(detail.experienceLevel?.label),
     minimum_experience: null,
-    industry: detail.department?.label || null,
+    industry: industryHint,
     status: 'active',
     posted_by: 'admin',
-    tags: detail.department?.label || '',
+    tags,
   }
 }
 
