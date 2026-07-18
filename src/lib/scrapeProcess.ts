@@ -248,7 +248,10 @@ export async function runScrapeProcessOne(
       valid_through: resolveValidThrough(parsed.deadline || normalized.valid_through || undefined),
       education_level_id: educationLevelId,
       minimum_experience: parsed.minimum_experience ?? normalized.minimum_experience,
-      experience_level: parsed.experience_level || normalized.experience_level,
+      experience_level: sanitizeExperienceLevel(
+        parsed.experience_level || normalized.experience_level
+      ),
+      job_location_type: sanitizeJobLocationType(normalized.job_location_type),
       industry: parsed.industry || normalized.industry || null,
       salary_min: normalized.salary_min ?? parsed.salary_min ?? null,
       salary_max: normalized.salary_max ?? parsed.salary_max ?? null,
@@ -367,6 +370,40 @@ export async function runScrapeProcessBatch(
   }
 
   return { processed, results, ...(stoppedEarly ? { stopped_early: stoppedEarly } : {}) }
+}
+
+const EXPERIENCE_LEVELS = new Set(['Entry', 'Mid', 'Senior', 'Managerial', 'Internship'])
+const LOCATION_TYPES = new Set(['ON_SITE', 'REMOTE', 'HYBRID'])
+
+/** Coerce free-text / ATS labels onto the jobs.experience_level enum. */
+function sanitizeExperienceLevel(value: unknown): 'Entry' | 'Mid' | 'Senior' | 'Managerial' | 'Internship' {
+  if (typeof value === 'string' && EXPERIENCE_LEVELS.has(value)) {
+    return value as 'Entry' | 'Mid' | 'Senior' | 'Managerial' | 'Internship'
+  }
+  const raw = String(value || '').trim().toLowerCase()
+  if (!raw || raw.includes('not applicable') || raw === 'n/a' || raw === 'none') return 'Mid'
+  if (raw.includes('intern')) return 'Internship'
+  if (raw.includes('entry') || raw.includes('junior') || raw.includes('graduate')) return 'Entry'
+  if (raw.includes('senior') || raw.includes('lead') || raw.includes('principal')) return 'Senior'
+  if (
+    raw.includes('manager') ||
+    raw.includes('director') ||
+    raw.includes('executive') ||
+    raw.includes('head')
+  ) {
+    return 'Managerial'
+  }
+  if (raw.includes('associate') || raw.includes('mid') || raw.includes('intermediate')) return 'Mid'
+  return 'Mid'
+}
+
+/** Schema.org TELECOMMUTE → DB REMOTE; keep ON_SITE / HYBRID. */
+function sanitizeJobLocationType(value: unknown): 'ON_SITE' | 'REMOTE' | 'HYBRID' {
+  const raw = String(value || '').trim().toUpperCase()
+  if (raw === 'TELECOMMUTE' || raw === 'REMOTE') return 'REMOTE'
+  if (raw === 'HYBRID') return 'HYBRID'
+  if (LOCATION_TYPES.has(raw)) return raw as 'ON_SITE' | 'REMOTE' | 'HYBRID'
+  return 'ON_SITE'
 }
 
 function resolveHiringCompany(

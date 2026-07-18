@@ -230,7 +230,7 @@ function normalizeWorkableEmploymentType(type: string): string {
 
 function normalizeWorkplace(workplace: string): string {
   switch (workplace?.toLowerCase()) {
-    case 'remote': return 'TELECOMMUTE'
+    case 'remote': return 'REMOTE'
     case 'hybrid': return 'HYBRID'
     case 'on_site':
     default: return 'ON_SITE'
