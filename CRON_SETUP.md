@@ -26,13 +26,21 @@ The job management system requires periodic tasks to:
 
 - **Expire Jobs**: Daily at 2:00 AM UTC (`0 2 * * *`)
 - **Auto-Renew Jobs**: Daily at 3:00 AM UTC (`0 3 * * *`)
-- **Expire Promotions**: Every hour (`0 * * * *`)
+- **Expire Promotions**: Daily at 4:00 AM UTC (`0 4 * * *`)
+- **Enrich Company Logos**: Daily at 4:30 AM UTC (`30 4 * * *`)
+- **Scrape Discover**: Daily at 5:00 AM UTC (`0 5 * * *`) — queues new jobs from active sources
+- **Scrape Process**: Every 2 hours (`0 */2 * * *`) — publishes pending queue items (Pro)
+- **Email Automations**: Daily at 8:00 AM UTC (`0 8 * * *`)
 
 ### Endpoints
 
 - `GET /api/cron/expire-jobs`
 - `GET /api/cron/auto-renew-jobs`
 - `GET /api/cron/expire-promotions`
+- `GET /api/cron/enrich-company-logos`
+- `GET /api/cron/scrape-discover`
+- `GET /api/cron/scrape-process`
+- `GET /api/cron/email-automations`
 
 ## Option 2: PostgreSQL pg_cron Extension
 
@@ -280,9 +288,33 @@ Set up alerts for failed cron jobs:
 - **Expire promotions**: Hourly (time-sensitive)
 - **Expire featured**: Hourly (time-sensitive)
 
+## Job scraping (Vercel Pro)
+
+Scrape crons require **Vercel Pro** (Hobby does not run production crons reliably).
+
+Required env vars on Vercel:
+- `CRON_SECRET` — Vercel sends `Authorization: Bearer <CRON_SECRET>`
+- `SCRAPER_SECRET` — used by `/api/scrape-jobs/*` if called externally
+- `SCRAPER_USER_ID` — admin user UUID that owns scraped jobs
+- `SUPABASE_SERVICE_ROLE_KEY`
+- AI keys for parsing (`GEMINI_API_KEY*` and/or `OPENROUTER_API_KEY`)
+
+Manual kickoff after deploy:
+```bash
+export CRON_SECRET="your-secret-here"
+
+curl -X GET -H "Authorization: Bearer $CRON_SECRET" \
+  https://careersasa.co.ke/api/cron/scrape-discover
+
+curl -X GET -H "Authorization: Bearer $CRON_SECRET" \
+  "https://careersasa.co.ke/api/cron/scrape-process?max=10"
+```
+
+Or use **Admin → Scraper Sources** → Discover all active / Process queue (10).
+
 ## Cost Considerations
 
-- **Vercel Cron**: Free on Pro plan, limited on Hobby
+- **Vercel Cron**: Included on Pro plan (required for scrape-discover / scrape-process)
 - **pg_cron**: Free, runs in database
 - **GitHub Actions**: 2000 minutes/month free
 - **External services**: Varies by provider

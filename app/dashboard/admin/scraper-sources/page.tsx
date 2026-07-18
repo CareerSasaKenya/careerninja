@@ -140,7 +140,7 @@ export default function AdminScraperSourcesPage() {
     }
   };
 
-  const runProcess = async (max = 5) => {
+  const runProcess = async (max = 10) => {
     try {
       setProcessingQueue(true);
 
@@ -156,20 +156,26 @@ export default function AdminScraperSourcesPage() {
         body: JSON.stringify({ max }),
       });
 
-      const body = await response.json();
+      const body = await parseJsonResponse(response);
       if (!response.ok) throw new Error(body.error || "Process failed");
 
       if (body.processed === 0) {
         toast.info("Process complete: no pending jobs in queue");
-      } else if (body.published > 0) {
+      } else if (typeof body.published === "number" && body.published > 0) {
         toast.success(
           `Published ${body.published} job(s) from ${body.processed} queue item(s)` +
-            (body.skipped > 0 ? ` (${body.skipped} duplicate(s) skipped)` : "")
+            (typeof body.skipped === "number" && body.skipped > 0
+              ? ` (${body.skipped} duplicate(s) skipped)`
+              : "")
         );
-      } else if (body.errors > 0) {
+      } else if (typeof body.errors === "number" && body.errors > 0) {
         toast.error(`Process failed for ${body.errors} item(s) — check queue stats`);
       } else {
         toast.info(`Processed ${body.processed} item(s); nothing new published`);
+      }
+
+      if (typeof body.stopped_early === "string" && body.stopped_early) {
+        toast.message(body.stopped_early);
       }
 
       await fetchSources();
@@ -258,7 +264,7 @@ export default function AdminScraperSourcesPage() {
           </Button>
           <Button
             variant="secondary"
-            onClick={() => runProcess(5)}
+            onClick={() => runProcess(10)}
             disabled={loading || processingQueue || discoveringAll || !!discoveringId || (data?.totals.pending ?? 0) === 0}
           >
             {processingQueue ? (
@@ -266,7 +272,7 @@ export default function AdminScraperSourcesPage() {
             ) : (
               <Send className="h-4 w-4 mr-2" />
             )}
-            Process queue (5)
+            Process queue (10)
           </Button>
           <Button variant="outline" onClick={fetchSources} disabled={loading || discoveringAll || processingQueue}>
             {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
@@ -295,8 +301,8 @@ export default function AdminScraperSourcesPage() {
             <CardHeader>
               <CardTitle>Configured sources</CardTitle>
               <CardDescription>
-                Toggle sources on/off before enabling scrape crons on Vercel Pro.
-                New jobs flow: discover → queue → process → publish.
+                Active sources are scraped daily (discover 05:00 UTC) and the queue is
+                processed every 2 hours on Vercel Pro. Flow: discover → queue → process → publish.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -432,4 +438,29 @@ function StatCard({ label, value }: { label: string; value: number }) {
       </CardContent>
     </Card>
   );
+}
+
+async function parseJsonResponse(response: Response): Promise<{
+  error?: string
+  processed?: number
+  published?: number
+  skipped?: number
+  errors?: number
+  stopped_early?: string | null
+  [key: string]: unknown
+}> {
+  const text = await response.text();
+  try {
+    return text ? JSON.parse(text) : {};
+  } catch {
+    if (response.status === 500 || response.status === 504) {
+      throw new Error(
+        `Process timed out or crashed on the server (HTTP ${response.status}). Check Vercel Runtime Logs.`
+      );
+    }
+    const snippet = text.replace(/\s+/g, " ").slice(0, 120);
+    throw new Error(
+      `Server returned non-JSON (HTTP ${response.status})${snippet ? `: ${snippet}` : ""}`
+    );
+  }
 }
