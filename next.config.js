@@ -32,8 +32,9 @@ const nextConfig = {
       },
     ],
   },
-  // PDF parsing (server-only)
-  serverExternalPackages: ['pdf-parse', 'pdfjs-dist'],
+  // PDF parsing (server-only). Keep canvas external so the native binary
+  // is available at runtime on Vercel (needed for pdfjs DOMMatrix polyfill).
+  serverExternalPackages: ['pdf-parse', 'pdfjs-dist', '@napi-rs/canvas'],
   // Disable x-powered-by header
   poweredByHeader: false,
   // Add empty turbopack config to resolve conflict
