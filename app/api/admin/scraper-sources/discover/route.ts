@@ -3,7 +3,7 @@ import { requireAdmin } from '@/lib/adminAuth'
 import { runScrapeDiscover } from '@/lib/scrapeDiscover'
 
 export const runtime = 'nodejs'
-export const maxDuration = 120
+export const maxDuration = 300
 
 /**
  * POST /api/admin/scraper-sources/discover

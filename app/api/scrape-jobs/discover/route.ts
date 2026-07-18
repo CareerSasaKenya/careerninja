@@ -7,7 +7,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-export const maxDuration = 120
+export const maxDuration = 300
 
 export async function POST(request: NextRequest) {
   const secret = request.headers.get('x-scraper-secret')

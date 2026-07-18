@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { triggerScrapeProcessBatch } from '@/lib/scraperCron'
+import { createClient } from '@supabase/supabase-js'
+import { runScrapeProcessBatch } from '@/lib/scrapeProcess'
 
+/** Pro plan: up to 300s for heavy PDF/AI scrape processing. */
 export const maxDuration = 300
+
+function getServiceClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,12 +21,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const maxJobs = parseInt(request.nextUrl.searchParams.get('max') || '5', 10)
-    const { processed, results } = await triggerScrapeProcessBatch(maxJobs)
+    const maxJobs = parseInt(request.nextUrl.searchParams.get('max') || '10', 10)
+    const { processed, results, stopped_early } = await runScrapeProcessBatch(getServiceClient(), {
+      maxJobs: Math.min(Math.max(1, maxJobs), 20),
+      budgetMs: 270_000,
+    })
 
     return NextResponse.json({
       success: true,
       processed,
+      stopped_early: stopped_early || null,
       results,
       timestamp: new Date().toISOString(),
     })

@@ -147,7 +147,7 @@ export function normalizeSmartRecruitersJob(
     responsibilities: sections?.jobDescription?.text || '',
     required_qualifications: sections?.qualifications?.text || '',
     employment_type: normalizeEmploymentType(detail.typeOfEmployment?.id),
-    job_location_type: loc?.remote ? 'TELECOMMUTE' : loc?.hybrid ? 'HYBRID' : 'ON_SITE',
+    job_location_type: loc?.remote ? 'REMOTE' : loc?.hybrid ? 'HYBRID' : 'ON_SITE',
     job_location_country: loc?.country?.toUpperCase() === 'KE' ? 'Kenya' : (loc?.country || 'Kenya'),
     job_location_county: county,
     job_location_city: city,
@@ -160,7 +160,7 @@ export function normalizeSmartRecruitersJob(
     salary_currency: 'KES',
     salary_period: 'MONTH',
     salary_visibility: 'Hide',
-    experience_level: detail.experienceLevel?.label || 'Mid',
+    experience_level: normalizeExperienceLevel(detail.experienceLevel?.label),
     minimum_experience: null,
     industry: detail.department?.label || null,
     status: 'active',
@@ -182,6 +182,25 @@ export function extractSmartRecruitersSlug(jobUrl: string, fallbackSlug?: string
 function buildPostingUrl(slug: string, id: string, name: string): string {
   const slugified = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
   return `https://jobs.smartrecruiters.com/${slug}/${id}-${slugified}`
+}
+
+/** Map SmartRecruiters labels onto the jobs.experience_level enum. */
+function normalizeExperienceLevel(label?: string | null): 'Entry' | 'Mid' | 'Senior' | 'Managerial' | 'Internship' {
+  const raw = (label || '').trim().toLowerCase()
+  if (!raw || raw === 'not applicable' || raw === 'n/a' || raw === 'none') return 'Mid'
+  if (raw.includes('intern')) return 'Internship'
+  if (raw.includes('entry') || raw.includes('junior') || raw.includes('graduate')) return 'Entry'
+  if (raw.includes('senior') || raw.includes('lead') || raw.includes('principal')) return 'Senior'
+  if (
+    raw.includes('manager') ||
+    raw.includes('director') ||
+    raw.includes('executive') ||
+    raw.includes('head of')
+  ) {
+    return 'Managerial'
+  }
+  if (raw.includes('associate') || raw.includes('mid') || raw.includes('intermediate')) return 'Mid'
+  return 'Mid'
 }
 
 function normalizeEmploymentType(typeId?: string): string {

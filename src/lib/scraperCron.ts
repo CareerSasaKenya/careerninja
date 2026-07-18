@@ -1,73 +1,34 @@
-function getAppBaseUrl(): string {
-  if (process.env.NEXT_PUBLIC_SITE_URL) {
-    return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '')
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import { runScrapeDiscover } from '@/lib/scrapeDiscover'
+import { runScrapeProcessBatch, runScrapeProcessOne } from '@/lib/scrapeProcess'
+
+function getServiceClient(): SupabaseClient {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) {
+    throw new Error('Supabase service credentials are not configured')
   }
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`
-  }
-  return 'http://localhost:3000'
+  return createClient(url, key)
 }
 
-export async function triggerScrapeDiscover(): Promise<Record<string, unknown>> {
-  const secret = process.env.SCRAPER_SECRET
-  if (!secret) throw new Error('SCRAPER_SECRET is not configured')
-
-  const response = await fetch(`${getAppBaseUrl()}/api/scrape-jobs/discover`, {
-    method: 'POST',
-    headers: { 'x-scraper-secret': secret },
-  })
-
-  const body = await response.json()
-  if (!response.ok) {
-    throw new Error(body.error || `Discover failed with status ${response.status}`)
-  }
-  return body
+/**
+ * Run discover in-process (no HTTP self-fetch).
+ * HTTP loopback via NEXT_PUBLIC_SITE_URL often returns HTML (e.g. CDN/WAF pages),
+ * which breaks JSON parsing in admin and cron callers.
+ */
+export async function triggerScrapeDiscover() {
+  return runScrapeDiscover(getServiceClient())
 }
 
 export async function triggerScrapeProcess(): Promise<Record<string, unknown>> {
-  const secret = process.env.SCRAPER_SECRET
-  if (!secret) throw new Error('SCRAPER_SECRET is not configured')
-
-  const response = await fetch(`${getAppBaseUrl()}/api/scrape-jobs/process`, {
-    method: 'POST',
-    headers: { 'x-scraper-secret': secret },
-  })
-
-  const body = await response.json()
-  if (!response.ok && response.status !== 200) {
-    throw new Error(body.error || `Process failed with status ${response.status}`)
-  }
-  return body
+  return runScrapeProcessOne(getServiceClient())
 }
 
-/** Process up to maxJobs pending queue items (one per API call). */
-export async function triggerScrapeProcessBatch(maxJobs: number = 5): Promise<{
+/** Process up to maxJobs pending queue items (one per in-process call). */
+export async function triggerScrapeProcessBatch(maxJobs: number = 10): Promise<{
   processed: number
   results: Record<string, unknown>[]
+  stopped_early?: string
 }> {
-  const results: Record<string, unknown>[] = []
-  let processed = 0
-
-  for (let i = 0; i < maxJobs; i++) {
-    const result = await triggerScrapeProcess()
-
-    if (result.processed === 0 || result.message === 'No pending jobs in queue') {
-      break
-    }
-
-    results.push(result)
-    processed++
-
-    if (result.message === 'Duplicate job skipped') {
-      continue
-    }
-    if (result.success) {
-      continue
-    }
-    if (result.error) {
-      break
-    }
-  }
-
-  return { processed, results }
+  return runScrapeProcessBatch(getServiceClient(), { maxJobs, budgetMs: 270_000 })
 }
