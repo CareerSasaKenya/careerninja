@@ -460,21 +460,22 @@ const Jobs = () => {
           aria-hidden
           className="absolute inset-0 h-full w-full object-cover object-[center_20%] md:object-[center_25%] animate-fade-in"
         />
+        {/* Soft vignette: clearer photo, contrast kept behind text */}
         <div
-          className="absolute inset-0 bg-[#0a1628]/55 md:bg-[#0a1628]/60"
+          className="absolute inset-0 bg-[#0a1628]/20 md:bg-[#0a1628]/15"
           aria-hidden
         />
         <div
-          className="absolute inset-0 bg-gradient-to-t from-[#0a1628]/80 via-[#0a1628]/45 to-[#0a1628]/40"
+          className="absolute inset-0 bg-gradient-to-t from-[#0a1628]/70 via-[#0a1628]/25 to-[#0a1628]/30"
           aria-hidden
         />
 
         <div className="container relative z-10 mx-auto py-12 md:py-16 px-4">
           <div className="max-w-4xl animate-fade-in md:mx-auto md:text-center">
-            <h1 className="text-4xl sm:text-5xl md:text-[3.25rem] font-bold mb-4 text-white leading-[1.1] drop-shadow-sm">
+            <h1 className="text-4xl sm:text-5xl md:text-[3.25rem] font-bold mb-4 text-white leading-[1.1] drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]">
               Find Your Next Job in Kenya
             </h1>
-            <p className="text-base md:text-lg text-white/85 mb-5 max-w-xl leading-relaxed md:mx-auto">
+            <p className="text-base md:text-lg text-white mb-5 max-w-xl leading-relaxed md:mx-auto drop-shadow-[0_1px_8px_rgba(0,0,0,0.5)]">
               Verified jobs from real employers, updated daily. Apply now. Early applicants get 4x more interview callbacks.
             </p>
             <div className="mb-5 flex justify-center">
