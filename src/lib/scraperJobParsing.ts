@@ -9,7 +9,7 @@
 
 import * as cheerio from 'cheerio'
 import type { AnyNode, Element as DomElement } from 'domhandler'
-import { callAIWithRetry } from './jobParsingOptimized'
+import { callAI } from './aiProviders'
 import { ExtractedJobMetadata, extractJobMetadata } from './jobMetadataExtraction'
 import { fuzzyMatchOption, limitTags } from './jobParseNormalization'
 import { inferCompanyIndustry } from './companyIndustryInference'
@@ -685,8 +685,19 @@ export async function parseScrapedJobContent(
 
   if (hasAIKeys) {
     try {
-      const { response } = await callAIWithRetry(aiText, SCRAPER_PARSE_PROMPT, 1)
-      parsed = mergeAIResult(fallback, response as unknown as Record<string, unknown>)
+      // Use callAI directly so the raw scraper JSON schema is preserved —
+      // callAIWithRetry runs finalizeParsedJobData which remaps deadline →
+      // valid_through and drops industry/job_function if they don't fuzzy-
+      // match the employer-form taxonomy before mergeAIResult can read them.
+      const result = await callAI(aiText, {
+        systemPrompt: SCRAPER_PARSE_PROMPT,
+        json: true,
+        maxTokens: 4000,
+        temperature: 0.1,
+      })
+      if (result.parsed && typeof result.parsed === 'object') {
+        parsed = mergeAIResult(fallback, result.parsed as Record<string, unknown>)
+      }
     } catch (err) {
       console.warn(
         '[scraperJobParsing] AI parse failed, using rule-based fallback:',
