@@ -19,12 +19,13 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json().catch(() => ({}))
-    const requested = typeof body.max === 'number' ? body.max : 10
-    const maxJobs = Math.min(Math.max(1, Math.floor(requested)), 20)
+    const requested = typeof body.max === 'number' ? body.max : 3
+    // Keep admin batches small — queue is often PSC PDFs that take 30–90s each
+    const maxJobs = Math.min(Math.max(1, Math.floor(requested)), 5)
 
     const { processed, results, stopped_early } = await runScrapeProcessBatch(auth.adminClient, {
       maxJobs,
-      budgetMs: 270_000,
+      budgetMs: 200_000,
     })
 
     const published = results.filter(r => r.success && !r.pdf_document).length

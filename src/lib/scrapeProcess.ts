@@ -20,6 +20,12 @@ import {
   extractSmartRecruitersSlug,
 } from '@/lib/smartrecruiters-adapter'
 import {
+  fetchGreenhouseJobDetails,
+  normalizeGreenhouseJob,
+  extractGreenhouseJobId,
+  extractGreenhouseSlug,
+} from '@/lib/greenhouse-adapter'
+import {
   fetchPscJobRow,
   normalizePscJob,
   extractPscAdvertNumber,
@@ -149,6 +155,33 @@ export async function runScrapeProcessOne(
         benefitsSection: sections?.additionalInformation?.text,
         industryHint: detail.industry?.label || detail.department?.label || null,
         jobFunctionHint: detail.function?.label || null,
+        tagsHint: normalized.tags,
+      }
+    } else if (adapterType === 'greenhouse') {
+      const config = source.selectors as { slug?: string }
+      const jobId = extractGreenhouseJobId(queueItem.job_url)
+      // Embedded board URLs often use custom domains (?gh_jid=) — prefer configured slug
+      const slug = config.slug || extractGreenhouseSlug(queueItem.job_url)
+
+      if (!slug || !jobId) {
+        throw new Error(`Cannot parse Greenhouse slug/job ID from URL: ${queueItem.job_url}`)
+      }
+
+      const detail = await fetchGreenhouseJobDetails(slug, jobId)
+      normalized = normalizeGreenhouseJob(detail, hiringCompany)
+      normalized.application_url = detail.absolute_url || queueItem.job_url
+      rawData = detail
+
+      parseInput = {
+        title: normalized.title,
+        company: hiringCompany,
+        location: normalized.location,
+        employmentType: normalized.employment_type,
+        workplace: normalized.job_location_type,
+        descriptionSection: detail.content || '',
+        requirementsSection: '',
+        industryHint: detail.departments?.[0]?.name || null,
+        jobFunctionHint: detail.departments?.[0]?.name || null,
         tagsHint: normalized.tags,
       }
     } else if (adapterType === 'psc') {
@@ -465,7 +498,10 @@ export async function runScrapeProcessBatch(
 
   for (let i = 0; i < maxJobs; i++) {
     const elapsed = Date.now() - startedAt
-    if (i > 0 && elapsed >= budgetMs) {
+    // Leave headroom so the in-flight item can finish and still return JSON
+    // (PSC PDFs + AI can take a long time; hard Vercel kills return HTML 500s).
+    const reserveMs = 45_000
+    if (elapsed >= budgetMs - reserveMs) {
       stoppedEarly = `Stopped after ${processed} item(s) to stay within Vercel time limits (${Math.round(elapsed / 1000)}s elapsed)`
       break
     }

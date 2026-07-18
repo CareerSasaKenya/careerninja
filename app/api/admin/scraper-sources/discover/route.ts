@@ -20,7 +20,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => ({}))
     const sourceId = typeof body.source_id === 'string' ? body.source_id : undefined
 
-    const result = await runScrapeDiscover(auth.adminClient, { sourceId })
+    // Soft budget under maxDuration so Vercel never returns an HTML timeout page
+    const result = await runScrapeDiscover(auth.adminClient, {
+      sourceId,
+      budgetMs: sourceId ? 240_000 : 240_000,
+    })
 
     return NextResponse.json(result)
   } catch (err: unknown) {

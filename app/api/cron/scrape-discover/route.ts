@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const result = await runScrapeDiscover(getServiceClient())
+    const result = await runScrapeDiscover(getServiceClient(), { budgetMs: 240_000 })
 
     return NextResponse.json({
       success: true,
