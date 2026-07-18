@@ -540,11 +540,46 @@ export async function sendSubscriptionConfirmation(to: string, confirmToken: str
 /**
  * Send a welcome email to a new newsletter subscriber (auto-confirmed, no double opt-in).
  * Includes direct link to the free toolkit page.
+ * Subject/HTML are loaded from the managed "popup_newsletter_welcome" template when available.
  */
 export async function sendNewsletterWelcome(to: string, name?: string): Promise<SendEmailResult> {
   const siteUrl = getSiteUrl();
+  const displayName = escapeHtml(name || 'there');
+  const toolkitUrl = `${siteUrl}/toolkit`;
+  const unsubscribeUrl = `${siteUrl}/newsletter/unsubscribe?email=${encodeURIComponent(to)}`;
+  const year = String(new Date().getFullYear());
 
-  const html = `
+  let subject = '🎁 Welcome to CareerSasa — Your Free Toolkit Is Inside';
+  let html = '';
+
+  try {
+    const {
+      getEmailTemplate,
+      getDefaultPopupNewsletterWelcome,
+      POPUP_NEWSLETTER_WELCOME_SLUG,
+      renderEmailTemplate,
+    } = await import('@/lib/emailTemplates');
+
+    const stored = await getEmailTemplate(POPUP_NEWSLETTER_WELCOME_SLUG);
+    const template = stored?.is_active !== false && stored?.html_body
+      ? stored
+      : getDefaultPopupNewsletterWelcome();
+
+    subject = template.subject || subject;
+    html = renderEmailTemplate(template.html_body, {
+      name: displayName,
+      email: escapeHtml(to),
+      site_url: siteUrl,
+      toolkit_url: toolkitUrl,
+      unsubscribe_url: unsubscribeUrl,
+      year,
+    });
+  } catch (err) {
+    console.warn('[email] Failed to load popup welcome template, using hardcoded fallback:', err);
+  }
+
+  if (!html) {
+    html = `
     <!DOCTYPE html>
     <html>
     <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
@@ -556,14 +591,13 @@ export async function sendNewsletterWelcome(to: string, name?: string): Promise<
           <p style="margin:8px 0 0;opacity:0.9;font-size:16px;">Your free toolkit is ready — no strings attached</p>
         </td></tr>
         <tr><td style="padding:30px;">
-          <p>Hi ${escapeHtml(name || 'there')},</p>
+          <p>Hi ${displayName},</p>
           <p>Thanks for subscribing! You're now part of a growing community of Kenyan professionals who get:</p>
           <ul style="line-height:2;">
             <li><strong>Weekly featured jobs</strong> — handpicked before they appear on the site</li>
             <li><strong>Salary insights</strong> — know what you're worth in the Kenyan market</li>
             <li><strong>Career tips from hiring managers</strong> — the advice that actually gets you shortlisted</li>
           </ul>
-
           <div style="background:linear-gradient(135deg,#f0f7ff,#e8f4ff);border:2px solid #0A66C2;border-radius:12px;padding:24px;margin:24px 0;">
             <p style="margin:0 0 12px;font-size:18px;font-weight:bold;color:#0A66C2;">🎁 Your Free Job Seeker's Toolkit</p>
             <p style="margin:0 0 14px;color:#555;">Everything you need to land more interviews, in one place:</p>
@@ -574,23 +608,23 @@ export async function sendNewsletterWelcome(to: string, name?: string): Promise<
               <tr><td style="color:#0A66C2;font-weight:bold;">✓</td><td>Salary negotiation script</td></tr>
             </table>
             <p style="text-align:center;margin:20px 0 0;">
-              <a href="${siteUrl}/toolkit" style="display:inline-block;padding:14px 36px;background:#0A66C2;color:white;text-decoration:none;border-radius:8px;font-weight:bold;font-size:16px;">Access My Free Toolkit →</a>
+              <a href="${toolkitUrl}" style="display:inline-block;padding:14px 36px;background:#0A66C2;color:white;text-decoration:none;border-radius:8px;font-weight:bold;font-size:16px;">Access My Free Toolkit →</a>
             </p>
           </div>
-
           <p style="color:#666;font-size:14px;">If the button above doesn't work, copy this link into your browser:<br>
-          <a href="${siteUrl}/toolkit" style="color:#0A66C2;">${siteUrl}/toolkit</a></p>
+          <a href="${toolkitUrl}" style="color:#0A66C2;">${toolkitUrl}</a></p>
         </td></tr>
         <tr><td style="padding:20px;text-align:center;font-size:12px;color:#666;border-top:1px solid #eee;">
-          <p>&copy; ${new Date().getFullYear()} CareerSasa. All rights reserved.</p>
-          <p><a href="${siteUrl}/newsletter/unsubscribe?email=${encodeURIComponent(to)}" style="color:#666;">Unsubscribe</a> | <a href="${siteUrl}/privacy" style="color:#666;">Privacy Policy</a></p>
+          <p>&copy; ${year} CareerSasa. All rights reserved.</p>
+          <p><a href="${unsubscribeUrl}" style="color:#666;">Unsubscribe</a> | <a href="${siteUrl}/privacy" style="color:#666;">Privacy Policy</a></p>
         </td></tr>
       </table>
     </body>
     </html>
   `;
+  }
 
-  return sendEmail({ to, subject: '🎁 Welcome to CareerSasa — Your Free Toolkit Is Inside', html, emailType: 'welcome' });
+  return sendEmail({ to, subject, html, emailType: 'welcome' });
 }
 
 /**
