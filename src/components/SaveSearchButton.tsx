@@ -28,9 +28,10 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface SaveSearchButtonProps {
   searchParams: Record<string, any>;
+  className?: string;
 }
 
-export const SaveSearchButton = ({ searchParams }: SaveSearchButtonProps) => {
+export const SaveSearchButton = ({ searchParams, className }: SaveSearchButtonProps) => {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [emailAlerts, setEmailAlerts] = useState(false);
@@ -103,7 +104,7 @@ export const SaveSearchButton = ({ searchParams }: SaveSearchButtonProps) => {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" className={className}>
           <Save className="h-4 w-4 mr-2" />
           Save Search
         </Button>

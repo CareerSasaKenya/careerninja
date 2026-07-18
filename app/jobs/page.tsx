@@ -451,25 +451,40 @@ const Jobs = () => {
   return (
     <div className="min-h-screen bg-background" suppressHydrationWarning>
       <Navbar />
-      
-      <div className="container mx-auto px-4 py-6 md:py-8">
-        <div className="mb-6 md:mb-8 text-center animate-fade-in">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-3 md:mb-4 bg-gradient-primary bg-clip-text text-transparent px-4">
-            Find Your Next Job in Kenya
-          </h1>
-          <p className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto px-4">
-            Verified jobs from real employers, updated daily. Apply now. Early applicants get 4x more interview callbacks.
-          </p>
-          <div className="mt-4 flex justify-center">
-            <SaveSearchButton searchParams={filters} />
-          </div>
-        </div>
 
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Main Content Area */}
-          <div className="flex-grow">
-            {/* Search Boxes - Responsive for Mobile */}
-            <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
+      {/* Hero — full-bleed image with search overlay (mirrors homepage hero) */}
+      <section className="relative overflow-hidden border-b border-border/40 min-h-[min(72vh,640px)] flex items-center">
+        <img
+          src="/assets/hero-jobs.jpg"
+          alt=""
+          aria-hidden
+          className="absolute inset-0 h-full w-full object-cover object-center animate-fade-in"
+        />
+        <div
+          className="absolute inset-0 bg-[#0a1628]/55 md:bg-[#0a1628]/60"
+          aria-hidden
+        />
+        <div
+          className="absolute inset-0 bg-gradient-to-t from-[#0a1628]/80 via-[#0a1628]/45 to-[#0a1628]/40"
+          aria-hidden
+        />
+
+        <div className="container relative z-10 mx-auto py-12 md:py-16 px-4">
+          <div className="max-w-4xl animate-fade-in md:mx-auto md:text-center">
+            <h1 className="text-4xl sm:text-5xl md:text-[3.25rem] font-bold mb-4 text-white leading-[1.1] drop-shadow-sm">
+              Find Your Next Job in Kenya
+            </h1>
+            <p className="text-base md:text-lg text-white/85 mb-5 max-w-xl leading-relaxed md:mx-auto">
+              Verified jobs from real employers, updated daily. Apply now. Early applicants get 4x more interview callbacks.
+            </p>
+            <div className="mb-5 flex justify-center">
+              <SaveSearchButton
+                searchParams={filters}
+                className="border-white/60 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+              />
+            </div>
+
+            <div className="bg-white/95 backdrop-blur-md p-4 sm:p-5 rounded-2xl shadow-xl border border-white/40 text-left">
               {/* Basic Search - Always visible */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                 {/* Keyword Search */}
@@ -681,7 +696,14 @@ const Jobs = () => {
                 </div>
               </div>
             </div>
-            
+          </div>
+        </div>
+      </section>
+
+      <div className="container mx-auto px-4 py-6 md:py-8">
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Main Content Area */}
+          <div className="flex-grow">
             {/* Job Listings */}
             <div id="job-listings">
               {isLoading ? (
