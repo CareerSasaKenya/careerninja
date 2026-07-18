@@ -187,23 +187,23 @@ export default function HomePage({
           className="absolute inset-0 h-full w-full object-cover object-[center_20%] animate-fade-in"
         />
         <div
-          className="absolute inset-0 bg-gradient-to-r from-[#0a1628]/92 via-[#0a1628]/75 to-[#0a1628]/35"
+          className="absolute inset-0 bg-[#0a1628]/55 md:bg-[#0a1628]/60"
           aria-hidden
         />
         <div
-          className="absolute inset-0 bg-gradient-to-t from-[#0a1628]/70 via-transparent to-[#0a1628]/25"
+          className="absolute inset-0 bg-gradient-to-t from-[#0a1628]/80 via-[#0a1628]/45 to-[#0a1628]/40"
           aria-hidden
         />
 
         <div className="container relative z-10 mx-auto py-12 md:py-16 px-4">
-          <div className="max-w-2xl animate-fade-in">
+          <div className="max-w-2xl animate-fade-in md:mx-auto md:text-center">
             <p className="text-[11px] uppercase tracking-[0.22em] text-sky-300 mb-3 font-semibold">
               CareerSasa · Kenya
             </p>
             <h1 className="text-4xl sm:text-5xl md:text-[3.25rem] font-bold mb-4 text-white leading-[1.1] drop-shadow-sm">
               {heroTitle}
             </h1>
-            <p className="text-base md:text-lg text-white/85 mb-6 max-w-xl leading-relaxed">
+            <p className="text-base md:text-lg text-white/85 mb-6 max-w-xl leading-relaxed md:mx-auto">
               {heroSubtitle}
             </p>
 
@@ -273,23 +273,13 @@ export default function HomePage({
       {topIndustries.length > 0 && (
         <section className="py-6 md:py-8 px-4">
           <div className="container mx-auto">
-            <div className="mb-4 md:mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-              <div>
-                <p className="text-[11px] uppercase tracking-[0.16em] text-primary mb-2 font-medium">
-                  Hot sectors
-                </p>
-                <h2 className="text-3xl md:text-4xl font-bold mb-2">
-                  Top industries hiring now
-                </h2>
-                <p className="text-muted-foreground max-w-xl">
-                  The six sectors with the most open roles on CareerSasa right now
-                </p>
-              </div>
-              <Link href="/companies" prefetch={true} className="shrink-0 hidden sm:inline-flex">
-                <Button variant="outline" className="whitespace-nowrap">
-                  Browse all industries <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
+            <div className="mb-4 md:mb-6 text-center">
+              <h2 className="text-3xl md:text-4xl font-bold mb-2">
+                Top industries hiring now
+              </h2>
+              <p className="text-muted-foreground">
+                The six sectors with the most open roles on CareerSasa right now
+              </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5">
@@ -307,7 +297,7 @@ export default function HomePage({
               ))}
             </div>
 
-            <div className="mt-4 flex justify-center sm:hidden">
+            <div className="mt-4 flex justify-center">
               <Link href="/companies" prefetch={true}>
                 <Button variant="outline" className="whitespace-nowrap">
                   Browse all industries <ArrowRight className="ml-2 h-4 w-4" />
@@ -322,27 +312,13 @@ export default function HomePage({
       {topCompanies.length > 0 && (
         <section className="py-6 md:py-8 px-4 bg-gradient-subtle">
           <div className="container mx-auto">
-            <div className="mb-4 md:mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-              <div>
-                <p className="text-[11px] uppercase tracking-[0.16em] text-primary mb-2 font-medium">
-                  Employers
-                </p>
-                <h2 className="text-3xl md:text-4xl font-bold mb-2">
-                  Top companies hiring now
-                </h2>
-                <p className="text-muted-foreground max-w-xl">
-                  Employers with the most open roles — explore profiles and apply
-                </p>
-              </div>
-              <Link
-                href="/companies/industry/all"
-                prefetch={true}
-                className="shrink-0 hidden sm:inline-flex"
-              >
-                <Button variant="outline" className="whitespace-nowrap">
-                  Browse all companies <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
+            <div className="mb-4 md:mb-6 text-center">
+              <h2 className="text-3xl md:text-4xl font-bold mb-2">
+                Top companies hiring now
+              </h2>
+              <p className="text-muted-foreground">
+                Employers with the most open roles — explore profiles and apply
+              </p>
             </div>
 
             <Carousel
@@ -378,7 +354,7 @@ export default function HomePage({
               <CarouselNext className="hidden md:flex" />
             </Carousel>
 
-            <div className="mt-4 flex justify-center sm:hidden">
+            <div className="mt-4 flex justify-center">
               <Link href="/companies/industry/all" prefetch={true}>
                 <Button variant="outline" className="whitespace-nowrap">
                   Browse all companies <ArrowRight className="ml-2 h-4 w-4" />
@@ -391,52 +367,57 @@ export default function HomePage({
 
       {/* Why Choose Us */}
       <section className="py-6 md:py-8 px-4">
-        <div className="container mx-auto grid lg:grid-cols-2 gap-6 lg:gap-8 items-center">
-          <div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+        <div className="container mx-auto">
+          <div className="mb-4 md:mb-6 text-center">
+            <h2 className="text-3xl md:text-4xl font-bold mb-2">
               Why 95% of Our Users Land Interviews Within 3 Months
             </h2>
-            <p className="text-muted-foreground mb-5 text-lg">
+            <p className="text-muted-foreground max-w-2xl mx-auto">
               Most job boards dump listings and leave you to figure it out. CareerSasa is
               different. We actively match you to employers using AI, not just keywords.
             </p>
-            <div className="space-y-3">
-              {[
-                "Smart AI matching that connects your skills to jobs you'll actually get, not just jobs that exist",
-                "Real-time alerts: be among the first to apply when new roles drop in your inbox",
-                "Free career tools worth KES 10,000+: CV builder, cover letter generator & LinkedIn optimizer",
-                "1,070+ verified jobs from 103+ companies across every county in Kenya",
-                "Zero spam, zero ghost listings. Every job is verified and actively hiring",
-                "Trusted by Kenyan professionals, built by Kenyans, for Kenya's job market",
-                "Our users report 3x more interview callbacks compared to applying on generic job boards",
-                "100% free to join, search, and apply. No hidden fees, no catch",
-              ].map((benefit, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-start gap-3 animate-fade-in"
-                  style={{ animationDelay: `${idx * 80}ms` }}
-                >
-                  <CheckCircle2 className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
-                  <p className="text-base md:text-lg">{benefit}</p>
-                </div>
-              ))}
-            </div>
-            <div className="mt-6">
-              <Link href="/jobs" prefetch={true}>
-                <Button variant="gradient" size="lg">
-                  Start Your Journey <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-            </div>
           </div>
 
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-secondary opacity-10 rounded-3xl blur-3xl" />
-            <img
-              src="/assets/team-collaboration.jpg"
-              alt="Kenyan Professionals Collaborating"
-              className="relative rounded-3xl shadow-2xl w-full h-[420px] md:h-[520px] object-cover"
-            />
+          <div className="grid lg:grid-cols-2 gap-6 lg:gap-8 items-center">
+            <div>
+              <div className="space-y-3">
+                {[
+                  "Smart AI matching that connects your skills to jobs you'll actually get, not just jobs that exist",
+                  "Real-time alerts: be among the first to apply when new roles drop in your inbox",
+                  "Free career tools worth KES 10,000+: CV builder, cover letter generator & LinkedIn optimizer",
+                  "1,070+ verified jobs from 103+ companies across every county in Kenya",
+                  "Zero spam, zero ghost listings. Every job is verified and actively hiring",
+                  "Trusted by Kenyan professionals, built by Kenyans, for Kenya's job market",
+                  "Our users report 3x more interview callbacks compared to applying on generic job boards",
+                  "100% free to join, search, and apply. No hidden fees, no catch",
+                ].map((benefit, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-start gap-3 animate-fade-in"
+                    style={{ animationDelay: `${idx * 80}ms` }}
+                  >
+                    <CheckCircle2 className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
+                    <p className="text-base md:text-lg">{benefit}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-6">
+                <Link href="/jobs" prefetch={true}>
+                  <Button variant="gradient" size="lg">
+                    Start Your Journey <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-secondary opacity-10 rounded-3xl blur-3xl" />
+              <img
+                src="/assets/team-collaboration.jpg"
+                alt="Kenyan Professionals Collaborating"
+                className="relative rounded-3xl shadow-2xl w-full h-[420px] md:h-[520px] object-cover"
+              />
+            </div>
           </div>
         </div>
       </section>
@@ -727,8 +708,8 @@ export default function HomePage({
       {/* Final CTA */}
       <section className="py-8 md:py-10 px-4 bg-gradient-primary text-primary-foreground">
         <div className="container mx-auto text-center">
-          <h2 className="text-3xl md:text-5xl font-bold mb-4">{ctaTitle}</h2>
-          <p className="text-lg md:text-xl mb-6 max-w-2xl mx-auto opacity-90">
+          <h2 className="text-3xl md:text-4xl font-bold mb-2">{ctaTitle}</h2>
+          <p className="mb-6 max-w-2xl mx-auto opacity-90">
             {ctaSubtitle}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-stretch sm:items-center max-w-2xl mx-auto px-4">
