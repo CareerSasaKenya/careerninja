@@ -12,6 +12,7 @@ import type { AnyNode, Element as DomElement } from 'domhandler'
 import { callAIWithRetry } from './jobParsingOptimized'
 import { ExtractedJobMetadata, extractJobMetadata } from './jobMetadataExtraction'
 import { fuzzyMatchOption, limitTags } from './jobParseNormalization'
+import { inferCompanyIndustry } from './companyIndustryInference'
 
 export interface ScrapedJobInput {
   title: string
@@ -538,9 +539,72 @@ const FUNCTION_ALIASES: Record<string, string> = {
   accounting: 'Accounting, Auditing & Finance',
   'human resources': 'Human Resources & Recruitment',
   legal: 'Legal Services',
+  'legal department': 'Legal Services',
   'information technology': 'IT & Software',
   'it and software': 'IT & Software',
+  'it department': 'IT & Software',
+  'city management department': 'Estate Agents & Property Management',
+  'city management': 'Estate Agents & Property Management',
+  'utilities department': 'Environment, Energy & Natural Resources',
+  utilities: 'Environment, Energy & Natural Resources',
+  construction: 'Real Estate & Construction',
+  'construction department': 'Real Estate & Construction',
+  'finance department': 'Accounting, Auditing & Finance',
+  'hr department': 'Human Resources & Recruitment',
+  'people department': 'Human Resources & Recruitment',
+  'sales department': 'Sales',
+  'marketing department': 'Marketing & Communications',
   other: '',
+}
+
+/**
+ * Infer a CareerSasa job function from the job title (+ optional department hint).
+ * Used when ATS provides no function taxonomy (common on Workable).
+ */
+export function inferJobFunctionFromTitle(
+  title: string,
+  allowed: string[],
+  tagsHint?: string | null
+): string | null {
+  if (!title?.trim() || !allowed.length) return null
+  const hay = `${title} ${tagsHint || ''}`.toLowerCase()
+
+  const rules: Array<{ re: RegExp; fn: string }> = [
+    { re: /\b(architect|architecture|urban design(er)?)\b/, fn: 'Building & Architecture' },
+    { re: /\b(quantity surveyor|qs\b|contracts administrator|construction manager|site manager|storekeeper)\b/, fn: 'Real Estate & Construction' },
+    { re: /\b(hse|ehs|health and safety|environmental health|safety officer)\b/, fn: 'Health & Safety' },
+    { re: /\b(civil|structural|mep|material|electromechanical|electrical|mechanical)\b.*\b(engineer|engineering)\b|\b(engineer|engineering)\b/, fn: 'Engineering & Technology' },
+    { re: /\b(technician|electrician|plumber|welder|artisan)\b/, fn: 'Trades & Services' },
+    { re: /\b(sales|account executive|business development)\b/, fn: 'Sales' },
+    { re: /\b(accountant|credit controller|financial analyst|finance|bookkeep|treasury|payroll)\b/, fn: 'Accounting, Auditing & Finance' },
+    { re: /\b(legal|advocate|lawyer|counsel|compliance officer)\b/, fn: 'Legal Services' },
+    { re: /\b(talent acquisition|recruiter|human resources|\bhr\b|people partner)\b/, fn: 'Human Resources & Recruitment' },
+    { re: /\b(it support|software|developer|devops|sysadmin|system admin|network|cyber|helpdesk|help desk)\b/, fn: 'IT & Software' },
+    { re: /\b(data analyst|analytics|data scientist|machine learning|\bai\b)\b/, fn: 'Data, Analytics & AI' },
+    { re: /\b(project manager|programme manager|program manager|product manager)\b/, fn: 'Product & Project Management' },
+    { re: /\b(community relations|community liaison|social worker|stakeholder engagement)\b/, fn: 'Community & Social Services' },
+    { re: /\b(marketing|communications|brand|pr\b|public relations)\b/, fn: 'Marketing & Communications' },
+    { re: /\b(customer (care|service|success)|call centre|call center|reservations)\b/, fn: 'Customer Service & Support' },
+    { re: /\b(procurement|supply chain|logistics|warehouse|inventory)\b/, fn: 'Supply Chain & Procurement' },
+    { re: /\b(admin|office manager|executive assistant|receptionist|secretary)\b/, fn: 'Admin & Office' },
+    { re: /\b(nurse|clinical|medical officer|pharmacist|doctor)\b/, fn: 'Healthcare & Medical' },
+    { re: /\b(teacher|lecturer|trainer|instructor|curriculum)\b/, fn: 'Education & Training' },
+    { re: /\b(security officer|security guard|loss prevention)\b/, fn: 'Security' },
+  ]
+
+  for (const rule of rules) {
+    if (rule.re.test(hay)) {
+      const matched = allowed.find(a => a.toLowerCase() === rule.fn.toLowerCase())
+      if (matched) return matched
+    }
+  }
+
+  // Department-only hint (e.g. "Legal Department") when title is generic
+  if (tagsHint?.trim()) {
+    return matchJobFunctionName(tagsHint.split(/[,|;]/)[0], allowed)
+  }
+
+  return null
 }
 
 function resolveAlias(hint: string, aliases: Record<string, string>, allowed: string[]): string | null {
@@ -640,13 +704,23 @@ export async function parseScrapedJobContent(
   }
 
   // Only keep values that resolve to allowed CareerSasa taxonomy names
+  const industryNames = options?.industryNames || []
+  const jobFunctionNames = options?.jobFunctionNames || []
+
   const industry =
-    matchIndustryName(parsed.industry, options?.industryNames || []) ||
-    matchIndustryName(input.industryHint, options?.industryNames || []) ||
+    matchIndustryName(parsed.industry, industryNames) ||
+    matchIndustryName(input.industryHint, industryNames) ||
+    // Workable rarely sends industry — fall back to known employer sector
+    inferCompanyIndustry(input.company, null, industryNames) ||
     null
+
+  // Prefer title keywords over ATS department labels (e.g. "City Management"
+  // should not beat "Community Relations Manager" → Community & Social Services)
   const job_function =
-    matchJobFunctionName(parsed.job_function, options?.jobFunctionNames || []) ||
-    matchJobFunctionName(input.jobFunctionHint, options?.jobFunctionNames || []) ||
+    inferJobFunctionFromTitle(input.title, jobFunctionNames, null) ||
+    matchJobFunctionName(parsed.job_function, jobFunctionNames) ||
+    matchJobFunctionName(input.jobFunctionHint, jobFunctionNames) ||
+    inferJobFunctionFromTitle(input.title, jobFunctionNames, input.tagsHint) ||
     null
 
   const tags = limitTags(

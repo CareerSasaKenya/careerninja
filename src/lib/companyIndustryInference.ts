@@ -21,6 +21,7 @@ const LOGISTICS = "Logistics & Transportation";
 const MANUFACTURING = "Manufacturing & Warehousing";
 const ENERGY = "Energy, Utilities & Waste Management";
 const REAL_ESTATE = "Real Estate & Property Management";
+const BUILDING = "Building, Construction & Real Estate";
 const LEGAL = "Legal Services";
 const TOURISM = "Tourism, Travel & Leisure";
 const SECURITY = "Security & Defence";
@@ -29,6 +30,24 @@ const FINTECH = "Financial Technology (FinTech)";
 
 /** Exact / identity-style overrides for well-known Kenyan employers. */
 export const KNOWN_COMPANY_INDUSTRIES: Record<string, string> = {
+  // Scraped city / real-estate developers
+  "tatu city": BUILDING,
+  tatucity: BUILDING,
+  rendeavour: BUILDING,
+  "r endeavour": BUILDING,
+  "kiswishi city": BUILDING,
+  "appolonia city": BUILDING,
+  inkomoko: NGO,
+  "digital divide data": "Business Process Outsourcing (BPO)",
+  ddd: "Business Process Outsourcing (BPO)",
+  "salix data africa": ICT,
+  salix: ICT,
+  "powergen renewable energy": ENERGY,
+  powergen: ENERGY,
+  ihub: ICT,
+  "ihub nairobi": ICT,
+  amref: HEALTHCARE,
+  "amref health africa": HEALTHCARE,
   "corporate staffing": HR_RECRUITMENT,
   "career options africa ltd": HR_RECRUITMENT,
   "career directions limited (cdl)": HR_RECRUITMENT,

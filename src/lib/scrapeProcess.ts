@@ -105,6 +105,9 @@ export async function runScrapeProcessOne(
       normalized.application_url = queueItem.job_url
       rawData = detail
 
+      const deptHint = Array.isArray(detail.department)
+        ? detail.department.filter(Boolean).join(', ')
+        : normalized.tags
       parseInput = {
         title: normalized.title,
         company: hiringCompany,
@@ -114,9 +117,9 @@ export async function runScrapeProcessOne(
         descriptionSection: detail.description,
         requirementsSection: detail.requirements,
         benefitsSection: detail.benefits,
-        tagsHint: Array.isArray(detail.department)
-          ? detail.department.join(', ')
-          : normalized.tags,
+        // Workable has no industry/function taxonomy — department + title heuristics fill gaps
+        jobFunctionHint: detail.department?.[0] || null,
+        tagsHint: deptHint,
       }
     } else if (adapterType === 'smartrecruiters') {
       const config = source.selectors as { slug?: string }
@@ -307,12 +310,11 @@ export async function runScrapeProcessOne(
     }
 
     const educationLevelId = mapEducationLevel(parsed.education_level, educationLevels || [])
-    const inferredCompanyIndustry = inferCompanyIndustry(dedupCompany)
+    // parseScrapedJobContent already applies company/title heuristics; keep a last-resort fallback
     const industryName =
       parsed.industry ||
-      (inferredCompanyIndustry && industryNames.includes(inferredCompanyIndustry)
-        ? inferredCompanyIndustry
-        : null)
+      inferCompanyIndustry(dedupCompany, null, industryNames) ||
+      null
     const jobFunctionName = parsed.job_function || null
     const industryRow = industryName
       ? (industries || []).find(i => i.name === industryName)
