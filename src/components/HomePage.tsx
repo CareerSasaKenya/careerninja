@@ -41,9 +41,11 @@ function homeJobHref(job: { id: string; job_slug?: string | null }) {
 }
 
 /** Shared with Latest Job Openings — keep every homepage section header identical. */
-const SECTION_HEADING_CLASS = "text-3xl md:text-4xl font-bold mb-2";
+const SECTION_HEADING_CLASS = "text-3xl md:text-4xl font-bold mb-2 text-primary";
 const SECTION_SUBCOPY_CLASS = "text-muted-foreground";
 const SECTION_HEADER_WRAP_CLASS = "mb-4 md:mb-6 text-center";
+/** Final CTA sits on primary gradient — keep heading light for contrast. */
+const CTA_HEADING_CLASS = "text-3xl md:text-4xl font-bold mb-2";
 
 type HomePageProps = {
   topIndustries: IndustryCardData[];
@@ -717,7 +719,7 @@ export default function HomePage({
       {/* Final CTA */}
       <section className="py-8 md:py-10 px-4 bg-gradient-primary text-primary-foreground">
         <div className="container mx-auto text-center">
-          <h2 className={SECTION_HEADING_CLASS}>{ctaTitle}</h2>
+          <h2 className={CTA_HEADING_CLASS}>{ctaTitle}</h2>
           <p className="mb-6 max-w-2xl mx-auto opacity-90">
             {ctaSubtitle}
           </p>

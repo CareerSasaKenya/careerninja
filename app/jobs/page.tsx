@@ -458,7 +458,7 @@ const Jobs = () => {
           src="/assets/hero-jobs.jpg"
           alt=""
           aria-hidden
-          className="absolute inset-0 h-full w-full object-cover object-center animate-fade-in"
+          className="absolute inset-0 h-full w-full object-cover object-[center_20%] md:object-[center_25%] animate-fade-in"
         />
         <div
           className="absolute inset-0 bg-[#0a1628]/55 md:bg-[#0a1628]/60"
