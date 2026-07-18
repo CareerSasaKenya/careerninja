@@ -68,14 +68,14 @@ export function IndustryCard({
           <p className="text-[11px] uppercase tracking-[0.16em] text-white/75 mb-2">
             {featured ? "Browse everything" : "Industry"}
           </p>
-          <h2
+          <h3
             className={cn(
               "font-semibold leading-snug text-white drop-shadow-sm",
               featured ? "text-2xl md:text-3xl" : "text-xl md:text-[1.35rem]"
             )}
           >
             {title}
-          </h2>
+          </h3>
         </div>
 
         <div className="mt-6 flex items-end justify-between gap-4 border-t border-white/20 pt-4">

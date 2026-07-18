@@ -40,6 +40,11 @@ function homeJobHref(job: { id: string; job_slug?: string | null }) {
   return `/jobs/${job.job_slug || job.id}`;
 }
 
+/** Shared with Latest Job Openings — keep every homepage section header identical. */
+const SECTION_HEADING_CLASS = "text-3xl md:text-4xl font-bold mb-2";
+const SECTION_SUBCOPY_CLASS = "text-muted-foreground";
+const SECTION_HEADER_WRAP_CLASS = "mb-4 md:mb-6 text-center";
+
 type HomePageProps = {
   topIndustries: IndustryCardData[];
   topCompanies: CompanyCardData[];
@@ -273,11 +278,11 @@ export default function HomePage({
       {topIndustries.length > 0 && (
         <section className="py-6 md:py-8 px-4">
           <div className="container mx-auto">
-            <div className="mb-4 md:mb-6 text-center">
-              <h2 className="text-3xl md:text-4xl font-bold mb-2">
-                Top industries hiring now
+            <div className={SECTION_HEADER_WRAP_CLASS}>
+              <h2 className={SECTION_HEADING_CLASS}>
+                Top Industries Hiring Now
               </h2>
-              <p className="text-muted-foreground">
+              <p className={SECTION_SUBCOPY_CLASS}>
                 The six sectors with the most open roles on CareerSasa right now
               </p>
             </div>
@@ -312,11 +317,11 @@ export default function HomePage({
       {topCompanies.length > 0 && (
         <section className="py-6 md:py-8 px-4 bg-gradient-subtle">
           <div className="container mx-auto">
-            <div className="mb-4 md:mb-6 text-center">
-              <h2 className="text-3xl md:text-4xl font-bold mb-2">
-                Top companies hiring now
+            <div className={SECTION_HEADER_WRAP_CLASS}>
+              <h2 className={SECTION_HEADING_CLASS}>
+                Top Companies Hiring Now
               </h2>
-              <p className="text-muted-foreground">
+              <p className={SECTION_SUBCOPY_CLASS}>
                 Employers with the most open roles — explore profiles and apply
               </p>
             </div>
@@ -368,11 +373,11 @@ export default function HomePage({
       {/* Why Choose Us */}
       <section className="py-6 md:py-8 px-4">
         <div className="container mx-auto">
-          <div className="mb-4 md:mb-6 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-2">
+          <div className={SECTION_HEADER_WRAP_CLASS}>
+            <h2 className={SECTION_HEADING_CLASS}>
               Why 95% of Our Users Land Interviews Within 3 Months
             </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
+            <p className={`${SECTION_SUBCOPY_CLASS} max-w-2xl mx-auto`}>
               Most job boards dump listings and leave you to figure it out. CareerSasa is
               different. We actively match you to employers using AI, not just keywords.
             </p>
@@ -425,13 +430,15 @@ export default function HomePage({
       {/* Testimonials */}
       <section className="py-6 md:py-8 px-4 bg-gradient-subtle">
         <div className="container mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-2">
-            From &quot;No Callbacks&quot; to &quot;When Can You Start?&quot;
-          </h2>
-          <p className="text-center text-muted-foreground mb-4 md:mb-6 max-w-2xl mx-auto">
-            Real Kenyans. Real results. Here&apos;s what happens when your CV meets the right
-            platform.
-          </p>
+          <div className={SECTION_HEADER_WRAP_CLASS}>
+            <h2 className={SECTION_HEADING_CLASS}>
+              From &quot;No Callbacks&quot; to &quot;When Can You Start?&quot;
+            </h2>
+            <p className={`${SECTION_SUBCOPY_CLASS} max-w-2xl mx-auto`}>
+              Real Kenyans. Real results. Here&apos;s what happens when your CV meets the right
+              platform.
+            </p>
+          </div>
 
           <div className="grid md:grid-cols-3 gap-4 md:gap-5">
             {[
@@ -492,9 +499,9 @@ export default function HomePage({
       {/* Latest Jobs */}
       <section className="py-6 md:py-8 px-4">
         <div className="container mx-auto">
-          <div className="mb-4 md:mb-6 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-2">Latest Job Openings</h2>
-            <p className="text-muted-foreground">
+          <div className={SECTION_HEADER_WRAP_CLASS}>
+            <h2 className={SECTION_HEADING_CLASS}>Latest Job Openings</h2>
+            <p className={SECTION_SUBCOPY_CLASS}>
               Fresh opportunities posted today. Early applicants get 4x more callbacks
             </p>
           </div>
@@ -585,13 +592,15 @@ export default function HomePage({
       {/* Success Stories */}
       <section className="py-6 md:py-8 px-4 bg-gradient-subtle">
         <div className="container mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-2">
-            Your Career, Transformed
-          </h2>
-          <p className="text-center text-muted-foreground mb-4 md:mb-6 max-w-2xl mx-auto">
-            From fresh graduates to senior executives, CareerSasa has helped thousands of
-            Kenyans level up.
-          </p>
+          <div className={SECTION_HEADER_WRAP_CLASS}>
+            <h2 className={SECTION_HEADING_CLASS}>
+              Your Career, Transformed
+            </h2>
+            <p className={`${SECTION_SUBCOPY_CLASS} max-w-2xl mx-auto`}>
+              From fresh graduates to senior executives, CareerSasa has helped thousands of
+              Kenyans level up.
+            </p>
+          </div>
 
           <div className="grid md:grid-cols-2 gap-4 md:gap-5">
             <Card className="glass overflow-hidden hover:shadow-xl transition-all duration-300">
@@ -660,11 +669,11 @@ export default function HomePage({
       {blogPosts.length > 0 && (
         <section className="py-6 md:py-8 px-4">
           <div className="container mx-auto">
-            <div className="mb-4 md:mb-6 text-center">
-              <h2 className="text-3xl md:text-4xl font-bold mb-2">
+            <div className={SECTION_HEADER_WRAP_CLASS}>
+              <h2 className={SECTION_HEADING_CLASS}>
                 Career Insights That Actually Get You Hired
               </h2>
-              <p className="text-muted-foreground">
+              <p className={SECTION_SUBCOPY_CLASS}>
                 Free expert advice. Knowing what employers want is half the battle
               </p>
             </div>
@@ -708,7 +717,7 @@ export default function HomePage({
       {/* Final CTA */}
       <section className="py-8 md:py-10 px-4 bg-gradient-primary text-primary-foreground">
         <div className="container mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-2">{ctaTitle}</h2>
+          <h2 className={SECTION_HEADING_CLASS}>{ctaTitle}</h2>
           <p className="mb-6 max-w-2xl mx-auto opacity-90">
             {ctaSubtitle}
           </p>
