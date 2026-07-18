@@ -136,23 +136,32 @@ export async function discoverPscPdfDocuments(
 
 export function parsePdfLinksFromListing(html: string): PscPdfDocument[] {
   const $ = cheerio.load(html)
-  const docs: PscPdfDocument[] = []
-  const seen = new Set<string>()
+  // Key by slug so bare /download/slug/ landing pages and ?wpdmdl= direct
+  // download links collapse to one document (prefer the wpdmdl URL).
+  const bySlug = new Map<string, PscPdfDocument>()
 
   $('a[data-downloadurl], a[href*="/download/"]').each((_, el) => {
     const rawUrl = $(el).attr('data-downloadurl') || $(el).attr('href') || ''
+    if (!rawUrl || rawUrl === '#') return
     const downloadUrl = canonicalPscPdfUrl(rawUrl)
-    if (!downloadUrl || seen.has(downloadUrl)) return
+    if (!downloadUrl) return
 
     const slug = slugFromDownloadUrl(downloadUrl)
     if (!isVacancyAdvertSlug(slug)) return
 
-    seen.add(downloadUrl)
     const title = humanizeSlug(slug)
-    docs.push({ downloadUrl, title })
+    const existing = bySlug.get(slug)
+    if (!existing) {
+      bySlug.set(slug, { downloadUrl, title })
+      return
+    }
+    // Prefer WordPress Download Manager direct-file URLs over HTML landings
+    if (!hasWpdmdlParam(existing.downloadUrl) && hasWpdmdlParam(downloadUrl)) {
+      bySlug.set(slug, { downloadUrl, title })
+    }
   })
 
-  return docs
+  return [...bySlug.values()]
 }
 
 export function buildPscPdfJobUrl(pdfUrl: string, job: PscPdfExtractedJob, index: number): string {
@@ -174,7 +183,24 @@ export function extractPscPdfJobSuffix(jobUrl: string): string | null {
 
 export async function downloadAndExtractPscPdfText(downloadUrl: string): Promise<string> {
   const { downloadPdfBuffer, extractTextFromPdfBuffer } = await import('./pdfText')
-  const buffer = await downloadPdfBuffer(downloadUrl)
+  let buffer = await downloadPdfBuffer(downloadUrl)
+
+  // Listing/canonical URLs often hit a WordPress Download Manager HTML page
+  // instead of the PDF bytes. Resolve the real ?wpdmdl= link and retry.
+  if (!isPdfMagic(buffer)) {
+    const resolved = resolvePdfDownloadUrlFromHtml(buffer.toString('utf8'), downloadUrl)
+    if (!resolved) {
+      throw new Error(
+        `PSC download URL returned HTML, not a PDF (no wpdmdl link found): ${downloadUrl}`
+      )
+    }
+    buffer = await downloadPdfBuffer(resolved)
+  }
+
+  if (!isPdfMagic(buffer)) {
+    throw new Error(`PSC download did not return PDF bytes: ${downloadUrl}`)
+  }
+
   const text = await extractTextFromPdfBuffer(buffer)
   if (!text || text.length < 100) {
     throw new Error('PSC PDF contained insufficient extractable text')
@@ -342,10 +368,51 @@ function canonicalPscPdfUrl(raw: string): string {
   try {
     const url = new URL(raw, 'https://www.publicservice.go.ke')
     url.searchParams.delete('refresh')
+    // Drop transient cache-busters; keep wpdmdl (required for direct PDF bytes)
+    url.searchParams.delete('ind')
     return url.toString()
   } catch {
     return raw.split('?refresh=')[0]
   }
+}
+
+function hasWpdmdlParam(url: string): boolean {
+  try {
+    return new URL(url).searchParams.has('wpdmdl')
+  } catch {
+    return /[?&]wpdmdl=/.test(url)
+  }
+}
+
+function isPdfMagic(buffer: Buffer): boolean {
+  return buffer.length >= 5 && buffer.subarray(0, 5).toString('utf8') === '%PDF-'
+}
+
+/** Pull a WordPress Download Manager direct URL out of an HTML landing page. */
+export function resolvePdfDownloadUrlFromHtml(html: string, baseUrl: string): string | null {
+  const $ = cheerio.load(html)
+  const candidates: string[] = []
+
+  $('a[data-downloadurl]').each((_, el) => {
+    const u = $(el).attr('data-downloadurl')
+    if (u) candidates.push(u)
+  })
+  $('a[href*="wpdmdl="]').each((_, el) => {
+    const u = $(el).attr('href')
+    if (u && u !== '#') candidates.push(u)
+  })
+
+  // Fallback: any .pdf href (encoded filename query params)
+  if (candidates.length === 0) {
+    const m = html.match(/https?:\/\/[^"'<\s]+wpdmdl=\d[^"'<\s]*/i)
+    if (m) candidates.push(m[0].replace(/&amp;/g, '&'))
+  }
+
+  for (const raw of candidates) {
+    const canonical = canonicalPscPdfUrl(raw.startsWith('http') ? raw : new URL(raw, baseUrl).toString())
+    if (hasWpdmdlParam(canonical)) return canonical
+  }
+  return null
 }
 
 function slugFromDownloadUrl(url: string): string {

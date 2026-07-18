@@ -71,8 +71,15 @@ async function ensurePdfDomPolyfills(): Promise<void> {
 
 export async function extractTextFromPdfBuffer(buffer: Buffer): Promise<string> {
   await ensurePdfDomPolyfills()
-  // Dynamic import so discover routes never load pdfjs at module eval time
-  const { PDFParse } = await import('pdf-parse')
+  // Dynamic import so discover routes never load pdfjs at module eval time.
+  // setWorker(getData()) inlines the worker as a data: URL — required on Vercel
+  // where pdf.worker.mjs is often missing from the serverless bundle
+  // ("Setting up fake worker failed: Cannot find module .../pdf.worker.mjs").
+  const [{ PDFParse }, { getData }] = await Promise.all([
+    import('pdf-parse'),
+    import('pdf-parse/worker'),
+  ])
+  PDFParse.setWorker(getData())
   const parser = new PDFParse({ data: buffer })
   try {
     const result = await parser.getText()
