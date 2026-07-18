@@ -303,7 +303,8 @@ export async function runScrapeProcessOne(
     const permanent =
       /\b404\b/i.test(message) ||
       /not found/i.test(message) ||
-      /Cannot parse/i.test(message)
+      /Cannot parse/i.test(message) ||
+      /Invalid PDF structure/i.test(message)
     const newStatus = permanent || attempts >= 3 ? 'failed' : 'pending'
 
     await supabase
