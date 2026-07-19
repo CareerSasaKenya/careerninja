@@ -26,6 +26,28 @@ import {
   extractGreenhouseSlug,
 } from '@/lib/greenhouse-adapter'
 import {
+  fetchTaleoJobDetails,
+  normalizeTaleoJob,
+  extractTaleoContestNo,
+  extractTaleoHost,
+  extractTaleoSection,
+} from '@/lib/taleo-adapter'
+import {
+  fetchTaleoBeJobDetails,
+  normalizeTaleoBeJob,
+  extractTaleoBeRid,
+  extractTaleoBeOrg,
+  extractTaleoBeCws,
+  extractTaleoBeHostPath,
+} from '@/lib/taleo-be-adapter'
+import {
+  fetchOracleCloudJobDetails,
+  normalizeOracleCloudJob,
+  extractOracleCloudJobId,
+  extractOracleCloudHost,
+  extractOracleCloudSiteNumber,
+} from '@/lib/oracle-cloud-adapter'
+import {
   fetchPscJobRow,
   normalizePscJob,
   extractPscAdvertNumber,
@@ -187,6 +209,118 @@ export async function runScrapeProcessOne(
         requirementsSection: '',
         industryHint: detail.departments?.[0]?.name || null,
         jobFunctionHint: detail.departments?.[0]?.name || null,
+        tagsHint: normalized.tags,
+      }
+    } else if (adapterType === 'taleo') {
+      const config = source.selectors as { host?: string; section?: string }
+      const contestNo = extractTaleoContestNo(queueItem.job_url)
+      const host =
+        config.host || extractTaleoHost(queueItem.job_url) || undefined
+      const section =
+        config.section || extractTaleoSection(queueItem.job_url) || undefined
+
+      if (!host || !section || !contestNo) {
+        throw new Error(
+          `Cannot parse Taleo host/section/contest from URL: ${queueItem.job_url}`
+        )
+      }
+
+      const detail = await fetchTaleoJobDetails(host, section, contestNo, {
+        title: String(queueItem.partial_data?.title || ''),
+        location: String(queueItem.partial_data?.location || ''),
+        contestNo,
+        detailUrl: queueItem.job_url,
+      })
+      normalized = normalizeTaleoJob(detail, hiringCompany)
+      normalized.application_url = detail.detailUrl || queueItem.job_url
+      rawData = detail
+
+      parseInput = {
+        title: normalized.title,
+        company: hiringCompany,
+        location: normalized.location || detail.location,
+        employmentType: normalized.employment_type,
+        workplace: normalized.job_location_type,
+        descriptionSection: detail.descriptionHtml || normalized.description || '',
+        requirementsSection: detail.qualificationsHtml || '',
+        tagsHint: normalized.tags,
+      }
+    } else if (adapterType === 'taleo_be') {
+      const config = source.selectors as {
+        org?: string
+        cws?: string
+        hostPath?: string
+      }
+      const rid = extractTaleoBeRid(queueItem.job_url)
+      const org = config.org || extractTaleoBeOrg(queueItem.job_url) || undefined
+      const cws = config.cws || extractTaleoBeCws(queueItem.job_url) || undefined
+      const hostPath =
+        config.hostPath || extractTaleoBeHostPath(queueItem.job_url) || undefined
+
+      if (!hostPath || !org || !cws || !rid) {
+        throw new Error(
+          `Cannot parse Taleo BE hostPath/org/cws/rid from URL: ${queueItem.job_url}`
+        )
+      }
+
+      const detail = await fetchTaleoBeJobDetails(hostPath, org, cws, rid, {
+        title: String(queueItem.partial_data?.title || ''),
+        location: String(queueItem.partial_data?.location || ''),
+        rid,
+        detailUrl: queueItem.job_url,
+        meta: [],
+      })
+      normalized = normalizeTaleoBeJob(detail, hiringCompany)
+      normalized.application_url = detail.detailUrl || queueItem.job_url
+      rawData = detail
+
+      parseInput = {
+        title: normalized.title,
+        company: hiringCompany,
+        location: normalized.location || detail.location,
+        employmentType: normalized.employment_type,
+        workplace: normalized.job_location_type,
+        descriptionSection: detail.descriptionHtml || normalized.description || '',
+        requirementsSection: '',
+        tagsHint: normalized.tags,
+      }
+    } else if (adapterType === 'oracle_cloud') {
+      const config = source.selectors as { host?: string; siteNumber?: string }
+      const jobId = extractOracleCloudJobId(queueItem.job_url)
+      const host =
+        config.host || extractOracleCloudHost(queueItem.job_url) || undefined
+      const siteNumber =
+        config.siteNumber ||
+        extractOracleCloudSiteNumber(queueItem.job_url) ||
+        undefined
+
+      if (!host || !siteNumber || !jobId) {
+        throw new Error(
+          `Cannot parse Oracle Cloud host/site/job from URL: ${queueItem.job_url}`
+        )
+      }
+
+      const detail = await fetchOracleCloudJobDetails(host, siteNumber, jobId, {
+        title: String(queueItem.partial_data?.title || ''),
+        location: String(queueItem.partial_data?.location || ''),
+        id: jobId,
+        detailUrl: queueItem.job_url,
+        countryCode: '',
+      })
+      normalized = normalizeOracleCloudJob(detail, hiringCompany)
+      normalized.application_url = detail.detailUrl || queueItem.job_url
+      rawData = detail
+
+      parseInput = {
+        title: normalized.title,
+        company: hiringCompany,
+        location: normalized.location || detail.location,
+        employmentType: normalized.employment_type,
+        workplace: normalized.job_location_type,
+        descriptionSection: detail.descriptionHtml || normalized.description || '',
+        responsibilitiesSection: detail.responsibilitiesHtml || '',
+        requirementsSection: detail.qualificationsHtml || '',
+        industryHint: detail.category || null,
         tagsHint: normalized.tags,
       }
     } else if (adapterType === 'psc') {
