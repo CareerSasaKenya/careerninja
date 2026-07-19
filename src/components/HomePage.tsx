@@ -208,7 +208,7 @@ export default function HomePage({
             <p className="text-[11px] uppercase tracking-[0.22em] text-sky-200 mb-3 font-semibold drop-shadow-[0_1px_6px_rgba(0,0,0,0.55)]">
               CareerSasa · Kenya
             </p>
-            <h1 className="text-4xl sm:text-5xl md:text-[3.25rem] font-bold mb-4 text-white leading-[1.1] drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]">
+            <h1 className="text-4xl sm:text-5xl md:text-[3.25rem] font-bold mb-4 text-[#0A66C2] leading-[1.1] drop-shadow-[0_1px_10px_rgba(255,255,255,0.75)]">
               {heroTitle}
             </h1>
             <p className="text-base md:text-lg text-white mb-6 max-w-xl leading-relaxed md:mx-auto drop-shadow-[0_1px_8px_rgba(0,0,0,0.5)]">

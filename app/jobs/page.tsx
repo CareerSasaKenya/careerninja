@@ -472,7 +472,7 @@ const Jobs = () => {
 
         <div className="container relative z-10 mx-auto py-12 md:py-16 px-4">
           <div className="max-w-4xl animate-fade-in md:mx-auto md:text-center">
-            <h1 className="text-4xl sm:text-5xl md:text-[3.25rem] font-bold mb-4 text-white leading-[1.1] drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]">
+            <h1 className="text-4xl sm:text-5xl md:text-[3.25rem] font-bold mb-4 text-[#0A66C2] leading-[1.1] drop-shadow-[0_1px_10px_rgba(255,255,255,0.75)]">
               Find Your Next Job in Kenya
             </h1>
             <p className="text-base md:text-lg text-white mb-5 max-w-xl leading-relaxed md:mx-auto drop-shadow-[0_1px_8px_rgba(0,0,0,0.5)]">
