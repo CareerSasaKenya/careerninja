@@ -219,8 +219,9 @@ export async function callAIWithRetry(
     )
     if (result.ok) {
       return { response: result.response, modelUsed: 'gemini-2.5-flash' }
+    } else {
+      lastError = result.error || lastError
     }
-    lastError = result.error || lastError
   }
 
   // 2. Fallback to Groq (free tier — primary rescue when Gemini is exhausted)
@@ -232,8 +233,9 @@ export async function callAIWithRetry(
     )
     if (result.ok) {
       return { response: result.response, modelUsed: result.modelUsed }
+    } else {
+      lastError = result.error || lastError
     }
-    lastError = result.error || lastError
   } else {
     console.warn('[callAIWithRetry] GROQ_API_KEY missing — cannot fall back to Groq')
   }
@@ -250,8 +252,9 @@ export async function callAIWithRetry(
         response: result.response,
         modelUsed: 'gemini-2.5-flash (openrouter)',
       }
+    } else {
+      lastError = result.error || lastError
     }
-    lastError = result.error || lastError
   }
 
   throw lastError || new Error('All AI services failed')
