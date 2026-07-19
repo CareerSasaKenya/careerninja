@@ -171,7 +171,7 @@ export default function JobDetailsHeader({
         </div>
       )}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+      <div className="flex items-start justify-between gap-3 sm:gap-4">
         <div className="flex min-w-0 flex-1 items-start gap-3 sm:gap-3.5">
           <div className="shrink-0 self-start rounded-xl border border-border/70 bg-card p-1 shadow-sm">
             {job.company_id && job.companies ? (
@@ -235,11 +235,20 @@ export default function JobDetailsHeader({
         </div>
 
         <div className="shrink-0">
+          {/* Icon on mobile keeps Save visible beside the title; labeled on desktop */}
+          <SaveJobButton
+            jobId={job.id}
+            variant="outline"
+            size="icon"
+            showText={false}
+            className="sm:hidden"
+          />
           <SaveJobButton
             jobId={job.id}
             variant="outline"
             size="default"
             showText={true}
+            className="hidden sm:inline-flex"
           />
         </div>
       </div>

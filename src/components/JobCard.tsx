@@ -1,11 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, DollarSign, FileText, Clock, Briefcase, GraduationCap, Star, TrendingUp } from "lucide-react";
-import { stripHtmlTags, formatJobSeoTitle } from "@/lib/textUtils";
+import {
+  MapPin,
+  DollarSign,
+  FileText,
+  Clock,
+  CalendarDays,
+  Star,
+  TrendingUp,
+} from "lucide-react";
+import {
+  stripHtmlTags,
+  formatJobSeoTitle,
+  buildLocationString,
+  jobPostedLabel,
+} from "@/lib/textUtils";
 import { SaveJobButton } from "@/components/SaveJobButton";
 import { AdminEditJobButton } from "@/components/AdminEditJobButton";
 import { CompanyLogo } from "@/components/CompanyLogo";
@@ -64,21 +77,19 @@ const toTitleCase = (text?: string | null) => {
     .replace(/\b\w/g, (m) => m.toUpperCase());
 };
 
-const relativeTimeFromNow = (iso?: string | null) => {
+function formatDeadlineDate(iso?: string | null): string | null {
   if (!iso) return null;
   const date = new Date(iso);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const sec = Math.floor(diffMs / 1000);
-  const min = Math.floor(sec / 60);
-  const hr = Math.floor(min / 60);
-  const day = Math.floor(hr / 24);
-  if (day > 30) return `Posted ${Math.floor(day / 30)} mo ago`;
-  if (day >= 1) return `Posted ${day} day${day > 1 ? "s" : ""} ago`;
-  if (hr >= 1) return `Posted ${hr} hour${hr > 1 ? "s" : ""} ago`;
-  if (min >= 1) return `Posted ${min} min ago`;
-  return "Posted Today";
-};
+  if (Number.isNaN(date.getTime())) return null;
+  const opts: Intl.DateTimeFormatOptions = {
+    day: "numeric",
+    month: "short",
+  };
+  if (date.getFullYear() !== new Date().getFullYear()) {
+    opts.year = "numeric";
+  }
+  return date.toLocaleDateString("en-KE", opts);
+}
 
 const JobCard = ({
   id,
@@ -102,28 +113,24 @@ const JobCard = ({
   experienceLevel,
   datePosted,
   validThrough,
-  applicationUrl,
-  applyEmail,
-  applyLink,
   skillsTop3,
   department,
   jobSlug,
-  educationLevel,
   isFeatured,
   isPromoted,
   promotionTier,
 }: JobCardProps) => {
-  // Safely handle potentially undefined values
-  const displayLocation = locationType
-    ? `${location || ""}${location && locationType ? " \u2022 " : ""}${toTitleCase(locationType) || ""}`
-    : location || "";
-  
-  // SEO-friendly heading: "[Post] at [Company] in [City], [County], Kenya"
+  const isRemote = locationType === "REMOTE";
+  const locationLabel = isRemote
+    ? "Remote (Kenya)"
+    : buildLocationString(locationCity, locationCounty, location) || location || "Kenya";
+
+  // SEO string for tooltip / assistive text; visible title stays clean
   const seoTitle = formatJobSeoTitle(title, company, {
     city: locationCity,
     county: locationCounty,
     rawLocation: location,
-    isRemote: locationType === 'REMOTE',
+    isRemote,
   });
 
   const salaryMinFmt = formatCurrency(salaryMin, salaryCurrency);
@@ -136,7 +143,7 @@ const JobCard = ({
   } else if (salaryMinFmt || salaryMaxFmt) {
     salaryDisplay = `${salaryMinFmt || salaryMaxFmt}${salaryPeriodFmt ? ` / ${salaryPeriodFmt}` : ""}`;
   } else if (salary) {
-    salaryDisplay = salary; // legacy string
+    salaryDisplay = salary;
   } else {
     salaryDisplay = "Negotiable";
   }
@@ -145,155 +152,180 @@ const JobCard = ({
     ? toTitleCase(experienceLevel)?.replace("Mid", "Mid-level")?.replace("Entry", "Entry-level")
     : null;
 
-  // Calculate time-based values as derived state instead of in useEffect
-  const postedRel = relativeTimeFromNow(datePosted || undefined);
+  const postedValue = jobPostedLabel(datePosted) || formatDeadlineDate(datePosted);
+  const deadlineValue = formatDeadlineDate(validThrough);
   const deadline = validThrough ? new Date(validThrough) : null;
   const isExpired = deadline ? deadline.getTime() < Date.now() : false;
-  const deadlineDisplay = deadline ? `Apply by ${deadline.toLocaleDateString()}` : null;;
 
-  const hasExternalApply = !!(applyEmail || applyLink || applicationUrl);
-
-  // Use job slug for SEO-friendly URLs, fallback to ID
   const jobUrl = jobSlug ? `/jobs/${jobSlug}` : `/jobs/${id}`;
 
+  const metaTags = [
+    employmentType
+      ? { key: "emp", label: toTitleCase(employmentType) || employmentType }
+      : null,
+    locationType ? { key: "loc", label: toTitleCase(locationType) || locationType } : null,
+    experienceDisplay ? { key: "exp", label: experienceDisplay } : null,
+    industry ? { key: "ind", label: industry } : null,
+    department ? { key: "fn", label: department } : null,
+  ].filter(Boolean) as { key: string; label: string }[];
+
   return (
-    <Link href={jobUrl} className="block" prefetch={true}>
-      <Card className={`group hover:shadow-xl transition-all duration-300 border-border/50 hover:border-primary/50 hover:scale-[1.02] overflow-hidden h-full ${isFeatured ? 'border-2 border-yellow-500/50 shadow-lg' : ''} ${isPromoted ? 'border-2 border-blue-500/50' : ''}`}>
-      <CardHeader className="pb-3">
-        {/* Featured/Promoted Badges at top */}
-        {(isFeatured || isPromoted) && (
-          <div className="flex gap-2 mb-2">
-            {isFeatured && (
-              <Badge className="bg-yellow-500 text-white gap-1">
-                <Star className="h-3 w-3 fill-white" />
-                Featured
-              </Badge>
-            )}
-            {isPromoted && (
-              <Badge className="bg-blue-500 text-white gap-1">
-                <TrendingUp className="h-3 w-3" />
-                Promoted {promotionTier && `• ${promotionTier}`}
-              </Badge>
-            )}
-          </div>
-        )}
-        
-        {/* Title (prominent, SEO-friendly) */}
-        <CardTitle className="text-xl sm:text-2xl font-bold text-card-foreground group-hover:text-primary transition-colors line-clamp-2 sm:line-clamp-1" title={seoTitle}>
-          {seoTitle}
-        </CardTitle>
-
-        {/* Company row */}
-        <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-          {companyId ? (
-            <div className="flex items-center gap-2 min-w-0">
-              <CompanyLogo
-                name={company}
-                logo={companyLogo}
-                website={companyWebsite}
-                size="sm"
-              />
-              <span className="font-medium truncate">{company || "Unknown Company"}</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 min-w-0">
-              {company ? (
-                <CompanyLogo name={company} logo={companyLogo} website={companyWebsite} size="sm" />
-              ) : (
-                <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+    <Link href={jobUrl} className="block h-full" prefetch={true}>
+      <Card
+        className={`group h-full overflow-hidden border-border/50 transition-all duration-300 hover:border-primary/50 hover:shadow-xl ${
+          isFeatured ? "border-2 border-yellow-500/50 shadow-lg" : ""
+        } ${isPromoted ? "border-2 border-blue-500/50" : ""}`}
+      >
+        <CardHeader className="space-y-0 p-4 pb-3 sm:p-6 sm:pb-3">
+          {(isFeatured || isPromoted) && (
+            <div className="mb-2.5 flex flex-wrap gap-1.5">
+              {isFeatured && (
+                <Badge className="gap-1 bg-amber-500 text-white hover:bg-amber-500">
+                  <Star className="h-3 w-3 fill-white" />
+                  Featured
+                </Badge>
               )}
-              <span className="font-medium truncate">{company || "Direct Listing"}</span>
-              {!company && <Badge variant="secondary">Admin</Badge>}
+              {isPromoted && (
+                <Badge className="gap-1 bg-sky-600 text-white hover:bg-sky-600">
+                  <TrendingUp className="h-3 w-3" />
+                  Promoted{promotionTier ? ` · ${promotionTier}` : ""}
+                </Badge>
+              )}
             </div>
           )}
-          {industry && (
-            <>
-              <span className="text-muted-foreground/50">•</span>
-              <span className="truncate" title={industry}>{industry}</span>
-            </>
-          )}
-        </div>
 
-        {/* Tag row: location, type, employment, experience, education */}
-        <div className="flex flex-wrap gap-2 mt-3">
-          {displayLocation && (
-            <Badge variant="outline">
-              <MapPin className="h-3.5 w-3.5 inline mr-1" />
-              {displayLocation}
-            </Badge>
-          )}
-          {employmentType && (
-            <Badge variant="secondary">
-              {toTitleCase(employmentType) || employmentType}
-            </Badge>
-          )}
-          {experienceDisplay && (
-            <Badge variant="outline">
-              {experienceDisplay}
-            </Badge>
-          )}
-          {educationLevel && (
-            <Badge variant="outline">
-              <GraduationCap className="h-3.5 w-3.5 inline mr-1" />
-              {educationLevel}
-            </Badge>
-          )}
-          {department && (
-            <Badge variant="outline">
-              <Briefcase className="h-3.5 w-3.5 inline mr-1" />
-              {department}
-            </Badge>
-          )}
-        </div>
+          <div className="flex items-start gap-3">
+            <div className="shrink-0 self-start rounded-xl border border-border/70 bg-card p-1 shadow-sm">
+              {company ? (
+                <CompanyLogo
+                  name={company}
+                  logo={companyLogo}
+                  website={companyWebsite}
+                  size="md"
+                />
+              ) : (
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                  <FileText className="h-5 w-5" />
+                </div>
+              )}
+            </div>
 
-        {/* Salary */}
-        <div className="flex items-center gap-2 mt-3">
-          <DollarSign className="h-4 w-4 text-success" />
-          <span className="font-semibold text-foreground">{salaryDisplay}</span>
-        </div>
+            <div className="min-w-0 flex-1 space-y-1">
+              <h3
+                className="text-balance text-lg font-bold leading-snug tracking-tight text-card-foreground transition-colors group-hover:text-primary sm:text-xl"
+                title={seoTitle}
+              >
+                {title}
+              </h3>
 
-        {/* Dates */}
-        <div className="mt-2 text-xs text-muted-foreground flex items-center gap-3">
-          {postedRel && (
-            <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />{postedRel}</span>
-          )}
-          {deadlineDisplay && (
-            <span className={`flex items-center gap-1 ${isExpired ? 'text-destructive' : ''}`}>
-              <Clock className="h-3.5 w-3.5" />
-              {isExpired ? 'Job Closed' : deadlineDisplay}
-            </span>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent className="pt-0">
-        {/* Short description (2-3 sentences) */}
-        <p className="text-muted-foreground line-clamp-3 mb-4 leading-relaxed">
-          {stripHtmlTags(description || "")}
-        </p>
-
-        {/* Secondary chips: top 3 skills (optional) */}
-        {skillsTop3 && skillsTop3.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
-            {skillsTop3.slice(0, 3).map((skill, idx) => (
-              <Badge key={idx} variant="secondary">
-                {skill}
-              </Badge>
-            ))}
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-muted-foreground">
+                <span className="truncate font-medium text-foreground/90">
+                  {company || "Direct Listing"}
+                </span>
+                {locationLabel && (
+                  <>
+                    <span className="text-muted-foreground/35" aria-hidden>
+                      ·
+                    </span>
+                    <span className="inline-flex min-w-0 items-center gap-1">
+                      <MapPin className="h-3.5 w-3.5 shrink-0 text-primary" />
+                      <span className="truncate">{locationLabel}</span>
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
-        )}
 
-        {/* Action Buttons */}
-        <div className="mt-4 flex gap-2 items-center">
-          <Button variant="outline" className="flex-1">
-            View Details
-          </Button>
-          <AdminEditJobButton jobId={id} variant="card" />
-          <SaveJobButton jobId={id} variant="outline" size="default" showText={false} />
-        </div>
-      </CardContent>
-    </Card>
+          <p className="sr-only">{seoTitle}</p>
+
+          {(postedValue || deadlineValue) && (
+            <div className="mt-2.5 grid grid-cols-2 gap-3 text-xs text-muted-foreground">
+              {postedValue && (
+                <div className="flex min-w-0 items-start gap-1.5">
+                  <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0 opacity-70" />
+                  <div className="min-w-0 leading-snug">
+                    <p className="font-medium text-foreground/75">Posted</p>
+                    <p className="truncate">{postedValue}</p>
+                  </div>
+                </div>
+              )}
+
+              {deadlineValue && (
+                <div
+                  className={`flex min-w-0 items-start gap-1.5 ${
+                    isExpired ? "text-destructive" : ""
+                  }`}
+                >
+                  <CalendarDays className="mt-0.5 h-3.5 w-3.5 shrink-0 opacity-70" />
+                  <div className="min-w-0 leading-snug">
+                    <p
+                      className={`font-medium ${
+                        isExpired ? "text-destructive" : "text-foreground/75"
+                      }`}
+                    >
+                      Apply by
+                    </p>
+                    <p className={`truncate ${isExpired ? "font-medium" : ""}`}>
+                      {isExpired ? "Closed" : deadlineValue}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {metaTags.length > 0 && (
+            <div className="mt-2.5 flex flex-wrap gap-1.5">
+              {metaTags.map((tag) => (
+                <Badge
+                  key={tag.key}
+                  variant="outline"
+                  className="rounded-md border-border/80 bg-background/80 px-2 py-0.5 text-xs font-medium text-foreground"
+                >
+                  {tag.label}
+                </Badge>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-2.5 flex items-center gap-1.5">
+            <DollarSign className="h-4 w-4 text-success" />
+            <span className="text-sm font-semibold text-foreground">{salaryDisplay}</span>
+          </div>
+        </CardHeader>
+
+        <CardContent className="px-4 pb-4 pt-0 sm:px-6 sm:pb-6">
+          <p className="mb-3 line-clamp-2 text-sm leading-relaxed text-muted-foreground sm:mb-4 sm:line-clamp-3">
+            {stripHtmlTags(description || "")}
+          </p>
+
+          {skillsTop3 && skillsTop3.length > 0 && (
+            <div className="mb-3 flex flex-wrap gap-1.5 sm:mb-4">
+              {skillsTop3.slice(0, 3).map((skill, idx) => (
+                <Badge key={idx} variant="secondary">
+                  {skill}
+                </Badge>
+              ))}
+            </div>
+          )}
+
+          <div className="flex items-center gap-2">
+            <Button variant="outline" className="flex-1">
+              View Details
+            </Button>
+            <AdminEditJobButton jobId={id} variant="card" />
+            <SaveJobButton
+              jobId={id}
+              variant="outline"
+              size="default"
+              showText={false}
+            />
+          </div>
+        </CardContent>
+      </Card>
     </Link>
   );
-}
+};
 
 export default JobCard;

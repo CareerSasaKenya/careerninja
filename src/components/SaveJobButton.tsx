@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -12,18 +13,21 @@ interface SaveJobButtonProps {
   variant?: "default" | "outline" | "ghost";
   size?: "default" | "sm" | "lg" | "icon";
   showText?: boolean;
+  className?: string;
 }
 
 export const SaveJobButton = ({ 
   jobId, 
   variant = "outline", 
   size = "default",
-  showText = true 
+  showText = true,
+  className = "",
 }: SaveJobButtonProps) => {
   const [isSaved, setIsSaved] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
 
   useEffect(() => {
     const checkAuthAndSavedStatus = async () => {
@@ -45,10 +49,10 @@ export const SaveJobButton = ({
 
     if (!isAuthenticated) {
       toast({
-        title: "Authentication Required",
-        description: "Please sign in to save jobs",
-        variant: "destructive"
+        title: "Sign in to save jobs",
+        description: "Create a free account or sign in to bookmark this job.",
       });
+      router.push("/auth");
       return;
     }
 
@@ -82,17 +86,14 @@ export const SaveJobButton = ({
     }
   };
 
-  if (!isAuthenticated) {
-    return null;
-  }
-
   return (
     <Button
       variant={variant}
       size={size}
       onClick={handleToggleSave}
       disabled={isLoading}
-      className={isSaved ? "text-primary" : ""}
+      aria-label={isSaved ? "Unsave job" : "Save job"}
+      className={`${isSaved ? "text-primary" : ""} ${className}`.trim()}
     >
       <Bookmark className={`h-4 w-4 ${isSaved ? "fill-current" : ""} ${showText ? "mr-2" : ""}`} />
       {showText && (isSaved ? "Saved" : "Save Job")}
