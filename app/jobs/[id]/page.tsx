@@ -134,39 +134,87 @@ async function getRelatedJobs(jobId: string, industries?: string[], jobFunctions
     console.warn("Supabase not configured - cannot fetch related jobs");
     return [];
   }
-  
-  try {
-    let query = supabase
-      .from("jobs")
-      .select(`
-        *,
-        companies (
-          id,
-          name,
-          logo,
-          website
-        )
-      `)
-      .neq("id", jobId)
-      .order("date_posted", { ascending: false })
-      .limit(24);
 
-    // Prioritize jobs with matching industries or job_functions (array overlap)
-    if (industries && industries.length > 0) {
-      query = query.overlaps("industries", industries);
-    } else if (jobFunctions && jobFunctions.length > 0) {
-      query = query.overlaps("job_functions", jobFunctions);
-    }
+  const select = `
+    *,
+    companies (
+      id,
+      name,
+      logo,
+      website
+    )
+  `;
 
-    const { data, error } = await query;
-    if (error) throw error;
-
-    // Always prioritize live related jobs (even when the current job is still open),
-    // then fill remaining slots with expired matches if needed.
-    const jobs = data || [];
+  const rankRelated = (jobs: any[]) => {
     const live = jobs.filter(isJobLive);
     const expired = jobs.filter((j) => !isJobLive(j));
     return [...live, ...expired].slice(0, 6);
+  };
+
+  try {
+    const hasIndustries = Boolean(industries && industries.length > 0);
+    const hasFunctions = Boolean(jobFunctions && jobFunctions.length > 0);
+
+    // Fetch industry matches and function matches in parallel, then merge.
+    // (Previously industry-only matching hid related jobs when function was set
+    // but industry peers were sparse — common for freshly scraped roles.)
+    const queries: PromiseLike<{ data: any[] | null; error: any }>[] = [];
+
+    if (hasIndustries) {
+      queries.push(
+        supabase
+          .from("jobs")
+          .select(select)
+          .neq("id", jobId)
+          .eq("status", "active")
+          .overlaps("industries", industries!)
+          .order("date_posted", { ascending: false })
+          .limit(24)
+      );
+    }
+    if (hasFunctions) {
+      queries.push(
+        supabase
+          .from("jobs")
+          .select(select)
+          .neq("id", jobId)
+          .eq("status", "active")
+          .overlaps("job_functions", jobFunctions!)
+          .order("date_posted", { ascending: false })
+          .limit(24)
+      );
+    }
+
+    const results = queries.length > 0 ? await Promise.all(queries) : [];
+    for (const result of results) {
+      if (result.error) throw result.error;
+    }
+
+    const seen = new Set<string>();
+    const merged: any[] = [];
+    for (const result of results) {
+      for (const row of result.data || []) {
+        if (!row?.id || seen.has(row.id)) continue;
+        seen.add(row.id);
+        merged.push(row);
+      }
+    }
+
+    if (merged.length > 0) {
+      return rankRelated(merged);
+    }
+
+    // Fallback: recent active jobs so the section is rarely empty
+    const { data: fallback, error: fallbackError } = await supabase
+      .from("jobs")
+      .select(select)
+      .neq("id", jobId)
+      .eq("status", "active")
+      .order("date_posted", { ascending: false })
+      .limit(6);
+
+    if (fallbackError) throw fallbackError;
+    return rankRelated(fallback || []);
   } catch (error) {
     console.error("Error fetching related jobs:", error);
     return [];

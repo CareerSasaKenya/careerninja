@@ -12,6 +12,7 @@ import {
   resolveScrapedDeadline,
 } from './scraperDeadline'
 import {
+  inferJobFunctionFromTitle,
   parseScrapedJobContent,
   ParsedScrapedJobContent,
   ScrapedJobInput,
@@ -201,9 +202,15 @@ export async function publishScrapedJob(
         const inferred = inferCompanyIndustry(dedupCompany, null, industryNames)
         return inferred ? [inferred] : null
       })()
+    const inferredTitleFunction = inferJobFunctionFromTitle(
+      normalized.title || parseInput.title,
+      jobFunctionNames,
+      parseInput.tagsHint
+    )
     const jobFunctionNamesResolved =
       (parsed.job_functions?.length ? parsed.job_functions : null) ||
-      (parsed.job_function ? [parsed.job_function] : null)
+      (parsed.job_function ? [parsed.job_function] : null) ||
+      (inferredTitleFunction ? [inferredTitleFunction] : null)
     const industryName = industryNamesResolved?.[0] || null
     const jobFunctionName = jobFunctionNamesResolved?.[0] || null
     const industryRows = (industries || []).filter(i =>
