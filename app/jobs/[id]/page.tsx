@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from '@supabase/supabase-js';
-import { Flag, Star } from "lucide-react";
+import { Flag } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,13 +10,12 @@ import { ArrowLeft, MapPin, Building2, DollarSign, FileText, Clock, Briefcase, G
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import JobCard from "@/components/JobCard";
-import { CompanyLogo } from "@/components/CompanyLogo";
-import { formatJobSeoTitle, buildLocationString } from "@/lib/textUtils";
+import JobDetailsHeader from "@/components/JobDetailsHeader";
+import { buildLocationString } from "@/lib/textUtils";
 import JobStructuredData from "@/components/JobStructuredData";
 import ApplySection from "@/components/ApplySection";
 import SocialShare from "@/components/SocialShare";
 import ServiceAdvertisement from "@/components/ServiceAdvertisement";
-import { SaveJobButton } from "@/components/SaveJobButton";
 import { AdminEditJobButton } from "@/components/AdminEditJobButton";
 import JobViewTracker from "@/components/JobViewTracker";
 import CVAdBanner from "@/components/CVAdBanner";
@@ -221,116 +220,12 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-6">
-              <Card className="border-border">
-                <CardHeader className="border-b bg-muted/330">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      {/* Featured/Promoted Badges */}
-                      {(job.is_featured || job.is_promoted) && (
-                        <div className="mb-3 flex flex-wrap gap-2">
-                          {job.is_featured && (
-                            <Badge className="bg-yellow-500 text-white gap-1 text-sm py-1 px-3">
-                              <Star className="h-4 w-4 fill-white" />
-                              Featured Job
-                            </Badge>
-                          )}
-                          {job.is_promoted && (
-                            <Badge className="bg-blue-500 text-white gap-1 text-sm py-1 px-3">
-                              <TrendingUp className="h-4 w-4" />
-                              Promoted {job.promotion_tier && `• ${job.promotion_tier}`}
-                            </Badge>
-                          )}
-                        </div>
-                      )}
-                      {(job.valid_through || job.date_posted) && (
-                        <div className="mb-2 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                          {job.date_posted && (
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-4 w-4" />
-                              <span>Posted: {new Date(job.date_posted).toLocaleDateString()}</span>
-                            </div>
-                          )}
-                          {job.valid_through && (
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-4 w-4" />
-                              <span>Valid until: {new Date(job.valid_through).toLocaleDateString()}</span>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      {/* SEO-friendly visible heading: "[Post] at [Company] in [City], [County], Kenya" */}
-                      <CardTitle className="text-2xl sm:text-3xl mb-4 break-words">
-                        {formatJobSeoTitle(job.title, job.companies?.name || job.company, {
-                          city: job.job_location_city,
-                          county: job.job_location_county,
-                          rawLocation: job.location,
-                          isRemote: job.job_location_type === 'REMOTE',
-                        })}
-                      </CardTitle>
-                      <div className="flex flex-wrap gap-4 text-muted-foreground">
-                        {job.company_id && job.companies ? (
-                          <Link 
-                            href={`/companies/${job.company_id}`}
-                            className="flex items-center gap-2 hover:text-primary transition-colors"
-                          >
-                            <CompanyLogo
-                              name={job.companies.name}
-                              logo={job.companies.logo}
-                              website={job.companies.website}
-                              size="md"
-                            />
-                            <span className="text-lg">{job.companies.name}</span>
-                          </Link>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            {job.company ? (
-                              <CompanyLogo
-                                name={job.company}
-                                logo={job.hiring_organization_logo}
-                                website={job.hiring_organization_url}
-                                size="md"
-                              />
-                            ) : (
-                              <FileText className="h-5 w-5 text-muted-foreground" />
-                            )}
-                            <span className="text-lg">{job.company || "Direct Listing"}</span>
-                            <Badge variant="secondary">Direct Listing</Badge>
-                          </div>
-                        )}
-                        <div className="flex items-center gap-2">
-                          <MapPin className="h-5 w-5 text-primary" />
-                          <span className="text-lg">{job.location}</span>
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap gap-2 mt-4">
-                        {(job.employment_types?.length > 0 ? job.employment_types : job.employment_type ? [job.employment_type] : []).map((type: string) => (
-                          <Badge key={type} variant="outline">{type.replace(/_/g, ' ')}</Badge>
-                        ))}
-                        {(job.job_location_types?.length > 0 ? job.job_location_types : job.job_location_type ? [job.job_location_type] : []).map((type: string) => (
-                          <Badge key={type} variant="outline">{type.replace(/_/g, ' ')}</Badge>
-                        ))}
-                        {job.experience_level && (
-                          <Badge variant="outline">{job.experience_level}</Badge>
-                        )}
-                        {getDisplayLabels(job.industries, job.industry).map((ind: string) => (
-                          <Badge key={ind} className="bg-primary/10 text-primary">{ind}</Badge>
-                        ))}
-                        {getDisplayLabels(job.job_functions, job.job_function).map((fn: string) => (
-                          <Badge key={fn} variant="secondary">{fn}</Badge>
-                        ))}
-                        {job.area_of_study && (
-                          <Badge variant="secondary">{job.area_of_study}</Badge>
-                        )}
-                        {job.field_of_study && (
-                          <Badge variant="secondary">{job.field_of_study}</Badge>
-                        )}
-                      </div>
-                      <div className="mt-4">
-                        <SaveJobButton jobId={job.id} variant="default" size="default" showText={true} />
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
+              <Card className="overflow-hidden border-border">
+                <JobDetailsHeader
+                  job={job}
+                  industryLabels={getDisplayLabels(job.industries, job.industry)}
+                  functionLabels={getDisplayLabels(job.job_functions, job.job_function)}
+                />
                 
                 <CardContent className="py-8 space-y-6">
                   {/* CV Builder promo — shown before description */}
