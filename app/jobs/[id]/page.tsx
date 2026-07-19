@@ -19,6 +19,7 @@ import ServiceAdvertisement from "@/components/ServiceAdvertisement";
 import { AdminEditJobButton } from "@/components/AdminEditJobButton";
 import JobViewTracker from "@/components/JobViewTracker";
 import CVAdBanner from "@/components/CVAdBanner";
+import MobileStickyApply from "@/components/MobileStickyApply";
 import {
   dedupeStrings,
   matchToAllowedOptions,
@@ -249,7 +250,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-5">
             {/* Main Content */}
             <div className="space-y-4 lg:col-span-2 sm:space-y-5">
-              <Card className="overflow-hidden border-border">
+              <Card className="overflow-visible border-border sm:overflow-hidden">
                 <JobDetailsHeader
                   job={job}
                   industryLabels={primaryIndustry ? [primaryIndustry] : []}
@@ -388,10 +389,8 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
             </div>
           </div>
 
-          {/* Mobile Apply Section - Visible on mobile devices at the bottom */}
-          <div className="mt-4 space-y-4 lg:hidden sm:mt-5 sm:space-y-5">
-            <ApplySection job={job} />
-            
+          {/* Mobile sidebar content — Apply opens via sticky bar + sheet */}
+          <div className="mt-4 space-y-4 pb-24 lg:hidden sm:mt-5 sm:space-y-5">
             {/* Service Advertisement for mobile */}
             <ServiceAdvertisement />
             
@@ -417,6 +416,8 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
               </Card>
             )}
           </div>
+
+          <MobileStickyApply job={job} />
 
           {/* Related Opportunities Section */}
           {relatedJobs && relatedJobs.length > 0 && (

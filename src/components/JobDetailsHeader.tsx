@@ -10,7 +10,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { CompanyLogo } from "@/components/CompanyLogo";
-import { SaveJobButton } from "@/components/SaveJobButton";
+import SaveJobWithHint from "@/components/SaveJobWithHint";
 import {
   formatJobSeoTitle,
   buildLocationString,
@@ -234,23 +234,7 @@ export default function JobDetailsHeader({
           </div>
         </div>
 
-        <div className="shrink-0">
-          {/* Icon on mobile keeps Save visible beside the title; labeled on desktop */}
-          <SaveJobButton
-            jobId={job.id}
-            variant="outline"
-            size="icon"
-            showText={false}
-            className="sm:hidden"
-          />
-          <SaveJobButton
-            jobId={job.id}
-            variant="outline"
-            size="default"
-            showText={true}
-            className="hidden sm:inline-flex"
-          />
-        </div>
+        <SaveJobWithHint jobId={job.id} />
       </div>
 
       {/* Posted + Apply by side by side; value stacks under each label */}

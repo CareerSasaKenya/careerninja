@@ -16,9 +16,11 @@ import { trackApplicationSource } from "@/lib/employerAnalytics";
 
 interface ApplySectionProps {
   job: any;
+  /** Skip card chrome when rendered inside a sheet/drawer */
+  embedded?: boolean;
 }
 
-export default function ApplySection({ job }: ApplySectionProps) {
+export default function ApplySection({ job, embedded = false }: ApplySectionProps) {
   const { toast } = useToast();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -229,47 +231,53 @@ export default function ApplySection({ job }: ApplySectionProps) {
   const hasExternalMethods = !!(job?.application_url || job?.apply_link || job?.apply_email);
   const hasDirectApply = job?.direct_apply !== false; // Default to true if not explicitly false
 
+  const successBody = (
+    <div className="space-y-4">
+      {!embedded && (
+        <div className="flex items-center gap-2 text-lg font-semibold text-green-600">
+          <CheckCircle className="h-6 w-6" />
+          Application Submitted!
+        </div>
+      )}
+      {embedded && (
+        <div className="flex items-center gap-2 text-base font-semibold text-green-600">
+          <CheckCircle className="h-5 w-5" />
+          Application Submitted!
+        </div>
+      )}
+      <p className="text-muted-foreground">
+        Your application has been successfully submitted. The employer will review your application and contact you if you're a good fit.
+      </p>
+      <div className="flex gap-2">
+        <Button
+          onClick={() => router.push("/dashboard/applications")}
+          className="flex-1"
+        >
+          View My Applications
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => router.push("/jobs")}
+          className="flex-1"
+        >
+          Browse More Jobs
+        </Button>
+      </div>
+    </div>
+  );
+
   // Success state
   if (isSuccess) {
+    if (embedded) return successBody;
     return (
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2 text-green-600">
-            <CheckCircle className="h-6 w-6" />
-            Application Submitted!
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-muted-foreground">
-            Your application has been successfully submitted. The employer will review your application and contact you if you're a good fit.
-          </p>
-          <div className="flex gap-2">
-            <Button 
-              onClick={() => router.push('/dashboard/applications')}
-              className="flex-1"
-            >
-              View My Applications
-            </Button>
-            <Button 
-              variant="outline"
-              onClick={() => router.push('/jobs')}
-              className="flex-1"
-            >
-              Browse More Jobs
-            </Button>
-          </div>
-        </CardContent>
+        <CardContent className="space-y-4 pt-6">{successBody}</CardContent>
       </Card>
     );
   }
 
-  // Main application section - show all available methods
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Apply for this Job</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+  const formBody = (
+    <div className="space-y-4">
         {/* Direct portal application form */}
         {hasDirectApply && (
           <div className="space-y-4">
@@ -437,7 +445,17 @@ export default function ApplySection({ job }: ApplySectionProps) {
             )}
           </div>
         )}
-      </CardContent>
+    </div>
+  );
+
+  if (embedded) return formBody;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">Apply for this Job</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">{formBody}</CardContent>
     </Card>
   );
 }
