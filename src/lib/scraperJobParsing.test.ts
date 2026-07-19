@@ -88,6 +88,33 @@ assert.equal(
   'Legal Services'
 )
 
+const moreFunctions = [
+  ...functions,
+  'Driver & Transport Services',
+  'Food Services & Catering',
+  'Creative & Design',
+  'Quality Control & Assurance',
+  'Research, Teaching & Training',
+  'Retail, Fashion & FMCG',
+  'Accounting, Auditing & Finance',
+  'Management & Business Development',
+  'Customer Service & Support',
+]
+assert.equal(inferJobFunctionFromTitle('Truck Driver', moreFunctions), 'Driver & Transport Services')
+assert.equal(inferJobFunctionFromTitle('Sous Chef', moreFunctions), 'Food Services & Catering')
+assert.equal(inferJobFunctionFromTitle('Graphic Designer', moreFunctions), 'Creative & Design')
+assert.equal(inferJobFunctionFromTitle('QA Analyst', moreFunctions), 'Quality Control & Assurance')
+assert.equal(inferJobFunctionFromTitle('M&E Officer', moreFunctions), 'Research, Teaching & Training')
+assert.equal(inferJobFunctionFromTitle('Bank Teller', moreFunctions), 'Retail, Fashion & FMCG')
+assert.equal(
+  inferJobFunctionFromTitle('Information Risk Manager', moreFunctions),
+  'IT & Software'
+)
+assert.equal(
+  inferJobFunctionFromTitle('Applications Specialist - Customer Experience Systems', moreFunctions),
+  'IT & Software'
+)
+
 const industryList = [
   'Building, Construction & Real Estate',
   'Real Estate & Property Management',

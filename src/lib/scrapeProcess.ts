@@ -60,7 +60,11 @@ import {
   normalizeJobUrl,
   resolveScrapedDeadline,
 } from '@/lib/scraperDeadline'
-import { parseScrapedJobContent, ScrapedJobInput } from '@/lib/scraperJobParsing'
+import {
+  inferJobFunctionFromTitle,
+  parseScrapedJobContent,
+  ScrapedJobInput,
+} from '@/lib/scraperJobParsing'
 import { ensureCompanyForJob } from '@/lib/ensureCompanyForJob'
 import { inferCompanyIndustry } from '@/lib/companyIndustryInference'
 import type { WorkableJobDetail } from '@/lib/workable-adapter'
@@ -493,9 +497,15 @@ export async function runScrapeProcessOne(
         const inferred = inferCompanyIndustry(dedupCompany, null, industryNames)
         return inferred ? [inferred] : null
       })()
+    const inferredTitleFunction = inferJobFunctionFromTitle(
+      normalized.title || parseInput.title,
+      jobFunctionNames,
+      parseInput.tagsHint
+    )
     const jobFunctionNamesResolved =
       (parsed.job_functions?.length ? parsed.job_functions : null) ||
-      (parsed.job_function ? [parsed.job_function] : null)
+      (parsed.job_function ? [parsed.job_function] : null) ||
+      (inferredTitleFunction ? [inferredTitleFunction] : null)
     const industryName = industryNamesResolved?.[0] || null
     const jobFunctionName = jobFunctionNamesResolved?.[0] || null
     const industryRows = (industries || []).filter(i =>
