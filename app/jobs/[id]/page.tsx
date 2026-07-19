@@ -331,7 +331,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                 <div className="flex items-start gap-2">
                   <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
                   <div className="text-sm leading-relaxed text-amber-900">
-                    <strong>CareerSasa Safety Alert:</strong> We strongly advise job seekers not to make any payment to employers or agencies during the recruitment process. If you're asked to pay for training, interviews, or job placement, report the job immediately using the "Flag" button. CareerSasa thoroughly vets postings, but we encourage all applicants to stay vigilant and verify opportunities independently.
+                    <strong>CareerSasa Safety Alert:</strong> Never pay employers or agencies for interviews, training, or job placement. Does a job request payment? Report it immediately using the "Flag" button. While CareerSasa vets job postings thoroughly, always verify opportunities independently.
                   </div>
                 </div>
                 <div className="mt-2.5 flex justify-end gap-2">
