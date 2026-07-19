@@ -179,7 +179,7 @@ export default function ServiceLanding({ content }: { content: ServiceLandingCon
             {content.packages.map((pkg) => (
               <Card
                 key={pkg.id}
-                className="flex h-full flex-col border-border transition-shadow hover:shadow-lg"
+                className="flex h-full min-w-0 flex-col border-border transition-shadow hover:shadow-lg"
               >
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg leading-snug">
