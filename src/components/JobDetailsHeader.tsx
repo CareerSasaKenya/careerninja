@@ -163,8 +163,8 @@ export default function JobDetailsHeader({
       )}
 
       <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex min-w-0 flex-1 gap-3.5 sm:gap-4">
-          <div className="shrink-0 rounded-xl border border-border/70 bg-card p-1.5 shadow-sm">
+        <div className="flex min-w-0 flex-1 items-start gap-3.5 sm:gap-4">
+          <div className="shrink-0 self-start rounded-xl border border-border/70 bg-card p-1.5 shadow-sm">
             {job.company_id && job.companies ? (
               <CompanyLogo
                 name={job.companies.name}
@@ -186,21 +186,21 @@ export default function JobDetailsHeader({
             )}
           </div>
 
-          <div className="min-w-0 flex-1 space-y-2.5">
+          <div className="min-w-0 flex-1 space-y-2">
             <h1 className="text-balance text-2xl font-bold leading-tight tracking-tight text-foreground sm:text-3xl">
               {job.title}
             </h1>
 
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground sm:text-base">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm sm:text-[15px]">
               {job.company_id && job.companies ? (
                 <Link
                   href={`/companies/${job.company_id}`}
-                  className="font-medium text-foreground transition-colors hover:text-primary"
+                  className="font-medium text-foreground/90 transition-colors hover:text-primary"
                 >
                   {job.companies.name}
                 </Link>
               ) : (
-                <span className="inline-flex items-center gap-2 font-medium text-foreground">
+                <span className="inline-flex items-center gap-2 font-medium text-foreground/90">
                   {companyName}
                   {!job.company && (
                     <Badge variant="outline" className="text-xs font-normal">
@@ -212,11 +212,11 @@ export default function JobDetailsHeader({
 
               {displayLocation && (
                 <>
-                  <span className="text-muted-foreground/40" aria-hidden>
+                  <span className="text-muted-foreground/35" aria-hidden>
                     ·
                   </span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <MapPin className="h-4 w-4 shrink-0 text-primary" />
+                  <span className="inline-flex items-center gap-1 text-muted-foreground">
+                    <MapPin className="h-3.5 w-3.5 shrink-0 text-primary" />
                     <span>{displayLocation}</span>
                   </span>
                 </>
@@ -227,7 +227,7 @@ export default function JobDetailsHeader({
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground sm:text-sm">
                 {(postedRel || postedAbsolute) && (
                   <span className="inline-flex items-center gap-1.5">
-                    <Clock className="h-3.5 w-3.5 shrink-0" />
+                    <Clock className="h-3.5 w-3.5 shrink-0 opacity-70" />
                     <span>
                       {postedRel
                         ? postedRel === "Just posted"
@@ -244,7 +244,7 @@ export default function JobDetailsHeader({
                       isExpired ? "font-medium text-destructive" : ""
                     }`}
                   >
-                    <CalendarDays className="h-3.5 w-3.5 shrink-0" />
+                    <CalendarDays className="h-3.5 w-3.5 shrink-0 opacity-70" />
                     <span>
                       {isExpired ? "Closed" : `Apply by ${deadlineAbsolute}`}
                     </span>
