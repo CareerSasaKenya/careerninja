@@ -186,14 +186,20 @@ async function main() {
     })
 
     const educationLevelId = mapEducationLevel(parsed.education_level, educationLevels || [])
-    const industryName = parsed.industry || null
-    const jobFunctionName = parsed.job_function || null
-    const industryRow = industryName
-      ? (industries || []).find(i => i.name === industryName)
-      : null
-    const jobFunctionRow = jobFunctionName
-      ? (jobFunctions || []).find(j => j.name === jobFunctionName)
-      : null
+    const industryNamesResolved =
+      (parsed.industries?.length ? parsed.industries : null) ||
+      (parsed.industry ? [parsed.industry] : null)
+    const jobFunctionNamesResolved =
+      (parsed.job_functions?.length ? parsed.job_functions : null) ||
+      (parsed.job_function ? [parsed.job_function] : null)
+    const industryName = industryNamesResolved?.[0] || null
+    const jobFunctionName = jobFunctionNamesResolved?.[0] || null
+    const industryRows = (industries || []).filter(i =>
+      industryNamesResolved?.includes(i.name)
+    )
+    const jobFunctionRows = (jobFunctions || []).filter(j =>
+      jobFunctionNamesResolved?.includes(j.name)
+    )
 
     const allowedExp = new Set(['Entry', 'Mid', 'Senior', 'Managerial', 'Internship'])
     const experienceLevel =
@@ -207,16 +213,29 @@ async function main() {
       required_qualifications: parsed.required_qualifications || null,
       additional_info: parsed.additional_info || null,
       education_level_id: educationLevelId,
+      area_of_study: parsed.area_of_study || null,
+      field_of_study: parsed.field_of_study || null,
+      language_requirements: parsed.language_requirements || null,
+      apply_email: parsed.apply_email || null,
+      apply_link: parsed.apply_link || null,
+      employment_types: parsed.employment_types || null,
+      employment_type: parsed.employment_types?.[0] || null,
+      job_location_types: parsed.job_location_types || null,
+      job_location_type: parsed.job_location_types?.[0] || null,
+      job_location_country: parsed.job_location_country || null,
+      job_location_county: parsed.job_location_county || null,
+      job_location_city: parsed.job_location_city || null,
+      additional_locations: parsed.additional_locations || [],
       minimum_experience: parsed.minimum_experience,
       experience_level: experienceLevel,
       industry: industryName,
-      industries: industryName ? [industryName] : null,
-      industry_id: industryRow?.id ?? null,
-      industry_ids: industryRow?.id != null ? [industryRow.id] : null,
+      industries: industryNamesResolved,
+      industry_id: industryRows[0]?.id ?? null,
+      industry_ids: industryRows.map(r => r.id),
       job_function: jobFunctionName,
-      job_functions: jobFunctionName ? [jobFunctionName] : null,
-      job_function_id: jobFunctionRow?.id ?? null,
-      job_function_ids: jobFunctionRow?.id != null ? [jobFunctionRow.id] : null,
+      job_functions: jobFunctionNamesResolved,
+      job_function_id: jobFunctionRows[0]?.id ?? null,
+      job_function_ids: jobFunctionRows.map(r => r.id),
       tags: limitTags(parsed.tags, 5),
     }
 
@@ -225,7 +244,8 @@ async function main() {
         ` | desc ${String(job.description || '').length}→${String(patch.description || '').length}` +
         ` resp ${String(job.responsibilities || '').length}→${String(patch.responsibilities || '').length}` +
         ` tags="${patch.tags}" industry=${patch.industry} fn=${patch.job_function}` +
-        ` edu=${parsed.education_level} minExp=${parsed.minimum_experience}`
+        ` edu=${parsed.education_level} study=${parsed.field_of_study}` +
+        ` email=${parsed.apply_email || '-'} minExp=${parsed.minimum_experience}`
     )
 
     if (apply) {

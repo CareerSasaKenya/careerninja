@@ -6,6 +6,7 @@ import {
   matchJobFunctionName,
   inferJobFunctionFromTitle,
   parseScrapedJobContent,
+  mergeManualParseResult,
 } from './scraperJobParsing'
 import { inferCompanyIndustry } from './companyIndustryInference'
 
@@ -131,5 +132,56 @@ const tatuParsed = await parseScrapedJobContent(
 )
 assert.equal(tatuParsed.industry, 'Building, Construction & Real Estate')
 assert.equal(tatuParsed.job_function, 'Community & Social Services')
+
+// Full manual-parse merge must retain enrichment fields (study, apply, tips, types)
+const baseFallback = parseScrapedJobFallback({
+  title: 'QA Analyst',
+  company: 'Acme',
+  descriptionSection: '<p>About the role.</p>',
+  requirementsSection: '<ul><li>Bachelor’s in Chemistry</li></ul>',
+})
+const merged = mergeManualParseResult(baseFallback, {
+  title: 'QA Analyst',
+  company: 'Acme',
+  description: '<p>Role overview from AI</p>',
+  responsibilities: '<ul><li>Test batches</li></ul>',
+  required_qualifications: '<ul><li>BSc Chemistry</li></ul>',
+  employment_type: 'FULL_TIME',
+  employment_types: ['FULL_TIME', 'CONTRACTOR'],
+  job_location_type: 'ON_SITE',
+  job_location_types: ['ON_SITE', 'HYBRID'],
+  job_location_country: 'Kenya',
+  job_location_county: 'Nairobi',
+  job_location_city: 'Nairobi',
+  industry: 'Manufacturing & Warehousing',
+  industries: ['Manufacturing & Warehousing'],
+  education_level_name: "Bachelor's Degree",
+  area_of_study: 'Science',
+  field_of_study: 'Industrial Chemistry',
+  experience_level: 'Mid',
+  language_requirements: 'English',
+  minimum_experience: '3',
+  valid_through: '2026-08-01',
+  apply_email: 'careers@acme.com',
+  apply_link: 'https://acme.com/apply',
+  tags: 'qa, chemistry, iso',
+  additional_info:
+    '<p><strong>How to Apply:</strong> Email CV</p><h3>Tips:</h3><p>1. Highlight lab experience</p>',
+  job_function: 'Quality Control & Assurance',
+  job_functions: ['Quality Control & Assurance'],
+  additional_locations: [{ county: 'Mombasa', city: 'Mombasa' }],
+})
+assert.equal(merged.area_of_study, 'Science')
+assert.equal(merged.field_of_study, 'Industrial Chemistry')
+assert.equal(merged.language_requirements, 'English')
+assert.equal(merged.apply_email, 'careers@acme.com')
+assert.equal(merged.apply_link, 'https://acme.com/apply')
+assert.deepEqual(merged.employment_types, ['FULL_TIME', 'CONTRACTOR'])
+assert.deepEqual(merged.job_location_types, ['ON_SITE', 'HYBRID'])
+assert.equal(merged.deadline, '2026-08-01')
+assert.equal(merged.education_level, "Bachelor's Degree")
+assert.ok(merged.additional_info.includes('Tips'))
+assert.equal(merged.minimum_experience, 3)
+assert.deepEqual(merged.additional_locations, [{ county: 'Mombasa', city: 'Mombasa' }])
 
 console.log('scraperJobParsing.test.ts: all assertions passed')

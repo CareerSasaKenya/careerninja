@@ -5,13 +5,19 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 import { NormalizedJob, generateContentHash } from './scraper'
 import { mapEducationLevel } from './jobMetadataExtraction'
+import { limitTags } from './jobParseNormalization'
 import {
   expiresAtFromValidThrough,
   normalizeJobUrl,
   resolveScrapedDeadline,
 } from './scraperDeadline'
-import { parseScrapedJobContent, ScrapedJobInput } from './scraperJobParsing'
+import {
+  parseScrapedJobContent,
+  ParsedScrapedJobContent,
+  ScrapedJobInput,
+} from './scraperJobParsing'
 import { ensureCompanyForJob } from './ensureCompanyForJob'
+import { inferCompanyIndustry } from './companyIndustryInference'
 
 export interface PublishScrapedJobParams {
   supabase: SupabaseClient
@@ -22,6 +28,7 @@ export interface PublishScrapedJobParams {
   rawData: unknown
   scraperUserId: string
   dedupCompany: string
+  /** @deprecated Prefer AI enrichment; only skip when explicitly necessary */
   skipAi?: boolean
 }
 
@@ -31,6 +38,75 @@ export interface PublishScrapedJobResult {
   title?: string
   error?: string
   valid_through?: string
+}
+
+const EXPERIENCE_LEVELS = new Set(['Entry', 'Mid', 'Senior', 'Managerial', 'Internship'])
+const LOCATION_TYPES = new Set(['ON_SITE', 'REMOTE', 'HYBRID'])
+
+function sanitizeExperienceLevel(
+  value: unknown
+): 'Entry' | 'Mid' | 'Senior' | 'Managerial' | 'Internship' {
+  if (typeof value === 'string' && EXPERIENCE_LEVELS.has(value)) {
+    return value as 'Entry' | 'Mid' | 'Senior' | 'Managerial' | 'Internship'
+  }
+  const raw = String(value || '').trim().toLowerCase()
+  if (!raw || raw.includes('not applicable') || raw === 'n/a' || raw === 'none') return 'Mid'
+  if (raw.includes('intern')) return 'Internship'
+  if (raw.includes('entry') || raw.includes('junior') || raw.includes('graduate')) return 'Entry'
+  if (raw.includes('senior') || raw.includes('lead') || raw.includes('principal')) return 'Senior'
+  if (
+    raw.includes('manager') ||
+    raw.includes('director') ||
+    raw.includes('executive') ||
+    raw.includes('head')
+  ) {
+    return 'Managerial'
+  }
+  if (raw.includes('associate') || raw.includes('mid') || raw.includes('intermediate')) return 'Mid'
+  return 'Mid'
+}
+
+function sanitizeJobLocationType(value: unknown): 'ON_SITE' | 'REMOTE' | 'HYBRID' {
+  const raw = String(value || '').trim().toUpperCase()
+  if (raw === 'TELECOMMUTE' || raw === 'REMOTE') return 'REMOTE'
+  if (raw === 'HYBRID') return 'HYBRID'
+  if (LOCATION_TYPES.has(raw)) return raw as 'ON_SITE' | 'REMOTE' | 'HYBRID'
+  return 'ON_SITE'
+}
+
+function emptyParsedFromNormalized(normalized: NormalizedJob): ParsedScrapedJobContent {
+  return {
+    description: normalized.description,
+    responsibilities: normalized.responsibilities,
+    required_qualifications: normalized.required_qualifications,
+    additional_info: '',
+    deadline: normalized.valid_through,
+    education_level: null,
+    minimum_experience: normalized.minimum_experience,
+    experience_level: normalized.experience_level,
+    industry: normalized.industry,
+    industries: normalized.industry ? [normalized.industry] : null,
+    job_function: null,
+    job_functions: null,
+    tags: normalized.tags || '',
+    salary_min: normalized.salary_min,
+    salary_max: normalized.salary_max,
+    salary_currency: normalized.salary_currency,
+    salary_period: normalized.salary_period,
+    area_of_study: null,
+    field_of_study: null,
+    language_requirements: null,
+    apply_email: null,
+    apply_link: normalized.apply_link || null,
+    employment_types: normalized.employment_type ? [normalized.employment_type] : null,
+    job_location_types: normalized.job_location_type
+      ? [sanitizeJobLocationType(normalized.job_location_type)]
+      : null,
+    job_location_country: normalized.job_location_country || 'Kenya',
+    job_location_county: normalized.job_location_county || null,
+    job_location_city: normalized.job_location_city || null,
+    additional_locations: null,
+  }
 }
 
 export async function publishScrapedJob(
@@ -73,25 +149,22 @@ export async function publishScrapedJob(
   }
 
   try {
+    const [{ data: educationLevels }, { data: industries }, { data: jobFunctions }] =
+      await Promise.all([
+        supabase.from('education_levels').select('id, name'),
+        supabase.from('industries').select('id, name'),
+        supabase.from('job_functions').select('id, name'),
+      ])
+
+    const industryNames = (industries || []).map(i => i.name)
+    const jobFunctionNames = (jobFunctions || []).map(j => j.name)
+
     const parsed = skipAi
-      ? {
-          description: normalized.description,
-          responsibilities: normalized.responsibilities,
-          required_qualifications: normalized.required_qualifications,
-          additional_info: '',
-          deadline: normalized.valid_through,
-          education_level: null,
-          minimum_experience: normalized.minimum_experience,
-          experience_level: normalized.experience_level,
-          industry: normalized.industry,
-          job_function: null,
-          tags: normalized.tags || '',
-          salary_min: normalized.salary_min,
-          salary_max: normalized.salary_max,
-          salary_currency: normalized.salary_currency,
-          salary_period: normalized.salary_period,
-        }
-      : await parseScrapedJobContent(parseInput)
+      ? emptyParsedFromNormalized(normalized)
+      : await parseScrapedJobContent(parseInput, {
+          industryNames,
+          jobFunctionNames,
+        })
 
     const deadline = resolveScrapedDeadline(
       parsed.deadline || normalized.valid_through || null
@@ -119,23 +192,50 @@ export async function publishScrapedJob(
       }
     }
 
-    const { data: educationLevels } = await supabase
-      .from('education_levels')
-      .select('id, name')
     const educationLevelId = mapEducationLevel(parsed.education_level, educationLevels || [])
 
-    // Reuse stored company logo, or fetch+persist once for this employer
+    const industryNamesResolved =
+      (parsed.industries?.length ? parsed.industries : null) ||
+      (parsed.industry ? [parsed.industry] : null) ||
+      (() => {
+        const inferred = inferCompanyIndustry(dedupCompany, null, industryNames)
+        return inferred ? [inferred] : null
+      })()
+    const jobFunctionNamesResolved =
+      (parsed.job_functions?.length ? parsed.job_functions : null) ||
+      (parsed.job_function ? [parsed.job_function] : null)
+    const industryName = industryNamesResolved?.[0] || null
+    const jobFunctionName = jobFunctionNamesResolved?.[0] || null
+    const industryRows = (industries || []).filter(i =>
+      industryNamesResolved?.includes(i.name)
+    )
+    const jobFunctionRows = (jobFunctions || []).filter(j =>
+      jobFunctionNamesResolved?.includes(j.name)
+    )
+
     const ensured = await ensureCompanyForJob(supabase, {
       name: dedupCompany,
       userId: scraperUserId,
     })
     const companyId = ensured.companyId
 
+    const employmentTypes =
+      parsed.employment_types?.length
+        ? parsed.employment_types
+        : normalized.employment_type
+          ? [normalized.employment_type]
+          : ['FULL_TIME']
+    const jobLocationTypes =
+      parsed.job_location_types?.length
+        ? parsed.job_location_types
+        : [sanitizeJobLocationType(normalized.job_location_type)]
+
     const jobPayload = {
       ...normalized,
       description: parsed.description || normalized.description,
-      responsibilities: parsed.responsibilities || null,
-      required_qualifications: parsed.required_qualifications || normalized.required_qualifications || null,
+      responsibilities: parsed.responsibilities || normalized.responsibilities || null,
+      required_qualifications:
+        parsed.required_qualifications || normalized.required_qualifications || null,
       additional_info: parsed.additional_info || null,
       company_id: companyId,
       user_id: scraperUserId,
@@ -145,12 +245,40 @@ export async function publishScrapedJob(
       source: 'Scraper',
       direct_apply: false,
       application_url: applicationUrl,
+      apply_email: parsed.apply_email || null,
+      apply_link: parsed.apply_link || normalized.apply_link || null,
       valid_through: deadline.validThrough,
       expires_at: expiresAtFromValidThrough(deadline.validThrough),
       education_level_id: educationLevelId,
+      area_of_study: parsed.area_of_study || null,
+      field_of_study: parsed.field_of_study || null,
+      language_requirements: parsed.language_requirements || null,
       minimum_experience: parsed.minimum_experience ?? normalized.minimum_experience,
-      experience_level: parsed.experience_level || normalized.experience_level,
-      industry: parsed.industry || normalized.industry || null,
+      experience_level: sanitizeExperienceLevel(
+        parsed.experience_level || normalized.experience_level
+      ),
+      employment_type: employmentTypes[0],
+      employment_types: employmentTypes,
+      job_location_type: sanitizeJobLocationType(
+        jobLocationTypes[0] || normalized.job_location_type
+      ),
+      job_location_types: jobLocationTypes.map(sanitizeJobLocationType),
+      job_location_country:
+        parsed.job_location_country || normalized.job_location_country || 'Kenya',
+      job_location_county:
+        parsed.job_location_county || normalized.job_location_county || null,
+      job_location_city:
+        parsed.job_location_city || normalized.job_location_city || null,
+      additional_locations: parsed.additional_locations || [],
+      industry: industryName,
+      industries: industryNamesResolved,
+      industry_id: industryRows[0]?.id ?? null,
+      industry_ids: industryRows.map(r => r.id),
+      job_function: jobFunctionName,
+      job_functions: jobFunctionNamesResolved,
+      job_function_id: jobFunctionRows[0]?.id ?? null,
+      job_function_ids: jobFunctionRows.map(r => r.id),
+      tags: limitTags(parsed.tags || normalized.tags || '', 5),
       salary_min: normalized.salary_min ?? parsed.salary_min ?? null,
       salary_max: normalized.salary_max ?? parsed.salary_max ?? null,
       salary_currency: normalized.salary_currency || parsed.salary_currency || 'KES',

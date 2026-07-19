@@ -349,17 +349,26 @@ export async function runScrapeProcessOne(
 
     const educationLevelId = mapEducationLevel(parsed.education_level, educationLevels || [])
     // parseScrapedJobContent already applies company/title heuristics; keep a last-resort fallback
-    const industryName =
-      parsed.industry ||
-      inferCompanyIndustry(dedupCompany, null, industryNames) ||
-      null
-    const jobFunctionName = parsed.job_function || null
-    const industryRow = industryName
-      ? (industries || []).find(i => i.name === industryName)
-      : null
-    const jobFunctionRow = jobFunctionName
-      ? (jobFunctions || []).find(j => j.name === jobFunctionName)
-      : null
+    const industryNamesResolved =
+      (parsed.industries?.length ? parsed.industries : null) ||
+      (parsed.industry ? [parsed.industry] : null) ||
+      (() => {
+        const inferred = inferCompanyIndustry(dedupCompany, null, industryNames)
+        return inferred ? [inferred] : null
+      })()
+    const jobFunctionNamesResolved =
+      (parsed.job_functions?.length ? parsed.job_functions : null) ||
+      (parsed.job_function ? [parsed.job_function] : null)
+    const industryName = industryNamesResolved?.[0] || null
+    const jobFunctionName = jobFunctionNamesResolved?.[0] || null
+    const industryRows = (industries || []).filter(i =>
+      industryNamesResolved?.includes(i.name)
+    )
+    const jobFunctionRows = (jobFunctions || []).filter(j =>
+      jobFunctionNamesResolved?.includes(j.name)
+    )
+    const industryRow = industryRows[0] || null
+    const jobFunctionRow = jobFunctionRows[0] || null
 
     const scraperUserId = await getScraperUserId()
     const ensured = await ensureCompanyForJob(supabase, {
@@ -372,6 +381,17 @@ export async function runScrapeProcessOne(
       parsed.tags || normalized.tags || '',
       5
     )
+
+    const employmentTypes =
+      parsed.employment_types?.length
+        ? parsed.employment_types
+        : normalized.employment_type
+          ? [normalized.employment_type]
+          : ['FULL_TIME']
+    const jobLocationTypes =
+      parsed.job_location_types?.length
+        ? parsed.job_location_types
+        : [sanitizeJobLocationType(normalized.job_location_type)]
 
     const jobPayload = {
       ...normalized,
@@ -390,22 +410,39 @@ export async function runScrapeProcessOne(
       source: 'Scraper',
       direct_apply: false,
       application_url: applicationUrl,
+      apply_email: parsed.apply_email || null,
+      apply_link: parsed.apply_link || normalized.apply_link || null,
       valid_through: deadline.validThrough,
       expires_at: expiresAtFromValidThrough(deadline.validThrough),
       education_level_id: educationLevelId,
+      area_of_study: parsed.area_of_study || null,
+      field_of_study: parsed.field_of_study || null,
+      language_requirements: parsed.language_requirements || null,
       minimum_experience: parsed.minimum_experience ?? normalized.minimum_experience,
       experience_level: sanitizeExperienceLevel(
         parsed.experience_level || normalized.experience_level
       ),
-      job_location_type: sanitizeJobLocationType(normalized.job_location_type),
+      employment_type: employmentTypes[0],
+      employment_types: employmentTypes,
+      job_location_type: sanitizeJobLocationType(
+        jobLocationTypes[0] || normalized.job_location_type
+      ),
+      job_location_types: jobLocationTypes.map(sanitizeJobLocationType),
+      job_location_country:
+        parsed.job_location_country || normalized.job_location_country || 'Kenya',
+      job_location_county:
+        parsed.job_location_county || normalized.job_location_county || null,
+      job_location_city:
+        parsed.job_location_city || normalized.job_location_city || null,
+      additional_locations: parsed.additional_locations || [],
       industry: industryName,
-      industries: industryName ? [industryName] : null,
+      industries: industryNamesResolved,
       industry_id: industryRow?.id ?? null,
-      industry_ids: industryRow?.id != null ? [industryRow.id] : null,
+      industry_ids: industryRows.map(r => r.id),
       job_function: jobFunctionName,
-      job_functions: jobFunctionName ? [jobFunctionName] : null,
+      job_functions: jobFunctionNamesResolved,
       job_function_id: jobFunctionRow?.id ?? null,
-      job_function_ids: jobFunctionRow?.id != null ? [jobFunctionRow.id] : null,
+      job_function_ids: jobFunctionRows.map(r => r.id),
       tags,
       salary_min: normalized.salary_min ?? parsed.salary_min ?? null,
       salary_max: normalized.salary_max ?? parsed.salary_max ?? null,

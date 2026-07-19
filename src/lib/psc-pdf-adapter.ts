@@ -341,7 +341,6 @@ export async function processPscPdfQueueItem(
       rawData: { pdfUrl: downloadUrl, extracted, pdfExcerpt: pdfText.slice(0, 2000) },
       scraperUserId,
       dedupCompany,
-      skipAi: true,
     })
 
     if (outcome.status === 'published') {

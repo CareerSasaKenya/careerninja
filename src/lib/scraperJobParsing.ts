@@ -1,17 +1,22 @@
 /**
  * Intelligent parsing of scraped job content into CareerSasa job fields.
  *
- * Uses a hybrid approach:
- * 1. Rule-based section splitting (ATS fields + HTML heading / <strong> detection)
- * 2. AI enhancement via Gemini when API keys are configured
- * 3. Lightweight regex metadata when AI is unavailable
+ * Uses the same AI parse + finalize path as manual job parsing
+ * (callAIWithRetry → buildJobParseSystemPrompt → finalizeParsedJobData),
+ * with rule-based section splitting and taxonomy heuristics as fallbacks.
  */
 
 import * as cheerio from 'cheerio'
 import type { AnyNode, Element as DomElement } from 'domhandler'
-import { callAI } from './aiProviders'
-import { ExtractedJobMetadata, extractJobMetadata } from './jobMetadataExtraction'
-import { fuzzyMatchOption, limitTags } from './jobParseNormalization'
+import { extractJobMetadata } from './jobMetadataExtraction'
+import {
+  buildJobParseSystemPrompt,
+  FALLBACK_INDUSTRIES,
+  FALLBACK_JOB_FUNCTIONS,
+  fuzzyMatchOption,
+  limitTags,
+} from './jobParseNormalization'
+import { callAIWithRetry, type ParsedJobData } from './jobParsingOptimized'
 import { inferCompanyIndustry } from './companyIndustryInference'
 
 export interface ScrapedJobInput {
@@ -48,27 +53,69 @@ export interface ParsedScrapedJobContent {
   minimum_experience: number | null
   experience_level: string | null
   industry: string | null
+  industries: string[] | null
   job_function: string | null
+  job_functions: string[] | null
   tags: string
   salary_min: number | null
   salary_max: number | null
   salary_currency: string | null
   salary_period: string | null
+  /** Same enrichment fields as manual /api/parse-job */
+  area_of_study: string | null
+  field_of_study: string | null
+  language_requirements: string | null
+  apply_email: string | null
+  apply_link: string | null
+  employment_types: string[] | null
+  job_location_types: string[] | null
+  job_location_country: string | null
+  job_location_county: string | null
+  job_location_city: string | null
+  additional_locations: Array<{ county: string; city: string }> | null
 }
 
-const EMPTY_METADATA: Omit<
+const EMPTY_ENRICHMENT: Pick<
   ParsedScrapedJobContent,
-  'description' | 'responsibilities' | 'required_qualifications' | 'additional_info' | 'tags' | 'job_function'
+  | 'area_of_study'
+  | 'field_of_study'
+  | 'language_requirements'
+  | 'apply_email'
+  | 'apply_link'
+  | 'employment_types'
+  | 'job_location_types'
+  | 'job_location_country'
+  | 'job_location_county'
+  | 'job_location_city'
+  | 'additional_locations'
+  | 'industries'
+  | 'job_functions'
 > = {
-  deadline: null,
-  education_level: null,
-  minimum_experience: null,
-  experience_level: null,
-  industry: null,
-  salary_min: null,
-  salary_max: null,
-  salary_currency: null,
-  salary_period: null,
+  area_of_study: null,
+  field_of_study: null,
+  language_requirements: null,
+  apply_email: null,
+  apply_link: null,
+  employment_types: null,
+  job_location_types: null,
+  job_location_country: null,
+  job_location_county: null,
+  job_location_city: null,
+  additional_locations: null,
+  industries: null,
+  job_functions: null,
+}
+
+const EMPTY_METADATA = {
+  deadline: null as string | null,
+  education_level: null as string | null,
+  minimum_experience: null as number | null,
+  experience_level: null as string | null,
+  industry: null as string | null,
+  salary_min: null as number | null,
+  salary_max: null as number | null,
+  salary_currency: null as string | null,
+  salary_period: null as string | null,
 }
 
 const SECTION_PATTERNS = {
@@ -394,6 +441,7 @@ export function parseScrapedJobFallback(input: ScrapedJobInput): ParsedScrapedJo
     required_qualifications,
     additional_info,
     ...EMPTY_METADATA,
+    ...EMPTY_ENRICHMENT,
     education_level,
     minimum_experience,
     experience_level,
@@ -441,75 +489,132 @@ function stripToPlain(html: string, maxLen: number): string {
     .slice(0, maxLen)
 }
 
-const SCRAPER_PARSE_PROMPT = `You are a job posting parser for CareerSasa, a Kenyan job portal.
-Parse the labeled job sections into structured fields. Return ONLY valid JSON.
-
-RULES:
-1. Return ONLY JSON — no markdown fences or explanations
-2. Use clean HTML for text fields (<p>, <ul>, <li>, <strong>, <h3> only)
-3. description: Company overview + short role purpose — NOT a long list of duties
-4. responsibilities: Key duties and tasks as <ul><li> items (from Responsibilities / Activities / KPIs)
-5. required_qualifications: Education, experience, skills required as <ul><li> items
-6. additional_info: Benefits, perks, how to apply, company culture — use <h3> subheadings
-7. Do NOT duplicate the same content across fields
-8. If a section is absent in the source, return empty string ""
-9. experience_level: Entry, Mid, Senior, Managerial, Internship, or null
-10. education_level: Diploma, Bachelor's, Master's, PhD, Certificate, KCSE, or null
-11. salary: only if explicitly stated as numbers
-12. deadline: YYYY-MM-DD if a closing date is mentioned, else null
-13. tags: comma-separated string, at most 5 relevant skills/keywords
-14. industry / job_function: short labels if clearly present
-
-Return this JSON structure:
-{
-  "description": "<p>Role overview</p>",
-  "responsibilities": "<ul><li>Duty 1</li></ul>",
-  "required_qualifications": "<ul><li>Qualification 1</li></ul>",
-  "additional_info": "<h3>Benefits</h3><ul><li>Benefit 1</li></ul>",
-  "deadline": "YYYY-MM-DD or null",
-  "education_level": "string or null",
-  "minimum_experience": number_or_null,
-  "experience_level": "Entry|Mid|Senior|Managerial|Internship|null",
-  "industry": "string or null",
-  "job_function": "string or null",
-  "tags": "tag1, tag2, tag3",
-  "salary_min": number_or_null,
-  "salary_max": number_or_null,
-  "salary_currency": "KES|USD|null",
-  "salary_period": "MONTH|YEAR|DAY|HOUR|null"
-}`
-
-function mergeAIResult(
-  fallback: ParsedScrapedJobContent,
-  ai: Record<string, unknown>
-): ParsedScrapedJobContent {
-  return {
-    description: String(ai.description || '').trim() || fallback.description,
-    responsibilities: String(ai.responsibilities || '').trim() || fallback.responsibilities,
-    required_qualifications:
-      String(ai.required_qualifications || '').trim() || fallback.required_qualifications,
-    additional_info: String(ai.additional_info || '').trim() || fallback.additional_info,
-    deadline: (ai.deadline as string | null) ?? (ai.valid_through as string | null) ?? fallback.deadline,
-    education_level:
-      (ai.education_level as string | null) ??
-      (ai.education_level_name as string | null) ??
-      fallback.education_level,
-    minimum_experience: parseNumeric(ai.minimum_experience) ?? fallback.minimum_experience,
-    experience_level: (ai.experience_level as string | null) ?? fallback.experience_level,
-    industry: (ai.industry as string | null) ?? fallback.industry,
-    job_function: (ai.job_function as string | null) ?? fallback.job_function,
-    tags: limitTags(String(ai.tags || '').trim() || fallback.tags, 5),
-    salary_min: parseNumeric(ai.salary_min) ?? fallback.salary_min,
-    salary_max: parseNumeric(ai.salary_max) ?? fallback.salary_max,
-    salary_currency: (ai.salary_currency as string | null) ?? fallback.salary_currency,
-    salary_period: (ai.salary_period as string | null) ?? fallback.salary_period,
-  }
-}
+const EMPLOYMENT_TYPES = new Set([
+  'FULL_TIME',
+  'PART_TIME',
+  'CONTRACTOR',
+  'INTERN',
+  'TEMPORARY',
+  'VOLUNTEER',
+  'PER_DIEM',
+])
+const LOCATION_TYPES = new Set(['ON_SITE', 'REMOTE', 'HYBRID'])
 
 function parseNumeric(val: unknown): number | null {
   if (val === null || val === undefined || val === '') return null
   const n = typeof val === 'number' ? val : parseInt(String(val), 10)
   return isNaN(n) ? null : n
+}
+
+function asNonEmptyString(val: unknown): string | null {
+  if (typeof val !== 'string') return null
+  const trimmed = val.trim()
+  return trimmed ? trimmed : null
+}
+
+function sanitizeEmploymentTypes(val: unknown, fallbackType?: string | null): string[] | null {
+  const fromArray = Array.isArray(val)
+    ? val.map(v => String(v || '').trim().toUpperCase()).filter(v => EMPLOYMENT_TYPES.has(v))
+    : []
+  if (fromArray.length > 0) return [...new Set(fromArray)]
+  const single = String(fallbackType || '').trim().toUpperCase()
+  if (EMPLOYMENT_TYPES.has(single)) return [single]
+  return null
+}
+
+function sanitizeLocationTypes(val: unknown, fallbackType?: string | null): string[] | null {
+  const raw = Array.isArray(val) ? val : []
+  const mapped = raw
+    .map(v => {
+      const u = String(v || '').trim().toUpperCase()
+      if (u === 'TELECOMMUTE') return 'REMOTE'
+      return u
+    })
+    .filter(v => LOCATION_TYPES.has(v))
+  if (mapped.length > 0) return [...new Set(mapped)]
+  const single = String(fallbackType || '').trim().toUpperCase()
+  const normalized = single === 'TELECOMMUTE' ? 'REMOTE' : single
+  if (LOCATION_TYPES.has(normalized)) return [normalized]
+  return null
+}
+
+function sanitizeAdditionalLocations(
+  val: unknown
+): Array<{ county: string; city: string }> | null {
+  if (!Array.isArray(val) || val.length === 0) return null
+  const cleaned = val
+    .map(item => {
+      if (!item || typeof item !== 'object') return null
+      const county = asNonEmptyString((item as { county?: unknown }).county) || ''
+      const city = asNonEmptyString((item as { city?: unknown }).city) || ''
+      if (!county && !city) return null
+      return { county, city }
+    })
+    .filter((x): x is { county: string; city: string } => Boolean(x))
+  return cleaned.length > 0 ? cleaned : null
+}
+
+/** Merge full manual-parse AI output onto rule-based section fallback. */
+export function mergeManualParseResult(
+  fallback: ParsedScrapedJobContent,
+  ai: ParsedJobData | Record<string, unknown>
+): ParsedScrapedJobContent {
+  const industries = Array.isArray(ai.industries)
+    ? (ai.industries as unknown[]).map(String).filter(Boolean)
+    : ai.industry
+      ? [String(ai.industry)]
+      : null
+  const jobFunctions = Array.isArray(ai.job_functions)
+    ? (ai.job_functions as unknown[]).map(String).filter(Boolean)
+    : ai.job_function
+      ? [String(ai.job_function)]
+      : null
+
+  return {
+    description: asNonEmptyString(ai.description) || fallback.description,
+    responsibilities: asNonEmptyString(ai.responsibilities) || fallback.responsibilities,
+    required_qualifications:
+      asNonEmptyString(ai.required_qualifications) || fallback.required_qualifications,
+    additional_info: asNonEmptyString(ai.additional_info) || fallback.additional_info,
+    deadline:
+      asNonEmptyString(ai.valid_through) ||
+      asNonEmptyString((ai as { deadline?: unknown }).deadline) ||
+      fallback.deadline,
+    education_level:
+      asNonEmptyString(ai.education_level_name) ||
+      asNonEmptyString((ai as { education_level?: unknown }).education_level) ||
+      fallback.education_level,
+    minimum_experience: parseNumeric(ai.minimum_experience) ?? fallback.minimum_experience,
+    experience_level: asNonEmptyString(ai.experience_level) || fallback.experience_level,
+    industry: asNonEmptyString(ai.industry) || industries?.[0] || fallback.industry,
+    industries: industries?.length ? industries : fallback.industries,
+    job_function: asNonEmptyString(ai.job_function) || jobFunctions?.[0] || fallback.job_function,
+    job_functions: jobFunctions?.length ? jobFunctions : fallback.job_functions,
+    tags: limitTags(asNonEmptyString(ai.tags) || fallback.tags, 5),
+    salary_min: parseNumeric(ai.salary_min) ?? fallback.salary_min,
+    salary_max: parseNumeric(ai.salary_max) ?? fallback.salary_max,
+    salary_currency: asNonEmptyString(ai.salary_currency) || fallback.salary_currency,
+    salary_period: asNonEmptyString(ai.salary_period) || fallback.salary_period,
+    area_of_study: asNonEmptyString(ai.area_of_study) || fallback.area_of_study,
+    field_of_study: asNonEmptyString(ai.field_of_study) || fallback.field_of_study,
+    language_requirements:
+      asNonEmptyString(ai.language_requirements) || fallback.language_requirements,
+    apply_email: asNonEmptyString(ai.apply_email) || fallback.apply_email,
+    apply_link: asNonEmptyString(ai.apply_link) || fallback.apply_link,
+    employment_types:
+      sanitizeEmploymentTypes(ai.employment_types, asNonEmptyString(ai.employment_type)) ||
+      fallback.employment_types,
+    job_location_types:
+      sanitizeLocationTypes(ai.job_location_types, asNonEmptyString(ai.job_location_type)) ||
+      fallback.job_location_types,
+    job_location_country:
+      asNonEmptyString(ai.job_location_country) || fallback.job_location_country,
+    job_location_county:
+      asNonEmptyString(ai.job_location_county) || fallback.job_location_county,
+    job_location_city: asNonEmptyString(ai.job_location_city) || fallback.job_location_city,
+    additional_locations:
+      sanitizeAdditionalLocations(ai.additional_locations) || fallback.additional_locations,
+  }
 }
 
 /** Common ATS industry labels → CareerSasa industry names */
@@ -665,7 +770,8 @@ export function matchJobFunctionName(
 
 /**
  * Parse scraped job content into CareerSasa fields.
- * Tries AI first, falls back to rule-based splitting, then metadata-only AI.
+ * Uses the same AI prompt + finalize path as manual job parsing, then applies
+ * scraper taxonomy heuristics when the model omits industry/function.
  */
 export async function parseScrapedJobContent(
   input: ScrapedJobInput,
@@ -674,10 +780,16 @@ export async function parseScrapedJobContent(
   const fallback = parseScrapedJobFallback(input)
   const aiText = buildAIText(input)
 
+  const industryNames =
+    options?.industryNames?.length ? options.industryNames : [...FALLBACK_INDUSTRIES]
+  const jobFunctionNames =
+    options?.jobFunctionNames?.length ? options.jobFunctionNames : [...FALLBACK_JOB_FUNCTIONS]
+
   const hasAIKeys = [
     process.env.GEMINI_API_KEY,
     process.env.GEMINI_API_KEY_2,
     process.env.GEMINI_API_KEY_3,
+    process.env.GROQ_API_KEY,
     process.env.OPENROUTER_API_KEY,
   ].some(Boolean)
 
@@ -685,19 +797,12 @@ export async function parseScrapedJobContent(
 
   if (hasAIKeys) {
     try {
-      // Use callAI directly so the raw scraper JSON schema is preserved —
-      // callAIWithRetry runs finalizeParsedJobData which remaps deadline →
-      // valid_through and drops industry/job_function if they don't fuzzy-
-      // match the employer-form taxonomy before mergeAIResult can read them.
-      const result = await callAI(aiText, {
-        systemPrompt: SCRAPER_PARSE_PROMPT,
-        json: true,
-        maxTokens: 4000,
-        temperature: 0.1,
-      })
-      if (result.parsed && typeof result.parsed === 'object') {
-        parsed = mergeAIResult(fallback, result.parsed as Record<string, unknown>)
-      }
+      // Same path as /api/parse-job: full schema + finalizeParsedJobData normalization
+      const { response } = await callAIWithRetry(
+        aiText,
+        buildJobParseSystemPrompt(industryNames, jobFunctionNames)
+      )
+      parsed = mergeManualParseResult(fallback, response)
     } catch (err) {
       console.warn(
         '[scraperJobParsing] AI parse failed, using rule-based fallback:',
@@ -705,7 +810,6 @@ export async function parseScrapedJobContent(
       )
     }
   } else {
-    // Lightweight metadata extraction if Gemini keys exist for metadata-only path
     const plainText = [
       fallback.description,
       fallback.responsibilities,
@@ -730,40 +834,76 @@ export async function parseScrapedJobContent(
     }
   }
 
-  // Only keep values that resolve to allowed CareerSasa taxonomy names
-  const industryNames = options?.industryNames || []
-  const jobFunctionNames = options?.jobFunctionNames || []
-
+  // Prefer AI taxonomy (already fuzzy-matched by finalizeParsedJobData), then
+  // scraper heuristics for ATS hints / known employers / title keywords.
   const industry =
     matchIndustryName(parsed.industry, industryNames) ||
+    (parsed.industries || [])
+      .map(name => matchIndustryName(name, industryNames))
+      .find(Boolean) ||
     matchIndustryName(input.industryHint, industryNames) ||
-    // Workable rarely sends industry — fall back to known employer sector
     inferCompanyIndustry(input.company, null, industryNames) ||
     null
 
-  // Prefer title keywords over ATS department labels (e.g. "City Management"
-  // should not beat "Community Relations Manager" → Community & Social Services)
-  const job_function =
-    inferJobFunctionFromTitle(input.title, jobFunctionNames, null) ||
+  const hintFunction = matchJobFunctionName(input.jobFunctionHint, jobFunctionNames)
+  const aiOrFallbackFunction =
     matchJobFunctionName(parsed.job_function, jobFunctionNames) ||
-    matchJobFunctionName(input.jobFunctionHint, jobFunctionNames) ||
+    (parsed.job_functions || [])
+      .map(name => matchJobFunctionName(name, jobFunctionNames))
+      .find(Boolean) ||
+    null
+  // Prefer title keywords over raw ATS department dumps (e.g. "City Management"
+  // must not beat "Community Relations Manager" → Community & Social Services).
+  // Keep AI results when they disagree with the department hint.
+  const titleFunction = inferJobFunctionFromTitle(input.title, jobFunctionNames, null)
+  const job_function =
+    (aiOrFallbackFunction && aiOrFallbackFunction !== hintFunction
+      ? aiOrFallbackFunction
+      : null) ||
+    titleFunction ||
+    aiOrFallbackFunction ||
+    hintFunction ||
     inferJobFunctionFromTitle(input.title, jobFunctionNames, input.tagsHint) ||
     null
 
+  const industries = industry
+    ? [industry, ...(parsed.industries || []).filter(n => n !== industry && industryNames.includes(n))].slice(0, 3)
+    : null
+  const job_functions = job_function
+    ? [
+        job_function,
+        ...(parsed.job_functions || []).filter(n => n !== job_function && jobFunctionNames.includes(n)),
+      ].slice(0, 3)
+    : null
+
+  // Prefer skill tags from the full manual parse; fall back to heuristic chips
   const tags = limitTags(
-    buildTags({
-      title: input.title,
-      tagsHint: input.tagsHint,
-      industry,
-      jobFunction: job_function,
-    }),
+    parsed.tags ||
+      buildTags({
+        title: input.title,
+        tagsHint: input.tagsHint,
+        industry,
+        jobFunction: job_function,
+      }),
     5
   )
+
+  // Seed employment / location types from ATS hints when AI omitted them
+  const employment_types =
+    parsed.employment_types ||
+    sanitizeEmploymentTypes(null, input.employmentType)
+  const job_location_types =
+    parsed.job_location_types ||
+    sanitizeLocationTypes(null, input.workplace)
 
   return {
     ...parsed,
     industry,
+    industries,
     job_function,
+    job_functions,
     tags,
+    employment_types,
+    job_location_types,
   }
 }
