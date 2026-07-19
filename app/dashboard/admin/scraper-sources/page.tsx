@@ -20,6 +20,7 @@ import {
   Rss,
   Building2,
   Send,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -69,7 +70,16 @@ export default function AdminScraperSourcesPage() {
   const [discoveringAll, setDiscoveringAll] = useState(false);
   const [discoveringId, setDiscoveringId] = useState<string | null>(null);
   const [processingQueue, setProcessingQueue] = useState(false);
+  const [enrichingAll, setEnrichingAll] = useState(false);
+  const [enrichingId, setEnrichingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | ScraperSourceCategory>("all");
+  const busy =
+    loading ||
+    discoveringAll ||
+    !!discoveringId ||
+    processingQueue ||
+    enrichingAll ||
+    !!enrichingId;
 
   const fetchSources = useCallback(async () => {
     try {
@@ -187,6 +197,9 @@ export default function AdminScraperSourcesPage() {
     }
   };
 
+  // Note: Enrich with AI uses /api/admin/scraper-sources/reenrich so Gemini keys
+  // stay on the Vercel server and never ship to the browser.
+
   const runDiscover = async (sourceId?: string) => {
     try {
       if (sourceId) setDiscoveringId(sourceId);
@@ -236,6 +249,64 @@ export default function AdminScraperSourcesPage() {
     }
   };
 
+  /** Normalize + AI-enrich published scraped jobs using production Gemini keys. */
+  const runEnrich = async (sourceId?: string) => {
+    try {
+      if (sourceId) setEnrichingId(sourceId);
+      else setEnrichingAll(true);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+
+      const response = await fetch("/api/admin/scraper-sources/reenrich", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(
+          sourceId ? { source_id: sourceId, limit: 10 } : { limit: 5 }
+        ),
+      });
+
+      const body = await parseJsonResponse(response);
+      if (!response.ok) throw new Error(body.error || "Enrich failed");
+
+      const label = sourceId || "recent published jobs";
+      const updated = typeof body.updated === "number" ? body.updated : 0;
+      const failed = typeof body.failed === "number" ? body.failed : 0;
+      const examined = typeof body.examined === "number" ? body.examined : 0;
+
+      if (body.ai_keys_configured === false) {
+        toast.warning(
+          "AI keys missing on server — ran rule-based normalize only. Check Vercel GEMINI/OPENROUTER env."
+        );
+      }
+
+      if (examined === 0) {
+        toast.info(`Enrich complete: no published scraped jobs found (${label})`);
+      } else if (updated > 0 && failed === 0) {
+        toast.success(
+          `Enriched ${updated} job(s) with AI normalize for ${label}`
+        );
+      } else if (updated > 0) {
+        toast.message(
+          `Enriched ${updated} job(s); ${failed} failed (${label})`
+        );
+      } else if (failed > 0) {
+        toast.error(`Enrich failed for ${failed} job(s) (${label})`);
+      } else {
+        toast.info(`Enrich complete: examined ${examined}, nothing updated (${label})`);
+      }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Enrich failed";
+      toast.error(message);
+    } finally {
+      setEnrichingAll(false);
+      setEnrichingId(null);
+    }
+  };
+
   const filteredSources = (data?.sources || []).filter(source => {
     if (filter === "all") return true;
     return getSourceCategory(source.selectors) === filter;
@@ -259,7 +330,7 @@ export default function AdminScraperSourcesPage() {
         <div className="flex flex-col sm:flex-row gap-2">
           <Button
             onClick={() => runDiscover()}
-            disabled={loading || discoveringAll || !!discoveringId || processingQueue}
+            disabled={busy}
           >
             {discoveringAll ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -271,7 +342,7 @@ export default function AdminScraperSourcesPage() {
           <Button
             variant="secondary"
             onClick={() => runProcess(3)}
-            disabled={loading || processingQueue || discoveringAll || !!discoveringId || (data?.totals.pending ?? 0) === 0}
+            disabled={busy || (data?.totals.pending ?? 0) === 0}
           >
             {processingQueue ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -280,7 +351,20 @@ export default function AdminScraperSourcesPage() {
             )}
             Process queue (10)
           </Button>
-          <Button variant="outline" onClick={fetchSources} disabled={loading || discoveringAll || processingQueue}>
+          <Button
+            variant="default"
+            onClick={() => runEnrich()}
+            disabled={busy}
+            title="Normalize + AI-enrich the latest published scraped jobs using production Gemini keys"
+          >
+            {enrichingAll ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Sparkles className="h-4 w-4 mr-2" />
+            )}
+            Enrich with AI
+          </Button>
+          <Button variant="outline" onClick={fetchSources} disabled={busy}>
             {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
             Refresh
           </Button>
@@ -379,11 +463,11 @@ export default function AdminScraperSourcesPage() {
                               />
                             </TableCell>
                             <TableCell className="text-right">
-                              <div className="flex justify-end items-center gap-2">
+                              <div className="flex justify-end items-center gap-2 flex-wrap">
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  disabled={!source.is_active || discoveringAll || discoveringId === source.source_id}
+                                  disabled={!source.is_active || busy}
                                   onClick={() => runDiscover(source.source_id)}
                                 >
                                   {discoveringId === source.source_id ? (
@@ -392,6 +476,22 @@ export default function AdminScraperSourcesPage() {
                                     <>
                                       <Play className="h-3 w-3 mr-1" />
                                       Discover
+                                    </>
+                                  )}
+                                </Button>
+                                <Button
+                                  variant="secondary"
+                                  size="sm"
+                                  disabled={busy || stats.done === 0}
+                                  onClick={() => runEnrich(source.source_id)}
+                                  title="Normalize + AI-enrich published jobs from this source"
+                                >
+                                  {enrichingId === source.source_id ? (
+                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                  ) : (
+                                    <>
+                                      <Sparkles className="h-3 w-3 mr-1" />
+                                      Enrich
                                     </>
                                   )}
                                 </Button>
@@ -456,6 +556,10 @@ async function parseJsonResponse(response: Response): Promise<{
   total_queued?: number
   sources_processed?: number
   results?: unknown[]
+  updated?: number
+  failed?: number
+  examined?: number
+  ai_keys_configured?: boolean
   [key: string]: unknown
 }> {
   const text = await response.text();
