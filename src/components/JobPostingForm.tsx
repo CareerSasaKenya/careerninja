@@ -814,6 +814,8 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
           : null,
       };
 
+      let savedJobId = jobId || null;
+
       if (jobId) {
         // Update existing job
         const { error } = await supabase
@@ -831,6 +833,7 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
           console.error("Job update error:", error);
           throw error;
         }
+        savedJobId = jobId;
       } else {
         // Create new job
         console.log("Creating job with data:", {
@@ -840,9 +843,11 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
           company: jobData.company
         });
         
-        const { error } = await supabase
+        const { data: inserted, error } = await supabase
           .from("jobs")
-          .insert([jobData]);
+          .insert([jobData])
+          .select("id")
+          .single();
         
         if (error) {
           console.error("Job creation error details:", {
@@ -862,9 +867,38 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
           console.error("Job creation error:", error);
           throw error;
         }
+        savedJobId = inserted?.id || null;
       }
+
+      // Universal AI normalize/enrich on production keys (any intake → CareerSasa fields).
+      // Save already succeeded — enrich errors must not fail the mutation.
+      let enriched = false;
+      if (savedJobId) {
+        try {
+          const { data: sessionData } = await supabase.auth.getSession();
+          const accessToken = sessionData.session?.access_token;
+          if (accessToken) {
+            const enrichRes = await fetch("/api/jobs/enrich", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ job_id: savedJobId, force: true }),
+            });
+            enriched = enrichRes.ok;
+            if (!enrichRes.ok) {
+              console.warn("[JobPostingForm] enrich failed", await enrichRes.text());
+            }
+          }
+        } catch (enrichErr) {
+          console.warn("[JobPostingForm] enrich error", enrichErr);
+        }
+      }
+
+      return { jobId: savedJobId, enriched };
     },
-    onSuccess: async () => {
+    onSuccess: async (result) => {
       const isDraft = formData.status === "draft";
       const message = jobId 
         ? "Job updated successfully!" 
@@ -872,6 +906,9 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
           ? "Job saved as draft! You can publish it later from your dashboard." 
           : "Job published successfully!";
       toast.success(message);
+      if (result?.enriched) {
+        toast.message("AI enrichment applied — taxonomy and sections refreshed.");
+      }
       queryClient.invalidateQueries({ queryKey: ["jobs"] });
       queryClient.invalidateQueries({ queryKey: ["all-companies"] });
       queryClient.invalidateQueries({ queryKey: ["relatedJobs"] });

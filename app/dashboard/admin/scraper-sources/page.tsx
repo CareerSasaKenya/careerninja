@@ -272,7 +272,7 @@ export default function AdminScraperSourcesPage() {
       const body = await parseJsonResponse(response);
       if (!response.ok) throw new Error(body.error || "Enrich failed");
 
-      const label = sourceId || "recent published jobs";
+      const label = sourceId || "recent published scraped jobs";
       const updated = typeof body.updated === "number" ? body.updated : 0;
       const failed = typeof body.failed === "number" ? body.failed : 0;
       const examined = typeof body.examined === "number" ? body.examined : 0;
@@ -304,6 +304,46 @@ export default function AdminScraperSourcesPage() {
     } finally {
       setEnrichingAll(false);
       setEnrichingId(null);
+    }
+  };
+
+  /** Enrich sparse jobs from ANY intake path (manual, scrape, n8n, parse-job…). */
+  const runEnrichSparseAll = async () => {
+    try {
+      setEnrichingAll(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+
+      const response = await fetch("/api/admin/jobs/enrich", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ missing_only: true, limit: 10 }),
+      });
+
+      const body = await parseJsonResponse(response);
+      if (!response.ok) throw new Error(body.error || "Enrich failed");
+
+      const updated = typeof body.updated === "number" ? body.updated : 0;
+      const failed = typeof body.failed === "number" ? body.failed : 0;
+      const examined = typeof body.examined === "number" ? body.examined : 0;
+
+      if (examined === 0) {
+        toast.info("No sparse active jobs needed enrichment");
+      } else if (updated > 0) {
+        toast.success(
+          `Enriched ${updated}/${examined} sparse job(s) from any source` +
+            (failed ? ` (${failed} failed)` : "")
+        );
+      } else {
+        toast.info(`Examined ${examined} sparse job(s); nothing updated`);
+      }
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Enrich failed");
+    } finally {
+      setEnrichingAll(false);
     }
   };
 
@@ -362,7 +402,20 @@ export default function AdminScraperSourcesPage() {
             ) : (
               <Sparkles className="h-4 w-4 mr-2" />
             )}
-            Enrich with AI
+            Enrich scraped
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => runEnrichSparseAll()}
+            disabled={busy}
+            title="AI-enrich sparse active jobs from ANY intake path (manual, scrape, n8n, parse-job)"
+          >
+            {enrichingAll ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Sparkles className="h-4 w-4 mr-2" />
+            )}
+            Enrich any sparse
           </Button>
           <Button variant="outline" onClick={fetchSources} disabled={busy}>
             {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
