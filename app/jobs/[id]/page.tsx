@@ -19,10 +19,26 @@ import ServiceAdvertisement from "@/components/ServiceAdvertisement";
 import { AdminEditJobButton } from "@/components/AdminEditJobButton";
 import JobViewTracker from "@/components/JobViewTracker";
 import CVAdBanner from "@/components/CVAdBanner";
-import { dedupeStrings, parseTagsInput, MAX_JOB_TAGS } from "@/lib/jobParseNormalization";
+import {
+  dedupeStrings,
+  matchToAllowedOptions,
+  parseTagsInput,
+  MAX_JOB_TAGS,
+} from "@/lib/jobParseNormalization";
+import { getLookupOptions } from "@/lib/jobParsingOptimized";
 
 function getDisplayLabels(values: string[] | null | undefined, fallback?: string | null): string[] {
   return dedupeStrings(values?.length ? values : fallback ? [fallback] : []);
+}
+
+/** First catalog-matched label for UI; non-catalog / extras stay for search only. */
+function getPrimaryCatalogLabel(
+  values: string[] | null | undefined,
+  fallback: string | null | undefined,
+  catalog: string[],
+): string | null {
+  const candidates = getDisplayLabels(values, fallback);
+  return matchToAllowedOptions(candidates, catalog)[0] ?? null;
 }
 
 function getDisplayTags(tags: string | string[] | null | undefined): string[] {
@@ -192,11 +208,24 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
     return notFound();
   }
   
-  // Fetch related jobs
+  // Fetch related jobs (use full arrays so extras still power search/overlap)
   const relatedJobs = await getRelatedJobs(
     job.id,
     job.industries?.length > 0 ? job.industries : job.industry ? [job.industry] : [],
     job.job_functions?.length > 0 ? job.job_functions : job.job_function ? [job.job_function] : []
+  );
+
+  const { industries: industryCatalog, jobFunctions: functionCatalog } =
+    await getLookupOptions();
+  const primaryIndustry = getPrimaryCatalogLabel(
+    job.industries,
+    job.industry,
+    industryCatalog,
+  );
+  const primaryJobFunction = getPrimaryCatalogLabel(
+    job.job_functions,
+    job.job_function,
+    functionCatalog,
   );
   
   return (
@@ -223,8 +252,8 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
               <Card className="overflow-hidden border-border">
                 <JobDetailsHeader
                   job={job}
-                  industryLabels={getDisplayLabels(job.industries, job.industry)}
-                  functionLabels={getDisplayLabels(job.job_functions, job.job_function)}
+                  industryLabels={primaryIndustry ? [primaryIndustry] : []}
+                  functionLabels={primaryJobFunction ? [primaryJobFunction] : []}
                 />
                 
                 <CardContent className="space-y-4 py-5 sm:space-y-5 sm:py-6">
@@ -283,7 +312,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
               </Card>
               
               {/* Job Details Section - Moved to main content area */}
-              <RoleDetails job={job} />
+              <RoleDetails job={job} primaryJobFunction={primaryJobFunction} />
               
               {/* Additional Info Section */}
               {job.additional_info && (
@@ -431,7 +460,13 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
   );
 }
 
-const RoleDetails = ({ job }: { job: any }) => {
+const RoleDetails = ({
+  job,
+  primaryJobFunction,
+}: {
+  job: any;
+  primaryJobFunction?: string | null;
+}) => {
   // Group job details into categories for better organization
   const salaryDetails = [
     job.salary_min || job.salary_max ? {
@@ -453,10 +488,10 @@ const RoleDetails = ({ job }: { job: any }) => {
       label: "Specialization",
       value: job.specialization
     } : null,
-    (job.job_functions?.length > 0 || job.job_function) ? {
+    primaryJobFunction ? {
       icon: <Target className="h-5 w-5 text-primary mt-0.5" />,
       label: "Job Function",
-      value: getDisplayLabels(job.job_functions, job.job_function).join(', ')
+      value: primaryJobFunction
     } : null,
     job.work_schedule ? {
       icon: <Clock className="h-5 w-5 text-primary mt-0.5" />,

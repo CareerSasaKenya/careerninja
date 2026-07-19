@@ -62,15 +62,18 @@ function formatEnumLabel(value: string): string {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-function formatShortDate(iso?: string | null): string | null {
+function formatDeadlineDate(iso?: string | null): string | null {
   if (!iso) return null;
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return null;
-  return date.toLocaleDateString("en-KE", {
+  const opts: Intl.DateTimeFormatOptions = {
     day: "numeric",
     month: "short",
-    year: "numeric",
-  });
+  };
+  if (date.getFullYear() !== new Date().getFullYear()) {
+    opts.year = "numeric";
+  }
+  return date.toLocaleDateString("en-KE", opts);
 }
 
 export default function JobDetailsHeader({
@@ -99,8 +102,12 @@ export default function JobDetailsHeader({
   });
 
   const postedRel = jobPostedLabel(job.date_posted);
-  const postedAbsolute = formatShortDate(job.date_posted);
-  const deadlineAbsolute = formatShortDate(job.valid_through);
+  const postedValue =
+    postedRel ||
+    (job.date_posted
+      ? formatDeadlineDate(job.date_posted)
+      : null);
+  const deadlineValue = formatDeadlineDate(job.valid_through);
   const deadlineDate = job.valid_through ? new Date(job.valid_through) : null;
   const isExpired = deadlineDate ? deadlineDate.getTime() < Date.now() : false;
 
@@ -118,6 +125,10 @@ export default function JobDetailsHeader({
         ? [job.job_location_type]
         : [];
 
+  // Show at most one industry + one job function (catalog-validated by caller)
+  const primaryIndustry = industryLabels[0] || null;
+  const primaryFunction = functionLabels[0] || null;
+
   const metaTags = [
     ...employmentTypes.map((type) => ({
       key: `emp-${type}`,
@@ -130,13 +141,11 @@ export default function JobDetailsHeader({
     ...(job.experience_level
       ? [{ key: `exp-${job.experience_level}`, label: job.experience_level }]
       : []),
-    ...industryLabels.map((label) => ({ key: `ind-${label}`, label })),
-    ...functionLabels.map((label) => ({ key: `fn-${label}`, label })),
-    ...(job.area_of_study
-      ? [{ key: `area-${job.area_of_study}`, label: job.area_of_study }]
+    ...(primaryIndustry
+      ? [{ key: `ind-${primaryIndustry}`, label: primaryIndustry }]
       : []),
-    ...(job.field_of_study
-      ? [{ key: `field-${job.field_of_study}`, label: job.field_of_study }]
+    ...(primaryFunction
+      ? [{ key: `fn-${primaryFunction}`, label: primaryFunction }]
       : []),
   ];
 
@@ -235,39 +244,35 @@ export default function JobDetailsHeader({
         </div>
       </div>
 
-      {/* Full-width date row so posted + expiry stay on one line on mobile */}
-      {(postedRel || postedAbsolute || deadlineAbsolute) && (
-        <div className="mt-2.5 flex flex-nowrap items-center gap-x-2 overflow-x-auto text-xs text-muted-foreground sm:mt-3 sm:gap-x-3 sm:text-sm">
-          {(postedRel || postedAbsolute) && (
-            <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
-              <Clock className="h-3.5 w-3.5 shrink-0 opacity-70" />
-              <span>
-                {postedRel
-                  ? postedRel === "Just posted"
-                    ? "Just posted"
-                    : `Posted ${postedRel}`
-                  : `Posted ${postedAbsolute}`}
-              </span>
-            </span>
+      {/* Posted + Apply by side by side; value stacks under each label */}
+      {(postedValue || deadlineValue) && (
+        <div className="mt-2.5 grid grid-cols-2 gap-3 text-xs text-muted-foreground sm:mt-3 sm:max-w-md sm:text-sm">
+          {postedValue && (
+            <div className="flex min-w-0 items-start gap-1.5">
+              <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0 opacity-70" />
+              <div className="min-w-0 leading-snug">
+                <p className="font-medium text-foreground/75">Posted</p>
+                <p className="truncate">{postedValue}</p>
+              </div>
+            </div>
           )}
 
-          {(postedRel || postedAbsolute) && deadlineAbsolute && (
-            <span className="shrink-0 text-muted-foreground/35" aria-hidden>
-              ·
-            </span>
-          )}
-
-          {deadlineAbsolute && (
-            <span
-              className={`inline-flex shrink-0 items-center gap-1 whitespace-nowrap ${
-                isExpired ? "font-medium text-destructive" : ""
+          {deadlineValue && (
+            <div
+              className={`flex min-w-0 items-start gap-1.5 ${
+                isExpired ? "text-destructive" : ""
               }`}
             >
-              <CalendarDays className="h-3.5 w-3.5 shrink-0 opacity-70" />
-              <span>
-                {isExpired ? "Closed" : `Apply by ${deadlineAbsolute}`}
-              </span>
-            </span>
+              <CalendarDays className="mt-0.5 h-3.5 w-3.5 shrink-0 opacity-70" />
+              <div className="min-w-0 leading-snug">
+                <p className={`font-medium ${isExpired ? "text-destructive" : "text-foreground/75"}`}>
+                  Apply by
+                </p>
+                <p className={`truncate ${isExpired ? "font-medium" : ""}`}>
+                  {isExpired ? "Closed" : deadlineValue}
+                </p>
+              </div>
+            </div>
           )}
         </div>
       )}
