@@ -5,6 +5,10 @@ import { discoverSmartRecruitersJobs, SmartRecruitersSourceConfig } from './smar
 import { discoverGreenhouseJobs, GreenhouseSourceConfig } from './greenhouse-adapter'
 import { discoverTaleoJobs, TaleoSourceConfig } from './taleo-adapter'
 import { discoverTaleoBeJobs, TaleoBeSourceConfig } from './taleo-be-adapter'
+import {
+  discoverOracleCloudJobs,
+  OracleCloudSourceConfig,
+} from './oracle-cloud-adapter'
 import { discoverPscJobs } from './psc-adapter'
 import { discoverPscPdfDocuments, PscPdfSourceConfig } from './psc-pdf-adapter'
 import { normalizeJobUrl } from './scraperDeadline'
@@ -39,6 +43,7 @@ const SUPPORTED_TYPES = new Set([
   'greenhouse',
   'taleo',
   'taleo_be',
+  'oracle_cloud',
   'psc',
   'psc_pdf',
   'html',
@@ -116,6 +121,11 @@ export async function runScrapeDiscover(
       } else if (adapterType === 'taleo_be') {
         discovered = await discoverTaleoBeJobs(
           source.selectors as TaleoBeSourceConfig,
+          source.base_url
+        )
+      } else if (adapterType === 'oracle_cloud') {
+        discovered = await discoverOracleCloudJobs(
+          source.selectors as OracleCloudSourceConfig,
           source.base_url
         )
       } else if (adapterType === 'psc') {

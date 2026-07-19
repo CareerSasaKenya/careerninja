@@ -4,6 +4,7 @@ export type ScraperAdapterType =
   | 'greenhouse'
   | 'taleo'
   | 'taleo_be'
+  | 'oracle_cloud'
   | 'psc'
   | 'psc_pdf'
   | 'html'
@@ -19,6 +20,7 @@ export function getAdapterType(selectors: unknown): ScraperAdapterType {
     type === 'greenhouse' ||
     type === 'taleo' ||
     type === 'taleo_be' ||
+    type === 'oracle_cloud' ||
     type === 'psc' ||
     type === 'psc_pdf'
   ) {
@@ -40,6 +42,7 @@ export const ADAPTER_LABELS: Record<ScraperAdapterType, string> = {
   greenhouse: 'Greenhouse ATS',
   taleo: 'Oracle Taleo Enterprise',
   taleo_be: 'Oracle Taleo Business Edition',
+  oracle_cloud: 'Oracle Cloud HCM',
   psc: 'PSC Portal (listing table)',
   psc_pdf: 'PSC PDF Adverts (full detail)',
   html: 'HTML / CSS',

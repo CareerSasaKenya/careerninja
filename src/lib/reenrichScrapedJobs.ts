@@ -54,6 +54,16 @@ type RawTaleo = {
   rid?: string
 }
 
+type RawOracleCloud = {
+  title?: string
+  location?: string
+  descriptionHtml?: string
+  qualificationsHtml?: string
+  responsibilitiesHtml?: string
+  category?: string
+  id?: string
+}
+
 type RawPscPdf = {
   extracted?: {
     title?: string
@@ -117,7 +127,8 @@ export function buildReenrichInput(
   // Taleo Enterprise (description/qualifications HTML from initialHistory)
   if (
     typeof (raw as RawTaleo).descriptionHtml === 'string' &&
-    (raw as RawTaleo).descriptionHtml
+    (raw as RawTaleo).descriptionHtml &&
+    !(raw as RawOracleCloud).id
   ) {
     const taleo = raw as RawTaleo
     return {
@@ -127,6 +138,25 @@ export function buildReenrichInput(
       descriptionSection: taleo.descriptionHtml || '',
       requirementsSection: taleo.qualificationsHtml || '',
       tagsHint: 'Taleo',
+    }
+  }
+
+  // Oracle Cloud HCM CE
+  if (
+    typeof (raw as RawOracleCloud).descriptionHtml === 'string' &&
+    (raw as RawOracleCloud).descriptionHtml &&
+    (raw as RawOracleCloud).id
+  ) {
+    const oc = raw as RawOracleCloud
+    return {
+      title: title || oc.title || 'Untitled',
+      company,
+      location: oc.location,
+      descriptionSection: oc.descriptionHtml || '',
+      responsibilitiesSection: oc.responsibilitiesHtml || '',
+      requirementsSection: oc.qualificationsHtml || '',
+      industryHint: oc.category || null,
+      tagsHint: oc.category || 'Oracle Cloud',
     }
   }
 
