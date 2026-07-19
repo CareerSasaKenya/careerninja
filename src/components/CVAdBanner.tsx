@@ -7,7 +7,7 @@ import { FileText, ArrowRight } from "lucide-react";
  */
 export default function CVAdBanner() {
   return (
-    <div className="rounded-lg border border-orange-200 bg-gradient-to-r from-orange-50 to-amber-50 px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+    <div className="rounded-lg border border-orange-200 bg-gradient-to-r from-orange-50 to-amber-50 px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3">
       <div className="flex items-center gap-3 flex-1 min-w-0">
         <div className="p-2 rounded-lg bg-orange-100 shrink-0">
           <FileText className="h-5 w-5 text-orange-600" />

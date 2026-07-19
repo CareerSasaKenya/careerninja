@@ -141,12 +141,12 @@ export default function JobDetailsHeader({
   ];
 
   return (
-    <CardHeader className="border-b bg-gradient-to-br from-muted/50 via-background to-background p-5 sm:p-6">
+    <CardHeader className="space-y-0 border-b bg-gradient-to-br from-muted/50 via-background to-background p-4 sm:p-5">
       {/* Screen-reader / SEO continuity for the long-form title */}
       <p className="sr-only">{seoTitle}</p>
 
       {(job.is_featured || job.is_promoted) && (
-        <div className="mb-4 flex flex-wrap gap-2">
+        <div className="mb-3 flex flex-wrap gap-1.5">
           {job.is_featured && (
             <Badge className="gap-1 bg-amber-500 px-2.5 py-1 text-white hover:bg-amber-500">
               <Star className="h-3.5 w-3.5 fill-white" />
@@ -162,9 +162,9 @@ export default function JobDetailsHeader({
         </div>
       )}
 
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex min-w-0 flex-1 items-start gap-3.5 sm:gap-4">
-          <div className="shrink-0 self-start rounded-xl border border-border/70 bg-card p-1.5 shadow-sm">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+        <div className="flex min-w-0 flex-1 items-start gap-3 sm:gap-3.5">
+          <div className="shrink-0 self-start rounded-xl border border-border/70 bg-card p-1 shadow-sm">
             {job.company_id && job.companies ? (
               <CompanyLogo
                 name={job.companies.name}
@@ -186,12 +186,12 @@ export default function JobDetailsHeader({
             )}
           </div>
 
-          <div className="min-w-0 flex-1 space-y-2">
+          <div className="min-w-0 flex-1 space-y-1.5">
             <h1 className="text-balance text-2xl font-bold leading-tight tracking-tight text-foreground sm:text-3xl">
               {job.title}
             </h1>
 
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm sm:text-[15px]">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm sm:text-[15px]">
               {job.company_id && job.companies ? (
                 <Link
                   href={`/companies/${job.company_id}`}
@@ -222,40 +222,10 @@ export default function JobDetailsHeader({
                 </>
               )}
             </div>
-
-            {(postedRel || postedAbsolute || deadlineAbsolute) && (
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground sm:text-sm">
-                {(postedRel || postedAbsolute) && (
-                  <span className="inline-flex items-center gap-1.5">
-                    <Clock className="h-3.5 w-3.5 shrink-0 opacity-70" />
-                    <span>
-                      {postedRel
-                        ? postedRel === "Just posted"
-                          ? "Just posted"
-                          : `Posted ${postedRel}`
-                        : `Posted ${postedAbsolute}`}
-                    </span>
-                  </span>
-                )}
-
-                {deadlineAbsolute && (
-                  <span
-                    className={`inline-flex items-center gap-1.5 ${
-                      isExpired ? "font-medium text-destructive" : ""
-                    }`}
-                  >
-                    <CalendarDays className="h-3.5 w-3.5 shrink-0 opacity-70" />
-                    <span>
-                      {isExpired ? "Closed" : `Apply by ${deadlineAbsolute}`}
-                    </span>
-                  </span>
-                )}
-              </div>
-            )}
           </div>
         </div>
 
-        <div className="shrink-0 sm:pt-1">
+        <div className="shrink-0">
           <SaveJobButton
             jobId={job.id}
             variant="outline"
@@ -265,8 +235,45 @@ export default function JobDetailsHeader({
         </div>
       </div>
 
+      {/* Full-width date row so posted + expiry stay on one line on mobile */}
+      {(postedRel || postedAbsolute || deadlineAbsolute) && (
+        <div className="mt-2.5 flex flex-nowrap items-center gap-x-2 overflow-x-auto text-xs text-muted-foreground sm:mt-3 sm:gap-x-3 sm:text-sm">
+          {(postedRel || postedAbsolute) && (
+            <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
+              <Clock className="h-3.5 w-3.5 shrink-0 opacity-70" />
+              <span>
+                {postedRel
+                  ? postedRel === "Just posted"
+                    ? "Just posted"
+                    : `Posted ${postedRel}`
+                  : `Posted ${postedAbsolute}`}
+              </span>
+            </span>
+          )}
+
+          {(postedRel || postedAbsolute) && deadlineAbsolute && (
+            <span className="shrink-0 text-muted-foreground/35" aria-hidden>
+              ·
+            </span>
+          )}
+
+          {deadlineAbsolute && (
+            <span
+              className={`inline-flex shrink-0 items-center gap-1 whitespace-nowrap ${
+                isExpired ? "font-medium text-destructive" : ""
+              }`}
+            >
+              <CalendarDays className="h-3.5 w-3.5 shrink-0 opacity-70" />
+              <span>
+                {isExpired ? "Closed" : `Apply by ${deadlineAbsolute}`}
+              </span>
+            </span>
+          )}
+        </div>
+      )}
+
       {metaTags.length > 0 && (
-        <div className="mt-5 flex flex-wrap gap-2 border-t border-border/60 pt-4">
+        <div className="mt-3 flex flex-wrap gap-1.5 border-t border-border/60 pt-3 sm:mt-3.5 sm:gap-2">
           {metaTags.map((tag) => (
             <Badge
               key={tag.key}

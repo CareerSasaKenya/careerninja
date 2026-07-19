@@ -206,10 +206,10 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
       <div className="min-h-screen bg-background">
         <Navbar />
         
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-between mb-6">
+        <div className="container mx-auto px-4 py-4 sm:py-6">
+          <div className="mb-3 flex items-center justify-between sm:mb-4">
             <Link href="/jobs" prefetch={true}>
-              <Button variant="ghost">
+              <Button variant="ghost" className="h-9 px-3">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Jobs
               </Button>
@@ -217,9 +217,9 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
             <AdminEditJobButton jobId={job.id} variant="page" />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-5">
             {/* Main Content */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="space-y-4 lg:col-span-2 sm:space-y-5">
               <Card className="overflow-hidden border-border">
                 <JobDetailsHeader
                   job={job}
@@ -227,12 +227,12 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                   functionLabels={getDisplayLabels(job.job_functions, job.job_function)}
                 />
                 
-                <CardContent className="py-8 space-y-6">
+                <CardContent className="space-y-4 py-5 sm:space-y-5 sm:py-6">
                   {/* CV Builder promo — shown before description */}
                   <CVAdBanner />
 
                   <div>
-                    <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                    <h3 className="mb-2.5 flex items-center gap-2 text-xl font-semibold sm:mb-3">
                       <Briefcase className="h-5 w-5" />
                       Job Description
                     </h3>
@@ -243,7 +243,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                     <>
                       <Separator />
                       <div>
-                        <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                        <h3 className="mb-2.5 flex items-center gap-2 text-xl font-semibold sm:mb-3">
                           <FileText className="h-5 w-5" />
                           Key Responsibilities
                         </h3>
@@ -256,7 +256,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                     <>
                       <Separator />
                       <div>
-                        <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                        <h3 className="mb-2.5 flex items-center gap-2 text-xl font-semibold sm:mb-3">
                           <Award className="h-5 w-5" />
                           Required Qualifications
                         </h3>
@@ -269,7 +269,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                     <>
                       <Separator />
                       <div>
-                        <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                        <h3 className="mb-2.5 flex items-center gap-2 text-xl font-semibold sm:mb-3">
                           <Code className="h-5 w-5" />
                           Required Skills & Software
                         </h3>
@@ -288,24 +288,24 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
               {/* Additional Info Section */}
               {job.additional_info && (
                 <Card className="border-border">
-                  <CardHeader>
+                  <CardHeader className="pb-3 pt-4 sm:pb-4 sm:pt-5">
                     <CardTitle className="text-lg">Additional Information</CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pb-4 pt-0 sm:pb-5">
                     <div className="richtext-content text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: job.additional_info }} />
                   </CardContent>
                 </Card>
               )}
               
               {/* Safety Alert + Share & Report Job */}
-              <div className="mt-6 rounded-md border border-amber-200 bg-amber-50 p-4">
+              <div className="rounded-md border border-amber-200 bg-amber-50 p-3 sm:p-4">
                 <div className="flex items-start gap-2">
-                  <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5" />
-                  <div className="text-sm text-amber-900 leading-relaxed">
+                  <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+                  <div className="text-sm leading-relaxed text-amber-900">
                     <strong>CareerSasa Safety Alert:</strong> We strongly advise job seekers not to make any payment to employers or agencies during the recruitment process. If you're asked to pay for training, interviews, or job placement, report the job immediately using the "Flag" button. CareerSasa thoroughly vets postings, but we encourage all applicants to stay vigilant and verify opportunities independently.
                   </div>
                 </div>
-                <div className="mt-3 flex justify-end gap-2">
+                <div className="mt-2.5 flex justify-end gap-2">
                   <SocialShare 
                     url={`https://www.careersasa.co.ke/jobs/${job.job_slug || job.id}`}
                     title={`${job.title} at ${job.companies?.name || job.company || 'Company'} - CareerSasa`}
@@ -324,7 +324,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
             </div>
 
             {/* Sidebar - Made sticky for desktop */}
-            <div className="lg:sticky lg:top-24 lg:self-start lg:h-fit space-y-6">
+            <div className="space-y-4 lg:sticky lg:top-24 lg:h-fit lg:self-start sm:space-y-5">
               {/* Apply Here section - only visible on desktop */}
               <div className="hidden lg:block">
                 <ApplySection job={job} />
@@ -338,10 +338,10 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
               {/* Tags section - only visible on desktop */}
               {job?.tags && (
                 <Card className="hidden lg:block">
-                  <CardHeader>
+                  <CardHeader className="pb-3 pt-4">
                     <CardTitle className="text-lg">Tags</CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pb-4 pt-0">
                     <div className="flex flex-wrap gap-2">
                       {getDisplayTags(job.tags).map((tag: string) => (
                         <Badge key={tag} variant="secondary">{tag}</Badge>
@@ -354,7 +354,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
           </div>
 
           {/* Mobile Apply Section - Visible on mobile devices at the bottom */}
-          <div className="lg:hidden mt-6 space-y-6">
+          <div className="mt-4 space-y-4 lg:hidden sm:mt-5 sm:space-y-5">
             <ApplySection job={job} />
             
             {/* Service Advertisement for mobile */}
@@ -363,10 +363,10 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
             {/* Tags section for mobile */}
             {job?.tags && (
               <Card>
-                <CardHeader>
+                <CardHeader className="pb-3 pt-4">
                   <CardTitle className="text-lg">Tags</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pb-4 pt-0">
                   <div className="flex flex-wrap gap-2">
                     {getDisplayTags(job.tags).map((tag: string) => (
                       <Badge key={tag} variant="secondary">{tag}</Badge>
@@ -379,9 +379,9 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
 
           {/* Related Opportunities Section */}
           {relatedJobs && relatedJobs.length > 0 && (
-            <div className="mt-12">
-              <h2 className="text-2xl font-bold mb-6">Related Opportunities</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="mt-8 sm:mt-10">
+              <h2 className="mb-4 text-2xl font-bold sm:mb-5">Related Opportunities</h2>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 sm:gap-5">
                 {relatedJobs.slice(0, 6).map((relatedJob: any) => (
                   <JobCard
                     key={relatedJob.id}
@@ -418,7 +418,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
               </div>
             </div>
           )}
-          <div className="mt-8 flex justify-center">
+          <div className="mt-6 flex justify-center sm:mt-8">
             <Link href="/jobs" prefetch={true}>
               <Button variant="outline" size="lg" className="border-2 hover:bg-gradient-primary hover:text-primary-foreground hover:border-transparent transition-all duration-300">
                 Browse More Opportunities
@@ -542,30 +542,30 @@ const RoleDetails = ({ job }: { job: any }) => {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="pb-3 pt-4 sm:pb-4 sm:pt-5">
         <CardTitle className="text-lg">Job Details</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4 pb-4 pt-0 sm:space-y-5 sm:pb-5">
         {salaryDetails.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 sm:gap-4">
             {salaryDetails.map((item, index) => <div key={index}>{renderDetailItem(item)}</div>)}
           </div>
         )}
 
         {jobDetails.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 sm:gap-4">
             {jobDetails.map((item, index) => <div key={index}>{renderDetailItem(item)}</div>)}
           </div>
         )}
 
         {requirements.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 sm:gap-4">
             {requirements.map((item, index) => <div key={index}>{renderDetailItem(item)}</div>)}
           </div>
         )}
 
         {additionalDetails.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 sm:gap-4">
             {additionalDetails.map((item, index) => <div key={index}>{renderDetailItem(item)}</div>)}
           </div>
         )}
