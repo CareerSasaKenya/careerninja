@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CardHeader, CardTitle } from "@/components/ui/card";
+import { CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   MapPin,
@@ -187,9 +187,9 @@ export default function JobDetailsHeader({
           </div>
 
           <div className="min-w-0 flex-1 space-y-2.5">
-            <CardTitle className="text-balance text-2xl font-bold leading-tight tracking-tight text-foreground sm:text-3xl">
+            <h1 className="text-balance text-2xl font-bold leading-tight tracking-tight text-foreground sm:text-3xl">
               {job.title}
-            </CardTitle>
+            </h1>
 
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground sm:text-base">
               {job.company_id && job.companies ? (
