@@ -367,13 +367,19 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
               {/* Tags section - only visible on desktop */}
               {job?.tags && (
                 <Card className="hidden lg:block">
-                  <CardHeader className="pb-3 pt-4">
-                    <CardTitle className="text-lg">Tags</CardTitle>
+                  <CardHeader className="pb-2 pt-4">
+                    <CardTitle className="text-base">Tags</CardTitle>
                   </CardHeader>
                   <CardContent className="pb-4 pt-0">
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5">
                       {getDisplayTags(job.tags).map((tag: string) => (
-                        <Badge key={tag} variant="secondary">{tag}</Badge>
+                        <Badge
+                          key={tag}
+                          variant="secondary"
+                          className="px-2 py-0 text-[11px] font-medium leading-5"
+                        >
+                          {tag}
+                        </Badge>
                       ))}
                     </div>
                   </CardContent>
@@ -392,13 +398,19 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
             {/* Tags section for mobile */}
             {job?.tags && (
               <Card>
-                <CardHeader className="pb-3 pt-4">
-                  <CardTitle className="text-lg">Tags</CardTitle>
+                <CardHeader className="pb-2 pt-4">
+                  <CardTitle className="text-base">Tags</CardTitle>
                 </CardHeader>
                 <CardContent className="pb-4 pt-0">
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5">
                     {getDisplayTags(job.tags).map((tag: string) => (
-                      <Badge key={tag} variant="secondary">{tag}</Badge>
+                      <Badge
+                        key={tag}
+                        variant="secondary"
+                        className="px-2 py-0 text-[11px] font-medium leading-5"
+                      >
+                        {tag}
+                      </Badge>
                     ))}
                   </div>
                 </CardContent>
