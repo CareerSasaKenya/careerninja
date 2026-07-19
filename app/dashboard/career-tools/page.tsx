@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, Mail, Award, TrendingUp, DollarSign } from 'lucide-react';
 import CVBuilder from '@/components/career-tools/CVBuilder';
 import CoverLetterGenerator from '@/components/career-tools/CoverLetterGenerator';
@@ -11,40 +10,41 @@ import CareerPathPlanner from '@/components/career-tools/CareerPathPlanner';
 import SalaryInsights from '@/components/career-tools/SalaryInsights';
 import ToolErrorBoundary from '@/components/ToolErrorBoundary';
 
+const TABS = [
+  { value: 'cv-builder', label: 'CV', fullLabel: 'CV Templates', icon: FileText },
+  { value: 'cover-letter', label: 'Letters', fullLabel: 'Cover Letters', icon: Mail },
+  { value: 'assessments', label: 'Skills', fullLabel: 'Assessments', icon: Award },
+  { value: 'career-path', label: 'Path', fullLabel: 'Career Path', icon: TrendingUp },
+  { value: 'salary', label: 'Pay', fullLabel: 'Salary', icon: DollarSign },
+] as const;
+
 export default function CareerToolsPage() {
   const [activeTab, setActiveTab] = useState('cv-builder');
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Career Tools</h1>
-        <p className="text-muted-foreground">
-          Professional tools to accelerate your career growth
+    <div className="container mx-auto px-4 py-6 sm:py-8">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl font-bold tracking-tight text-[#0A66C2] sm:text-3xl">
+          Career Tools
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground sm:text-base">
+          Templates and tools to strengthen your next application
         </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5 lg:w-auto">
-          <TabsTrigger value="cv-builder" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            <span className="hidden sm:inline">CV Builder</span>
-          </TabsTrigger>
-          <TabsTrigger value="cover-letter" className="flex items-center gap-2">
-            <Mail className="h-4 w-4" />
-            <span className="hidden sm:inline">Cover Letters</span>
-          </TabsTrigger>
-          <TabsTrigger value="assessments" className="flex items-center gap-2">
-            <Award className="h-4 w-4" />
-            <span className="hidden sm:inline">Assessments</span>
-          </TabsTrigger>
-          <TabsTrigger value="career-path" className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            <span className="hidden sm:inline">Career Path</span>
-          </TabsTrigger>
-          <TabsTrigger value="salary" className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4" />
-            <span className="hidden sm:inline">Salary</span>
-          </TabsTrigger>
+        <TabsList className="grid h-auto w-full grid-cols-5 gap-1 p-1 lg:inline-grid lg:w-auto">
+          {TABS.map(({ value, label, fullLabel, icon: Icon }) => (
+            <TabsTrigger
+              key={value}
+              value={value}
+              className="flex flex-col items-center gap-0.5 px-1 py-2 text-[11px] sm:flex-row sm:gap-1.5 sm:px-3 sm:text-sm"
+            >
+              <Icon className="h-4 w-4 shrink-0" />
+              <span className="sm:hidden">{label}</span>
+              <span className="hidden sm:inline">{fullLabel}</span>
+            </TabsTrigger>
+          ))}
         </TabsList>
 
         <TabsContent value="cv-builder" className="space-y-4">

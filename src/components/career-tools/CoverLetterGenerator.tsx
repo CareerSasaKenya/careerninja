@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Mail, Download, Copy, Trash2, Clock } from 'lucide-react';
+import { Download, Copy, Trash2, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import CoverLetterTemplatePreview from '@/components/cover-letter/CoverLetterTemplatePreview';
@@ -220,56 +220,45 @@ export default function CoverLetterGenerator() {
 
   function renderTemplateGrid(templates: typeof PROFESSIONAL_TEMPLATES) {
     return (
-      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {templates.map(tpl => (
           tpl.available ? (
-            <Card
+            <button
               key={tpl.name}
-              className="cursor-pointer hover:border-primary hover:shadow-lg transition-all transform hover:scale-105 group relative"
+              type="button"
               onClick={() => openEditor(tpl.key)}
+              className="group w-full text-left rounded-xl border border-border/80 bg-background p-3 sm:p-4 transition-all hover:border-[#0A66C2]/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0A66C2]/40"
             >
-              <CardHeader className="p-4">
-                <div className="relative">
-                  <CoverLetterTemplatePreview templateName={tpl.name} showDescription={false} />
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center rounded pointer-events-none">
-                    <div className="bg-orange-500 text-white px-6 py-3 rounded-full font-semibold text-sm shadow-lg">
-                      Use This Template
-                    </div>
-                  </div>
+              <div className="relative overflow-hidden rounded-lg">
+                <CoverLetterTemplatePreview templateName={tpl.name} showDescription={false} />
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-[#0A66C2]/0 opacity-0 transition-all group-hover:bg-[#0A66C2]/25 group-hover:opacity-100">
+                  <span className="rounded-md bg-[#0A66C2] px-4 py-2 text-sm font-semibold text-white shadow-sm">
+                    Use template
+                  </span>
                 </div>
-                <div className="mt-4 space-y-2">
-                  <CardTitle className="text-base text-[#0A66C2]">{tpl.name}</CardTitle>
-                  <CoverLetterTemplatePreview templateName={tpl.name} showDescription={true} descriptionOnly={true} />
-                  <div className="pt-1">
-                    <p className="text-xs font-medium text-gray-500 mb-1">Best for:</p>
-                    <div className="flex flex-wrap gap-1">
-                      {tpl.bestFor.map(b => <Badge key={b} variant="outline" className="text-xs">{b}</Badge>)}
-                    </div>
-                  </div>
-                  <p className="text-xs text-green-700 font-medium">👉 {tpl.why}</p>
+              </div>
+              <div className="mt-3 space-y-2">
+                <h4 className="text-sm font-semibold text-[#0A66C2] sm:text-base">{tpl.name}</h4>
+                <CoverLetterTemplatePreview templateName={tpl.name} showDescription={true} descriptionOnly={true} />
+                <div className="flex flex-wrap gap-1">
+                  {tpl.bestFor.slice(0, 3).map(b => (
+                    <Badge key={b} variant="outline" className="text-[10px] font-normal">{b}</Badge>
+                  ))}
                 </div>
-              </CardHeader>
-            </Card>
+                <p className="text-xs text-muted-foreground">{tpl.why}</p>
+                <span className="inline-flex text-sm font-medium text-[#0A66C2] sm:hidden">
+                  Tap to use →
+                </span>
+              </div>
+            </button>
           ) : (
-            <Card key={tpl.name} className="relative opacity-75">
-              <CardHeader className="p-4">
-                <div className="w-full aspect-[3/4] bg-gray-50 border border-dashed border-gray-300 rounded flex flex-col items-center justify-center gap-2">
-                  <Clock className="h-8 w-8 text-gray-300" />
-                  <span className="text-xs text-gray-400 font-medium">Coming Soon</span>
-                </div>
-                <div className="mt-4 space-y-2">
-                  <CardTitle className="text-base text-gray-400">{tpl.name}</CardTitle>
-                  <CoverLetterTemplatePreview templateName={tpl.name} showDescription={true} descriptionOnly={true} />
-                  <div className="pt-1">
-                    <p className="text-xs font-medium text-gray-400 mb-1">Best for:</p>
-                    <div className="flex flex-wrap gap-1">
-                      {tpl.bestFor.map(b => <Badge key={b} variant="outline" className="text-xs text-gray-400">{b}</Badge>)}
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-400">👉 {tpl.why}</p>
-                </div>
-              </CardHeader>
-            </Card>
+            <div key={tpl.name} className="rounded-xl border border-dashed border-border p-4 opacity-70">
+              <div className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-2 rounded-lg bg-muted/40">
+                <Clock className="h-8 w-8 text-muted-foreground/50" />
+                <span className="text-xs font-medium text-muted-foreground">Coming soon</span>
+              </div>
+              <h4 className="mt-3 text-sm font-semibold text-muted-foreground">{tpl.name}</h4>
+            </div>
           )
         ))}
       </div>
@@ -277,80 +266,86 @@ export default function CoverLetterGenerator() {
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>My Cover Letters</CardTitle>
-          <CardDescription>Your saved cover letters — ready to copy or download.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {letters.length === 0 ? (
-            <div className="text-center py-10">
-              <Mail className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-1">No cover letters yet</h3>
-              <p className="text-muted-foreground text-sm">Pick a template below to get started.</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {letters.map(letter => (
-                <Card key={letter.id}>
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-base">{letter.title}</CardTitle>
-                        <CardDescription>{new Date(letter.created_at).toLocaleDateString()}</CardDescription>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" onClick={() => copyToClipboard(letter.content)}><Copy className="h-4 w-4" /></Button>
-                        <Button size="sm" variant="outline"><Download className="h-4 w-4" /></Button>
-                        <Button size="sm" variant="destructive" onClick={() => handleDelete(letter.id)}><Trash2 className="h-4 w-4" /></Button>
-                      </div>
+    <div className="space-y-8">
+      <div className="space-y-1">
+        <h2 className="text-xl font-semibold tracking-tight text-[#0A66C2] sm:text-2xl">
+          Cover Letter Templates
+        </h2>
+        <p className="text-sm text-muted-foreground max-w-2xl">
+          Structured letters for Kenyan applications. Pick a template, edit, then save.
+        </p>
+      </div>
+
+      {letters.length > 0 && (
+        <section className="space-y-3">
+          <div>
+            <h3 className="text-base font-semibold">My Cover Letters</h3>
+            <p className="text-xs text-muted-foreground">
+              {letters.length} saved {letters.length === 1 ? 'letter' : 'letters'}
+            </p>
+          </div>
+          <div className="space-y-3">
+            {letters.map(letter => (
+              <Card key={letter.id} className="shadow-none">
+                <CardHeader className="pb-2">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <CardTitle className="text-base truncate">{letter.title}</CardTitle>
+                      <CardDescription className="text-xs">
+                        {new Date(letter.created_at).toLocaleDateString()}
+                      </CardDescription>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <pre className="whitespace-pre-wrap font-sans text-sm text-muted-foreground line-clamp-3">
-                      {letter.content.substring(0, 300)}{letter.content.length > 300 && '...'}
-                    </pre>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl text-[#0A66C2]">Cover Letter Templates</CardTitle>
-          <CardDescription className="text-base mt-2 max-w-3xl mx-auto">
-            Choose from professionally designed templates tailored for the Kenyan job market.
-            Each template is structured to help you make a strong first impression.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-12">
-          <div>
-            <div className="mb-6 text-center">
-              <h3 className="text-xl font-semibold text-[#0A66C2]">Professional Cover Letters</h3>
-              <p className="text-sm text-muted-foreground mt-1 max-w-3xl mx-auto">
-                The core category — handles 70–80% of all job applications. Suitable for corporate,
-                government, NGO, banking, and private sector roles across all experience levels.
-              </p>
-            </div>
-            {renderTemplateGrid(PROFESSIONAL_TEMPLATES)}
+                    <div className="flex shrink-0 gap-1.5">
+                      <Button size="sm" variant="outline" onClick={() => copyToClipboard(letter.content)}>
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      <Button size="sm" variant="outline">
+                        <Download className="h-4 w-4" />
+                      </Button>
+                      <Button size="sm" variant="destructive" onClick={() => handleDelete(letter.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <pre className="whitespace-pre-wrap font-sans text-sm text-muted-foreground line-clamp-3">
+                    {letter.content.substring(0, 300)}{letter.content.length > 300 && '...'}
+                  </pre>
+                </CardContent>
+              </Card>
+            ))}
           </div>
+        </section>
+      )}
 
-          <div>
-            <div className="mb-6 text-center">
-              <h3 className="text-xl font-semibold text-[#0A66C2]">Entry-Level Cover Letters</h3>
-              <p className="text-sm text-muted-foreground mt-1 max-w-3xl mx-auto">
-                Designed for fresh graduates, students, and first-time job seekers. These templates
-                focus on education, projects, and potential — not experience.
-              </p>
-            </div>
-            {renderTemplateGrid(ENTRY_LEVEL_TEMPLATES)}
+      <div className="space-y-10">
+        <section className="space-y-4">
+          <div className="border-b border-border/60 pb-3">
+            <h3 className="text-base font-semibold text-[#0A66C2] sm:text-lg">Professional</h3>
+            <p className="mt-0.5 text-sm text-muted-foreground max-w-2xl">
+              Corporate, government, NGO, banking, and private-sector applications.
+            </p>
           </div>
-        </CardContent>
-      </Card>
+          {renderTemplateGrid(PROFESSIONAL_TEMPLATES)}
+        </section>
+
+        <section className="space-y-4">
+          <div className="border-b border-border/60 pb-3">
+            <h3 className="text-base font-semibold text-[#0A66C2] sm:text-lg">Entry-Level</h3>
+            <p className="mt-0.5 text-sm text-muted-foreground max-w-2xl">
+              For graduates and students — education, projects, and potential.
+            </p>
+          </div>
+          {renderTemplateGrid(ENTRY_LEVEL_TEMPLATES)}
+        </section>
+      </div>
+
+      {letters.length === 0 && (
+        <p className="text-center text-sm text-muted-foreground">
+          Your saved letters will show up here once you pick a template above.
+        </p>
+      )}
 
       <Dialog open={showEditor} onOpenChange={setShowEditor}>
         <DialogContent className="max-w-6xl w-[95vw] max-h-[90vh] h-[90vh] overflow-hidden flex flex-col p-0">

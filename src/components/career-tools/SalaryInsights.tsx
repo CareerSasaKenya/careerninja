@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,6 +34,7 @@ export default function SalaryInsights() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<{ job_title: string; min_salary: string; max_salary: string }>({ job_title: '', min_salary: '', max_salary: '' });
   const { toast } = useToast();
+  const router = useRouter();
 
   useEffect(() => {
     loadExpectations();
@@ -164,7 +166,14 @@ export default function SalaryInsights() {
   async function handleSaveExpectation(formData: FormData) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        toast({
+          title: 'Sign in required',
+          description: 'Create a free account or sign in to save salary expectations.',
+        });
+        router.push('/auth');
+        return;
+      }
 
       await setSalaryExpectation({
         user_id: user.id,
@@ -233,27 +242,32 @@ export default function SalaryInsights() {
 
   return (
     <div className="space-y-6">
-      {/* Search */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Salary Insights</CardTitle>
-          <CardDescription>
-            Research market salaries for different roles and locations
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-4">
-            <div className="md:col-span-2">
+      <div className="space-y-1">
+        <h2 className="text-xl font-semibold tracking-tight text-[#0A66C2] sm:text-2xl">
+          Salary Insights
+        </h2>
+        <p className="text-sm text-muted-foreground max-w-2xl">
+          Research market pay for roles across Kenya — no account needed to search.
+        </p>
+      </div>
+
+      <Card className="shadow-none">
+        <CardContent className="pt-6">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="sm:col-span-2">
               <Label htmlFor="jobTitle">Job Title</Label>
               <Input
                 id="jobTitle"
                 placeholder="e.g., Software Engineer"
                 value={searchParams.jobTitle}
                 onChange={(e) => setSearchParams({ ...searchParams, jobTitle: e.target.value })}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSearch();
+                }}
               />
             </div>
             <div>
-              <Label htmlFor="location">Location (Optional)</Label>
+              <Label htmlFor="location">Location</Label>
               <Input
                 id="location"
                 placeholder="e.g., Nairobi"
@@ -262,7 +276,7 @@ export default function SalaryInsights() {
               />
             </div>
             <div>
-              <Label htmlFor="experienceLevel">Experience Level</Label>
+              <Label htmlFor="experienceLevel">Experience</Label>
               <Select
                 value={searchParams.experienceLevel}
                 onValueChange={(value) => setSearchParams({ ...searchParams, experienceLevel: value })}
@@ -281,7 +295,7 @@ export default function SalaryInsights() {
               </Select>
             </div>
           </div>
-          <Button className="mt-4" onClick={handleSearch} disabled={loading}>
+          <Button className="mt-4 w-full sm:w-auto" onClick={handleSearch} disabled={loading}>
             <Search className="h-4 w-4 mr-2" />
             {loading ? 'Searching...' : 'Search Salaries'}
           </Button>
@@ -411,12 +425,11 @@ export default function SalaryInsights() {
         </Card>
       )}
 
-      {/* My Salary Expectations */}
-      <Card>
-        <CardHeader>
-          <CardTitle>My Salary Expectations</CardTitle>
-          <CardDescription>
-            Set your salary expectations for different roles
+      <Card className="shadow-none">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">My Salary Expectations</CardTitle>
+          <CardDescription className="text-xs">
+            Save target ranges for roles you’re applying to
           </CardDescription>
         </CardHeader>
         <CardContent>

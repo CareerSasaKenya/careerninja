@@ -28,6 +28,29 @@ import {
 } from '@/lib/careerTools';
 import { getTemplateDefaultContent } from '@/data/templateDefaultContent';
 
+const TEMPLATE_SECTIONS = [
+  {
+    title: 'Professional',
+    blurb: 'For experienced professionals — work history, achievements, and leadership.',
+    names: ['Classic Professional', 'Modern Professional', 'Executive Leadership'],
+  },
+  {
+    title: 'Entry-Level / Graduate',
+    blurb: 'For students and first roles — education, skills, and potential.',
+    names: ['Graduate Starter CV', 'Skills-Based (Functional)', 'Internship / Industrial Attachment'],
+  },
+  {
+    title: 'Creative & Digital',
+    blurb: 'For designers, creators, and digital roles that need more visual presence.',
+    names: ['Creative Portfolio', 'Digital Professional', 'Personal Brand CV'],
+  },
+  {
+    title: 'Specialized',
+    blurb: 'Built for academic, technical, and ATS-heavy applications.',
+    names: ['Academic / Research CV', 'Technical / Engineering CV', 'International / ATS Optimized CV'],
+  },
+] as const;
+
 export default function CVBuilder() {
   const [cvs, setCvs] = useState<CandidateCV[]>([]);
   const [templates, setTemplates] = useState<CVTemplate[]>([]);
@@ -339,25 +362,76 @@ export default function CVBuilder() {
     return template?.name || 'Classic Professional';
   }
 
+  function renderTemplateCard(template: CVTemplate) {
+    return (
+      <button
+        key={template.id}
+        type="button"
+        onClick={() => handleTemplateClick(template)}
+        className="group w-full text-left rounded-xl border border-border/80 bg-background p-3 sm:p-4 transition-all hover:border-[#0A66C2]/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0A66C2]/40"
+      >
+        <div className="relative overflow-hidden rounded-lg">
+          <CVTemplatePreview templateName={template.name} showDescription={false} />
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-[#0A66C2]/0 opacity-0 transition-all group-hover:bg-[#0A66C2]/25 group-hover:opacity-100">
+            <span className="rounded-md bg-[#0A66C2] px-4 py-2 text-sm font-semibold text-white shadow-sm">
+              Use template
+            </span>
+          </div>
+        </div>
+        <div className="mt-3 space-y-1.5">
+          <div className="flex items-start justify-between gap-2">
+            <h4 className="text-sm font-semibold text-[#0A66C2] sm:text-base">{template.name}</h4>
+            {template.is_premium && (
+              <Badge variant="secondary" className="shrink-0 text-[10px]">Premium</Badge>
+            )}
+          </div>
+          <CVTemplatePreview templateName={template.name} showDescription={true} descriptionOnly={true} />
+          <span className="inline-flex text-sm font-medium text-[#0A66C2] sm:hidden">
+            Tap to use →
+          </span>
+        </div>
+      </button>
+    );
+  }
+
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div className="h-8 w-48 rounded bg-muted" />
+        <div className="h-4 w-72 max-w-full rounded bg-muted" />
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="aspect-[3/4] rounded-xl bg-muted" />
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
+    <div className="space-y-8">
+      <div className="space-y-1">
+        <h2 className="text-xl font-semibold tracking-tight text-[#0A66C2] sm:text-2xl">
+          CV Templates
+        </h2>
+        <p className="text-sm text-muted-foreground max-w-2xl">
+          ATS-friendly designs for the Kenyan job market. Pick a template to start building.
+        </p>
+      </div>
+
+      {cvs.length > 0 && (
+        <section className="space-y-3">
+          <div className="flex items-center justify-between gap-3">
             <div>
-              <CardTitle>CV Builder</CardTitle>
-              <CardDescription>
-                Create and manage multiple CV versions for different roles
-              </CardDescription>
+              <h3 className="text-base font-semibold">My CVs</h3>
+              <p className="text-xs text-muted-foreground">
+                {cvs.length} saved {cvs.length === 1 ? 'version' : 'versions'}
+              </p>
             </div>
             <Dialog open={isCreating} onOpenChange={setIsCreating}>
               <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
+                <Button size="sm">
+                  <Plus className="h-4 w-4 mr-1.5" />
                   New CV
                 </Button>
               </DialogTrigger>
@@ -406,261 +480,90 @@ export default function CVBuilder() {
               </DialogContent>
             </Dialog>
           </div>
-        </CardHeader>
-        <CardContent>
-          {cvs.length === 0 ? (
-            <div className="text-center py-12">
-              <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No CVs yet</h3>
-              <p className="text-muted-foreground mb-4">
-                Create your first CV to get started
-              </p>
-              <Button onClick={() => setIsCreating(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Create CV
-              </Button>
-            </div>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {cvs.map(cv => (
-                <Card key={cv.id} className="relative">
-                  {cv.is_primary && (
-                    <Badge className="absolute top-2 right-2" variant="default">
-                      <Star className="h-3 w-3 mr-1" />
-                      Primary
-                    </Badge>
-                  )}
-                  <CardHeader>
-                    <CardTitle className="text-lg">{cv.title}</CardTitle>
-                    <CardDescription>
-                      {getTemplateName(cv.template_id)} • Version {cv.version} • Updated {new Date(cv.updated_at).toLocaleDateString()}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-wrap gap-2">
-                      <Button size="sm" variant="outline" onClick={() => handleEditCV(cv)}>
-                        <Edit className="h-4 w-4 mr-1" />
-                        Edit
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {cvs.map(cv => (
+              <Card key={cv.id} className="relative shadow-none">
+                {cv.is_primary && (
+                  <Badge className="absolute top-2 right-2" variant="default">
+                    <Star className="h-3 w-3 mr-1" />
+                    Primary
+                  </Badge>
+                )}
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base pr-16">{cv.title}</CardTitle>
+                  <CardDescription className="text-xs">
+                    {getTemplateName(cv.template_id)} · Updated {new Date(cv.updated_at).toLocaleDateString()}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    <Button size="sm" variant="outline" onClick={() => handleEditCV(cv)}>
+                      <Edit className="h-4 w-4 mr-1" />
+                      Edit
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => handleDownload(cv)}>
+                      <Download className="h-4 w-4 mr-1" />
+                      Download
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => handleSwitchTemplateClick(cv)}>
+                      <RefreshCw className="h-4 w-4 mr-1" />
+                      Template
+                    </Button>
+                    {!cv.is_primary && (
+                      <Button size="sm" variant="outline" onClick={() => handleSetPrimary(cv.id)}>
+                        <Star className="h-4 w-4 mr-1" />
+                        Primary
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => handleDownload(cv)}>
-                        <Download className="h-4 w-4 mr-1" />
-                        Download
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => handleSwitchTemplateClick(cv)}>
-                        <RefreshCw className="h-4 w-4 mr-1" />
-                        Switch Template
-                      </Button>
-                      {!cv.is_primary && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleSetPrimary(cv.id)}
-                        >
-                          <Star className="h-4 w-4 mr-1" />
-                          Set Primary
-                        </Button>
-                      )}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleDuplicateCV(cv)}
-                      >
-                        <Copy className="h-4 w-4 mr-1" />
-                        Duplicate
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => handleDeleteCV(cv.id)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        Delete
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* CV Templates Gallery */}
-      <Card>
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl text-[#0A66C2]">Expertly-Designed CV Templates</CardTitle>
-          <CardDescription className="text-base mt-2 max-w-3xl mx-auto">
-            Choose from our expertly designed templates tailored for the Kenyan job market. 
-            Each template is ATS-friendly and crafted to help you stand out to employers.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-8">
-          {/* Professional CV Templates Section */}
-          <div>
-            <div className="mb-4 text-center">
-              <h3 className="text-xl font-semibold text-[#0A66C2]">Professional CV Templates</h3>
-              <p className="text-sm text-muted-foreground mt-1 max-w-3xl mx-auto">
-                Designed for experienced professionals with established careers, emphasizing work history, achievements, and leadership.
-              </p>
-            </div>
-            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
-              {templates
-                .filter(t => ['Classic Professional', 'Modern Professional', 'Executive Leadership'].includes(t.name))
-                .map(template => (
-                  <Card 
-                    key={template.id} 
-                    className="cursor-pointer hover:border-primary hover:shadow-lg transition-all transform hover:scale-105 group relative"
-                    onClick={() => handleTemplateClick(template)}
-                  >
-                    <CardHeader className="p-4 relative">
-                      <div className="relative">
-                        <CVTemplatePreview templateName={template.name} showDescription={false} />
-                        {/* Hover Button */}
-                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center rounded pointer-events-none">
-                          <div className="bg-orange-500 text-white px-6 py-3 rounded-full font-semibold text-sm shadow-lg">
-                            Use This Template
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mt-4 space-y-2">
-                        <CardTitle className="text-base text-[#0A66C2]">{template.name}</CardTitle>
-                        <CVTemplatePreview templateName={template.name} showDescription={true} descriptionOnly={true} />
-                        {template.is_premium && (
-                          <Badge variant="secondary" className="w-fit">Premium</Badge>
-                        )}
-                      </div>
-                    </CardHeader>
-                  </Card>
-                ))}
-            </div>
+                    )}
+                    <Button size="sm" variant="outline" onClick={() => handleDuplicateCV(cv)}>
+                      <Copy className="h-4 w-4 mr-1" />
+                      Copy
+                    </Button>
+                    <Button size="sm" variant="destructive" onClick={() => handleDeleteCV(cv.id)}>
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Delete
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
+        </section>
+      )}
 
-          {/* Entry-Level / Graduate CV Templates Section */}
-          <div>
-            <div className="mb-4 text-center">
-              <h3 className="text-xl font-semibold text-[#0A66C2]">Entry-Level / Graduate CV Templates</h3>
-              <p className="text-sm text-muted-foreground mt-1 max-w-3xl mx-auto">
-                Specifically designed for students, fresh graduates, and entry-level candidates with limited work experience. 
-                These templates emphasize education, skills, potential, and transferable competencies.
-              </p>
-            </div>
-            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
-              {templates
-                .filter(t => ['Graduate Starter CV', 'Skills-Based (Functional)', 'Internship / Industrial Attachment'].includes(t.name))
-                .map(template => (
-                  <Card 
-                    key={template.id} 
-                    className="cursor-pointer hover:border-primary hover:shadow-lg transition-all transform hover:scale-105 group relative"
-                    onClick={() => handleTemplateClick(template)}
-                  >
-                    <CardHeader className="p-4 relative">
-                      <div className="relative">
-                        <CVTemplatePreview templateName={template.name} showDescription={false} />
-                        {/* Hover Button */}
-                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center rounded pointer-events-none">
-                          <div className="bg-orange-500 text-white px-6 py-3 rounded-full font-semibold text-sm shadow-lg">
-                            Use This Template
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mt-4 space-y-2">
-                        <CardTitle className="text-base text-[#0A66C2]">{template.name}</CardTitle>
-                        <CVTemplatePreview templateName={template.name} showDescription={true} descriptionOnly={true} />
-                        {template.is_premium && (
-                          <Badge variant="secondary" className="w-fit">Premium</Badge>
-                        )}
-                      </div>
-                    </CardHeader>
-                  </Card>
-                ))}
-            </div>
-          </div>
+      <div className="space-y-10">
+        {TEMPLATE_SECTIONS.map((section) => {
+          const sectionTemplates = templates.filter((t) =>
+            (section.names as readonly string[]).includes(t.name)
+          );
+          if (sectionTemplates.length === 0) return null;
+          return (
+            <section key={section.title} className="space-y-4">
+              <div className="border-b border-border/60 pb-3">
+                <h3 className="text-base font-semibold text-[#0A66C2] sm:text-lg">{section.title}</h3>
+                <p className="mt-0.5 text-sm text-muted-foreground max-w-2xl">{section.blurb}</p>
+              </div>
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                {sectionTemplates.map(renderTemplateCard)}
+              </div>
+            </section>
+          );
+        })}
 
-          {/* Creative & Digital Industry CV Templates Section */}
-          <div>
-            <div className="mb-4 text-center">
-              <h3 className="text-xl font-semibold text-[#0A66C2]">Creative & Digital Industry CV Templates</h3>
-              <p className="text-sm text-muted-foreground mt-1 max-w-3xl mx-auto">
-                Stand out in the creative and digital space with visually striking templates that showcase your portfolio, 
-                artistic vision, and creative projects. Perfect for designers, content creators, and digital professionals 
-                who want their CV to reflect their creative flair and make a memorable first impression.
-              </p>
-            </div>
-            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
-              {templates
-                .filter(t => ['Creative Portfolio', 'Digital Professional', 'Personal Brand CV'].includes(t.name))
-                .map(template => (
-                  <Card 
-                    key={template.id} 
-                    className="cursor-pointer hover:border-primary hover:shadow-lg transition-all transform hover:scale-105 group relative"
-                    onClick={() => handleTemplateClick(template)}
-                  >
-                    <CardHeader className="p-4 relative">
-                      <div className="relative">
-                        <CVTemplatePreview templateName={template.name} showDescription={false} />
-                        {/* Hover Button */}
-                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center rounded pointer-events-none">
-                          <div className="bg-orange-500 text-white px-6 py-3 rounded-full font-semibold text-sm shadow-lg">
-                            Use This Template
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mt-4 space-y-2">
-                        <CardTitle className="text-base text-[#0A66C2]">{template.name}</CardTitle>
-                        <CVTemplatePreview templateName={template.name} showDescription={true} descriptionOnly={true} />
-                        {template.is_premium && (
-                          <Badge variant="secondary" className="w-fit">Premium</Badge>
-                        )}
-                      </div>
-                    </CardHeader>
-                  </Card>
-                ))}
-            </div>
+        {templates.length === 0 && (
+          <div className="rounded-xl border border-dashed border-border px-4 py-12 text-center">
+            <FileText className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
+            <p className="font-medium">Templates unavailable right now</p>
+            <p className="mt-1 text-sm text-muted-foreground">Please refresh and try again.</p>
           </div>
+        )}
+      </div>
 
-          {/* Specialized Career CV Templates Section */}
-          <div>
-            <div className="mb-4 text-center">
-              <h3 className="text-xl font-semibold text-[#0A66C2]">Specialized Career CV Templates</h3>
-              <p className="text-sm text-muted-foreground mt-1 max-w-3xl mx-auto">
-                Not every career fits a standard template. These specialized CVs are built for specific industries, 
-                roles, and application types — from academic research to technical fields and beyond. If your career 
-                has unique requirements, this is where you'll find a template that truly fits.
-              </p>
-            </div>
-            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
-              {templates
-                .filter(t => ['Academic / Research CV', 'Technical / Engineering CV', 'International / ATS Optimized CV'].includes(t.name))
-                .map(template => (
-                  <Card 
-                    key={template.id} 
-                    className="cursor-pointer hover:border-primary hover:shadow-lg transition-all transform hover:scale-105 group relative"
-                    onClick={() => handleTemplateClick(template)}
-                  >
-                    <CardHeader className="p-4 relative">
-                      <div className="relative">
-                        <CVTemplatePreview templateName={template.name} showDescription={false} />
-                        {/* Hover Button */}
-                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center rounded pointer-events-none">
-                          <div className="bg-orange-500 text-white px-6 py-3 rounded-full font-semibold text-sm shadow-lg">
-                            Use This Template
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mt-4 space-y-2">
-                        <CardTitle className="text-base text-[#0A66C2]">{template.name}</CardTitle>
-                        <CVTemplatePreview templateName={template.name} showDescription={true} descriptionOnly={true} />
-                        {template.is_premium && (
-                          <Badge variant="secondary" className="w-fit">Premium</Badge>
-                        )}
-                      </div>
-                    </CardHeader>
-                  </Card>
-                ))}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {cvs.length === 0 && templates.length > 0 && (
+        <p className="text-center text-sm text-muted-foreground">
+          Your saved CVs will show up here once you pick a template above.
+        </p>
+      )}
 
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
         <DialogContent className="max-w-6xl w-[95vw] max-h-[90vh] h-[90vh] overflow-hidden flex flex-col p-0">

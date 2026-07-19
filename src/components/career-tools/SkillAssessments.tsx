@@ -28,16 +28,17 @@ export default function SkillAssessments() {
 
   async function loadData() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const [assessmentsData, resultsData] = await Promise.all([
-        getSkillAssessments(),
-        getUserAssessmentResults(user.id)
-      ]);
-
+      // Assessments are public; results require a session.
+      const assessmentsData = await getSkillAssessments();
       setAssessments(assessmentsData);
-      setResults(resultsData);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const resultsData = await getUserAssessmentResults(user.id);
+        setResults(resultsData);
+      } else {
+        setResults([]);
+      }
     } catch (error: any) {
       toast({
         title: 'Error',
@@ -73,100 +74,114 @@ export default function SkillAssessments() {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="space-y-4 animate-pulse">
+        <div className="h-8 w-48 rounded bg-muted" />
+        <div className="h-4 w-64 max-w-full rounded bg-muted" />
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-40 rounded-xl bg-muted" />
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Skill Assessments</CardTitle>
-          <CardDescription>
-            Test your skills and earn certificates to showcase on your profile
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
-            <TabsList>
-              {categories.map(cat => (
-                <TabsTrigger key={cat} value={cat} className="capitalize">
-                  {cat}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
-        </CardContent>
-      </Card>
-
-      {/* Available Assessments */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {filteredAssessments.map(assessment => {
-          const result = getAssessmentResult(assessment.id);
-          const completed = hasCompletedAssessment(assessment.id);
-
-          return (
-            <Card key={assessment.id} className="relative">
-              {completed && result?.passed && (
-                <Badge className="absolute top-2 right-2" variant="default">
-                  <CheckCircle className="h-3 w-3 mr-1" />
-                  Passed
-                </Badge>
-              )}
-              {completed && !result?.passed && (
-                <Badge className="absolute top-2 right-2" variant="destructive">
-                  <XCircle className="h-3 w-3 mr-1" />
-                  Failed
-                </Badge>
-              )}
-              <CardHeader>
-                <CardTitle className="text-lg">{assessment.skill_name}</CardTitle>
-                <CardDescription>{assessment.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline" className="capitalize">
-                    {assessment.category}
-                  </Badge>
-                  <Badge className={getDifficultyColor(assessment.difficulty_level)}>
-                    {assessment.difficulty_level}
-                  </Badge>
-                  <Badge variant="outline">
-                    <Clock className="h-3 w-3 mr-1" />
-                    {assessment.duration_minutes} min
-                  </Badge>
-                </div>
-
-                {result && (
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Score: {result.score}%</span>
-                      <span>Pass: {assessment.passing_score}%</span>
-                    </div>
-                    <Progress value={result.score} />
-                    <p className="text-xs text-muted-foreground">
-                      Completed {new Date(result.completed_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                )}
-
-                <Button
-                  className="w-full"
-                  variant={completed ? 'outline' : 'default'}
-                  onClick={() => {
-                    toast({
-                      title: 'Coming Soon',
-                      description: 'Assessment interface will be available soon'
-                    });
-                  }}
-                >
-                  <Play className="h-4 w-4 mr-2" />
-                  {completed ? 'Retake Assessment' : 'Start Assessment'}
-                </Button>
-              </CardContent>
-            </Card>
-          );
-        })}
+      <div className="space-y-3">
+        <div className="space-y-1">
+          <h2 className="text-xl font-semibold tracking-tight text-[#0A66C2] sm:text-2xl">
+            Skill Assessments
+          </h2>
+          <p className="text-sm text-muted-foreground max-w-2xl">
+            Practice key skills and earn certificates for your profile.
+          </p>
+        </div>
+        <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
+          <TabsList className="h-auto w-full flex-wrap justify-start gap-1 p-1 sm:w-auto">
+            {categories.map(cat => (
+              <TabsTrigger key={cat} value={cat} className="capitalize text-xs sm:text-sm">
+                {cat}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
       </div>
+
+      {filteredAssessments.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-border px-4 py-12 text-center">
+          <Award className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
+          <p className="font-medium">No assessments in this category yet</p>
+          <p className="mt-1 text-sm text-muted-foreground">Try another filter or check back soon.</p>
+        </div>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredAssessments.map(assessment => {
+            const result = getAssessmentResult(assessment.id);
+            const completed = hasCompletedAssessment(assessment.id);
+
+            return (
+              <Card key={assessment.id} className="relative shadow-none">
+                {completed && result?.passed && (
+                  <Badge className="absolute top-2 right-2" variant="default">
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    Passed
+                  </Badge>
+                )}
+                {completed && !result?.passed && (
+                  <Badge className="absolute top-2 right-2" variant="destructive">
+                    <XCircle className="h-3 w-3 mr-1" />
+                    Failed
+                  </Badge>
+                )}
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base pr-16">{assessment.skill_name}</CardTitle>
+                  <CardDescription className="text-xs line-clamp-2">{assessment.description}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex flex-wrap gap-1.5">
+                    <Badge variant="outline" className="capitalize text-[10px]">
+                      {assessment.category}
+                    </Badge>
+                    <Badge className={`${getDifficultyColor(assessment.difficulty_level)} text-[10px]`}>
+                      {assessment.difficulty_level}
+                    </Badge>
+                    <Badge variant="outline" className="text-[10px]">
+                      <Clock className="h-3 w-3 mr-1" />
+                      {assessment.duration_minutes} min
+                    </Badge>
+                  </div>
+
+                  {result && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Score: {result.score}%</span>
+                        <span>Pass: {assessment.passing_score}%</span>
+                      </div>
+                      <Progress value={result.score} />
+                    </div>
+                  )}
+
+                  <Button
+                    className="w-full"
+                    variant={completed ? 'outline' : 'default'}
+                    onClick={() => {
+                      toast({
+                        title: 'Coming Soon',
+                        description: 'Assessment interface will be available soon'
+                      });
+                    }}
+                  >
+                    <Play className="h-4 w-4 mr-2" />
+                    {completed ? 'Retake' : 'Start'}
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
 
       {/* My Results */}
       {results.length > 0 && (
