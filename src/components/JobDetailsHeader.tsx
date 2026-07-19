@@ -204,12 +204,12 @@ export default function JobDetailsHeader({
               {job.company_id && job.companies ? (
                 <Link
                   href={`/companies/${job.company_id}`}
-                  className="font-medium text-[#0A66C2] transition-colors hover:opacity-80"
+                  className="font-medium text-foreground transition-colors hover:text-[#0A66C2]"
                 >
                   {job.companies.name}
                 </Link>
               ) : (
-                <span className="inline-flex items-center gap-2 font-medium text-[#0A66C2]">
+                <span className="inline-flex items-center gap-2 font-medium text-foreground">
                   {companyName}
                   {!job.company && (
                     <Badge variant="outline" className="text-xs font-normal">

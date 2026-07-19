@@ -521,7 +521,7 @@ export default function HomePage({
                   return (
                     <Card
                       key={job.id}
-                      className={`glass hover:shadow-xl transition-all duration-300 hover:scale-105 ${
+                      className={`group glass hover:shadow-xl transition-all duration-300 hover:scale-105 ${
                         job.is_featured ? "border-2 border-yellow-500/50 shadow-lg" : ""
                       } ${job.is_promoted ? "border-2 border-blue-500/50" : ""}`}
                     >
@@ -547,7 +547,7 @@ export default function HomePage({
                             </span>
                           ) : null}
                         </div>
-                        <h3 className="text-xl font-semibold mb-2 line-clamp-1 text-[#0A66C2]">
+                        <h3 className="text-xl font-semibold mb-2 line-clamp-1 text-foreground transition-colors group-hover:text-[#0A66C2] group-active:text-[#0A66C2]">
                           {formatJobSeoTitle(job.title, companyName, {
                             city: job.job_location_city,
                             county: job.job_location_county,
@@ -555,14 +555,14 @@ export default function HomePage({
                             isRemote: job.job_location_type === "REMOTE",
                           })}
                         </h3>
-                        <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                        <div className="flex items-center gap-2 text-foreground mb-2">
                           <CompanyLogo
                             name={companyName}
                             logo={company?.logo}
                             website={company?.website}
                             size="sm"
                           />
-                          <span className="line-clamp-1">{companyName}</span>
+                          <span className="line-clamp-1 font-medium">{companyName}</span>
                         </div>
                         <div className="flex items-center gap-2 text-muted-foreground mb-4">
                           <MapPin className="h-4 w-4 flex-shrink-0" />

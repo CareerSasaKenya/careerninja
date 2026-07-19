@@ -56,7 +56,7 @@ export function FeaturedJobsSection({ limit = 6 }: { limit?: number }) {
 
         <div className="grid gap-4 md:gap-5 md:grid-cols-2 lg:grid-cols-3">
           {jobs.map((job) => (
-            <Card key={job.id} className="hover:shadow-lg transition-shadow border-2 border-primary/20">
+            <Card key={job.id} className="group hover:shadow-lg transition-shadow border-2 border-primary/20">
               <CardHeader>
                 <div className="flex items-start justify-between mb-2">
                   <Badge variant="default" className="gap-1">
@@ -67,8 +67,10 @@ export function FeaturedJobsSection({ limit = 6 }: { limit?: number }) {
                     <Badge variant="secondary">Promoted</Badge>
                   )}
                 </div>
-                <CardTitle className="text-xl text-[#0A66C2]">{job.title}</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-xl text-foreground transition-colors group-hover:text-[#0A66C2] group-active:text-[#0A66C2]">
+                  {job.title}
+                </CardTitle>
+                <CardDescription className="text-foreground font-medium">
                   {job.companies?.name || job.company || 'Company'}
                 </CardDescription>
               </CardHeader>

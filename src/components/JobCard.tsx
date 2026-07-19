@@ -212,14 +212,14 @@ const JobCard = ({
 
             <div className="min-w-0 flex-1 space-y-1">
               <h3
-                className="text-balance text-lg font-bold leading-snug tracking-tight text-[#0A66C2] transition-colors group-hover:text-[#004182] sm:text-xl"
+                className="text-balance text-lg font-bold leading-snug tracking-tight text-foreground transition-colors group-hover:text-[#0A66C2] group-active:text-[#0A66C2] sm:text-xl"
                 title={seoTitle}
               >
                 {title}
               </h3>
 
               <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-muted-foreground">
-                <span className="truncate font-medium text-foreground/90">
+                <span className="truncate font-medium text-foreground">
                   {company || "Direct Listing"}
                 </span>
                 {locationLabel && (
