@@ -3,6 +3,7 @@ import { fetchHtml, extractJobLinks, ScraperSelectors } from './scraper'
 import { discoverWorkableJobs, WorkableSourceConfig } from './workable-adapter'
 import { discoverSmartRecruitersJobs, SmartRecruitersSourceConfig } from './smartrecruiters-adapter'
 import { discoverGreenhouseJobs, GreenhouseSourceConfig } from './greenhouse-adapter'
+import { discoverTaleoJobs, TaleoSourceConfig } from './taleo-adapter'
 import { discoverPscJobs } from './psc-adapter'
 import { discoverPscPdfDocuments, PscPdfSourceConfig } from './psc-pdf-adapter'
 import { normalizeJobUrl } from './scraperDeadline'
@@ -35,6 +36,7 @@ const SUPPORTED_TYPES = new Set([
   'workable',
   'smartrecruiters',
   'greenhouse',
+  'taleo',
   'psc',
   'psc_pdf',
   'html',
@@ -104,6 +106,11 @@ export async function runScrapeDiscover(
         discovered = await discoverSmartRecruitersJobs(source.selectors as SmartRecruitersSourceConfig)
       } else if (adapterType === 'greenhouse') {
         discovered = await discoverGreenhouseJobs(source.selectors as GreenhouseSourceConfig)
+      } else if (adapterType === 'taleo') {
+        discovered = await discoverTaleoJobs(
+          source.selectors as TaleoSourceConfig,
+          source.base_url
+        )
       } else if (adapterType === 'psc') {
         discovered = await discoverPscJobs(source.base_url)
       } else if (adapterType === 'psc_pdf') {

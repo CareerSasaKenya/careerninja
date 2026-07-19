@@ -26,6 +26,13 @@ import {
   extractGreenhouseSlug,
 } from '@/lib/greenhouse-adapter'
 import {
+  fetchTaleoJobDetails,
+  normalizeTaleoJob,
+  extractTaleoContestNo,
+  extractTaleoHost,
+  extractTaleoSection,
+} from '@/lib/taleo-adapter'
+import {
   fetchPscJobRow,
   normalizePscJob,
   extractPscAdvertNumber,
@@ -187,6 +194,40 @@ export async function runScrapeProcessOne(
         requirementsSection: '',
         industryHint: detail.departments?.[0]?.name || null,
         jobFunctionHint: detail.departments?.[0]?.name || null,
+        tagsHint: normalized.tags,
+      }
+    } else if (adapterType === 'taleo') {
+      const config = source.selectors as { host?: string; section?: string }
+      const contestNo = extractTaleoContestNo(queueItem.job_url)
+      const host =
+        config.host || extractTaleoHost(queueItem.job_url) || undefined
+      const section =
+        config.section || extractTaleoSection(queueItem.job_url) || undefined
+
+      if (!host || !section || !contestNo) {
+        throw new Error(
+          `Cannot parse Taleo host/section/contest from URL: ${queueItem.job_url}`
+        )
+      }
+
+      const detail = await fetchTaleoJobDetails(host, section, contestNo, {
+        title: String(queueItem.partial_data?.title || ''),
+        location: String(queueItem.partial_data?.location || ''),
+        contestNo,
+        detailUrl: queueItem.job_url,
+      })
+      normalized = normalizeTaleoJob(detail, hiringCompany)
+      normalized.application_url = detail.detailUrl || queueItem.job_url
+      rawData = detail
+
+      parseInput = {
+        title: normalized.title,
+        company: hiringCompany,
+        location: normalized.location || detail.location,
+        employmentType: normalized.employment_type,
+        workplace: normalized.job_location_type,
+        descriptionSection: detail.descriptionHtml || normalized.description || '',
+        requirementsSection: detail.qualificationsHtml || '',
         tagsHint: normalized.tags,
       }
     } else if (adapterType === 'psc') {

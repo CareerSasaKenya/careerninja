@@ -90,6 +90,8 @@ export const KNOWN_COMPANY_INDUSTRIES: Record<string, string> = {
   "equity bank": BANKING,
   "equity bank rwanda": BANKING,
   "equity afya": HEALTHCARE,
+  britam: BANKING,
+  "britam holdings": BANKING,
 };
 
 export const KNOWN_COMPANY_DESCRIPTIONS: Record<string, string> = {
@@ -125,6 +127,10 @@ export const KNOWN_COMPANY_DESCRIPTIONS: Record<string, string> = {
     "Equity Bank is a leading commercial bank in Kenya and East Africa, offering retail, SME, and corporate banking services.",
   "equity bank rwanda":
     "Equity Bank Rwanda is part of Equity Group, providing retail and commercial banking services in Rwanda.",
+  britam:
+    "Britam is a leading financial services group in Kenya and East Africa, offering insurance, asset management, and investment solutions.",
+  "britam holdings":
+    "Britam is a leading financial services group in Kenya and East Africa, offering insurance, asset management, and investment solutions.",
   "kcb group":
     "KCB Group is one of East Africa’s largest commercial banking groups, providing retail, corporate, and digital financial services.",
 };

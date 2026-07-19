@@ -45,6 +45,14 @@ type RawGreenhouse = {
   location?: { name?: string }
 }
 
+type RawTaleo = {
+  title?: string
+  location?: string
+  descriptionHtml?: string
+  qualificationsHtml?: string
+  contestNo?: string
+}
+
 type RawPscPdf = {
   extracted?: {
     title?: string
@@ -102,6 +110,22 @@ export function buildReenrichInput(
       industryHint: dept,
       jobFunctionHint: dept,
       tagsHint: dept,
+    }
+  }
+
+  // Taleo Enterprise (description/qualifications HTML from initialHistory)
+  if (
+    typeof (raw as RawTaleo).descriptionHtml === 'string' &&
+    (raw as RawTaleo).descriptionHtml
+  ) {
+    const taleo = raw as RawTaleo
+    return {
+      title: title || taleo.title || 'Untitled',
+      company,
+      location: taleo.location,
+      descriptionSection: taleo.descriptionHtml || '',
+      requirementsSection: taleo.qualificationsHtml || '',
+      tagsHint: 'Taleo',
     }
   }
 
