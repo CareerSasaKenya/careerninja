@@ -84,6 +84,25 @@ assert.ok(
 )
 assert.equal(parsed.minimum_experience, 8)
 
+// Bare duties list (no Key Responsibilities heading) + Requirements tables
+const bareDuties = `
+<ul><li>Backend administration of CX Systems</li><li>Dynamics CRM deployments</li></ul>
+<p>Requirements:</p>
+<figure class="table"><table>
+  <tr><th>Particulars</th><th>Detail</th><th>Specific Field or Qualification</th><th>Need Type</th></tr>
+  <tr><td>Education</td><td>Bachelor’s Degree</td><td>Information Technology</td><td>RQ</td></tr>
+</table></figure>
+`
+const bareParsed = parseScrapedJobFallback({
+  title: 'Applications Specialist',
+  company: 'KCB Group',
+  descriptionSection: bareDuties,
+})
+assert.ok(bareParsed.responsibilities.includes('Backend administration'))
+assert.ok(!bareParsed.description.includes('Backend administration'))
+assert.ok(bareParsed.required_qualifications.includes('Bachelor'))
+assert.ok(!/<table/i.test(bareParsed.required_qualifications))
+
 // Live fixture when present (written by probe); skip silently otherwise
 try {
   const live = readFileSync('/tmp/kcb-6058.html', 'utf8')

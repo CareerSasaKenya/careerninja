@@ -139,6 +139,14 @@ function wrapSection(heading: string, html: string): string {
   return `<h3>${heading}</h3>${trimmed}`
 }
 
+function escapeHtmlText(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
 type ContentBucket = 'description' | 'responsibilities' | 'required_qualifications' | 'additional_info'
 
 function bucketForHeading(headingText: string, current: ContentBucket = 'description'): ContentBucket {
@@ -428,6 +436,7 @@ export function prepareScrapedHtmlSections(input: ScrapedJobInput): ScrapedJobIn
  * Rule-based parsing — works without AI keys; respects ATS native field splits.
  */
 export function parseScrapedJobFallback(input: ScrapedJobInput): ParsedScrapedJobContent {
+  const descriptionHadTables = htmlContainsTable(input.descriptionSection)
   const prepared = prepareScrapedHtmlSections(input)
   const descSplit = splitHtmlByHeadings(
     prepared.descriptionSection || prepared.rawContent || ''
@@ -474,12 +483,51 @@ export function parseScrapedJobFallback(input: ScrapedJobInput): ParsedScrapedJo
     responsibilities = descSplit.responsibilities
   }
 
-  const required_qualifications = convertHtmlTablesToBulletLists(
+  let required_qualifications = convertHtmlTablesToBulletLists(
     prepared.requirementsSection?.trim() ||
       dutiesSplit?.required_qualifications ||
       descSplit.required_qualifications ||
       ''
-  ).replace(/<p>(?:\s|&nbsp;)*<\/p>/gi, '')
+  ).replace(/<p\b[^>]*>\s*(?:&nbsp;|\s)*<\/p>/gi, '')
+
+  // Some Oracle Cloud postings open with a bare duties <ul> (no "Key Responsibilities"
+  // heading) then a Requirements section. Move that list into responsibilities.
+  if (
+    !responsibilities.trim() &&
+    description.trim() &&
+    required_qualifications.trim()
+  ) {
+    const trimmedDesc = description.trim()
+    const onlyDutyList =
+      /^<ul[\s\S]*<\/ul>\s*$/i.test(trimmedDesc) ||
+      (/^<ul[\s\S]*<\/ul>/i.test(trimmedDesc) &&
+        !/<p\b[^>]*>\s*[^<&\s]/i.test(trimmedDesc.replace(/<ul[\s\S]*?<\/ul>/gi, '')))
+    if (onlyDutyList) {
+      responsibilities = trimmedDesc
+      description = ''
+    }
+  }
+
+  // When the description blob contained qualification matrices, prefer those
+  // deterministic bullets over a separate short qualifications field.
+  if (descriptionHadTables && descSplit.required_qualifications?.trim()) {
+    const fromDesc = convertHtmlTablesToBulletLists(descSplit.required_qualifications).replace(
+      /<p\b[^>]*>\s*(?:&nbsp;|\s)*<\/p>/gi,
+      ''
+    )
+    if (fromDesc.trim()) required_qualifications = fromDesc
+  } else if (
+    descSplit.required_qualifications &&
+    (/<table[\s>]/i.test(input.requirementsSection || '') || !prepared.requirementsSection?.trim())
+  ) {
+    const fromDesc = convertHtmlTablesToBulletLists(descSplit.required_qualifications).replace(
+      /<p\b[^>]*>\s*(?:&nbsp;|\s)*<\/p>/gi,
+      ''
+    )
+    if (fromDesc.trim() && fromDesc.length >= required_qualifications.trim().length) {
+      required_qualifications = fromDesc
+    }
+  }
 
   const additional_info = buildAdditionalInfo(
     input.benefitsSection,
@@ -931,6 +979,18 @@ export async function parseScrapedJobContent(
       salary_currency: meta.salary_currency ?? fallback.salary_currency,
       salary_period: meta.salary_period ?? fallback.salary_period,
     }
+  }
+
+  // When the ATS blob had no overview (common for Oracle Cloud / KCB), keep a
+  // short factual stub so we don't leave the old table-heavy HTML in description.
+  if (
+    !parsed.description?.trim() &&
+    (parsed.responsibilities?.trim() || parsed.required_qualifications?.trim())
+  ) {
+    const loc = input.location?.trim()
+    parsed.description = `<p>${escapeHtmlText(input.title)} at ${escapeHtmlText(input.company)}${
+      loc ? ` — ${escapeHtmlText(loc)}` : ''
+    }.</p>`
   }
 
   // Prefer AI taxonomy (already fuzzy-matched by finalizeParsedJobData), then
