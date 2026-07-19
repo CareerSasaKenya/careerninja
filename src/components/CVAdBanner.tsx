@@ -12,18 +12,13 @@ export default function CVAdBanner() {
         <div className="p-2 rounded-lg bg-orange-100 shrink-0">
           <FileText className="h-5 w-5 text-orange-600" />
         </div>
-        <div className="min-w-0">
-          <p className="text-sm font-semibold text-gray-900">
-            Stand out with a professional CV
-          </p>
-          <p className="text-xs text-gray-600 mt-0.5">
-            Build a job-ready CV in minutes using our free templates — tailored for the Kenyan job market.
-          </p>
-        </div>
+        <p className="min-w-0 text-sm font-semibold text-gray-900 leading-snug">
+          Build your CV in minutes! Tailored for the Kenyan job market.
+        </p>
       </div>
       <Link
         href="/dashboard/career-tools"
-        className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-2 transition-colors"
+        className="self-start shrink-0 inline-flex w-auto items-center gap-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-3 py-2 transition-colors sm:self-auto sm:px-4"
       >
         Build My CV
         <ArrowRight className="h-4 w-4" />
