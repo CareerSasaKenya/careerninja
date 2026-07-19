@@ -161,7 +161,8 @@ async function getRelatedJobs(jobId: string, industries?: string[], jobFunctions
     const { data, error } = await query;
     if (error) throw error;
 
-    // Live (non-expired) jobs first, then fill with expired if needed
+    // Always prioritize live related jobs (even when the current job is still open),
+    // then fill remaining slots with expired matches if needed.
     const jobs = data || [];
     const live = jobs.filter(isJobLive);
     const expired = jobs.filter((j) => !isJobLive(j));
