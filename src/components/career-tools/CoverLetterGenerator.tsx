@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -93,19 +94,23 @@ export default function CoverLetterGenerator() {
   const [internshipFormData, setInternshipFormData] = useState<InternshipLetterData>({ ...internshipLetterPreviewData });
 
   const { toast } = useToast();
+  const router = useRouter();
 
   useEffect(() => { loadData(); }, []);
 
   async function loadData() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const [lettersData, templatesData] = await Promise.all([
-        getUserCoverLetters(user.id),
-        getCoverLetterTemplates(),
-      ]);
-      setLetters(lettersData ?? []);
+      // Cover letter templates are public; saved letters require a session.
+      const templatesData = await getCoverLetterTemplates();
       setDbTemplates(templatesData ?? []);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const lettersData = await getUserCoverLetters(user.id);
+        setLetters(lettersData ?? []);
+      } else {
+        setLetters([]);
+      }
     } catch (error: any) {
       toast({ title: 'Error loading data', description: error.message, variant: 'destructive' });
     } finally {
@@ -159,7 +164,14 @@ export default function CoverLetterGenerator() {
     setSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        toast({
+          title: 'Sign in required',
+          description: 'Create a free account or sign in to save cover letters.',
+        });
+        router.push('/auth');
+        return;
+      }
       const d = getActiveFormData();
       const tplName = getActiveTemplateName();
       const matchedTpl = dbTemplates.find(t => t.name === tplName);

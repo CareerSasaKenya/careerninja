@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,23 +42,34 @@ export default function CVBuilder() {
   const [isSwitchingTemplate, setIsSwitchingTemplate] = useState(false);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const router = useRouter();
 
   useEffect(() => {
     loadData();
   }, []);
 
+  function requireAuth(actionLabel = 'use CV templates') {
+    toast({
+      title: 'Sign in required',
+      description: `Create a free account or sign in to ${actionLabel}.`,
+    });
+    router.push('/auth');
+  }
+
   async function loadData() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const [cvsData, templatesData] = await Promise.all([
-        getUserCVs(user.id),
-        getCVTemplates()
-      ]);
-
-      setCvs(cvsData);
+      // Templates are public (RLS allows anonymous read of active templates).
+      // Only the user's saved CVs require a session.
+      const templatesData = await getCVTemplates();
       setTemplates(templatesData);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const cvsData = await getUserCVs(user.id);
+        setCvs(cvsData);
+      } else {
+        setCvs([]);
+      }
     } catch (error: any) {
       toast({
         title: 'Error',
@@ -72,7 +84,10 @@ export default function CVBuilder() {
   async function handleCreateCV(formData: FormData) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        requireAuth('create a CV');
+        return;
+      }
 
       const title = formData.get('title') as string;
       const templateId = formData.get('template_id') as string;
@@ -221,7 +236,12 @@ export default function CVBuilder() {
   async function handleCreateNewCV(cvName: string) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user || !selectedTemplate) return;
+      if (!selectedTemplate) return;
+      if (!user) {
+        setShowTemplateDialog(false);
+        requireAuth('use this template');
+        return;
+      }
 
       const newCV = await createCV({
         user_id: user.id,
@@ -251,7 +271,12 @@ export default function CVBuilder() {
   async function handleUploadExistingCV(cvName: string, parsedData: any) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user || !selectedTemplate) return;
+      if (!selectedTemplate) return;
+      if (!user) {
+        setShowTemplateDialog(false);
+        requireAuth('upload a CV');
+        return;
+      }
 
       // Map parsed data to CV content structure
       const cvContent = {
