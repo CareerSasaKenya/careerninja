@@ -336,7 +336,7 @@ export function parseTaleoJoblistHistory(rawValue: string): Array<{
     decodeHtmlEntities(decodeRepeatedUri(rawValue))
   )
   const rowRe =
-    /!\|\!(\d+)!\|\!([^!|]{3,250})!\|\!\1!\|\!\1!\|\!\1!\|\!\1!\|\!\1!\|\!([A-Z0-9]+)!\|\!([^!|]+)!\|\!/g
+    /!\|!(\d+)!\|!([^!|]{3,250})!\|!\1!\|!\1!\|!\1!\|!\1!\|!\1!\|!([A-Z0-9]+)!\|!([^!|]+)!\|!/g
 
   const jobs: Array<{
     jobId: string
