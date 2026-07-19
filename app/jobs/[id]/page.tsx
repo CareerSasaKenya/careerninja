@@ -117,6 +117,17 @@ async function getJobData(id: string) {
   }
 }
 
+function isJobExpired(validThrough?: string | null): boolean {
+  if (!validThrough) return false;
+  const deadline = new Date(validThrough);
+  if (Number.isNaN(deadline.getTime())) return false;
+  return deadline.getTime() < Date.now();
+}
+
+function isJobLive(job: { valid_through?: string | null }): boolean {
+  return !isJobExpired(job.valid_through);
+}
+
 async function getRelatedJobs(jobId: string, industries?: string[], jobFunctions?: string[]) {
   // If Supabase isn't configured, return empty array
   if (!supabase) {
@@ -137,7 +148,8 @@ async function getRelatedJobs(jobId: string, industries?: string[], jobFunctions
         )
       `)
       .neq("id", jobId)
-      .limit(6);
+      .order("date_posted", { ascending: false })
+      .limit(24);
 
     // Prioritize jobs with matching industries or job_functions (array overlap)
     if (industries && industries.length > 0) {
@@ -148,7 +160,12 @@ async function getRelatedJobs(jobId: string, industries?: string[], jobFunctions
 
     const { data, error } = await query;
     if (error) throw error;
-    return data || [];
+
+    // Live (non-expired) jobs first, then fill with expired if needed
+    const jobs = data || [];
+    const live = jobs.filter(isJobLive);
+    const expired = jobs.filter((j) => !isJobLive(j));
+    return [...live, ...expired].slice(0, 6);
   } catch (error) {
     console.error("Error fetching related jobs:", error);
     return [];
@@ -228,6 +245,8 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
     job.job_function,
     functionCatalog,
   );
+  const jobExpired = isJobExpired(job.valid_through);
+  const hasRelatedJobs = relatedJobs && relatedJobs.length > 0;
   
   return (
     <>
@@ -246,6 +265,32 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
             </Link>
             <AdminEditJobButton jobId={job.id} variant="page" />
           </div>
+
+          {jobExpired && (
+            <div className="mb-4 rounded-md border border-orange-300 bg-orange-50 px-3 py-2.5 text-sm text-orange-800">
+              This job has expired.{" "}
+              {hasRelatedJobs ? (
+                <>
+                  Browse{" "}
+                  <a
+                    href="#related-opportunities"
+                    className="font-semibold underline underline-offset-2 hover:text-orange-950"
+                  >
+                    related opportunities
+                  </a>{" "}
+                  below, or{" "}
+                </>
+              ) : null}
+              <Link
+                href="/jobs"
+                prefetch={true}
+                className="font-semibold underline underline-offset-2 hover:text-orange-950"
+              >
+                {hasRelatedJobs ? "view all open jobs" : "browse open jobs"}
+              </Link>
+              .
+            </div>
+          )}
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-5">
             {/* Main Content */}
@@ -357,7 +402,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
             <div className="space-y-4 lg:sticky lg:top-24 lg:h-fit lg:self-start sm:space-y-5">
               {/* Apply Here section - only visible on desktop */}
               <div className="hidden lg:block">
-                <ApplySection job={job} />
+                <ApplySection job={job} expired={jobExpired} />
               </div>
 
               {/* Service Advertisement - only visible on desktop */}
@@ -417,11 +462,11 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
             )}
           </div>
 
-          <MobileStickyApply job={job} />
+          <MobileStickyApply job={job} expired={jobExpired} />
 
           {/* Related Opportunities Section */}
-          {relatedJobs && relatedJobs.length > 0 && (
-            <div className="mt-8 sm:mt-10">
+          {hasRelatedJobs && (
+            <div id="related-opportunities" className="mt-8 scroll-mt-24 sm:mt-10">
               <h2 className="mb-4 text-2xl font-bold text-[#0A66C2] sm:mb-5">Related Opportunities</h2>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 sm:gap-5">
                 {relatedJobs.slice(0, 6).map((relatedJob: any) => (

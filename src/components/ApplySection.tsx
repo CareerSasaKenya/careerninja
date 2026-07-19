@@ -18,9 +18,15 @@ interface ApplySectionProps {
   job: any;
   /** Skip card chrome when rendered inside a sheet/drawer */
   embedded?: boolean;
+  /** When true, applications are closed */
+  expired?: boolean;
 }
 
-export default function ApplySection({ job, embedded = false }: ApplySectionProps) {
+export default function ApplySection({
+  job,
+  embedded = false,
+  expired = false,
+}: ApplySectionProps) {
   const { toast } = useToast();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -230,6 +236,43 @@ export default function ApplySection({ job, embedded = false }: ApplySectionProp
   // Check if there are any external application methods
   const hasExternalMethods = !!(job?.application_url || job?.apply_link || job?.apply_email);
   const hasDirectApply = job?.direct_apply !== false; // Default to true if not explicitly false
+
+  const jobIsExpired =
+    expired ||
+    (!!job?.valid_through &&
+      !Number.isNaN(new Date(job.valid_through).getTime()) &&
+      new Date(job.valid_through).getTime() < Date.now());
+
+  if (jobIsExpired) {
+    const closedBody = (
+      <div className="space-y-3">
+        <p className="text-sm font-medium text-orange-700">
+          Applications are closed — this job has expired.
+        </p>
+        <p className="text-sm text-muted-foreground">
+          Browse related opportunities below, or explore other open roles.
+        </p>
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={() => router.push("/jobs")}
+        >
+          Browse Open Jobs
+        </Button>
+      </div>
+    );
+
+    if (embedded) return closedBody;
+
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg text-[#0A66C2]">Apply for this Job</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">{closedBody}</CardContent>
+      </Card>
+    );
+  }
 
   const successBody = (
     <div className="space-y-4">
