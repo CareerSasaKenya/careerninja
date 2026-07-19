@@ -6,6 +6,7 @@
 const boards = [
   ['Equity Bank', 'equitybank.taleo.net', 'ext_new'],
   ['Britam', 'britam.taleo.net', 'ke'],
+  ['Aga Khan University', 'aku.taleo.net', 'ex'],
 ]
 
 async function probe(name, host, section) {
@@ -16,7 +17,19 @@ async function probe(name, host, section) {
   if (!listRes.ok) return `${name}: jobsearch HTTP ${listRes.status}`
   const html = await listRes.text()
   const portal = html.match(/portalNo\s*[:=]\s*['"]?(\d+)/i)?.[1]
-  if (!portal) return `${name}: portalNo missing`
+  if (!portal) {
+    // Legacy joblist boards (e.g. AKU) embed listings in initialHistory.
+    const listUrl = `https://${host}/careersection/${section}/joblist.ftl?lang=en`
+    const listRes = await fetch(listUrl, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; careersasa-probe/1.0)' },
+    })
+    if (!listRes.ok) return `${name}: no portal; joblist HTTP ${listRes.status}`
+    const listHtml = await listRes.text()
+    const history = listHtml.match(/id=["']initialHistory["'][^>]*value=["']([^"']*)["']/i)?.[1] || ''
+    const decoded = decodeURIComponent(history.replace(/\+/g, ' '))
+    const ke = (decoded.match(/Kenya/gi) || []).length
+    return `${name} (${host}/${section}): legacy-joblist kenya_mentions=${ke}`
+  }
   const cookie = (listRes.headers.getSetCookie?.() || [])
     .map(c => c.split(';')[0])
     .join('; ')

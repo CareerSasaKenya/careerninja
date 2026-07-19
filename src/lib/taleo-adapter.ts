@@ -71,6 +71,10 @@ function jobsearchUrl(host: string, section: string): string {
   return `https://${host}/careersection/${section}/jobsearch.ftl?lang=en`
 }
 
+function joblistUrl(host: string, section: string): string {
+  return `https://${host}/careersection/${section}/joblist.ftl?lang=en`
+}
+
 function jobdetailUrl(host: string, section: string, contestNo: string): string {
   return `https://${host}/careersection/${section}/jobdetail.ftl?lang=en&job=${encodeURIComponent(contestNo)}`
 }
@@ -168,16 +172,31 @@ function unescapeTaleoText(value: string): string {
     .replace(/\\\//g, '/')
 }
 
+/**
+ * Taleo history blobs mix real URI escapes (%3C, %5C) with literal CSS
+ * percentages (115%). Node's decodeURIComponent throws on the latter; decode
+ * only well-formed %XX runs instead (same tolerance as Python unquote).
+ */
+function safeDecodeUriComponent(value: string): string {
+  return value
+    .replace(/\+/g, ' ')
+    .replace(/((?:%[0-9A-Fa-f]{2})+)/g, match => {
+      try {
+        return decodeURIComponent(match)
+      } catch {
+        return match.replace(/%([0-9A-Fa-f]{2})/g, (_, hex) =>
+          String.fromCharCode(parseInt(hex, 16))
+        )
+      }
+    })
+}
+
 function decodeRepeatedUri(value: string): string {
   let decoded = value
   for (let i = 0; i < 3; i++) {
-    try {
-      const next = decodeURIComponent(decoded.replace(/\+/g, ' '))
-      if (next === decoded) break
-      decoded = next
-    } catch {
-      break
-    }
+    const next = safeDecodeUriComponent(decoded)
+    if (next === decoded) break
+    decoded = next
   }
   return decoded
 }
@@ -257,39 +276,119 @@ function matchesCountry(location: string, filterCountry?: string): boolean {
   return hay.includes(needle)
 }
 
-async function warmTaleoSession(
-  host: string,
-  section: string,
-  portalHint?: string
-): Promise<{ portal: string; cookie: string; referer: string }> {
-  const referer = jobsearchUrl(host, section)
-  const response = await fetch(referer, {
+async function fetchTaleoHtml(
+  url: string,
+  cookie?: string,
+  referer?: string
+): Promise<{ html: string; cookie: string; finalUrl: string }> {
+  const response = await fetch(url, {
     headers: {
       Accept: 'text/html,application/xhtml+xml',
       'User-Agent': UA,
+      ...(referer ? { Referer: referer } : {}),
+      ...(cookie ? { Cookie: cookie } : {}),
     },
     signal: withTimeout(20000),
   })
 
   if (!response.ok) {
-    throw new Error(
-      `Taleo jobsearch error ${response.status} for ${host}/${section}`
-    )
+    throw new Error(`Taleo page error ${response.status} for ${url}`)
   }
 
   const html = await response.text()
-  const portal = portalHint || extractTaleoPortal(html)
-  if (!portal) {
-    throw new Error(
-      `Taleo portalNo not found on jobsearch page for ${host}/${section}`
-    )
-  }
+  const nextCookie = cookieHeaderFromResponse(response) || cookie || ''
+  return { html, cookie: nextCookie, finalUrl: response.url || url }
+}
+
+async function warmTaleoSession(
+  host: string,
+  section: string,
+  portalHint?: string
+): Promise<{ portal: string | null; cookie: string; referer: string; html: string }> {
+  const referer = jobsearchUrl(host, section)
+  const page = await fetchTaleoHtml(referer)
+  const portal = portalHint || extractTaleoPortal(page.html)
 
   return {
     portal,
-    cookie: cookieHeaderFromResponse(response),
+    cookie: page.cookie,
     referer,
+    html: page.html,
   }
+}
+
+/**
+ * Legacy Taleo boards (e.g. Aga Khan University) embed the requisition list in
+ * #initialHistory on joblist.ftl instead of exposing searchjobs + portalNo.
+ *
+ * Row shape observed:
+ * !|{jobId}|{title}|{jobId}|{jobId}|{jobId}|{jobId}|{jobId}|{contestNo}|{location}|!
+ */
+export function parseTaleoJoblistHistory(rawValue: string): Array<{
+  jobId: string
+  contestNo: string
+  title: string
+  location: string
+}> {
+  if (!rawValue) return []
+
+  const decoded = unescapeTaleoText(
+    decodeHtmlEntities(decodeRepeatedUri(rawValue))
+  )
+  const rowRe =
+    /!\|\!(\d+)!\|\!([^!|]{3,250})!\|\!\1!\|\!\1!\|\!\1!\|\!\1!\|\!\1!\|\!([A-Z0-9]+)!\|\!([^!|]+)!\|\!/g
+
+  const jobs: Array<{
+    jobId: string
+    contestNo: string
+    title: string
+    location: string
+  }> = []
+  const seen = new Set<string>()
+
+  for (const match of decoded.matchAll(rowRe)) {
+    const jobId = match[1]
+    const title = unescapeTaleoText(match[2]).trim()
+    const contestNo = match[3].trim()
+    const location = parseLocationColumn(match[4])
+    if (!contestNo || !title || seen.has(contestNo)) continue
+    seen.add(contestNo)
+    jobs.push({ jobId, contestNo, title, location })
+  }
+
+  return jobs
+}
+
+async function discoverTaleoJobsFromJoblist(
+  host: string,
+  section: string,
+  filterCountry: string | undefined,
+  cookie: string,
+  referer: string
+): Promise<TaleoJobListing[]> {
+  // Prefer joblist.ftl (All Jobs); fall back to the already-fetched jobsearch HTML path.
+  let html = ''
+  try {
+    const page = await fetchTaleoHtml(joblistUrl(host, section), cookie, referer)
+    html = page.html
+  } catch {
+    const page = await fetchTaleoHtml(jobsearchUrl(host, section), cookie)
+    html = page.html
+  }
+
+  const history = extractInitialHistoryValue(html)
+  if (!history) {
+    throw new Error(
+      `Taleo legacy joblist missing initialHistory for ${host}/${section}`
+    )
+  }
+
+  return parseTaleoJoblistHistory(history)
+    .filter(job => matchesCountry(job.location, filterCountry))
+    .map(job => ({
+      ...job,
+      detailUrl: jobdetailUrl(host, section, job.contestNo),
+    }))
 }
 
 function searchPayload(pageNo: number) {
@@ -366,39 +465,50 @@ export async function discoverTaleoJobs(
   const { host, section } = resolveBoard(config, baseUrl)
   const session = await warmTaleoSession(host, section, config.portal)
 
-  const all: TaleoJobListing[] = []
-  let pageNo = 1
+  let all: TaleoJobListing[] = []
 
-  for (; pageNo <= MAX_PAGES; pageNo++) {
-    const data = await searchTaleoPage(
+  if (!session.portal) {
+    // Older careersection UIs (AKU) have no portalNo / searchjobs API.
+    all = await discoverTaleoJobsFromJoblist(
       host,
-      session.portal,
+      section,
+      config.filterCountry,
       session.cookie,
-      session.referer,
-      pageNo
+      session.referer
     )
-    const batch = data.requisitionList || []
-    for (const job of batch) {
-      const contestNo = String(job.contestNo || '').trim()
-      if (!contestNo) continue
-      const title = extractTaleoTitle(job)
-      const location = extractTaleoLocation(job)
-      if (!matchesCountry(location, config.filterCountry)) continue
-      all.push({
-        jobId: String(job.jobId || ''),
-        contestNo,
-        title,
-        location,
-        dateColumn: job.column?.[2],
-        detailUrl: jobdetailUrl(host, section, contestNo),
-      })
-    }
+  } else {
+    let pageNo = 1
+    for (; pageNo <= MAX_PAGES; pageNo++) {
+      const data = await searchTaleoPage(
+        host,
+        session.portal,
+        session.cookie,
+        session.referer,
+        pageNo
+      )
+      const batch = data.requisitionList || []
+      for (const job of batch) {
+        const contestNo = String(job.contestNo || '').trim()
+        if (!contestNo) continue
+        const title = extractTaleoTitle(job)
+        const location = extractTaleoLocation(job)
+        if (!matchesCountry(location, config.filterCountry)) continue
+        all.push({
+          jobId: String(job.jobId || ''),
+          contestNo,
+          title,
+          location,
+          dateColumn: job.column?.[2],
+          detailUrl: jobdetailUrl(host, section, contestNo),
+        })
+      }
 
-    const total = data.pagingData?.totalCount
-    const pageSize = data.pagingData?.pageSize || batch.length || 25
-    if (batch.length === 0) break
-    if (total != null && pageNo * pageSize >= total) break
-    if (batch.length < pageSize) break
+      const total = data.pagingData?.totalCount
+      const pageSize = data.pagingData?.pageSize || batch.length || 25
+      if (batch.length === 0) break
+      if (total != null && pageNo * pageSize >= total) break
+      if (batch.length < pageSize) break
+    }
   }
 
   return all.map(job => ({
@@ -457,6 +567,8 @@ export function parseTaleoInitialHistory(rawValue: string): {
         token.length >= 3 &&
         token.length < 220 &&
         !/^(true|false|\d+)$/i.test(token) &&
+        // Skip contest numbers like 260002SR / 2600009F
+        !/^[A-Z]?\d{5,}[A-Z0-9]*$/i.test(token) &&
         !token.includes('Interface') &&
         !token.startsWith('ftl') &&
         !token.startsWith('Submission for the position')
@@ -489,25 +601,8 @@ export async function fetchTaleoJobDetails(
 ): Promise<TaleoJobDetail> {
   const session = await warmTaleoSession(host, section)
   const detailUrl = jobdetailUrl(host, section, contestNo)
-
-  const response = await fetch(detailUrl, {
-    headers: {
-      Accept: 'text/html,application/xhtml+xml',
-      'User-Agent': UA,
-      Referer: session.referer,
-      ...(session.cookie ? { Cookie: session.cookie } : {}),
-    },
-    signal: withTimeout(20000),
-  })
-
-  if (!response.ok) {
-    throw new Error(
-      `Taleo jobdetail error ${response.status} for ${host}/${section} job ${contestNo}`
-    )
-  }
-
-  const html = await response.text()
-  const history = extractInitialHistoryValue(html)
+  const page = await fetchTaleoHtml(detailUrl, session.cookie, session.referer)
+  const history = extractInitialHistoryValue(page.html)
   const parsed = parseTaleoInitialHistory(history || '')
 
   const title = parsed.title || listing?.title || 'Untitled role'

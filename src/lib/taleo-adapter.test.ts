@@ -10,6 +10,7 @@ import {
   parseLocationColumn,
   parseTaleoBoardUrl,
   parseTaleoInitialHistory,
+  parseTaleoJoblistHistory,
 } from './taleo-adapter'
 
 assert.deepEqual(
@@ -70,6 +71,18 @@ assert.equal(parsed.title, 'Banking Investigations Team Leader')
 assert.equal(parsed.descriptionHtml, '<p>Equity Bank purpose statement.</p>')
 assert.equal(parsed.qualificationsHtml, '<p>Qualifications go here.</p>')
 
+// AKU-style: URI-encoded HTML mixed with literal CSS percentages (115%).
+const akuHistory =
+  'ftlx0!|!true!|!118773!|!false!|!Submission for the position%5C: Building Operations Manager - (Job Number%5C: 260002SR)!|!false!|!118773!|!false!|!true!|!Building Operations Manager!|!260002SR!|!' +
+  '!*!%3Cp class=%22paragraph%22 style=%22line-height%5C:115%;margin-bottom%5C:0cm%22%3EBuilding ops.%3C/p%3E' +
+  '!*!%3Cp%3ERelevant experience.%3C/p%3E'
+const akuParsed = parseTaleoInitialHistory(akuHistory)
+assert.equal(akuParsed.title, 'Building Operations Manager')
+assert.ok(akuParsed.descriptionHtml.includes('<p'))
+assert.ok(akuParsed.descriptionHtml.includes('Building ops.'))
+assert.ok(!akuParsed.descriptionHtml.includes('%3C'))
+assert.notEqual(akuParsed.title, '260002SR')
+
 const normalized = normalizeTaleoJob(
   {
     jobId: '63153',
@@ -90,5 +103,16 @@ assert.equal(normalized.job_location_country, 'Kenya')
 assert.ok(normalized.application_url.includes('equitybank.taleo.net'))
 assert.ok(normalized.description.includes('Lead investigations'))
 assert.ok(normalized.required_qualifications.includes('5+ years'))
+
+const joblistHistory =
+  'ftlx0!|!ftlUtil_resetPage!$!requisitionListInterface!|!listRequisition!|!rlPager!$!false!|!' +
+  'false!|!118773!|!Building Operations Manager (Fixed Term), UCN-Operations!|!118773!|!Building Operations Manager (Fixed Term), UCN-Operations!|!118773!|!118773!|!118773!|!118773!|!118773!|!260002SR!|!Kenya-Nairobi!|!false!|!!|!!|!!|!!|!16/07/2026!|!30/07/2026!|!Apply!|!Apply for this position!|!' +
+  'false!|!113296!|!Full Time Faculty, Paediatric Nephrologist!|!113296!|!Full Time Faculty, Paediatric Nephrologist!|!113296!|!113296!|!113296!|!113296!|!113296!|!2600027E!|!Pakistan-Karachi!|!false!|!!|!!|!!|!!|!16/07/2026!|!16/08/2026!|!Apply!|!Apply for this position!|!'
+
+const joblistJobs = parseTaleoJoblistHistory(joblistHistory)
+assert.equal(joblistJobs.length, 2)
+assert.equal(joblistJobs[0].contestNo, '260002SR')
+assert.equal(joblistJobs[0].location, 'Kenya, Nairobi')
+assert.equal(joblistJobs[1].contestNo, '2600027E')
 
 console.log('taleo-adapter.test.ts: ok')

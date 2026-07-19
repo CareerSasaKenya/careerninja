@@ -202,6 +202,9 @@ export const KNOWN_COMPANY_BRANDS: Record<string, BrandEntry> = {
 
   // ── Health ──────────────────────────────────────────────────────────
   "aga khan hospital": { domain: "agakhanhospitals.org" },
+  "aga khan university": { domain: "aku.edu", twitter: "aku_global" },
+  "aga khan university hospital": { domain: "hospitals.aku.edu" },
+  aku: { domain: "aku.edu", twitter: "aku_global" },
   "aga khan academies": { domain: "agakhanacademies.org" },
   "aga khan academy": { domain: "agakhanacademies.org" },
   "nairobi hospital": { domain: "nairobihospital.org", twitter: "NrbHospital" },

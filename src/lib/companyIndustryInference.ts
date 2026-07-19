@@ -92,6 +92,10 @@ export const KNOWN_COMPANY_INDUSTRIES: Record<string, string> = {
   "equity afya": HEALTHCARE,
   britam: BANKING,
   "britam holdings": BANKING,
+  "aga khan university": EDUCATION,
+  aku: EDUCATION,
+  // More specific than "aga khan university" (includes-match would otherwise win)
+  "aga khan university hospital": HEALTHCARE,
 };
 
 export const KNOWN_COMPANY_DESCRIPTIONS: Record<string, string> = {
@@ -131,6 +135,12 @@ export const KNOWN_COMPANY_DESCRIPTIONS: Record<string, string> = {
     "Britam is a leading financial services group in Kenya and East Africa, offering insurance, asset management, and investment solutions.",
   "britam holdings":
     "Britam is a leading financial services group in Kenya and East Africa, offering insurance, asset management, and investment solutions.",
+  "aga khan university":
+    "Aga Khan University is a private international university with campuses in Kenya and beyond, offering education, research, and healthcare services.",
+  aku:
+    "Aga Khan University is a private international university with campuses in Kenya and beyond, offering education, research, and healthcare services.",
+  "aga khan university hospital":
+    "Aga Khan University Hospital, Nairobi is a private not-for-profit teaching hospital providing tertiary and secondary healthcare services in East Africa.",
   "kcb group":
     "KCB Group is one of East Africa’s largest commercial banking groups, providing retail, corporate, and digital financial services.",
 };
