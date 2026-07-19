@@ -84,7 +84,7 @@ export default function CoverLetterGenerator() {
   const [showEditor, setShowEditor] = useState(false);
   const [letterTitle, setLetterTitle] = useState('');
   const [saving, setSaving] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [activeTemplate, setActiveTemplate] = useState<ActiveTemplate>('classic');
 
   const [classicFormData, setClassicFormData] = useState<ClassicLetterData>({ ...classicLetterPreviewData });
@@ -99,8 +99,9 @@ export default function CoverLetterGenerator() {
   useEffect(() => { loadData(); }, []);
 
   async function loadData() {
+    // Gallery templates are hardcoded and public — never gate them on auth.
+    // DB templates + saved letters load in the background; only save requires sign-in.
     try {
-      // Cover letter templates are public; saved letters require a session.
       const templatesData = await getCoverLetterTemplates();
       setDbTemplates(templatesData ?? []);
 
@@ -113,8 +114,6 @@ export default function CoverLetterGenerator() {
       }
     } catch (error: any) {
       toast({ title: 'Error loading data', description: error.message, variant: 'destructive' });
-    } finally {
-      setLoading(false);
     }
   }
 
