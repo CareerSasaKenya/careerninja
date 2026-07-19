@@ -230,6 +230,8 @@ export interface ReenrichOptions {
   limit?: number
   offset?: number
   sourceFilter?: string | null
+  /** Re-enrich a single published job by jobs.id */
+  jobId?: string | null
   missingOnly?: boolean
   apply?: boolean
   onProgress?: (line: string) => void
@@ -251,6 +253,7 @@ export async function runReenrichScrapedJobs(
     limit = 50,
     offset = 0,
     sourceFilter = null,
+    jobId = null,
     missingOnly = false,
     apply = true,
     onProgress,
@@ -276,7 +279,12 @@ export async function runReenrichScrapedJobs(
     .eq('status', 'published')
     .not('job_id', 'is', null)
     .order('scraped_at', { ascending: false })
-    .range(offset, offset + Math.max(limit, 1) - 1)
+
+  if (jobId) {
+    query = query.eq('job_id', jobId)
+  } else {
+    query = query.range(offset, offset + Math.max(limit, 1) - 1)
+  }
 
   if (sourceFilter) {
     query = query.eq('source_id', sourceFilter)
@@ -301,6 +309,7 @@ export async function runReenrichScrapedJobs(
   log(
     `${apply ? 'APPLY' : 'DRY-RUN'}: re-enrich ${rows.length} scraped jobs` +
       `${sourceFilter ? ` (source=${sourceFilter})` : ''}` +
+      `${jobId ? ` (job_id=${jobId})` : ''}` +
       `${missingOnly ? ' (missing industry/function only)' : ''}` +
       ` offset=${offset}`
   )
