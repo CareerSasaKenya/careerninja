@@ -202,6 +202,12 @@ export function convertHtmlTablesToBulletLists(html: string): string {
     }
   })
 
+  // Oracle/Word paste often wraps leftover matrix rows in footnote containers.
+  root.find('div[id^=ftn], div[id^=_ftn]').each((_, el) => {
+    $(el).replaceWith($(el).html() || '')
+  })
+  root.find('a[href^="#_ftn"], a[href^="#ftn"], a[name^="_ftn"], a[name^="ftn"]').remove()
+
   return root.html() || ''
 }
 
