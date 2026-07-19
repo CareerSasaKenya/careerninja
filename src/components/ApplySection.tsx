@@ -453,7 +453,7 @@ export default function ApplySection({ job, embedded = false }: ApplySectionProp
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Apply for this Job</CardTitle>
+        <CardTitle className="text-lg text-[#0A66C2]">Apply for this Job</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">{formBody}</CardContent>
     </Card>

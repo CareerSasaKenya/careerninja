@@ -44,7 +44,7 @@ export default function MobileStickyApply({ job }: MobileStickyApplyProps) {
           className="max-h-[88vh] overflow-y-auto rounded-t-2xl p-4 sm:p-6"
         >
           <SheetHeader className="mb-3 text-left">
-            <SheetTitle className="text-lg">Apply for this Job</SheetTitle>
+            <SheetTitle className="text-lg text-[#0A66C2]">Apply for this Job</SheetTitle>
           </SheetHeader>
           <ApplySection job={job} embedded />
         </SheetContent>
