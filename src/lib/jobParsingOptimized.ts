@@ -142,70 +142,119 @@ export async function saveToCache(
   }
 }
 
+/** Quota / auth failures should not burn retries — fall through to Groq fast. */
+function isNonRetryableAiError(error: unknown): boolean {
+  const msg = error instanceof Error ? error.message : String(error)
+  return /(?:\b429\b|\b403\b|quota|rate.?limit|resource.?exhausted|too many requests|insufficient.?quota|api key not valid|invalid.?api.?key|permission.?denied)/i.test(
+    msg
+  )
+}
+
+function nonEmptyEnv(...keys: Array<string | undefined>): string[] {
+  return keys
+    .map(k => (typeof k === 'string' ? k.trim() : ''))
+    .filter(Boolean)
+}
+
+async function tryProviderWithRetries(
+  label: string,
+  call: () => Promise<ParsedJobData>,
+  maxRetries: number
+): Promise<
+  | { ok: true; response: ParsedJobData; modelUsed: string }
+  | { ok: false; error: unknown }
+> {
+  let lastError: unknown = null
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await call()
+      console.info(`[callAIWithRetry] success via ${label}`)
+      return {
+        ok: true,
+        response: await finalizeParsedJobData(response),
+        modelUsed: label,
+      }
+    } catch (error) {
+      lastError = error
+      const msg = error instanceof Error ? error.message : String(error)
+      console.warn(
+        `[callAIWithRetry] ${label} attempt ${attempt + 1} failed: ${msg}`
+      )
+      // Free Gemini quota / bad keys: skip remaining retries and try Groq next
+      if (isNonRetryableAiError(error)) {
+        break
+      }
+      if (attempt < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, 400 * (attempt + 1)))
+      }
+    }
+  }
+  return { ok: false, error: lastError }
+}
+
 // Optimized AI API call with timeout and retry
 // Priority chain: Gemini → Groq → OpenRouter
+// Free Gemini keys that 429 must fail fast so Groq (often free + set in Vercel) can run.
 export async function callAIWithRetry(
   jobText: string,
   systemPrompt: string,
   maxRetries: number = 2
 ): Promise<{ response: ParsedJobData; modelUsed: string }> {
-  const geminiApiKeys = [
+  const geminiApiKeys = nonEmptyEnv(
     process.env.GEMINI_API_KEY,
     process.env.GEMINI_API_KEY_2,
-    process.env.GEMINI_API_KEY_3,
-  ].filter(Boolean);
-  
-  const groqApiKey = process.env.GROQ_API_KEY;
-  const openRouterApiKey = process.env.OPENROUTER_API_KEY;
-  
-  let lastError: any = null;
-  
-  // 1. Try Gemini keys first
-  for (const apiKey of geminiApiKeys) {
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
-      try {
-        const response = await callGeminiAPI(apiKey!, jobText, systemPrompt);
-        return { response: await finalizeParsedJobData(response), modelUsed: 'gemini-2.5-flash' };
-      } catch (error) {
-        lastError = error;
-        if (attempt < maxRetries) {
-          await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
-        }
-      }
+    process.env.GEMINI_API_KEY_3
+  )
+  const groqApiKey = nonEmptyEnv(process.env.GROQ_API_KEY)[0]
+  const openRouterApiKey = nonEmptyEnv(process.env.OPENROUTER_API_KEY)[0]
+
+  let lastError: unknown = null
+
+  // 1. Try Gemini keys first (fail-fast on quota so Groq is reached)
+  for (let i = 0; i < geminiApiKeys.length; i++) {
+    const result = await tryProviderWithRetries(
+      `gemini-2.5-flash#${i + 1}`,
+      () => callGeminiAPI(geminiApiKeys[i], jobText, systemPrompt),
+      maxRetries
+    )
+    if (result.ok) {
+      return { response: result.response, modelUsed: 'gemini-2.5-flash' }
     }
+    lastError = result.error || lastError
   }
-  
-  // 2. Fallback to Groq
+
+  // 2. Fallback to Groq (free tier — primary rescue when Gemini is exhausted)
   if (groqApiKey) {
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
-      try {
-        const response = await callGroqAPI(groqApiKey, jobText, systemPrompt);
-        return { response: await finalizeParsedJobData(response), modelUsed: 'llama-3.3-70b-versatile' };
-      } catch (error) {
-        lastError = error;
-        if (attempt < maxRetries) {
-          await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
-        }
-      }
+    const result = await tryProviderWithRetries(
+      'llama-3.3-70b-versatile',
+      () => callGroqAPI(groqApiKey, jobText, systemPrompt),
+      maxRetries
+    )
+    if (result.ok) {
+      return { response: result.response, modelUsed: result.modelUsed }
     }
+    lastError = result.error || lastError
+  } else {
+    console.warn('[callAIWithRetry] GROQ_API_KEY missing — cannot fall back to Groq')
   }
-  
+
   // 3. Fallback to OpenRouter
   if (openRouterApiKey) {
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
-      try {
-        const response = await callOpenRouterAPI(openRouterApiKey, jobText, systemPrompt);
-        return { response: await finalizeParsedJobData(response), modelUsed: 'gemini-2.5-flash (openrouter)' };
-      } catch (error) {
-        lastError = error;
-        if (attempt < maxRetries) {
-          await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
-        }
+    const result = await tryProviderWithRetries(
+      'openrouter',
+      () => callOpenRouterAPI(openRouterApiKey, jobText, systemPrompt),
+      maxRetries
+    )
+    if (result.ok) {
+      return {
+        response: result.response,
+        modelUsed: 'gemini-2.5-flash (openrouter)',
       }
     }
+    lastError = result.error || lastError
   }
-  
-  throw lastError || new Error('All AI services failed');
+
+  throw lastError || new Error('All AI services failed')
 }
 
 // Optimized Gemini API call
@@ -239,7 +288,12 @@ ${jobText}` }]
     clearTimeout(timeoutId);
     
     if (!response.ok) {
-      throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
+      const body = await response.text().catch(() => '')
+      throw new Error(
+        `Gemini API error: ${response.status} ${response.statusText}${
+          body ? ` — ${body.slice(0, 200)}` : ''
+        }`
+      )
     }
     
     const data = await response.json();
@@ -283,7 +337,12 @@ async function callGroqAPI(apiKey: string, jobText: string, systemPrompt: string
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      throw new Error(`Groq API error: ${response.status} ${response.statusText}`);
+      const body = await response.text().catch(() => '')
+      throw new Error(
+        `Groq API error: ${response.status} ${response.statusText}${
+          body ? ` — ${body.slice(0, 200)}` : ''
+        }`
+      )
     }
 
     const data = await response.json();
