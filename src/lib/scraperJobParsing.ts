@@ -479,7 +479,7 @@ export function parseScrapedJobFallback(input: ScrapedJobInput): ParsedScrapedJo
       dutiesSplit?.required_qualifications ||
       descSplit.required_qualifications ||
       ''
-  )
+  ).replace(/<p>(?:\s|&nbsp;)*<\/p>/gi, '')
 
   const additional_info = buildAdditionalInfo(
     input.benefitsSection,
