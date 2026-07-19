@@ -222,6 +222,36 @@ export default function JobDetailsHeader({
                 </>
               )}
             </div>
+
+            {(postedRel || postedAbsolute || deadlineAbsolute) && (
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground sm:text-sm">
+                {(postedRel || postedAbsolute) && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Clock className="h-3.5 w-3.5 shrink-0 opacity-70" />
+                    <span>
+                      {postedRel
+                        ? postedRel === "Just posted"
+                          ? "Just posted"
+                          : `Posted ${postedRel}`
+                        : `Posted ${postedAbsolute}`}
+                    </span>
+                  </span>
+                )}
+
+                {deadlineAbsolute && (
+                  <span
+                    className={`inline-flex items-center gap-1.5 ${
+                      isExpired ? "font-medium text-destructive" : ""
+                    }`}
+                  >
+                    <CalendarDays className="h-3.5 w-3.5 shrink-0 opacity-70" />
+                    <span>
+                      {isExpired ? "Closed" : `Apply by ${deadlineAbsolute}`}
+                    </span>
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -234,43 +264,6 @@ export default function JobDetailsHeader({
           />
         </div>
       </div>
-
-      {/* Full-width date row so posted + expiry stay on one line on mobile */}
-      {(postedRel || postedAbsolute || deadlineAbsolute) && (
-        <div className="mt-2.5 flex flex-nowrap items-center gap-x-2 overflow-x-auto text-xs text-muted-foreground sm:mt-3 sm:gap-x-3 sm:text-sm">
-          {(postedRel || postedAbsolute) && (
-            <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
-              <Clock className="h-3.5 w-3.5 shrink-0 opacity-70" />
-              <span>
-                {postedRel
-                  ? postedRel === "Just posted"
-                    ? "Just posted"
-                    : `Posted ${postedRel}`
-                  : `Posted ${postedAbsolute}`}
-              </span>
-            </span>
-          )}
-
-          {(postedRel || postedAbsolute) && deadlineAbsolute && (
-            <span className="shrink-0 text-muted-foreground/35" aria-hidden>
-              ·
-            </span>
-          )}
-
-          {deadlineAbsolute && (
-            <span
-              className={`inline-flex shrink-0 items-center gap-1 whitespace-nowrap ${
-                isExpired ? "font-medium text-destructive" : ""
-              }`}
-            >
-              <CalendarDays className="h-3.5 w-3.5 shrink-0 opacity-70" />
-              <span>
-                {isExpired ? "Closed" : `Apply by ${deadlineAbsolute}`}
-              </span>
-            </span>
-          )}
-        </div>
-      )}
 
       {metaTags.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-1.5 border-t border-border/60 pt-3 sm:mt-3.5 sm:gap-2">
