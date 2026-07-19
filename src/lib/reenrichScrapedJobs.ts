@@ -155,8 +155,14 @@ export function buildReenrichInput(
       descriptionSection: oc.descriptionHtml || '',
       responsibilitiesSection: oc.responsibilitiesHtml || '',
       requirementsSection: oc.qualificationsHtml || '',
-      industryHint: oc.category || null,
-      tagsHint: oc.category || 'Oracle Cloud',
+      industryHint:
+        oc.category && !/^(management|other|general)$/i.test(oc.category)
+          ? oc.category
+          : null,
+      tagsHint:
+        oc.category && !/^(management|other|general)$/i.test(oc.category)
+          ? oc.category
+          : 'Oracle Cloud',
     }
   }
 
