@@ -159,6 +159,10 @@ export const KNOWN_COMPANY_BRANDS: Record<string, BrandEntry> = {
   "doctors without borders": { domain: "msf.org", twitter: "MSF_USA" },
   "mercy corps": { domain: "mercycorps.org", twitter: "Mercy_Corps" },
   psi: { domain: "psi.org" },
+  care: { domain: "care.org", twitter: "CARE" },
+  "care usa": { domain: "care.org", twitter: "CARE" },
+  "care international": { domain: "care.org", twitter: "CARE" },
+  "conservation international": { domain: "conservation.org", twitter: "ConservationOrg" },
 
   // ── Agriculture / FMCG ─────────────────────────────────────────────
   "bidco africa": { domain: "bidcoafrica.com", twitter: "Bidco_Africa" },

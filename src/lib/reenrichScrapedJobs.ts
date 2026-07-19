@@ -51,6 +51,7 @@ type RawTaleo = {
   descriptionHtml?: string
   qualificationsHtml?: string
   contestNo?: string
+  rid?: string
 }
 
 type RawPscPdf = {

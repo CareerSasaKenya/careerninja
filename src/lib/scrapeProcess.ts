@@ -33,6 +33,14 @@ import {
   extractTaleoSection,
 } from '@/lib/taleo-adapter'
 import {
+  fetchTaleoBeJobDetails,
+  normalizeTaleoBeJob,
+  extractTaleoBeRid,
+  extractTaleoBeOrg,
+  extractTaleoBeCws,
+  extractTaleoBeHostPath,
+} from '@/lib/taleo-be-adapter'
+import {
   fetchPscJobRow,
   normalizePscJob,
   extractPscAdvertNumber,
@@ -228,6 +236,45 @@ export async function runScrapeProcessOne(
         workplace: normalized.job_location_type,
         descriptionSection: detail.descriptionHtml || normalized.description || '',
         requirementsSection: detail.qualificationsHtml || '',
+        tagsHint: normalized.tags,
+      }
+    } else if (adapterType === 'taleo_be') {
+      const config = source.selectors as {
+        org?: string
+        cws?: string
+        hostPath?: string
+      }
+      const rid = extractTaleoBeRid(queueItem.job_url)
+      const org = config.org || extractTaleoBeOrg(queueItem.job_url) || undefined
+      const cws = config.cws || extractTaleoBeCws(queueItem.job_url) || undefined
+      const hostPath =
+        config.hostPath || extractTaleoBeHostPath(queueItem.job_url) || undefined
+
+      if (!hostPath || !org || !cws || !rid) {
+        throw new Error(
+          `Cannot parse Taleo BE hostPath/org/cws/rid from URL: ${queueItem.job_url}`
+        )
+      }
+
+      const detail = await fetchTaleoBeJobDetails(hostPath, org, cws, rid, {
+        title: String(queueItem.partial_data?.title || ''),
+        location: String(queueItem.partial_data?.location || ''),
+        rid,
+        detailUrl: queueItem.job_url,
+        meta: [],
+      })
+      normalized = normalizeTaleoBeJob(detail, hiringCompany)
+      normalized.application_url = detail.detailUrl || queueItem.job_url
+      rawData = detail
+
+      parseInput = {
+        title: normalized.title,
+        company: hiringCompany,
+        location: normalized.location || detail.location,
+        employmentType: normalized.employment_type,
+        workplace: normalized.job_location_type,
+        descriptionSection: detail.descriptionHtml || normalized.description || '',
+        requirementsSection: '',
         tagsHint: normalized.tags,
       }
     } else if (adapterType === 'psc') {

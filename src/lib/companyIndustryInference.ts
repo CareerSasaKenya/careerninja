@@ -96,6 +96,10 @@ export const KNOWN_COMPANY_INDUSTRIES: Record<string, string> = {
   aku: EDUCATION,
   // More specific than "aga khan university" (includes-match would otherwise win)
   "aga khan university hospital": HEALTHCARE,
+  care: NGO,
+  "care usa": NGO,
+  "care international": NGO,
+  "conservation international": ENVIRONMENT,
 };
 
 export const KNOWN_COMPANY_DESCRIPTIONS: Record<string, string> = {
@@ -141,6 +145,14 @@ export const KNOWN_COMPANY_DESCRIPTIONS: Record<string, string> = {
     "Aga Khan University is a private international university with campuses in Kenya and beyond, offering education, research, and healthcare services.",
   "aga khan university hospital":
     "Aga Khan University Hospital, Nairobi is a private not-for-profit teaching hospital providing tertiary and secondary healthcare services in East Africa.",
+  care:
+    "CARE is an international humanitarian organization fighting global poverty and providing emergency relief, with programs across Kenya and East Africa.",
+  "care usa":
+    "CARE is an international humanitarian organization fighting global poverty and providing emergency relief, with programs across Kenya and East Africa.",
+  "care international":
+    "CARE is an international humanitarian organization fighting global poverty and providing emergency relief, with programs across Kenya and East Africa.",
+  "conservation international":
+    "Conservation International is a global nonprofit that protects nature for the benefit of humanity through science, policy, fieldwork, and finance, including programs in Kenya.",
   "kcb group":
     "KCB Group is one of East Africa’s largest commercial banking groups, providing retail, corporate, and digital financial services.",
 };

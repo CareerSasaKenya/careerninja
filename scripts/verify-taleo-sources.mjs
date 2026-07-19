@@ -1,15 +1,20 @@
 /**
- * Live probe for Kenyan Taleo Enterprise boards.
+ * Live probe for Kenyan Taleo Enterprise + Business Edition boards.
  * Usage: node scripts/verify-taleo-sources.mjs
  */
 
-const boards = [
+const enterpriseBoards = [
   ['Equity Bank', 'equitybank.taleo.net', 'ext_new'],
   ['Britam', 'britam.taleo.net', 'ke'],
   ['Aga Khan University', 'aku.taleo.net', 'ex'],
 ]
 
-async function probe(name, host, section) {
+const beBoards = [
+  ['CARE', 'phg.tbe.taleo.net/phg02', 'CAREUSA', '63'],
+  ['Conservation International', 'phh.tbe.taleo.net/phh04', 'CONSERVATION', '39'],
+]
+
+async function probeEnterprise(name, host, section) {
   const listUrl = `https://${host}/careersection/${section}/jobsearch.ftl?lang=en`
   const listRes = await fetch(listUrl, {
     headers: { 'User-Agent': 'Mozilla/5.0 (compatible; careersasa-probe/1.0)' },
@@ -18,14 +23,14 @@ async function probe(name, host, section) {
   const html = await listRes.text()
   const portal = html.match(/portalNo\s*[:=]\s*['"]?(\d+)/i)?.[1]
   if (!portal) {
-    // Legacy joblist boards (e.g. AKU) embed listings in initialHistory.
-    const listUrl = `https://${host}/careersection/${section}/joblist.ftl?lang=en`
-    const listRes = await fetch(listUrl, {
+    const joblistUrl = `https://${host}/careersection/${section}/joblist.ftl?lang=en`
+    const joblistRes = await fetch(joblistUrl, {
       headers: { 'User-Agent': 'Mozilla/5.0 (compatible; careersasa-probe/1.0)' },
     })
-    if (!listRes.ok) return `${name}: no portal; joblist HTTP ${listRes.status}`
-    const listHtml = await listRes.text()
-    const history = listHtml.match(/id=["']initialHistory["'][^>]*value=["']([^"']*)["']/i)?.[1] || ''
+    if (!joblistRes.ok) return `${name}: no portal; joblist HTTP ${joblistRes.status}`
+    const listHtml = await joblistRes.text()
+    const history =
+      listHtml.match(/id=["']initialHistory["'][^>]*value=["']([^"']*)["']/i)?.[1] || ''
     const decoded = decodeURIComponent(history.replace(/\+/g, ' '))
     const ke = (decoded.match(/Kenya/gi) || []).length
     return `${name} (${host}/${section}): legacy-joblist kenya_mentions=${ke}`
@@ -79,7 +84,60 @@ async function probe(name, host, section) {
   return `${name} (${host}/${section}): total=${data.pagingData?.totalCount ?? jobs.length}, page=${jobs.length}, ke=${ke.length}, portal=${portal}`
 }
 
+function isKenyaLocation(text) {
+  return /kenya|nairobi|mombasa|dadaab|kakuma|narok/i.test(text || '')
+}
+
+async function probeBusinessEdition(name, hostPath, org, cws) {
+  const searchUrl = `https://${hostPath}/ats/careers/v2/jobSearch?org=${org}&cws=${cws}`
+  const searchRes = await fetch(searchUrl, {
+    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; careersasa-probe/1.0)' },
+  })
+  if (!searchRes.ok) return `${name}: jobSearch HTTP ${searchRes.status}`
+  const searchHtml = await searchRes.text()
+  const kenyaFilters = [
+    ...searchHtml.matchAll(
+      /<input([^>]*type=["']checkbox["'][^>]*)>\s*<label>\s*([^<]+)<\/label>/gi
+    ),
+  ]
+    .map(m => {
+      const label = m[2].trim()
+      const field = m[1].match(/name=["']([^"']+)["']/i)?.[1]
+      const value = m[1].match(/value=["']([^"']+)["']/i)?.[1]
+      return isKenyaLocation(label) ? { field, value, label } : null
+    })
+    .filter(Boolean)
+
+  const resultsUrl = `https://${hostPath}/ats/careers/v2/searchResults?org=${org}&cws=${cws}`
+  const resultsRes = await fetch(resultsUrl, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (compatible; careersasa-probe/1.0)',
+      Referer: searchUrl,
+    },
+  })
+  if (!resultsRes.ok) return `${name}: searchResults HTTP ${resultsRes.status}`
+  const resultsHtml = await resultsRes.text()
+  const cards = [
+    ...resultsHtml.matchAll(
+      /<h4 class="oracletaleocwsv2-head-title"><a href="([^"]+rid=(\d+)[^"]*)"[^>]*>([^<]+)<\/a><\/h4>([\s\S]*?)<\/div>\s*<!--\/\.accordion-head-info/gi
+    ),
+  ]
+  const ke = cards.filter(m => {
+    const meta = [...m[4].matchAll(/<div tabindex="0"\s*>([^<]*)<\/div>/gi)]
+      .map(x => x[1])
+      .join(' ')
+    return isKenyaLocation(meta) || isKenyaLocation(m[3])
+  })
+
+  return `${name} (${hostPath} org=${org} cws=${cws}): page_jobs=${cards.length}, ke=${ke.length}, kenya_filters=${kenyaFilters.length}`
+}
+
 console.log('=== Taleo Enterprise (Kenya) ===')
-for (const [name, host, section] of boards) {
-  console.log(await probe(name, host, section))
+for (const [name, host, section] of enterpriseBoards) {
+  console.log(await probeEnterprise(name, host, section))
+}
+
+console.log('\n=== Taleo Business Edition (Kenya) ===')
+for (const [name, hostPath, org, cws] of beBoards) {
+  console.log(await probeBusinessEdition(name, hostPath, org, cws))
 }
