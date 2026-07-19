@@ -185,7 +185,7 @@ export default function CVServicesPage() {
       "Our clients report far more callbacks after switching to a CareerSasa CV.",
     ],
     ctaWhatsappMessage: "Hi, I'd like to choose a CV package today!",
-    ctaButtonLabel: "Yes, I'm Ready",
+    ctaButtonLabel: "I'm Ready",
   };
 
   return <ServiceLanding content={page} />;

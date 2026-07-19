@@ -724,25 +724,23 @@ export default function HomePage({
           <p className="mb-6 max-w-2xl mx-auto opacity-90">
             {ctaSubtitle}
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center items-stretch sm:items-center max-w-2xl mx-auto px-4">
-            <Link href="/jobs" prefetch={true} className="flex-1 sm:flex-initial">
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <Link href="/jobs" prefetch={true}>
               <Button
-                size="lg"
                 variant="secondary"
-                className="w-full text-base sm:text-lg px-6 sm:px-10 whitespace-normal sm:whitespace-nowrap"
+                className="h-10 px-4 text-base"
               >
-                <Search className="mr-2 h-5 w-5 shrink-0" />
-                <span className="break-words">Find My Next Job — It&apos;s Free</span>
+                <Search className="h-4 w-4 shrink-0" />
+                Find Jobs
               </Button>
             </Link>
-            <Link href="/post-job" prefetch={true} className="flex-1 sm:flex-initial">
+            <Link href="/post-job" prefetch={true}>
               <Button
-                size="lg"
                 variant="outline"
-                className="w-full text-base sm:text-lg px-6 sm:px-10 border-2 border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary bg-transparent whitespace-normal sm:whitespace-nowrap"
+                className="h-10 border-2 border-primary-foreground bg-transparent px-4 text-base text-primary-foreground hover:bg-primary-foreground hover:text-primary"
               >
-                <Briefcase className="mr-2 h-5 w-5 shrink-0" />
-                <span className="break-words">Post a Job — First 3 Free</span>
+                <Briefcase className="h-4 w-4 shrink-0" />
+                Post a Job
               </Button>
             </Link>
           </div>

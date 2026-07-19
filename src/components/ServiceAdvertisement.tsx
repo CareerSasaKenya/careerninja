@@ -10,21 +10,21 @@ export default function ServiceAdvertisement() {
       number: 1,
       icon: <FileText className="h-4 w-4 text-primary" />,
       description: "Expert CV help that gets you noticed.",
-      linkText: "Build Your Perfect CV",
+      linkText: "Build Your CV",
       href: "/services/cv"
     },
     {
       number: 2,
       icon: <Mail className="h-4 w-4 text-primary" />,
       description: "A personalized cover letter for this role.",
-      linkText: "Create Your Cover Letter",
+      linkText: "Write Cover Letter",
       href: "/services/cover-letter"
     },
     {
       number: 3,
       icon: <Linkedin className="h-4 w-4 text-primary" />,
       description: "Attract recruiters with a stronger profile.",
-      linkText: "Enhance Your LinkedIn Profile",
+      linkText: "Boost LinkedIn",
       href: "/services/linkedin"
     }
   ];

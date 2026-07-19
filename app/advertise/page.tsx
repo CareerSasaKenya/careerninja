@@ -180,12 +180,12 @@ export default function AdvertisePage() {
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Join hundreds of companies already finding top talent on CareerSasa. Post your first job today or contact our sales team for a custom package.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-4">
               <Link href="/post-job" prefetch={true}>
-                <Button size="lg" className="min-w-[200px]">Post a Job</Button>
+                <Button className="h-10 px-4">Post a Job</Button>
               </Link>
               <Link href="/contact" prefetch={true}>
-                <Button size="lg" variant="outline" className="min-w-[200px]">Contact Sales</Button>
+                <Button variant="outline" className="h-10 px-4">Contact Sales</Button>
               </Link>
             </div>
           </section>

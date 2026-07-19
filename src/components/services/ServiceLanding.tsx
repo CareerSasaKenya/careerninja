@@ -66,7 +66,7 @@ export default function ServiceLanding({ content }: { content: ServiceLandingCon
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <main className="container mx-auto max-w-6xl px-4 py-8 sm:py-12">
+      <main className="container mx-auto max-w-6xl overflow-x-hidden px-4 py-8 sm:py-12">
         {/* Hero */}
         <section className="mb-12 grid items-center gap-8 md:mb-16 md:grid-cols-2 md:gap-12">
           <div className="space-y-4 text-center md:text-left">
@@ -86,16 +86,16 @@ export default function ServiceLanding({ content }: { content: ServiceLandingCon
                 <p key={p.slice(0, 40)}>{p}</p>
               ))}
             </div>
-            <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:justify-start justify-center">
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2 md:justify-start">
               <Link href={waLink(content.ctaWhatsappMessage)} target="_blank">
-                <Button variant="gradient" size="lg" className="w-full sm:w-auto">
-                  <MessageCircle className="mr-2 h-4 w-4" />
+                <Button variant="gradient" className="h-10 px-4">
+                  <MessageCircle className="h-4 w-4" />
                   Chat on WhatsApp
                 </Button>
               </Link>
               <Link href="#packages">
-                <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                  View packages
+                <Button variant="outline" className="h-10 px-4">
+                  View Packages
                 </Button>
               </Link>
             </div>
@@ -137,7 +137,7 @@ export default function ServiceLanding({ content }: { content: ServiceLandingCon
             {content.differentiatorsTitle}
           </h2>
           <div className="grid gap-6 md:grid-cols-2">
-            <Card className="border-border">
+            <Card className="min-w-0 border-border">
               <CardContent className="space-y-4 p-6">
                 {content.differentiators.map((item) => (
                   <div key={item} className="flex items-start gap-3">
@@ -150,15 +150,19 @@ export default function ServiceLanding({ content }: { content: ServiceLandingCon
               </CardContent>
             </Card>
 
-            <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/10">
-              <CardContent className="flex h-full flex-col justify-center gap-5 p-6 text-center">
+            <Card className="min-w-0 overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/10">
+              <CardContent className="flex h-full flex-col items-center justify-center gap-5 p-5 text-center sm:p-6">
                 <p className="text-muted-foreground leading-relaxed">
                   {content.differentiatorsNote}
                 </p>
-                <Link href={waLink(content.ctaWhatsappMessage)} target="_blank">
-                  <Button variant="secondary" size="lg" className="w-full">
-                    <MessageCircle className="mr-2 h-4 w-4" />
-                    Chat with Us on WhatsApp
+                <Link
+                  href={waLink(content.ctaWhatsappMessage)}
+                  target="_blank"
+                  className="max-w-full"
+                >
+                  <Button variant="secondary" className="h-10 max-w-full px-4">
+                    <MessageCircle className="h-4 w-4 shrink-0" />
+                    <span className="truncate">Chat on WhatsApp</span>
                   </Button>
                 </Link>
               </CardContent>
@@ -204,9 +208,9 @@ export default function ServiceLanding({ content }: { content: ServiceLandingCon
                   <Link
                     href={waLink(pkg.whatsappMessage)}
                     target="_blank"
-                    className="block"
+                    className="mx-auto block w-fit max-w-full"
                   >
-                    <Button variant="secondary" className="w-full">
+                    <Button variant="secondary" className="h-10 px-4">
                       Get Started
                     </Button>
                   </Link>
@@ -245,8 +249,8 @@ export default function ServiceLanding({ content }: { content: ServiceLandingCon
               Custom pricing based on scope
             </p>
             <Link href={waLink(content.customWhatsappMessage)} target="_blank">
-              <Button variant="gradient" size="lg">
-                Get a custom solution
+              <Button variant="gradient" className="h-10 px-4">
+                Custom Quote
               </Button>
             </Link>
           </div>
@@ -298,7 +302,7 @@ export default function ServiceLanding({ content }: { content: ServiceLandingCon
         </section>
 
         {/* Final CTA */}
-        <section className="mb-8 overflow-hidden rounded-xl bg-gradient-primary p-8 text-center text-primary-foreground shadow-lg sm:p-10">
+        <section className="mb-8 overflow-hidden rounded-xl bg-gradient-primary p-6 text-center text-primary-foreground shadow-lg sm:p-10">
           <h2 className="mb-4 text-2xl font-bold sm:text-3xl md:text-4xl">
             {content.ctaTitle}
           </h2>
@@ -312,10 +316,7 @@ export default function ServiceLanding({ content }: { content: ServiceLandingCon
           ))}
           <div className="mt-6">
             <Link href={waLink(content.ctaWhatsappMessage)} target="_blank">
-              <Button
-                size="lg"
-                className="bg-white text-primary hover:bg-white/90"
-              >
+              <Button className="h-10 bg-white px-4 text-primary hover:bg-white/90">
                 {content.ctaButtonLabel}
               </Button>
             </Link>

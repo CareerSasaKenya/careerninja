@@ -184,7 +184,7 @@ export default function LinkedInServicesPage() {
       "Let's make your profile work as hard as you do.",
     ],
     ctaWhatsappMessage: "Hi, I'd like to choose a LinkedIn package today!",
-    ctaButtonLabel: "Yes, I'm Ready",
+    ctaButtonLabel: "I'm Ready",
   };
 
   return <ServiceLanding content={page} />;

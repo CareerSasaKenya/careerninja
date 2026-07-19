@@ -182,16 +182,16 @@ export default function ToolkitPage() {
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <Link href="/services/cv">
-              <Button className="bg-[#0A66C2] hover:bg-[#004182] text-white">
-                <Briefcase className="mr-2 h-4 w-4" />
+              <Button className="h-10 bg-[#0A66C2] px-4 text-white hover:bg-[#004182]">
+                <Briefcase className="h-4 w-4" />
                 CV Services
               </Button>
             </Link>
             <Link href="/services/cover-letter">
-              <Button variant="outline">Cover Letter Services</Button>
+              <Button variant="outline" className="h-10 px-4">Cover Letters</Button>
             </Link>
             <Link href="/services/linkedin">
-              <Button variant="outline">LinkedIn Optimization</Button>
+              <Button variant="outline" className="h-10 px-4">Boost LinkedIn</Button>
             </Link>
           </div>
         </section>

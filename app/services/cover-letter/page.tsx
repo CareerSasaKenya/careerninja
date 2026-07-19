@@ -189,7 +189,7 @@ export default function CoverLetterServicesPage() {
       "Let's write one that makes recruiters want to meet you.",
     ],
     ctaWhatsappMessage: "Hi, I'd like to choose a cover letter package today!",
-    ctaButtonLabel: "Yes, I'm Ready",
+    ctaButtonLabel: "I'm Ready",
   };
 
   return <ServiceLanding content={page} />;
