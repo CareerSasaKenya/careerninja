@@ -411,12 +411,6 @@ All colors MUST be HSL.
   }
 }
 
-@keyframes beeline-dash {
-  to {
-    stroke-dashoffset: -28;
-  }
-}
-
 @keyframes float {
   0%, 100% {
     transform: translateY(0px);

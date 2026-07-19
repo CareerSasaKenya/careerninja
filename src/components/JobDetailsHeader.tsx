@@ -10,7 +10,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { CompanyLogo } from "@/components/CompanyLogo";
-import SaveJobWithHint from "@/components/SaveJobWithHint";
+import { SaveJobButton } from "@/components/SaveJobButton";
 import {
   formatJobSeoTitle,
   buildLocationString,
@@ -196,7 +196,7 @@ export default function JobDetailsHeader({
           </div>
 
           <div className="min-w-0 flex-1 space-y-1.5">
-            <h1 className="text-balance text-2xl font-bold leading-tight tracking-tight text-foreground sm:text-3xl">
+            <h1 className="text-balance text-2xl font-bold leading-tight tracking-tight text-[#0A66C2] sm:text-3xl">
               {job.title}
             </h1>
 
@@ -204,12 +204,12 @@ export default function JobDetailsHeader({
               {job.company_id && job.companies ? (
                 <Link
                   href={`/companies/${job.company_id}`}
-                  className="font-medium text-foreground/90 transition-colors hover:text-primary"
+                  className="font-medium text-[#0A66C2] transition-colors hover:opacity-80"
                 >
                   {job.companies.name}
                 </Link>
               ) : (
-                <span className="inline-flex items-center gap-2 font-medium text-foreground/90">
+                <span className="inline-flex items-center gap-2 font-medium text-[#0A66C2]">
                   {companyName}
                   {!job.company && (
                     <Badge variant="outline" className="text-xs font-normal">
@@ -234,7 +234,22 @@ export default function JobDetailsHeader({
           </div>
         </div>
 
-        <SaveJobWithHint jobId={job.id} />
+        <div className="shrink-0">
+          <SaveJobButton
+            jobId={job.id}
+            variant="outline"
+            size="icon"
+            showText={false}
+            className="sm:hidden"
+          />
+          <SaveJobButton
+            jobId={job.id}
+            variant="outline"
+            size="default"
+            showText={true}
+            className="hidden sm:inline-flex"
+          />
+        </div>
       </div>
 
       {/* Posted + Apply by side by side; value stacks under each label */}

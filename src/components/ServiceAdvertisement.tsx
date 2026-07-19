@@ -32,8 +32,8 @@ export default function ServiceAdvertisement() {
   return (
     <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5">
       <CardHeader className="pb-2 pt-4 sm:pb-3">
-        <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-          <Sparkles className="h-4 w-4 text-primary sm:h-5 sm:w-5" />
+        <CardTitle className="flex items-center gap-2 text-base text-[#0A66C2] sm:text-lg">
+          <Sparkles className="h-4 w-4 text-[#0A66C2] sm:h-5 sm:w-5" />
           Boost Your Application Success
         </CardTitle>
       </CardHeader>

@@ -262,7 +262,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                   <CVAdBanner />
 
                   <div>
-                    <h3 className="mb-2.5 flex items-center gap-2 text-xl font-semibold sm:mb-3">
+                    <h3 className="mb-2.5 flex items-center gap-2 text-xl font-semibold text-[#0A66C2] sm:mb-3">
                       <Briefcase className="h-5 w-5" />
                       Job Description
                     </h3>
@@ -273,7 +273,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                     <>
                       <Separator />
                       <div>
-                        <h3 className="mb-2.5 flex items-center gap-2 text-xl font-semibold sm:mb-3">
+                        <h3 className="mb-2.5 flex items-center gap-2 text-xl font-semibold text-[#0A66C2] sm:mb-3">
                           <FileText className="h-5 w-5" />
                           Key Responsibilities
                         </h3>
@@ -286,7 +286,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                     <>
                       <Separator />
                       <div>
-                        <h3 className="mb-2.5 flex items-center gap-2 text-xl font-semibold sm:mb-3">
+                        <h3 className="mb-2.5 flex items-center gap-2 text-xl font-semibold text-[#0A66C2] sm:mb-3">
                           <Award className="h-5 w-5" />
                           Required Qualifications
                         </h3>
@@ -299,7 +299,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                     <>
                       <Separator />
                       <div>
-                        <h3 className="mb-2.5 flex items-center gap-2 text-xl font-semibold sm:mb-3">
+                        <h3 className="mb-2.5 flex items-center gap-2 text-xl font-semibold text-[#0A66C2] sm:mb-3">
                           <Code className="h-5 w-5" />
                           Required Skills & Software
                         </h3>
@@ -319,7 +319,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
               {job.additional_info && (
                 <Card className="border-border">
                   <CardHeader className="pb-3 pt-4 sm:pb-4 sm:pt-5">
-                    <CardTitle className="text-lg">Additional Information</CardTitle>
+                    <CardTitle className="text-lg text-[#0A66C2]">Additional Information</CardTitle>
                   </CardHeader>
                   <CardContent className="pb-4 pt-0 sm:pb-5">
                     <div className="richtext-content text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: job.additional_info }} />
@@ -369,7 +369,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
               {job?.tags && (
                 <Card className="hidden lg:block">
                   <CardHeader className="pb-2 pt-4">
-                    <CardTitle className="text-base">Tags</CardTitle>
+                    <CardTitle className="text-base text-[#0A66C2]">Tags</CardTitle>
                   </CardHeader>
                   <CardContent className="pb-4 pt-0">
                     <div className="flex flex-wrap gap-1.5">
@@ -398,7 +398,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
             {job?.tags && (
               <Card>
                 <CardHeader className="pb-2 pt-4">
-                  <CardTitle className="text-base">Tags</CardTitle>
+                  <CardTitle className="text-base text-[#0A66C2]">Tags</CardTitle>
                 </CardHeader>
                 <CardContent className="pb-4 pt-0">
                   <div className="flex flex-wrap gap-1.5">
@@ -422,7 +422,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
           {/* Related Opportunities Section */}
           {relatedJobs && relatedJobs.length > 0 && (
             <div className="mt-8 sm:mt-10">
-              <h2 className="mb-4 text-2xl font-bold sm:mb-5">Related Opportunities</h2>
+              <h2 className="mb-4 text-2xl font-bold text-[#0A66C2] sm:mb-5">Related Opportunities</h2>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 sm:gap-5">
                 {relatedJobs.slice(0, 6).map((relatedJob: any) => (
                   <JobCard
@@ -591,7 +591,7 @@ const RoleDetails = ({
   return (
     <Card>
       <CardHeader className="pb-3 pt-4 sm:pb-4 sm:pt-5">
-        <CardTitle className="text-lg">Job Details</CardTitle>
+        <CardTitle className="text-lg text-[#0A66C2]">Job Details</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 pb-4 pt-0 sm:space-y-5 sm:pb-5">
         {salaryDetails.length > 0 && (
