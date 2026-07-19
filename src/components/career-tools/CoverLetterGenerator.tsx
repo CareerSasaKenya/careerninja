@@ -84,7 +84,6 @@ export default function CoverLetterGenerator() {
   const [showEditor, setShowEditor] = useState(false);
   const [letterTitle, setLetterTitle] = useState('');
   const [saving, setSaving] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [activeTemplate, setActiveTemplate] = useState<ActiveTemplate>('classic');
 
   const [classicFormData, setClassicFormData] = useState<ClassicLetterData>({ ...classicLetterPreviewData });
@@ -276,8 +275,6 @@ export default function CoverLetterGenerator() {
       </div>
     );
   }
-
-  if (loading) return <div className="p-8 text-center text-muted-foreground">Loading...</div>;
 
   return (
     <div className="space-y-6">
