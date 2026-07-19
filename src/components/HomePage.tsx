@@ -41,7 +41,7 @@ function homeJobHref(job: { id: string; job_slug?: string | null }) {
 }
 
 /** Shared with Latest Job Openings — keep every homepage section header identical. */
-const SECTION_HEADING_CLASS = "text-3xl md:text-4xl font-bold mb-2 text-primary";
+const SECTION_HEADING_CLASS = "text-3xl md:text-4xl font-bold mb-2 text-[#0A66C2]";
 const SECTION_SUBCOPY_CLASS = "text-muted-foreground";
 const SECTION_HEADER_WRAP_CLASS = "mb-4 md:mb-6 text-center";
 /** Final CTA sits on primary gradient — keep heading light for contrast. */
@@ -547,7 +547,7 @@ export default function HomePage({
                             </span>
                           ) : null}
                         </div>
-                        <h3 className="text-xl font-semibold mb-2 line-clamp-1">
+                        <h3 className="text-xl font-semibold mb-2 line-clamp-1 text-[#0A66C2]">
                           {formatJobSeoTitle(job.title, companyName, {
                             city: job.job_location_city,
                             county: job.job_location_county,

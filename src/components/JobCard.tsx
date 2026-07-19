@@ -212,7 +212,7 @@ const JobCard = ({
 
             <div className="min-w-0 flex-1 space-y-1">
               <h3
-                className="text-balance text-lg font-bold leading-snug tracking-tight text-card-foreground transition-colors group-hover:text-primary sm:text-xl"
+                className="text-balance text-lg font-bold leading-snug tracking-tight text-[#0A66C2] transition-colors group-hover:text-[#004182] sm:text-xl"
                 title={seoTitle}
               >
                 {title}

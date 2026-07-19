@@ -47,7 +47,7 @@ export function FeaturedJobsSection({ limit = 6 }: { limit?: number }) {
         <div className="text-center mb-4 md:mb-6">
           <div className="flex items-center justify-center gap-2 mb-2">
             <Star className="h-6 w-6 text-yellow-500 fill-yellow-500" />
-            <h2 className="text-3xl font-bold">Featured Jobs</h2>
+            <h2 className="text-3xl font-bold text-[#0A66C2]">Featured Jobs</h2>
           </div>
           <p className="text-muted-foreground">
             Premium opportunities from top employers
@@ -67,7 +67,7 @@ export function FeaturedJobsSection({ limit = 6 }: { limit?: number }) {
                     <Badge variant="secondary">Promoted</Badge>
                   )}
                 </div>
-                <CardTitle className="text-xl">{job.title}</CardTitle>
+                <CardTitle className="text-xl text-[#0A66C2]">{job.title}</CardTitle>
                 <CardDescription>
                   {job.companies?.name || job.company || 'Company'}
                 </CardDescription>
