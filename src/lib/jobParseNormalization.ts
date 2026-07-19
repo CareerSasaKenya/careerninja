@@ -227,6 +227,8 @@ RULES:
 12. job_functions: ONLY exact names from ALLOWED_JOB_FUNCTIONS (max 3, no duplicates). NEVER invent values.
 13. tags: Comma-separated string with at most 5 of the most relevant skills/keywords
 14. If no allowed industry or job function clearly matches, OMIT that field entirely
+15. description: Write a clear role overview in <p> tags (2–4 sentences). Use facts from the posting only — do not invent duties, benefits, or requirements.
+16. required_qualifications: When REQUIREMENTS are already bullet points, keep every fact and number verbatim — do not paraphrase, drop Need Type codes, or merge rows.
 
 ALLOWED_INDUSTRIES: ${JSON.stringify(industryNames)}
 ALLOWED_JOB_FUNCTIONS: ${JSON.stringify(jobFunctionNames)}

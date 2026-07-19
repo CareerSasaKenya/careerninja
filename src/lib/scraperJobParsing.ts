@@ -18,6 +18,10 @@ import {
 } from './jobParseNormalization'
 import { callAIWithRetry, type ParsedJobData } from './jobParsingOptimized'
 import { inferCompanyIndustry } from './companyIndustryInference'
+import {
+  convertHtmlTablesToBulletLists,
+  htmlContainsTable,
+} from './htmlTablesToBullets'
 
 export interface ScrapedJobInput {
   title: string
@@ -164,9 +168,38 @@ function extractPseudoHeading($: cheerio.CheerioAPI, el: DomElement): string | n
     return text || null
   }
 
+  const $el = $(el as AnyNode)
+
+  // Oracle Cloud / Word-pasted boards sometimes wrap a lone section label in
+  // <ol><li><strong>KEY RESPONSIBILITIES:</strong></li></ol> with the real list after.
+  // Do not treat single content bullets (tables→lists) as headings.
+  if (tag === 'ol' || tag === 'ul') {
+    const items = $el.children('li')
+    if (items.length === 1) {
+      const only = items.first()
+      const text = only.text().replace(/\s+/g, ' ').replace(/[:：]\s*$/, '').trim()
+      const looksLikeContent =
+        !text ||
+        text.length > 60 ||
+        /—/.test(text) ||
+        /\d/.test(text) ||
+        /need type/i.test(text)
+      if (!looksLikeContent) {
+        const boldText = only
+          .find('strong, b')
+          .text()
+          .replace(/\s+/g, ' ')
+          .replace(/[:：]\s*$/, '')
+          .trim()
+        const isSectionKeyword = Object.values(SECTION_PATTERNS).some(re => re.test(text))
+        if ((boldText && boldText === text) || isSectionKeyword) return text
+      }
+    }
+    return null
+  }
+
   if (tag !== 'p' && tag !== 'div' && tag !== 'li') return null
 
-  const $el = $(el as AnyNode)
   const text = $el.text().replace(/\s+/g, ' ').replace(/[:：]\s*$/, '').trim()
   if (!text || text.length > 80) return null
 
@@ -305,12 +338,20 @@ function extractEducationLevel(text: string): string | null {
 
 function extractMinimumExperience(text: string): number | null {
   const plain = text.replace(/<[^>]+>/g, ' ')
-  const match = plain.match(
-    /(\d+)\s*(?:\+|plus)?\s*(?:[-–to]{1,3}\s*\d+\s*)?years?\s+(?:of\s+)?(?:relevant\s+)?experience/i
-  ) || plain.match(/minimum\s+of\s+(\d+)\s+years?/i)
-  if (!match) return null
-  const n = parseInt(match[1], 10)
-  return Number.isFinite(n) && n > 0 && n < 50 ? n : null
+  const patterns = [
+    /(\d+)\s*(?:\+|plus)?\s*(?:[-–to]{1,3}\s*\d+\s*)?years?\s+(?:of\s+)?(?:relevant\s+)?experience/i,
+    /minimum\s+of\s+(\d+)\s+years?/i,
+    // Oracle Cloud / KCB matrices: "Experience … Required — 8 years"
+    /experience[^.\d]{0,100}?(\d+)\s*years?/i,
+    /(?:minimum|total)\s+no\s+of\s+years[^.\d]{0,40}?(\d+)\s*years?/i,
+  ]
+  for (const re of patterns) {
+    const match = plain.match(re)
+    if (!match) continue
+    const n = parseInt(match[1], 10)
+    if (Number.isFinite(n) && n > 0 && n < 50) return n
+  }
+  return null
 }
 
 function extractExperienceLevelFromText(
@@ -369,44 +410,76 @@ function buildTags(input: {
   return limitTags(tags, 5)
 }
 
+/** Prepare scraped HTML: convert qualification matrices to bullet lists first. */
+export function prepareScrapedHtmlSections(input: ScrapedJobInput): ScrapedJobInput {
+  return {
+    ...input,
+    descriptionSection: convertHtmlTablesToBulletLists(input.descriptionSection || ''),
+    responsibilitiesSection: convertHtmlTablesToBulletLists(
+      input.responsibilitiesSection || ''
+    ),
+    requirementsSection: convertHtmlTablesToBulletLists(input.requirementsSection || ''),
+    benefitsSection: convertHtmlTablesToBulletLists(input.benefitsSection || ''),
+    rawContent: convertHtmlTablesToBulletLists(input.rawContent || ''),
+  }
+}
+
 /**
  * Rule-based parsing — works without AI keys; respects ATS native field splits.
  */
 export function parseScrapedJobFallback(input: ScrapedJobInput): ParsedScrapedJobContent {
-  const descSplit = splitHtmlByHeadings(input.descriptionSection || input.rawContent || '')
-  const dutiesSplit = input.responsibilitiesSection
-    ? splitHtmlByHeadings(input.responsibilitiesSection)
+  const prepared = prepareScrapedHtmlSections(input)
+  const descSplit = splitHtmlByHeadings(
+    prepared.descriptionSection || prepared.rawContent || ''
+  )
+  const dutiesSplit = prepared.responsibilitiesSection
+    ? splitHtmlByHeadings(prepared.responsibilitiesSection)
     : null
 
   let description = ''
   let responsibilities = ''
 
-  if (input.responsibilitiesSection?.trim()) {
+  const descSplitWorked = Boolean(
+    descSplit.responsibilities ||
+      descSplit.required_qualifications ||
+      descSplit.additional_info
+  )
+
+  if (prepared.responsibilitiesSection?.trim()) {
     // Dedicated ATS duties block (SmartRecruiters jobDescription)
     if (dutiesSplit?.responsibilities) {
       responsibilities = dutiesSplit.responsibilities
       description = [
-        descSplit.description || input.descriptionSection || '',
+        descSplit.description || (!descSplitWorked ? prepared.descriptionSection || '' : ''),
         dutiesSplit.description || '',
       ]
         .filter(Boolean)
         .join('\n')
     } else {
       // No duty headings — entire jobDescription is Key Responsibilities
-      responsibilities = input.responsibilitiesSection
-      description = descSplit.description || input.descriptionSection || ''
+      responsibilities = prepared.responsibilitiesSection
+      // Keep any overview from descriptionSection; don't dump the full blob back
+      description = descSplitWorked
+        ? descSplit.description
+        : descSplit.description || prepared.descriptionSection || ''
     }
+  } else if (descSplitWorked) {
+    // Oracle Cloud / KCB: sections were found — keep empty description empty so AI
+    // can write a short overview instead of reusing the whole posting HTML.
+    description = descSplit.description
+    responsibilities = descSplit.responsibilities
   } else {
-    // Workable / HTML: split a single description blob
-    description = descSplit.description || input.descriptionSection || input.rawContent || ''
+    // Workable / HTML: unsplit blob stays as description
+    description = descSplit.description || prepared.descriptionSection || prepared.rawContent || ''
     responsibilities = descSplit.responsibilities
   }
 
-  const required_qualifications =
-    input.requirementsSection?.trim() ||
-    dutiesSplit?.required_qualifications ||
-    descSplit.required_qualifications ||
-    ''
+  const required_qualifications = convertHtmlTablesToBulletLists(
+    prepared.requirementsSection?.trim() ||
+      dutiesSplit?.required_qualifications ||
+      descSplit.required_qualifications ||
+      ''
+  ).replace(/<p>(?:\s|&nbsp;)*<\/p>/gi, '')
 
   const additional_info = buildAdditionalInfo(
     input.benefitsSection,
@@ -464,6 +537,11 @@ function buildAIText(input: ScrapedJobInput): string {
 
   if (input.descriptionSection) {
     lines.push('\n=== DESCRIPTION ===', stripToPlain(input.descriptionSection, 3000))
+  } else if (input.responsibilitiesSection || input.requirementsSection) {
+    lines.push(
+      '\n=== DESCRIPTION ===',
+      '(No overview was provided. Write a 2–4 sentence factual role summary from the responsibilities and requirements below. Do not invent facts.)'
+    )
   }
   if (input.responsibilitiesSection) {
     lines.push('\n=== RESPONSIBILITIES / ROLE DETAILS ===', stripToPlain(input.responsibilitiesSection, 3000))
@@ -777,8 +855,21 @@ export async function parseScrapedJobContent(
   input: ScrapedJobInput,
   options?: { industryNames?: string[]; jobFunctionNames?: string[] }
 ): Promise<ParsedScrapedJobContent> {
-  const fallback = parseScrapedJobFallback(input)
-  const aiText = buildAIText(input)
+  const hadTables = htmlContainsTable(
+    [input.descriptionSection, input.requirementsSection, input.rawContent]
+      .filter(Boolean)
+      .join('\n')
+  )
+  const prepared = prepareScrapedHtmlSections(input)
+  const fallback = parseScrapedJobFallback(prepared)
+  // Feed AI the already-split, table→bullet sections. Keep description empty when
+  // the posting had no overview so the model writes a short factual summary.
+  const aiText = buildAIText({
+    ...prepared,
+    descriptionSection: fallback.description,
+    responsibilitiesSection: fallback.responsibilities,
+    requirementsSection: fallback.required_qualifications,
+  })
 
   const industryNames =
     options?.industryNames?.length ? options.industryNames : [...FALLBACK_INDUSTRIES]
@@ -803,6 +894,14 @@ export async function parseScrapedJobContent(
         buildJobParseSystemPrompt(industryNames, jobFunctionNames)
       )
       parsed = mergeManualParseResult(fallback, response)
+      // Keep deterministic table→bullet requirements so AI cannot paraphrase facts.
+      if (
+        hadTables &&
+        fallback.required_qualifications.trim() &&
+        /<li[\s>]/i.test(fallback.required_qualifications)
+      ) {
+        parsed.required_qualifications = fallback.required_qualifications
+      }
     } catch (err) {
       console.warn(
         '[scraperJobParsing] AI parse failed, using rule-based fallback:',
