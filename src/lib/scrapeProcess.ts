@@ -320,7 +320,10 @@ export async function runScrapeProcessOne(
         descriptionSection: detail.descriptionHtml || normalized.description || '',
         responsibilitiesSection: detail.responsibilitiesHtml || '',
         requirementsSection: detail.qualificationsHtml || '',
-        industryHint: detail.category || null,
+        industryHint:
+          detail.category && !/^(management|other|general)$/i.test(detail.category)
+            ? detail.category
+            : null,
         tagsHint: normalized.tags,
       }
     } else if (adapterType === 'psc') {

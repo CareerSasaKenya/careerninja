@@ -824,13 +824,14 @@ export function inferJobFunctionFromTitle(
     { re: /\b(accountant|credit controller|financial analyst|finance|bookkeep|treasury|payroll)\b/, fn: 'Accounting, Auditing & Finance' },
     { re: /\b(legal|advocate|lawyer|counsel|compliance officer)\b/, fn: 'Legal Services' },
     { re: /\b(talent (acquisition|management)|recruiter|human resources?|\bhr\b|people partner|hr business partner|training and development|workforce management|people and culture|people & culture)\b/, fn: 'Human Resources & Recruitment' },
-    { re: /\b(it support|software|developer|devops|sysadmin|system admin|network|cyber|helpdesk|help desk|privileged access|pam solution)\b/, fn: 'IT & Software' },
+    { re: /\b(information risk|cyber ?security|infosec|information security|ciso|security architect)\b/, fn: 'IT & Software' },
+    { re: /\b(applications? specialist|systems? (admin|administrator|analyst|engineer)|crm|dynamics|salesforce|it support|software|developer|devops|sysadmin|system admin|network|cyber|helpdesk|help desk|privileged access|pam solution)\b/, fn: 'IT & Software' },
     { re: /\b(business (process )?analyst|data analyst|analytics|data scientist|machine learning|\bai\b)\b/, fn: 'Data, Analytics & AI' },
     { re: /\b(managing director|country director|chief |^director\b|project manager|programme manager|program manager|product manager|operations manager)\b/, fn: 'Management & Business Development' },
     { re: /\b(recovery officer|credit officer|loan officer|investment officer)\b/, fn: 'Accounting, Auditing & Finance' },
     { re: /\b(community relations|community liaison|social worker|stakeholder engagement)\b/, fn: 'Community & Social Services' },
     { re: /\b(marketing|communications|brand|pr\b|public relations)\b/, fn: 'Marketing & Communications' },
-    { re: /\b(customer (care|service|success)|call centre|call center|reservations|service specialists?|retention agents?)\b/, fn: 'Customer Service & Support' },
+    { re: /\b(customer (care|service|success|experience)|call centre|call center|reservations|service specialists?|retention agents?)\b/, fn: 'Customer Service & Support' },
     { re: /\b(real estate advisor|property advisor|estate agent)\b/, fn: 'Estate Agents & Property Management' },
     { re: /\b(procurement|supply chain|logistics|warehouse|inventory)\b/, fn: 'Supply Chain & Procurement' },
     { re: /\b(admin|office manager|executive assistant|receptionist|secretary|operations associate|operations officer|translator|interpreter)\b/, fn: 'Admin & Office' },
@@ -846,12 +847,24 @@ export function inferJobFunctionFromTitle(
     }
   }
 
-  // Department-only hint (e.g. "Legal Department") when title is generic
+  // Department-only hint (e.g. "Legal Department") when title is generic.
+  // Ignore overly broad ATS labels like "Management" that fuzzy-match badly.
   if (tagsHint?.trim()) {
-    return matchJobFunctionName(tagsHint.split(/[,|;]/)[0], allowed)
+    const hint = tagsHint.split(/[,|;]/)[0].trim()
+    if (!isGenericTaxonomyHint(hint)) {
+      return matchJobFunctionName(hint, allowed)
+    }
   }
 
   return null
+}
+
+/** ATS categories that are too vague to map to CareerSasa taxonomy. */
+export function isGenericTaxonomyHint(hint?: string | null): boolean {
+  if (!hint?.trim()) return true
+  return /^(management|other|general|various|miscellaneous|n\/?a|none|all|corporate)$/i.test(
+    hint.trim()
+  )
 }
 
 function resolveAlias(hint: string, aliases: Record<string, string>, allowed: string[]): string | null {
@@ -993,18 +1006,25 @@ export async function parseScrapedJobContent(
     }.</p>`
   }
 
-  // Prefer AI taxonomy (already fuzzy-matched by finalizeParsedJobData), then
-  // scraper heuristics for ATS hints / known employers / title keywords.
+  // Prefer known-employer industry, then AI/meta, then ATS hints.
+  // Generic labels like Oracle "Management" must not fuzzy-match
+  // "Energy, Utilities & Waste Management".
+  const companyIndustry = inferCompanyIndustry(input.company, null, industryNames)
+  const hintedIndustry = isGenericTaxonomyHint(input.industryHint)
+    ? null
+    : matchIndustryName(input.industryHint, industryNames)
   const industry =
+    companyIndustry ||
     matchIndustryName(parsed.industry, industryNames) ||
     (parsed.industries || [])
       .map(name => matchIndustryName(name, industryNames))
       .find(Boolean) ||
-    matchIndustryName(input.industryHint, industryNames) ||
-    inferCompanyIndustry(input.company, null, industryNames) ||
+    hintedIndustry ||
     null
 
-  const hintFunction = matchJobFunctionName(input.jobFunctionHint, jobFunctionNames)
+  const hintFunction = isGenericTaxonomyHint(input.jobFunctionHint)
+    ? null
+    : matchJobFunctionName(input.jobFunctionHint, jobFunctionNames)
   const aiOrFallbackFunction =
     matchJobFunctionName(parsed.job_function, jobFunctionNames) ||
     (parsed.job_functions || [])
