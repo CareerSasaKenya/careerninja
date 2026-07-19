@@ -308,7 +308,9 @@ export async function runReenrichScrapedJobs(
           ? parsed.experience_level
           : null
 
-      const patch = {
+      // Only set apply_* when AI found values — never null them out or we can
+      // violate chk_jobs_apply_path if application_url is somehow empty.
+      const patch: Record<string, unknown> = {
         description: parsed.description || job.description,
         responsibilities: parsed.responsibilities || null,
         required_qualifications: parsed.required_qualifications || null,
@@ -317,15 +319,6 @@ export async function runReenrichScrapedJobs(
         area_of_study: parsed.area_of_study || null,
         field_of_study: parsed.field_of_study || null,
         language_requirements: parsed.language_requirements || null,
-        apply_email: parsed.apply_email || null,
-        apply_link: parsed.apply_link || null,
-        employment_types: parsed.employment_types || null,
-        employment_type: parsed.employment_types?.[0] || null,
-        job_location_types: parsed.job_location_types || null,
-        job_location_type: parsed.job_location_types?.[0] || null,
-        job_location_country: parsed.job_location_country || null,
-        job_location_county: parsed.job_location_county || null,
-        job_location_city: parsed.job_location_city || null,
         additional_locations: parsed.additional_locations || [],
         minimum_experience: parsed.minimum_experience,
         experience_level: experienceLevel,
@@ -338,6 +331,26 @@ export async function runReenrichScrapedJobs(
         job_function_id: jobFunctionRows[0]?.id ?? null,
         job_function_ids: jobFunctionRows.map(r => r.id),
         tags: limitTags(parsed.tags, 5),
+      }
+
+      if (parsed.apply_email) patch.apply_email = parsed.apply_email
+      if (parsed.apply_link) patch.apply_link = parsed.apply_link
+      if (parsed.employment_types?.length) {
+        patch.employment_types = parsed.employment_types
+        patch.employment_type = parsed.employment_types[0]
+      }
+      if (parsed.job_location_types?.length) {
+        patch.job_location_types = parsed.job_location_types
+        patch.job_location_type = parsed.job_location_types[0]
+      }
+      if (parsed.job_location_country) {
+        patch.job_location_country = parsed.job_location_country
+      }
+      if (parsed.job_location_county) {
+        patch.job_location_county = parsed.job_location_county
+      }
+      if (parsed.job_location_city) {
+        patch.job_location_city = parsed.job_location_city
       }
 
       const summary =
