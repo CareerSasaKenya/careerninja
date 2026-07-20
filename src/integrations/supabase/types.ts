@@ -3144,6 +3144,87 @@ export type Database = {
         }
         Relationships: []
       }
+      payments: {
+        Row: {
+          id: string
+          provider: string
+          transaction_reference: string
+          merchant_request_id: string | null
+          checkout_request_id: string | null
+          mpesa_receipt_number: string | null
+          amount: number
+          phone_number: string
+          status: string
+          description: string | null
+          user_id: string | null
+          job_id: string | null
+          result_code: number | null
+          result_desc: string | null
+          raw_callback: Json | null
+          metadata: Json | null
+          paid_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          provider?: string
+          transaction_reference: string
+          merchant_request_id?: string | null
+          checkout_request_id?: string | null
+          mpesa_receipt_number?: string | null
+          amount: number
+          phone_number: string
+          status?: string
+          description?: string | null
+          user_id?: string | null
+          job_id?: string | null
+          result_code?: number | null
+          result_desc?: string | null
+          raw_callback?: Json | null
+          metadata?: Json | null
+          paid_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          provider?: string
+          transaction_reference?: string
+          merchant_request_id?: string | null
+          checkout_request_id?: string | null
+          mpesa_receipt_number?: string | null
+          amount?: number
+          phone_number?: string
+          status?: string
+          description?: string | null
+          user_id?: string | null
+          job_id?: string | null
+          result_code?: number | null
+          result_desc?: string | null
+          raw_callback?: Json | null
+          metadata?: Json | null
+          paid_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       salary_data: {
         Row: {
           company_size: string | null
