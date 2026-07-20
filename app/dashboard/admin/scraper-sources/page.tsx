@@ -574,7 +574,10 @@ export default function AdminScraperSourcesPage() {
       <Card>
         <CardHeader>
           <CardTitle>Seeded Kenyan sources</CardTitle>
-          <CardDescription>Included in migration <code className="text-xs">20260715_combined_kenyan_scraper_sources.sql</code></CardDescription>
+          <CardDescription>
+            Included in migrations <code className="text-xs">20260715_combined_kenyan_scraper_sources.sql</code>
+            {' '}and <code className="text-xs">20260720_seed_brightermonday_scraper_source.sql</code>
+          </CardDescription>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
           <p><strong>Government (full detail):</strong> PSC PDF adverts from <a href="https://www.publicservice.go.ke/jobs/" target="_blank" rel="noopener noreferrer">publicservice.go.ke/jobs</a> — duties, qualifications, salary scales</p>
@@ -582,6 +585,7 @@ export default function AdminScraperSourcesPage() {
           <p><strong>NGO:</strong> Amref Health Africa (SmartRecruiters, Kenya filter)</p>
           <p><strong>Employers:</strong> Inkomoko (Workable), SALIX Data Africa, Digital Divide Data (SmartRecruiters, Kenya filter)</p>
           <p><strong>Batch A (verified):</strong> PowerGen Renewable Energy, iHub (SmartRecruiters). Workable pipeline (paused): Tala, Branch, KCB, Komaza, Sanergy, Copia, Apollo</p>
+          <p><strong>Job boards:</strong> BrighterMonday Kenya (JSON-LD listings → detail pages)</p>
         </CardContent>
       </Card>
     </div>

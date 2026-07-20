@@ -53,6 +53,10 @@ import {
   extractPscAdvertNumber,
 } from '@/lib/psc-adapter'
 import { processPscPdfQueueItem } from '@/lib/psc-pdf-adapter'
+import {
+  fetchBrighterMondayJobDetails,
+  normalizeBrighterMondayJob,
+} from '@/lib/brightermonday-adapter'
 import { mapEducationLevel } from '@/lib/jobMetadataExtraction'
 import { limitTags } from '@/lib/jobParseNormalization'
 import {
@@ -330,6 +334,26 @@ export async function runScrapeProcessOne(
             : null,
         tagsHint: normalized.tags,
       }
+    } else if (adapterType === 'brightermonday') {
+      const detail = await fetchBrighterMondayJobDetails(queueItem.job_url)
+      normalized = normalizeBrighterMondayJob(detail)
+      rawData = detail
+
+      parseInput = {
+        title: normalized.title,
+        company: normalized.company,
+        location: normalized.location,
+        employmentType: normalized.employment_type,
+        workplace: normalized.job_location_type,
+        descriptionSection: detail.descriptionHtml,
+        requirementsSection: detail.qualifications || '',
+        industryHint: detail.industry,
+        jobFunctionHint: detail.occupationalCategory,
+        tagsHint: normalized.tags,
+        rawContent: [detail.descriptionHtml, detail.qualifications]
+          .filter(Boolean)
+          .join('\n\n'),
+      }
     } else if (adapterType === 'psc') {
       const advertNumber =
         extractPscAdvertNumber(queueItem.job_url) ||
@@ -387,7 +411,10 @@ export async function runScrapeProcessOne(
 
     if (!normalized.title) throw new Error('Job title is empty after normalization')
 
-    const dedupCompany = adapterType === 'psc' ? normalized.company : hiringCompany
+    const dedupCompany =
+      adapterType === 'psc' || adapterType === 'brightermonday'
+        ? normalized.company
+        : hiringCompany
     const contentHash = workableHash(
       normalized.title,
       dedupCompany,
