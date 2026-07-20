@@ -7,6 +7,7 @@ export type ScraperAdapterType =
   | 'oracle_cloud'
   | 'psc'
   | 'psc_pdf'
+  | 'brightermonday'
   | 'html'
   | 'unknown'
 
@@ -22,7 +23,8 @@ export function getAdapterType(selectors: unknown): ScraperAdapterType {
     type === 'taleo_be' ||
     type === 'oracle_cloud' ||
     type === 'psc' ||
-    type === 'psc_pdf'
+    type === 'psc_pdf' ||
+    type === 'brightermonday'
   ) {
     return type
   }
@@ -45,6 +47,7 @@ export const ADAPTER_LABELS: Record<ScraperAdapterType, string> = {
   oracle_cloud: 'Oracle Cloud HCM',
   psc: 'PSC Portal (listing table)',
   psc_pdf: 'PSC PDF Adverts (full detail)',
+  brightermonday: 'BrighterMonday (JSON-LD)',
   html: 'HTML / CSS',
   unknown: 'Unknown',
 }

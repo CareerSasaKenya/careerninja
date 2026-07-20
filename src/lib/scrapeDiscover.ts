@@ -11,6 +11,10 @@ import {
 } from './oracle-cloud-adapter'
 import { discoverPscJobs } from './psc-adapter'
 import { discoverPscPdfDocuments, PscPdfSourceConfig } from './psc-pdf-adapter'
+import {
+  discoverBrighterMondayJobs,
+  BrighterMondaySourceConfig,
+} from './brightermonday-adapter'
 import { normalizeJobUrl } from './scraperDeadline'
 
 export interface DiscoverSourceResult {
@@ -46,6 +50,7 @@ const SUPPORTED_TYPES = new Set([
   'oracle_cloud',
   'psc',
   'psc_pdf',
+  'brightermonday',
   'html',
 ])
 
@@ -132,6 +137,11 @@ export async function runScrapeDiscover(
         discovered = await discoverPscJobs(source.base_url)
       } else if (adapterType === 'psc_pdf') {
         discovered = await discoverPscPdfDocuments(source.base_url, source.selectors as PscPdfSourceConfig)
+      } else if (adapterType === 'brightermonday') {
+        discovered = await discoverBrighterMondayJobs(
+          source.selectors as BrighterMondaySourceConfig,
+          source.base_url
+        )
       } else {
         const html = await fetchHtml(source.base_url)
         discovered = extractJobLinks(html, source.base_url, source.selectors as ScraperSelectors)
