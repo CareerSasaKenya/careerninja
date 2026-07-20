@@ -194,8 +194,10 @@ const JobCard = ({
             </div>
           )}
 
-          <div className="flex items-start gap-3">
-            <div className="shrink-0 self-start rounded-xl border border-border/70 bg-card p-1 shadow-sm">
+          {/* Mobile: title full-width left; logo drops beside company name.
+              sm+: logo left of title+company (unchanged desktop layout). */}
+          <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+            <div className="col-start-1 row-start-2 shrink-0 self-center rounded-xl border border-border/70 bg-card p-1 shadow-sm sm:row-span-2 sm:row-start-1 sm:self-start">
               {company ? (
                 <CompanyLogo
                   name={company}
@@ -210,30 +212,28 @@ const JobCard = ({
               )}
             </div>
 
-            <div className="min-w-0 flex-1 space-y-1">
-              <h3
-                className="text-balance text-lg font-bold leading-snug tracking-tight text-foreground transition-colors group-hover:text-[#0A66C2] group-active:text-[#0A66C2] sm:text-xl"
-                title={seoTitle}
-              >
-                {title}
-              </h3>
+            <h3
+              className="col-span-2 col-start-1 row-start-1 min-w-0 text-balance text-lg font-bold leading-snug tracking-tight text-foreground transition-colors group-hover:text-[#0A66C2] group-active:text-[#0A66C2] sm:col-span-1 sm:col-start-2 sm:text-xl"
+              title={seoTitle}
+            >
+              {title}
+            </h3>
 
-              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-muted-foreground">
-                <span className="truncate font-medium text-foreground">
-                  {company || "Direct Listing"}
-                </span>
-                {locationLabel && (
-                  <>
-                    <span className="text-muted-foreground/35" aria-hidden>
-                      ·
-                    </span>
-                    <span className="inline-flex min-w-0 items-center gap-1">
-                      <MapPin className="h-3.5 w-3.5 shrink-0 text-primary" />
-                      <span className="truncate">{locationLabel}</span>
-                    </span>
-                  </>
-                )}
-              </div>
+            <div className="col-start-2 row-start-2 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-muted-foreground">
+              <span className="truncate font-medium text-foreground">
+                {company || "Direct Listing"}
+              </span>
+              {locationLabel && (
+                <>
+                  <span className="text-muted-foreground/35" aria-hidden>
+                    ·
+                  </span>
+                  <span className="inline-flex min-w-0 items-center gap-1">
+                    <MapPin className="h-3.5 w-3.5 shrink-0 text-primary" />
+                    <span className="truncate">{locationLabel}</span>
+                  </span>
+                </>
+              )}
             </div>
           </div>
 

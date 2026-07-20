@@ -172,8 +172,10 @@ export default function JobDetailsHeader({
       )}
 
       <div className="flex items-start justify-between gap-3 sm:gap-4">
-        <div className="flex min-w-0 flex-1 items-start gap-3 sm:gap-3.5">
-          <div className="shrink-0 self-start rounded-xl border border-border/70 bg-card p-1 shadow-sm">
+        {/* Mobile: title full-width left; logo drops beside company name.
+            sm+: logo left of title+company (unchanged desktop layout). */}
+        <div className="grid min-w-0 flex-1 grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 sm:gap-x-3.5">
+          <div className="col-start-1 row-start-2 shrink-0 self-center rounded-xl border border-border/70 bg-card p-1 shadow-sm sm:row-span-2 sm:row-start-1 sm:self-start">
             {job.company_id && job.companies ? (
               <CompanyLogo
                 name={job.companies.name}
@@ -195,42 +197,40 @@ export default function JobDetailsHeader({
             )}
           </div>
 
-          <div className="min-w-0 flex-1 space-y-1.5">
-            <h1 className="text-balance text-2xl font-bold leading-tight tracking-tight text-[#0A66C2] sm:text-3xl">
-              {job.title}
-            </h1>
+          <h1 className="col-span-2 col-start-1 row-start-1 min-w-0 text-balance text-2xl font-bold leading-tight tracking-tight text-[#0A66C2] sm:col-span-1 sm:col-start-2 sm:text-3xl">
+            {job.title}
+          </h1>
 
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm sm:text-[15px]">
-              {job.company_id && job.companies ? (
-                <Link
-                  href={`/companies/${job.company_id}`}
-                  className="font-medium text-foreground transition-colors hover:text-[#0A66C2]"
-                >
-                  {job.companies.name}
-                </Link>
-              ) : (
-                <span className="inline-flex items-center gap-2 font-medium text-foreground">
-                  {companyName}
-                  {!job.company && (
-                    <Badge variant="outline" className="text-xs font-normal">
-                      Direct Listing
-                    </Badge>
-                  )}
+          <div className="col-start-2 row-start-2 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-sm sm:text-[15px]">
+            {job.company_id && job.companies ? (
+              <Link
+                href={`/companies/${job.company_id}`}
+                className="font-medium text-foreground transition-colors hover:text-[#0A66C2]"
+              >
+                {job.companies.name}
+              </Link>
+            ) : (
+              <span className="inline-flex items-center gap-2 font-medium text-foreground">
+                {companyName}
+                {!job.company && (
+                  <Badge variant="outline" className="text-xs font-normal">
+                    Direct Listing
+                  </Badge>
+                )}
+              </span>
+            )}
+
+            {displayLocation && (
+              <>
+                <span className="text-muted-foreground/35" aria-hidden>
+                  ·
                 </span>
-              )}
-
-              {displayLocation && (
-                <>
-                  <span className="text-muted-foreground/35" aria-hidden>
-                    ·
-                  </span>
-                  <span className="inline-flex items-center gap-1 text-muted-foreground">
-                    <MapPin className="h-3.5 w-3.5 shrink-0 text-primary" />
-                    <span>{displayLocation}</span>
-                  </span>
-                </>
-              )}
-            </div>
+                <span className="inline-flex items-center gap-1 text-muted-foreground">
+                  <MapPin className="h-3.5 w-3.5 shrink-0 text-primary" />
+                  <span>{displayLocation}</span>
+                </span>
+              </>
+            )}
           </div>
         </div>
 
