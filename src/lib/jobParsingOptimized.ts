@@ -156,14 +156,20 @@ function nonEmptyEnv(...keys: Array<string | undefined>): string[] {
     .filter(Boolean)
 }
 
+type ProviderAttempt =
+  | { ok: true; response: ParsedJobData; modelUsed: string }
+  | { ok: false; error: unknown }
+
+/** Works with strictNullChecks:false — boolean discriminants do not narrow there. */
+function providerFailure(result: ProviderAttempt): unknown {
+  return 'error' in result ? result.error : null
+}
+
 async function tryProviderWithRetries(
   label: string,
   call: () => Promise<ParsedJobData>,
   maxRetries: number
-): Promise<
-  | { ok: true; response: ParsedJobData; modelUsed: string }
-  | { ok: false; error: unknown }
-> {
+): Promise<ProviderAttempt> {
   let lastError: unknown = null
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
@@ -219,9 +225,8 @@ export async function callAIWithRetry(
     )
     if (result.ok) {
       return { response: result.response, modelUsed: 'gemini-2.5-flash' }
-    } else {
-      lastError = result.error || lastError
     }
+    lastError = providerFailure(result) || lastError
   }
 
   // 2. Fallback to Groq (free tier — primary rescue when Gemini is exhausted)
@@ -233,9 +238,8 @@ export async function callAIWithRetry(
     )
     if (result.ok) {
       return { response: result.response, modelUsed: result.modelUsed }
-    } else {
-      lastError = result.error || lastError
     }
+    lastError = providerFailure(result) || lastError
   } else {
     console.warn('[callAIWithRetry] GROQ_API_KEY missing — cannot fall back to Groq')
   }
@@ -252,9 +256,8 @@ export async function callAIWithRetry(
         response: result.response,
         modelUsed: 'gemini-2.5-flash (openrouter)',
       }
-    } else {
-      lastError = result.error || lastError
     }
+    lastError = providerFailure(result) || lastError
   }
 
   throw lastError || new Error('All AI services failed')
