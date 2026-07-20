@@ -197,7 +197,7 @@ export default function JobDetailsHeader({
             )}
           </div>
 
-          <h1 className="col-span-2 col-start-1 row-start-1 min-w-0 text-balance text-2xl font-bold leading-tight tracking-tight text-[#0A66C2] sm:col-span-1 sm:col-start-2 sm:text-3xl">
+          <h1 className="col-span-2 col-start-1 row-start-1 min-w-0 text-2xl font-bold leading-tight tracking-tight text-[#0A66C2] sm:col-span-1 sm:col-start-2 sm:text-3xl">
             {job.title}
           </h1>
 
