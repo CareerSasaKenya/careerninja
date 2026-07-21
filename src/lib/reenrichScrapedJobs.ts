@@ -11,6 +11,7 @@ import {
   parseScrapedJobContent,
   type ScrapedJobInput,
 } from './scraperJobParsing'
+import { sanitizeAdditionalInfoApplyCopy } from './applyInstructionsCopy'
 
 type RawWorkable = {
   description?: string
@@ -318,7 +319,7 @@ export async function runReenrichScrapedJobs(
     const { data: job } = await supabase
       .from('jobs')
       .select(
-        'id, title, hiring_organization_name, company, description, responsibilities, tags, industry, job_function'
+        'id, title, hiring_organization_name, company, description, responsibilities, tags, industry, job_function, apply_email, apply_link, application_url'
       )
       .eq('id', row.job_id)
       .maybeSingle()
@@ -384,7 +385,11 @@ export async function runReenrichScrapedJobs(
         description: parsed.description || job.description,
         responsibilities: parsed.responsibilities || null,
         required_qualifications: parsed.required_qualifications || null,
-        additional_info: parsed.additional_info || null,
+        additional_info: sanitizeAdditionalInfoApplyCopy(parsed.additional_info || null, {
+          apply_email: parsed.apply_email || job.apply_email || null,
+          apply_link: parsed.apply_link || job.apply_link || null,
+          application_url: job.application_url || null,
+        }),
         education_level_id: educationLevelId,
         area_of_study: parsed.area_of_study || null,
         field_of_study: parsed.field_of_study || null,

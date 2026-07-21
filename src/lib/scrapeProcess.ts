@@ -72,6 +72,7 @@ import {
 import { ensureCompanyForJob } from '@/lib/ensureCompanyForJob'
 import { inferCompanyIndustry } from '@/lib/companyIndustryInference'
 import { isJobBoardSource } from '@/lib/jobBoardApply'
+import { sanitizeAdditionalInfoApplyCopy } from '@/lib/applyInstructionsCopy'
 import type { WorkableJobDetail } from '@/lib/workable-adapter'
 
 export type ScrapeProcessResult = Record<string, unknown>
@@ -592,8 +593,16 @@ export async function runScrapeProcessOne(
         parsed.responsibilities || normalized.responsibilities || null,
       required_qualifications:
         parsed.required_qualifications || normalized.required_qualifications || null,
-      additional_info:
+      additional_info: sanitizeAdditionalInfoApplyCopy(
         parsed.additional_info || null,
+        {
+          apply_email: boardApplyEmail || parsed.apply_email || null,
+          apply_link: jobBoard
+            ? normalized.apply_link?.trim() || null
+            : parsed.apply_link || normalized.apply_link || null,
+          application_url: applicationUrl,
+        }
+      ),
       company_id: companyId,
       user_id: scraperUserId,
       hiring_organization_name: dedupCompany,
