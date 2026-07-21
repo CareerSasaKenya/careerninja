@@ -585,7 +585,7 @@ export default function AdminScraperSourcesPage() {
           <p><strong>NGO:</strong> Amref Health Africa (SmartRecruiters, Kenya filter)</p>
           <p><strong>Employers:</strong> Inkomoko (Workable), SALIX Data Africa, Digital Divide Data (SmartRecruiters, Kenya filter)</p>
           <p><strong>Batch A (verified):</strong> PowerGen Renewable Energy, iHub (SmartRecruiters). Workable pipeline (paused): Tala, Branch, KCB, Komaza, Sanergy, Copia, Apollo</p>
-          <p><strong>Job boards:</strong> BrighterMonday Kenya (JSON-LD listings → detail pages)</p>
+          <p><strong>Job boards:</strong> BrighterMonday Kenya (JSON-LD). Employer apply link/email from the posting is preferred; the BrighterMonday listing URL is only used as a last resort.</p>
         </CardContent>
       </Card>
     </div>
