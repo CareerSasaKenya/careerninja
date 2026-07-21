@@ -118,12 +118,12 @@ export function extractApplicationDeadline(
     .replace(/\s+/g, ' ')
 
   const patterns = [
-    /application\s+deadline\s*[:\-]\s*([^\n<]{5,60})/i,
-    /\bdeadline\s*[:\-]\s*([^\n<]{5,60})/i,
-    /closing\s+date\s*[:\-]\s*([^\n<]{5,60})/i,
-    /applications?\s+close\s*(?:on)?\s*[:\-]?\s*([^\n<]{5,60})/i,
-    /apply\s+by\s*[:\-]?\s*([^\n<]{5,60})/i,
-    /last\s+day\s+(?:to\s+apply|for\s+application)s?\s*[:\-]?\s*([^\n<]{5,60})/i,
+    /application\s+deadline\s*[:-]\s*([^\n<]{5,60})/i,
+    /\bdeadline\s*[:-]\s*([^\n<]{5,60})/i,
+    /closing\s+date\s*[:-]\s*([^\n<]{5,60})/i,
+    /applications?\s+close\s*(?:on)?\s*[:-]?\s*([^\n<]{5,60})/i,
+    /apply\s+by\s*[:-]?\s*([^\n<]{5,60})/i,
+    /last\s+day\s+(?:to\s+apply|for\s+application)s?\s*[:-]?\s*([^\n<]{5,60})/i,
   ]
 
   for (const pattern of patterns) {
