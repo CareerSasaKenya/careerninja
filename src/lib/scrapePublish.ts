@@ -19,6 +19,7 @@ import {
 } from './scraperJobParsing'
 import { ensureCompanyForJob } from './ensureCompanyForJob'
 import { inferCompanyIndustry } from './companyIndustryInference'
+import { sanitizeAdditionalInfoApplyCopy } from './applyInstructionsCopy'
 
 export interface PublishScrapedJobParams {
   supabase: SupabaseClient
@@ -252,7 +253,11 @@ export async function publishScrapedJob(
       responsibilities: parsed.responsibilities || normalized.responsibilities || null,
       required_qualifications:
         parsed.required_qualifications || normalized.required_qualifications || null,
-      additional_info: parsed.additional_info || null,
+      additional_info: sanitizeAdditionalInfoApplyCopy(parsed.additional_info || null, {
+        apply_email: normalized.apply_email || parsed.apply_email || null,
+        apply_link: normalized.apply_link?.trim() || parsed.apply_link || null,
+        application_url: applicationUrl,
+      }),
       company_id: companyId,
       user_id: scraperUserId,
       hiring_organization_name: dedupCompany,

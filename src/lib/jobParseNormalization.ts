@@ -248,7 +248,10 @@ CRITICAL FIELDS TO EXTRACT:
 - application_url: Company career page URL if different from apply_link
 - language_requirements: Language requirements if mentioned (e.g., "English", "Kiswahili")
 
-ADDITIONAL_INFO: Include application instructions and 4 brief tips for this role type.
+ADDITIONAL_INFO: Include a short "How to Apply" section and 4 brief tips for this role type.
+- If the posting gives apply steps, keep those facts.
+- If apply steps are missing BUT an email, apply link, career page URL, or original source URL is available: tell the candidate to send their application to that email and/or visit the application link. Example: "Send your application to hr@company.com." or "Visit the application link provided on this page to submit your application."
+- NEVER write phrases like "Application instructions were not provided in the job posting" (or similar) when any apply email, website link, external link, or original source is available.
 
 Return JSON structure:
 {

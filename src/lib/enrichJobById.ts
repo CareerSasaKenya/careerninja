@@ -15,6 +15,7 @@ import {
   type ScrapedJobInput,
 } from './scraperJobParsing'
 import { buildReenrichInput } from './reenrichScrapedJobs'
+import { sanitizeAdditionalInfoApplyCopy } from './applyInstructionsCopy'
 
 export interface EnrichJobOptions {
   /** Overwrite existing section/taxonomy fields (default true for admin force enrich) */
@@ -48,6 +49,9 @@ type JobRow = {
   location: string | null
   employment_type: string | null
   job_location_type: string | null
+  apply_email?: string | null
+  apply_link?: string | null
+  application_url?: string | null
 }
 
 function hasAiKeys(): boolean {
@@ -129,7 +133,7 @@ export async function enrichJobById(
   const { data: job, error: jobError } = await supabase
     .from('jobs')
     .select(
-      'id, title, company, hiring_organization_name, description, responsibilities, required_qualifications, additional_info, industry, job_function, location, employment_type, job_location_type'
+      'id, title, company, hiring_organization_name, description, responsibilities, required_qualifications, additional_info, industry, job_function, location, employment_type, job_location_type, apply_email, apply_link, application_url'
     )
     .eq('id', jobId)
     .maybeSingle()
@@ -260,7 +264,14 @@ export async function enrichJobById(
       parsed.required_qualifications || null,
       fillGapsOnly ? row.required_qualifications : null
     )
-    setIf('additional_info', parsed.additional_info || null)
+    setIf(
+      'additional_info',
+      sanitizeAdditionalInfoApplyCopy(parsed.additional_info || null, {
+        apply_email: parsed.apply_email || row.apply_email || null,
+        apply_link: parsed.apply_link || row.apply_link || null,
+        application_url: row.application_url || null,
+      })
+    )
     setIf('education_level_id', educationLevelId)
     setIf('area_of_study', parsed.area_of_study || null)
     setIf('field_of_study', parsed.field_of_study || null)
