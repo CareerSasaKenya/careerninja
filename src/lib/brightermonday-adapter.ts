@@ -156,9 +156,22 @@ function resolveRef(
   return null
 }
 
+function decodeHtmlEntities(value: string): string {
+  // Decode &amp; first so &amp;lt; → &lt; before &lt; → <.
+  return value
+    .replace(/&amp;/gi, '&')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&#x27;/gi, "'")
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+}
+
 function cleanText(value: unknown): string | null {
   if (value == null) return null
-  const text = String(value)
+  const text = decodeHtmlEntities(String(value))
     .replace(/<[^>]+>/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
