@@ -12,6 +12,7 @@ import {
   type ScrapedJobInput,
 } from './scraperJobParsing'
 import { sanitizeAdditionalInfoApplyCopy } from './applyInstructionsCopy'
+import { isMissingOrLabelOnlyQualifications } from './experienceLevelLabel'
 
 type RawWorkable = {
   description?: string
@@ -84,6 +85,38 @@ export function buildReenrichInput(
   company: string,
   raw: Record<string, unknown>
 ): ScrapedJobInput | null {
+  // BrighterMonday — must run before Taleo (both use descriptionHtml).
+  // JSON-LD "qualifications" is an experience label, not requirements.
+  const bmRaw = raw as {
+    jobUrl?: string
+    descriptionHtml?: string
+    location?: string
+    locationName?: string
+    industry?: string
+    occupationalCategory?: string
+    title?: string
+  }
+  if (
+    sourceId === 'brightermonday-kenya' ||
+    /brightermonday\.co\.ke/i.test(String(bmRaw.jobUrl || ''))
+  ) {
+    const html = typeof bmRaw.descriptionHtml === 'string' ? bmRaw.descriptionHtml : ''
+    if (!html.trim()) return null
+    return {
+      title: title || bmRaw.title || 'Untitled',
+      company,
+      location: bmRaw.locationName || bmRaw.location,
+      descriptionSection: html,
+      requirementsSection: '',
+      industryHint: bmRaw.industry || null,
+      jobFunctionHint: bmRaw.occupationalCategory || null,
+      tagsHint: [bmRaw.occupationalCategory, bmRaw.industry, 'BrighterMonday']
+        .filter(Boolean)
+        .join(', '),
+      rawContent: html,
+    }
+  }
+
   // SmartRecruiters
   if ((raw as RawSmartRecruiters).jobAd) {
     const sr = raw as RawSmartRecruiters
@@ -319,7 +352,7 @@ export async function runReenrichScrapedJobs(
     const { data: job } = await supabase
       .from('jobs')
       .select(
-        'id, title, hiring_organization_name, company, description, responsibilities, tags, industry, job_function, apply_email, apply_link, application_url'
+        'id, title, hiring_organization_name, company, description, responsibilities, required_qualifications, tags, industry, job_function, apply_email, apply_link, application_url'
       )
       .eq('id', row.job_id)
       .maybeSingle()
@@ -384,7 +417,14 @@ export async function runReenrichScrapedJobs(
       const patch: Record<string, unknown> = {
         description: parsed.description || job.description,
         responsibilities: parsed.responsibilities || null,
-        required_qualifications: parsed.required_qualifications || null,
+        required_qualifications: (() => {
+          const parsedQ = parsed.required_qualifications
+          if (parsedQ && !isMissingOrLabelOnlyQualifications(parsedQ)) return parsedQ
+          // Clear unusable Mid level / Unspecified leftovers when parse found nothing
+          const existing = (job as { required_qualifications?: unknown }).required_qualifications
+          if (existing && !isMissingOrLabelOnlyQualifications(existing)) return existing
+          return null
+        })(),
         additional_info: sanitizeAdditionalInfoApplyCopy(parsed.additional_info || null, {
           apply_email: parsed.apply_email || job.apply_email || null,
           apply_link: parsed.apply_link || job.apply_link || null,
