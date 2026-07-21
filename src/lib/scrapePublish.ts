@@ -176,7 +176,8 @@ export async function publishScrapedJob(
         })
 
     const deadline = resolveScrapedDeadline(
-      parsed.deadline || normalized.valid_through || null
+      // Prefer adapter/structured deadline when present (e.g. BM "Deadline: 27th July 2026")
+      normalized.valid_through || parsed.deadline || null
     )
     if (deadline.action === 'skip_expired') {
       await supabase.from('scraped_job_sources').upsert(

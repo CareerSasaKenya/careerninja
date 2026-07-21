@@ -3,14 +3,31 @@ import {
   isDeadlineExpired,
   normalizeJobUrl,
   parseDeadlineDate,
+  extractApplicationDeadline,
   resolveScrapedDeadline,
   expiresAtFromValidThrough,
 } from './scraperDeadline'
 
 assert.equal(parseDeadlineDate('2026-08-01'), '2026-08-01')
 assert.equal(parseDeadlineDate('2026-08-01T12:00:00Z'), '2026-08-01')
+assert.equal(parseDeadlineDate('27th July 2026'), '2026-07-27')
+assert.equal(parseDeadlineDate('31st July 2026'), '2026-07-31')
+assert.equal(parseDeadlineDate('July 27, 2026'), '2026-07-27')
+assert.equal(parseDeadlineDate('27/07/2026'), '2026-07-27')
 assert.equal(parseDeadlineDate(null), null)
 assert.equal(parseDeadlineDate('not-a-date'), null)
+
+assert.equal(
+  extractApplicationDeadline('<p>Deadline: 27th July 2026</p>'),
+  '2026-07-27'
+)
+assert.equal(
+  extractApplicationDeadline(
+    '<p>Application Deadline: 31st July 2026 Com Twenty One Limited is an equal opportu'
+  ),
+  '2026-07-31'
+)
+assert.equal(extractApplicationDeadline('<p>No dates here</p>'), null)
 
 const now = new Date('2026-07-18T12:00:00Z')
 assert.equal(isDeadlineExpired('2026-07-17', now), true)

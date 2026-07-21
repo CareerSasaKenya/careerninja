@@ -490,7 +490,11 @@ export async function runScrapeProcessOne(
     })
 
     const deadline = resolveScrapedDeadline(
-      parsed.deadline || normalized.valid_through || null
+      jobBoard
+        ? // Job boards: trust structured employer deadline over AI (AI often invents or
+          // picks BM's ~90-day listing expiry instead of "Deadline: 27th July 2026").
+          normalized.valid_through || parsed.deadline || null
+        : parsed.deadline || normalized.valid_through || null
     )
     if (deadline.action === 'skip_expired') {
       await supabase
@@ -625,10 +629,15 @@ export async function runScrapeProcessOne(
       job_location_types: jobLocationTypes.map(sanitizeJobLocationType),
       job_location_country:
         parsed.job_location_country || normalized.job_location_country || 'Kenya',
-      job_location_county:
-        parsed.job_location_county || normalized.job_location_county || null,
-      job_location_city:
-        parsed.job_location_city || normalized.job_location_city || null,
+      job_location_county: jobBoard
+        ? normalized.job_location_county || parsed.job_location_county || null
+        : parsed.job_location_county || normalized.job_location_county || null,
+      job_location_city: jobBoard
+        ? normalized.job_location_city || parsed.job_location_city || null
+        : parsed.job_location_city || normalized.job_location_city || null,
+      location: jobBoard
+        ? normalized.location || parsed.job_location_city || null
+        : normalized.location,
       additional_locations: parsed.additional_locations || [],
       industry: industryName,
       industries: industryNamesResolved,

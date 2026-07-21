@@ -14,6 +14,7 @@
 
 import { generateContentHash, NormalizedJob } from './scraper'
 import { resolveJobBoardApplication } from './jobBoardApply'
+import { extractApplicationDeadline } from './scraperDeadline'
 
 const DEFAULT_BASE = 'https://www.brightermonday.co.ke'
 const LISTING_PATH = '/jobs'
@@ -46,6 +47,10 @@ export interface BrighterMondayJobDetail {
   addressLocality: string | null
   addressRegion: string | null
   addressCountry: string | null
+  /** BM page_data location_name (often more specific than JSON-LD) */
+  locationName: string | null
+  /** Employer application deadline from description (not BM listing expiry) */
+  applicationDeadline: string | null
   /** BrighterMonday "Linkout" external apply URL when present */
   linkoutUrl: string | null
   applyEmail: string | null
@@ -230,8 +235,19 @@ export function parseBrighterMondayJobHtml(html: string, jobUrl: string): Bright
   const locality = cleanText(address.addressLocality)
   const region = cleanText(address.addressRegion)
   const country = cleanText(address.addressCountry) || 'Kenya'
-  const location = [...new Set([locality, region, country].filter(Boolean))].join(', ') || 'Kenya'
   const descriptionHtml = typeof posting.description === 'string' ? posting.description : ''
+
+  const locationNameMatch = html.match(/"location_name"\s*:\s*"([^"]*)"/)
+  const locationName = locationNameMatch?.[1]
+    ? locationNameMatch[1].replace(/\\u002F/g, '/').replace(/\\\//g, '/').trim() || null
+    : null
+
+  const location = resolveBrighterMondayLocation({
+    locationName,
+    locality,
+    region,
+    country,
+  })
 
   const linkoutMatch = html.match(/"linkout_url"\s*:\s*"([^"]*)"/)
   const linkoutUrl = linkoutMatch?.[1]
@@ -245,26 +261,32 @@ export function parseBrighterMondayJobHtml(html: string, jobUrl: string): Bright
     boardHosts: ['brightermonday.co.ke'],
   })
 
+  // Prefer employer "Deadline:" in the description over BM's listing validThrough
+  // (validThrough is usually ~90 days of board visibility, not the apply deadline).
+  const applicationDeadline = extractApplicationDeadline(descriptionHtml)
+
   return {
     jobUrl,
     title: cleanText(posting.title) || 'Untitled Position',
     company,
-    location,
+    location: location.display,
     descriptionHtml,
     employmentType: parseEmploymentType(posting.employmentType),
     industry: cleanText(posting.industry),
     occupationalCategory: cleanText(posting.occupationalCategory),
     qualifications: cleanText(posting.qualifications),
     datePosted: typeof posting.datePosted === 'string' ? posting.datePosted : null,
-    validThrough: typeof posting.validThrough === 'string' ? posting.validThrough : null,
+    validThrough: applicationDeadline,
     salaryCurrency: cleanText(salary.currency) || 'KES',
     salaryMin: toNumber(salaryValue.minValue ?? salaryValue.value),
     salaryMax: toNumber(salaryValue.maxValue ?? salaryValue.value),
     salaryPeriod: cleanText(salaryValue.unitText) || 'MONTH',
     minimumExperienceYears: months != null ? Math.round(months / 12) : null,
-    addressLocality: locality,
-    addressRegion: region,
-    addressCountry: country,
+    addressLocality: location.city || locality,
+    addressRegion: location.county || region,
+    addressCountry: 'Kenya',
+    locationName,
+    applicationDeadline,
     linkoutUrl,
     applyEmail: apply.apply_email,
     applyLink: apply.apply_link,
@@ -290,22 +312,112 @@ const KENYAN_COUNTIES = [
   'Uasin Gishu',
   'Kisii',
   'Nyeri',
+  'Kakamega',
+  'Bungoma',
+  'Meru',
+  'Garissa',
+  'Embu',
+  'Kericho',
+  'Bomet',
+  'Narok',
+  'Nyandarua',
+  "Murang'a",
+  'Kirinyaga',
+  'Trans Nzoia',
+  'Turkana',
+  'Isiolo',
+  'Laikipia',
+  'Kitui',
+  'Makueni',
+  'Tharaka-Nithi',
+  'Vihiga',
+  'Siaya',
+  'Homa Bay',
+  'Migori',
+  'Busia',
+  'Nandi',
+  'Elgeyo-Marakwet',
+  'West Pokot',
+  'Samburu',
+  'Marsabit',
+  'Mandera',
+  'Wajir',
+  'Tana River',
+  'Lamu',
+  'Taita-Taveta',
+  'Nyamira',
 ]
 
-function inferCounty(detail: BrighterMondayJobDetail): string {
-  const haystack = `${detail.addressLocality || ''} ${detail.addressRegion || ''} ${detail.location || ''}`
+function isVagueLocationPart(value: string | null | undefined): boolean {
+  if (!value?.trim()) return true
+  const v = value.trim().toLowerCase()
+  return v === 'kenya' || v === 'ke' || v === 'country' || v === 'remote' || v === 'n/a'
+}
+
+function matchCounty(value: string | null | undefined): string {
+  if (!value?.trim()) return ''
+  const haystack = value.toLowerCase()
   for (const county of KENYAN_COUNTIES) {
-    if (haystack.toLowerCase().includes(county.toLowerCase())) return county
+    if (haystack.includes(county.toLowerCase())) return county
   }
+  // Common aliases
+  if (/\bnbi\b/.test(haystack) || haystack.includes('nairobi county')) return 'Nairobi'
+  if (haystack.includes('eldoret')) return 'Uasin Gishu'
   return ''
+}
+
+export function resolveBrighterMondayLocation(input: {
+  locationName?: string | null
+  locality?: string | null
+  region?: string | null
+  country?: string | null
+}): { display: string; city: string; county: string } {
+  // Prefer BM's location_name (e.g. "Nairobi") over weak JSON-LD ("Kenya"/"KE")
+  const preferred =
+    (!isVagueLocationPart(input.locationName) && input.locationName?.trim()) ||
+    (!isVagueLocationPart(input.locality) && input.locality?.trim()) ||
+    (!isVagueLocationPart(input.region) && input.region?.trim()) ||
+    null
+
+  const county =
+    matchCounty(input.locationName) ||
+    matchCounty(input.locality) ||
+    matchCounty(input.region) ||
+    matchCounty(preferred)
+
+  let city = ''
+  if (preferred && !isVagueLocationPart(preferred)) {
+    // "Nairobi" / "Westlands, Nairobi" → city from preferred label
+    city = preferred.split(',')[0]?.trim() || preferred
+  } else if (county) {
+    city = county
+  }
+
+  const parts = [city || null, county && county !== city ? county : null, 'Kenya'].filter(Boolean)
+  const display = [...new Set(parts)].join(', ') || 'Kenya'
+
+  return { display, city: city || '', county: county || '' }
+}
+
+function inferCounty(detail: BrighterMondayJobDetail): string {
+  return (
+    matchCounty(detail.locationName) ||
+    matchCounty(detail.addressLocality) ||
+    matchCounty(detail.addressRegion) ||
+    matchCounty(detail.location)
+  )
 }
 
 export function normalizeBrighterMondayJob(detail: BrighterMondayJobDetail): NormalizedJob {
   const hasSalary = detail.salaryMin != null || detail.salaryMax != null
-  const county = inferCounty(detail)
-  const city = detail.addressLocality && detail.addressLocality !== 'Kenya'
-    ? detail.addressLocality
-    : county
+  const resolved = resolveBrighterMondayLocation({
+    locationName: detail.locationName,
+    locality: detail.addressLocality,
+    region: detail.addressRegion,
+    country: detail.addressCountry,
+  })
+  const county = resolved.county || inferCounty(detail)
+  const city = resolved.city || county
 
   return {
     title: detail.title,
@@ -318,12 +430,13 @@ export function normalizeBrighterMondayJob(detail: BrighterMondayJobDetail): Nor
     job_location_country: 'Kenya',
     job_location_county: county,
     job_location_city: city || '',
-    location: detail.location,
+    location: detail.location || resolved.display,
     // Empty string when email-only; board URL only when no employer method exists
     apply_link: detail.applyLink || '',
     application_url: detail.applicationUrl || '',
     apply_email: detail.applyEmail,
-    valid_through: detail.validThrough,
+    // Employer application deadline only — never BM's ~90-day listing validThrough
+    valid_through: detail.applicationDeadline,
     salary_min: detail.salaryMin,
     salary_max: detail.salaryMax,
     salary_currency: detail.salaryCurrency || 'KES',

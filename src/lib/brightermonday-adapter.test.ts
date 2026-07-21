@@ -2,7 +2,18 @@ import assert from 'node:assert/strict'
 import {
   normalizeBrighterMondayJob,
   parseBrighterMondayJobHtml,
+  resolveBrighterMondayLocation,
 } from './brightermonday-adapter'
+
+assert.deepEqual(
+  resolveBrighterMondayLocation({
+    locationName: 'Nairobi',
+    locality: 'Kenya',
+    region: 'Kenya',
+    country: 'KE',
+  }),
+  { display: 'Nairobi, Kenya', city: 'Nairobi', county: 'Nairobi' }
+)
 
 const listingHtml = `
 <link rel="prerender" href="https://www.brightermonday.co.ke/listings/sales-and-marketing-officer-executive-6qxq97">
@@ -13,6 +24,9 @@ assert.equal(new Set(listingPaths).size, 2)
 
 const sampleHtml = `
 <html><head></head><body>
+<script>
+onesignal({"location_name":"Nairobi","listing_title":"Sales and Marketing Officer"});
+</script>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -21,7 +35,7 @@ const sampleHtml = `
       "@type": "JobPosting",
       "@id": "https://www.brightermonday.co.ke/#/schema/JobPosting/listing-1",
       "title": "Sales and Marketing Officer",
-      "description": "<p>Sell print services across Nairobi.</p>",
+      "description": "<p>Sell print services across Nairobi.</p><p>Deadline: 27th July 2026</p>",
       "datePosted": "2026-07-14T00:00:00.000000Z",
       "employmentType": "FULL_TIME",
       "industry": "Manufacturing & Warehousing",
@@ -65,9 +79,9 @@ const sampleHtml = `
     {
       "@type": "PostalAddress",
       "@id": "https://www.brightermonday.co.ke/#/schema/PostalAddress/1",
-      "addressLocality": "Nairobi",
-      "addressRegion": "Nairobi",
-      "addressCountry": "Kenya"
+      "addressLocality": "Kenya",
+      "addressRegion": "Kenya",
+      "addressCountry": "KE"
     }
   ]
 }
@@ -82,25 +96,29 @@ const detail = parseBrighterMondayJobHtml(
 
 assert.equal(detail.title, 'Sales and Marketing Officer')
 assert.equal(detail.company, 'Elite Offset Ltd')
+assert.equal(detail.locationName, 'Nairobi')
+assert.ok(detail.location.includes('Nairobi'))
+assert.equal(detail.applicationDeadline, '2026-07-27')
+assert.equal(detail.validThrough, '2026-07-27')
+assert.notEqual(detail.applicationDeadline, '2026-10-13')
 assert.equal(detail.salaryMin, 60000)
 assert.equal(detail.salaryMax, 75000)
 assert.equal(detail.employmentType, 'FULL_TIME')
 assert.equal(detail.minimumExperienceYears, 3)
-assert.ok(detail.location.includes('Nairobi'))
 
 const normalized = normalizeBrighterMondayJob(detail)
 assert.equal(normalized.company, 'Elite Offset Ltd')
 assert.equal(normalized.job_location_county, 'Nairobi')
+assert.equal(normalized.job_location_city, 'Nairobi')
+assert.equal(normalized.valid_through, '2026-07-27')
 assert.equal(normalized.salary_visibility, 'Show')
 assert.ok(normalized.tags.includes('BrighterMonday'))
-// Sample has no employer apply method → board listing fallback
-assert.equal(detail.applicationUrl, detail.jobUrl)
 assert.equal(detail.applyEmail, null)
 assert.equal(normalized.application_url, detail.jobUrl)
 
 const withEmailHtml = sampleHtml.replace(
-  '"description": "<p>Sell print services across Nairobi.</p>"',
-  '"description": "<p>How to Apply: email careers@eliteoffset.co.ke</p>"'
+  '"description": "<p>Sell print services across Nairobi.</p><p>Deadline: 27th July 2026</p>"',
+  '"description": "<p>How to Apply: email careers@eliteoffset.co.ke</p><p>Deadline: 27th July 2026</p>"'
 )
 const emailed = parseBrighterMondayJobHtml(
   withEmailHtml,
@@ -109,5 +127,6 @@ const emailed = parseBrighterMondayJobHtml(
 assert.equal(emailed.applyEmail, 'careers@eliteoffset.co.ke')
 assert.equal(emailed.applicationUrl, null)
 assert.equal(emailed.applyLink, null)
+assert.equal(emailed.applicationDeadline, '2026-07-27')
 
 console.log('brightermonday-adapter.test.ts: ok')
