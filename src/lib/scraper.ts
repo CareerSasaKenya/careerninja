@@ -60,6 +60,8 @@ export interface NormalizedJob {
   location: string
   apply_link: string
   application_url: string
+  /** Optional — used by job-board scrapers when employer email is the apply method */
+  apply_email?: string | null
   valid_through: string | null
   salary_min: number | null
   salary_max: number | null

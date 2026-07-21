@@ -71,6 +71,7 @@ import {
 } from '@/lib/scraperJobParsing'
 import { ensureCompanyForJob } from '@/lib/ensureCompanyForJob'
 import { inferCompanyIndustry } from '@/lib/companyIndustryInference'
+import { isJobBoardSource } from '@/lib/jobBoardApply'
 import type { WorkableJobDetail } from '@/lib/workable-adapter'
 
 export type ScrapeProcessResult = Record<string, unknown>
@@ -421,7 +422,18 @@ export async function runScrapeProcessOne(
       normalized.job_location_city || normalized.job_location_county || ''
     )
     const canonicalUrl = normalizeJobUrl(queueItem.job_url)
-    const applicationUrl = normalizeJobUrl(normalized.application_url || queueItem.job_url)
+    const jobBoard = isJobBoardSource(source.selectors)
+    const employerApplicationUrl = normalized.application_url?.trim()
+      ? normalizeJobUrl(normalized.application_url)
+      : null
+    // Job boards: prefer employer URL; email-only leaves application_url null;
+    // only fall back to the board listing URL when no employer method exists.
+    const boardApplyEmail = normalized.apply_email?.trim() || null
+    const publishedApplicationUrl = jobBoard
+      ? employerApplicationUrl ||
+        (boardApplyEmail ? null : normalizeJobUrl(queueItem.job_url))
+      : normalizeJobUrl(normalized.application_url || queueItem.job_url)
+    const applicationUrl = publishedApplicationUrl
 
     // Deduplicate by content hash, canonical source URL, or application URL
     const { data: existingByHash } = await supabase
@@ -436,12 +448,14 @@ export async function runScrapeProcessOne(
       .eq('job_url', canonicalUrl)
       .maybeSingle()
 
-    const { data: existingByAppUrl } = await supabase
-      .from('jobs')
-      .select('id')
-      .eq('source', 'Scraper')
-      .eq('application_url', applicationUrl)
-      .maybeSingle()
+    const { data: existingByAppUrl } = applicationUrl
+      ? await supabase
+          .from('jobs')
+          .select('id')
+          .eq('source', 'Scraper')
+          .eq('application_url', applicationUrl)
+          .maybeSingle()
+      : { data: null }
 
     if (existingByHash || existingByUrl || existingByAppUrl) {
       await supabase
@@ -584,8 +598,15 @@ export async function runScrapeProcessOne(
       source: 'Scraper',
       direct_apply: false,
       application_url: applicationUrl,
-      apply_email: parsed.apply_email || null,
-      apply_link: parsed.apply_link || normalized.apply_link || null,
+      apply_email: boardApplyEmail || parsed.apply_email || null,
+      apply_link: jobBoard
+        ? (normalized.apply_link?.trim() ||
+            (parsed.apply_link &&
+            !/brightermonday\.co\.ke|myjobmag\.co\.ke/i.test(parsed.apply_link)
+              ? parsed.apply_link
+              : null) ||
+            null)
+        : parsed.apply_link || normalized.apply_link || null,
       valid_through: deadline.validThrough,
       expires_at: expiresAtFromValidThrough(deadline.validThrough),
       education_level_id: educationLevelId,

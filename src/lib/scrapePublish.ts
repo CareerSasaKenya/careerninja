@@ -131,18 +131,26 @@ export async function publishScrapedJob(
     normalized.job_location_city || normalized.job_location_county || ''
   )
   const canonicalUrl = normalizeJobUrl(jobUrl)
-  const applicationUrl = normalizeJobUrl(normalized.application_url || jobUrl)
+  const employerApplicationUrl = normalized.application_url?.trim()
+    ? normalizeJobUrl(normalized.application_url)
+    : null
+  // Job-board adapters leave application_url empty when email-only; don't force board URL.
+  const applicationUrl =
+    employerApplicationUrl ||
+    (normalized.apply_email?.trim() ? null : normalizeJobUrl(jobUrl))
 
   const [{ data: existingByHash }, { data: existingByUrl }, { data: existingByAppUrl }] =
     await Promise.all([
       supabase.from('scraped_job_sources').select('id').eq('content_hash', contentHash).maybeSingle(),
       supabase.from('scraped_job_sources').select('id').eq('job_url', canonicalUrl).maybeSingle(),
-      supabase
-        .from('jobs')
-        .select('id')
-        .eq('source', 'Scraper')
-        .eq('application_url', applicationUrl)
-        .maybeSingle(),
+      applicationUrl
+        ? supabase
+            .from('jobs')
+            .select('id')
+            .eq('source', 'Scraper')
+            .eq('application_url', applicationUrl)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
     ])
 
   if (existingByHash || existingByUrl || existingByAppUrl) {
@@ -252,8 +260,8 @@ export async function publishScrapedJob(
       source: 'Scraper',
       direct_apply: false,
       application_url: applicationUrl,
-      apply_email: parsed.apply_email || null,
-      apply_link: parsed.apply_link || normalized.apply_link || null,
+      apply_email: normalized.apply_email || parsed.apply_email || null,
+      apply_link: normalized.apply_link?.trim() || parsed.apply_link || null,
       valid_through: deadline.validThrough,
       expires_at: expiresAtFromValidThrough(deadline.validThrough),
       education_level_id: educationLevelId,

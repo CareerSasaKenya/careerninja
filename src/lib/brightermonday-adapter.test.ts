@@ -93,5 +93,21 @@ assert.equal(normalized.company, 'Elite Offset Ltd')
 assert.equal(normalized.job_location_county, 'Nairobi')
 assert.equal(normalized.salary_visibility, 'Show')
 assert.ok(normalized.tags.includes('BrighterMonday'))
+// Sample has no employer apply method → board listing fallback
+assert.equal(detail.applicationUrl, detail.jobUrl)
+assert.equal(detail.applyEmail, null)
+assert.equal(normalized.application_url, detail.jobUrl)
+
+const withEmailHtml = sampleHtml.replace(
+  '"description": "<p>Sell print services across Nairobi.</p>"',
+  '"description": "<p>How to Apply: email careers@eliteoffset.co.ke</p>"'
+)
+const emailed = parseBrighterMondayJobHtml(
+  withEmailHtml,
+  'https://www.brightermonday.co.ke/listings/sales-and-marketing-officer-6qxq97'
+)
+assert.equal(emailed.applyEmail, 'careers@eliteoffset.co.ke')
+assert.equal(emailed.applicationUrl, null)
+assert.equal(emailed.applyLink, null)
 
 console.log('brightermonday-adapter.test.ts: ok')

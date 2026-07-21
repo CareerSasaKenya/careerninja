@@ -17,6 +17,7 @@ VALUES (
   '{
     "type": "brightermonday",
     "category": "other",
+    "sourceKind": "job_board",
     "maxPages": 5
   }'::jsonb
 )
