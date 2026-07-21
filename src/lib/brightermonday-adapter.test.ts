@@ -96,6 +96,16 @@ const detail = parseBrighterMondayJobHtml(
 
 assert.equal(detail.title, 'Sales and Marketing Officer')
 assert.equal(detail.company, 'Elite Offset Ltd')
+
+const entityHtml = sampleHtml.replace(
+  '"title": "Sales and Marketing Officer"',
+  '"title": "Brand Voice &amp; Editorial Lead"'
+)
+const entityDetail = parseBrighterMondayJobHtml(
+  entityHtml,
+  'https://www.brightermonday.co.ke/listings/sales-and-marketing-officer-6qxq97'
+)
+assert.equal(entityDetail.title, 'Brand Voice & Editorial Lead')
 assert.equal(detail.locationName, 'Nairobi')
 assert.ok(detail.location.includes('Nairobi'))
 assert.equal(detail.applicationDeadline, '2026-07-27')
