@@ -20,6 +20,7 @@ import {
 import { ensureCompanyForJob } from './ensureCompanyForJob'
 import { inferCompanyIndustry } from './companyIndustryInference'
 import { sanitizeAdditionalInfoApplyCopy } from './applyInstructionsCopy'
+import { isMissingOrLabelOnlyQualifications } from './experienceLevelLabel'
 
 export interface PublishScrapedJobParams {
   supabase: SupabaseClient
@@ -251,8 +252,13 @@ export async function publishScrapedJob(
       ...normalized,
       description: parsed.description || normalized.description,
       responsibilities: parsed.responsibilities || normalized.responsibilities || null,
-      required_qualifications:
-        parsed.required_qualifications || normalized.required_qualifications || null,
+      required_qualifications: (() => {
+        const parsedQ = parsed.required_qualifications
+        if (parsedQ && !isMissingOrLabelOnlyQualifications(parsedQ)) return parsedQ
+        const normQ = normalized.required_qualifications
+        if (normQ && !isMissingOrLabelOnlyQualifications(normQ)) return normQ
+        return null
+      })(),
       additional_info: sanitizeAdditionalInfoApplyCopy(parsed.additional_info || null, {
         apply_email: normalized.apply_email || parsed.apply_email || null,
         apply_link: normalized.apply_link?.trim() || parsed.apply_link || null,
