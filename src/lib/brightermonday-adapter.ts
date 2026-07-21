@@ -13,6 +13,7 @@
  */
 
 import { generateContentHash, NormalizedJob } from './scraper'
+import { resolveJobBoardApplication } from './jobBoardApply'
 
 const DEFAULT_BASE = 'https://www.brightermonday.co.ke'
 const LISTING_PATH = '/jobs'
@@ -45,6 +46,11 @@ export interface BrighterMondayJobDetail {
   addressLocality: string | null
   addressRegion: string | null
   addressCountry: string | null
+  /** BrighterMonday "Linkout" external apply URL when present */
+  linkoutUrl: string | null
+  applyEmail: string | null
+  applyLink: string | null
+  applicationUrl: string | null
 }
 
 function withTimeout(ms: number): AbortSignal {
@@ -225,13 +231,26 @@ export function parseBrighterMondayJobHtml(html: string, jobUrl: string): Bright
   const region = cleanText(address.addressRegion)
   const country = cleanText(address.addressCountry) || 'Kenya'
   const location = [...new Set([locality, region, country].filter(Boolean))].join(', ') || 'Kenya'
+  const descriptionHtml = typeof posting.description === 'string' ? posting.description : ''
+
+  const linkoutMatch = html.match(/"linkout_url"\s*:\s*"([^"]*)"/)
+  const linkoutUrl = linkoutMatch?.[1]
+    ? linkoutMatch[1].replace(/\\u002F/g, '/').replace(/\\\//g, '/').trim() || null
+    : null
+
+  const apply = resolveJobBoardApplication({
+    boardJobUrl: jobUrl,
+    descriptionHtml,
+    linkoutUrl,
+    boardHosts: ['brightermonday.co.ke'],
+  })
 
   return {
     jobUrl,
     title: cleanText(posting.title) || 'Untitled Position',
     company,
     location,
-    descriptionHtml: typeof posting.description === 'string' ? posting.description : '',
+    descriptionHtml,
     employmentType: parseEmploymentType(posting.employmentType),
     industry: cleanText(posting.industry),
     occupationalCategory: cleanText(posting.occupationalCategory),
@@ -246,6 +265,10 @@ export function parseBrighterMondayJobHtml(html: string, jobUrl: string): Bright
     addressLocality: locality,
     addressRegion: region,
     addressCountry: country,
+    linkoutUrl,
+    applyEmail: apply.apply_email,
+    applyLink: apply.apply_link,
+    applicationUrl: apply.application_url,
   }
 }
 
@@ -296,8 +319,10 @@ export function normalizeBrighterMondayJob(detail: BrighterMondayJobDetail): Nor
     job_location_county: county,
     job_location_city: city || '',
     location: detail.location,
-    apply_link: detail.jobUrl,
-    application_url: detail.jobUrl,
+    // Empty string when email-only; board URL only when no employer method exists
+    apply_link: detail.applyLink || '',
+    application_url: detail.applicationUrl || '',
+    apply_email: detail.applyEmail,
     valid_through: detail.validThrough,
     salary_min: detail.salaryMin,
     salary_max: detail.salaryMax,
