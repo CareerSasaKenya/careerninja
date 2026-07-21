@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import {
   splitHtmlByHeadings,
   parseScrapedJobFallback,
+  promoteInlineSectionLabels,
   matchIndustryName,
   matchJobFunctionName,
   inferJobFunctionFromTitle,
@@ -211,4 +212,32 @@ assert.ok(merged.additional_info.includes('Tips'))
 assert.equal(merged.minimum_experience, 3)
 assert.deepEqual(merged.additional_locations, [{ county: 'Mombasa', city: 'Mombasa' }])
 
+const educationExpHtml = `
+<p>Do intake work</p>
+<p>Education and Experience</p>
+<ul><li>Bachelor's Degree</li><li>Customer service experience</li></ul>
+<p>Key Competencies</p>
+<ul><li>Attention to detail</li></ul>
+`
+const eduSplit = splitHtmlByHeadings(educationExpHtml)
+assert.ok(eduSplit.required_qualifications.includes("Bachelor's Degree"))
+assert.ok(eduSplit.required_qualifications.includes('Attention to detail'))
+
+const candidateProfileHtml = `
+<p>• Clean books with no backlog. Candidate Profile Required </p>
+<p>• Bachelor's degree in Finance</p>
+<p>• CPA or equivalent</p>
+`
+const promoted = promoteInlineSectionLabels(candidateProfileHtml)
+assert.ok(promoted.includes('<p>Candidate Profile Required</p>'))
+const financeFb = parseScrapedJobFallback({
+  title: 'Finance Manager',
+  company: 'Acme',
+  descriptionSection: candidateProfileHtml,
+  requirementsSection: 'Mid level',
+})
+assert.ok(financeFb.required_qualifications.includes("Bachelor's degree"))
+assert.ok(!/^mid level$/i.test(financeFb.required_qualifications.trim()))
+
 console.log('scraperJobParsing.test.ts: all assertions passed')
+

@@ -125,9 +125,9 @@ const EMPTY_METADATA = {
 
 const SECTION_PATTERNS = {
   responsibilities:
-    /responsibilit|accountabilit|duties|what you.{0,20}do|key tasks|your role|role overview|activities|kpis?|competenc|deliverables|make an impact|how you will|you will:/i,
+    /responsibilit|accountabilit|duties|what you.{0,20}do|key tasks|your role|role overview|activities|kpis?|deliverables|make an impact|how you will|you will:/i,
   qualifications:
-    /qualification|requirement|skills|experience required|who you are|what we.?re looking|must have|preferred|you bring|ideal candidate|an ideal/i,
+    /qualification|requirement|skills|experience required|education(?:\s+and\s+experience)?|candidate profile|who you are|what we.?re looking|we are looking|must have|nice to have|preferred|you bring|ideal candidate|an ideal|key competencies|person specification|about you|you should have|minimum (?:requirements|qualifications)/i,
   benefits: /benefits|what we offer|perks|why join|compensation package|what.?s in it|how you can grow|grow with us/i,
   additional:
     /how to apply|application process|equal opportunity|about us|about the company|work environment/i,
@@ -152,8 +152,10 @@ type ContentBucket = 'description' | 'responsibilities' | 'required_qualificatio
 
 function bucketForHeading(headingText: string, current: ContentBucket = 'description'): ContentBucket {
   if (SECTION_PATTERNS.overview.test(headingText)) return 'description'
-  if (SECTION_PATTERNS.responsibilities.test(headingText)) return 'responsibilities'
+  // Qualifications before responsibilities so "Key Competencies" / "Candidate Profile"
+  // are not swallowed by broader duty-section patterns.
   if (SECTION_PATTERNS.qualifications.test(headingText)) return 'required_qualifications'
+  if (SECTION_PATTERNS.responsibilities.test(headingText)) return 'responsibilities'
   if (SECTION_PATTERNS.benefits.test(headingText) || SECTION_PATTERNS.additional.test(headingText)) {
     return 'additional_info'
   }
@@ -419,17 +421,43 @@ function buildTags(input: {
   return limitTags(tags, 5)
 }
 
+/**
+ * Pull trailing section labels out of content paragraphs so the splitter
+ * can see them. e.g. "...backlog. Candidate Profile Required </p>"
+ */
+export function promoteInlineSectionLabels(html: string): string {
+  if (!html?.trim()) return html || ''
+  const label =
+    '(?:Candidate Profile(?:\\s+Required)?|Education and Experience|Key Competencies|Minimum (?:Requirements|Qualifications)|Person Specification|Nice to [Hh]ave|Required Qualifications)'
+  return html.replace(
+    new RegExp(
+      `(<(?:p|div)([^>]*)>)([\\s\\S]*?)([.!?…])\\s+(${label})\\s*(</(?:p|div)>)`,
+      'gi'
+    ),
+    (
+      _full,
+      _open,
+      attrs,
+      body,
+      punct,
+      sectionLabel,
+      close
+    ) =>
+      `<p${attrs || ''}>${body}${punct}</p>\n<p>${sectionLabel}</p>`
+  )
+}
+
 /** Prepare scraped HTML: convert qualification matrices to bullet lists first. */
 export function prepareScrapedHtmlSections(input: ScrapedJobInput): ScrapedJobInput {
+  const prep = (value: string) =>
+    promoteInlineSectionLabels(convertHtmlTablesToBulletLists(value || ''))
   return {
     ...input,
-    descriptionSection: convertHtmlTablesToBulletLists(input.descriptionSection || ''),
-    responsibilitiesSection: convertHtmlTablesToBulletLists(
-      input.responsibilitiesSection || ''
-    ),
+    descriptionSection: prep(input.descriptionSection || ''),
+    responsibilitiesSection: prep(input.responsibilitiesSection || ''),
     requirementsSection: convertHtmlTablesToBulletLists(input.requirementsSection || ''),
     benefitsSection: convertHtmlTablesToBulletLists(input.benefitsSection || ''),
-    rawContent: convertHtmlTablesToBulletLists(input.rawContent || ''),
+    rawContent: prep(input.rawContent || ''),
   }
 }
 
