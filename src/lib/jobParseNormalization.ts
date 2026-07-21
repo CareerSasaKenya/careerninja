@@ -228,7 +228,7 @@ RULES:
 13. tags: Comma-separated string with at most 5 of the most relevant skills/keywords
 14. If no allowed industry or job function clearly matches, OMIT that field entirely
 15. description: Write a clear role overview in <p> tags (2–4 sentences). Use facts from the posting only — do not invent duties, benefits, or requirements.
-16. required_qualifications: When REQUIREMENTS are already bullet points, keep every fact and number verbatim — do not paraphrase, drop Need Type codes, or merge rows.
+16. required_qualifications: When REQUIREMENTS are already bullet points, keep every fact and number verbatim — do not paraphrase, drop Need Type codes, or merge rows. NEVER put experience-level labels alone here (e.g. "Mid level", "Senior", "Unspecified") — those belong ONLY in experience_level. Extract the full education, skills, and experience requirements from the posting.
 
 ALLOWED_INDUSTRIES: ${JSON.stringify(industryNames)}
 ALLOWED_JOB_FUNCTIONS: ${JSON.stringify(jobFunctionNames)}

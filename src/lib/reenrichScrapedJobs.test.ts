@@ -36,4 +36,17 @@ const workable = buildReenrichInput('laterite', 'Analyst', 'Laterite', {
 assert.ok(workable)
 assert.equal(workable!.jobFunctionHint, 'Research')
 
+const bm = buildReenrichInput('brightermonday-kenya', 'M&E Officer', 'Anonymous Employer', {
+  jobUrl: 'https://www.brightermonday.co.ke/listings/monitoring-and-evaluation-7j8v4g',
+  descriptionHtml:
+    '<p>Key Responsibilities:</p><p>Monitor KPIs</p><p>Qualifications and Job Requirements:</p><p>• Bachelor’s degree</p><p>• 5+ years experience</p>',
+  qualifications: 'Mid level',
+  locationName: 'Nairobi',
+  industry: 'Water',
+})
+assert.ok(bm)
+assert.equal(bm!.requirementsSection, '')
+assert.ok(bm!.descriptionSection.includes('Bachelor'))
+assert.ok(!(bm!.requirementsSection || '').includes('Mid'))
+
 console.log('reenrichScrapedJobs.test.ts: all assertions passed')

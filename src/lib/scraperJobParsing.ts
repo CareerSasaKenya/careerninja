@@ -22,6 +22,7 @@ import {
   convertHtmlTablesToBulletLists,
   htmlContainsTable,
 } from './htmlTablesToBullets'
+import { isExperienceLevelOnlyText, isMissingOrLabelOnlyQualifications } from './experienceLevelLabel'
 
 export interface ScrapedJobInput {
   title: string
@@ -484,11 +485,21 @@ export function parseScrapedJobFallback(input: ScrapedJobInput): ParsedScrapedJo
   }
 
   let required_qualifications = convertHtmlTablesToBulletLists(
-    prepared.requirementsSection?.trim() ||
-      dutiesSplit?.required_qualifications ||
-      descSplit.required_qualifications ||
-      ''
+    (() => {
+      const fromAts = prepared.requirementsSection?.trim() || ''
+      // Board JSON-LD often puts "Mid level" / "Senior level" here — ignore those.
+      if (fromAts && !isExperienceLevelOnlyText(fromAts)) return fromAts
+      return (
+        dutiesSplit?.required_qualifications ||
+        descSplit.required_qualifications ||
+        ''
+      )
+    })()
   ).replace(/<p\b[^>]*>\s*(?:&nbsp;|\s)*<\/p>/gi, '')
+
+  if (isExperienceLevelOnlyText(required_qualifications)) {
+    required_qualifications = ''
+  }
 
   // Some Oracle Cloud postings open with a bare duties <ul> (no "Key Responsibilities"
   // heading) then a Requirements section. Move that list into responsibilities.
@@ -699,8 +710,13 @@ export function mergeManualParseResult(
   return {
     description: asNonEmptyString(ai.description) || fallback.description,
     responsibilities: asNonEmptyString(ai.responsibilities) || fallback.responsibilities,
-    required_qualifications:
-      asNonEmptyString(ai.required_qualifications) || fallback.required_qualifications,
+    required_qualifications: (() => {
+      const aiQ = asNonEmptyString(ai.required_qualifications)
+      if (aiQ && !isMissingOrLabelOnlyQualifications(aiQ)) return aiQ
+      const fb = fallback.required_qualifications
+      if (fb && !isMissingOrLabelOnlyQualifications(fb)) return fb
+      return ''
+    })(),
     additional_info: asNonEmptyString(ai.additional_info) || fallback.additional_info,
     deadline:
       asNonEmptyString(ai.valid_through) ||

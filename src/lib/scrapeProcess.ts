@@ -73,6 +73,7 @@ import { ensureCompanyForJob } from '@/lib/ensureCompanyForJob'
 import { inferCompanyIndustry } from '@/lib/companyIndustryInference'
 import { isJobBoardSource } from '@/lib/jobBoardApply'
 import { sanitizeAdditionalInfoApplyCopy } from '@/lib/applyInstructionsCopy'
+import { isMissingOrLabelOnlyQualifications } from '@/lib/experienceLevelLabel'
 import type { WorkableJobDetail } from '@/lib/workable-adapter'
 
 export type ScrapeProcessResult = Record<string, unknown>
@@ -347,14 +348,14 @@ export async function runScrapeProcessOne(
         location: normalized.location,
         employmentType: normalized.employment_type,
         workplace: normalized.job_location_type,
+        // Full posting HTML — section splitter extracts real Requirements /
+        // Qualifications. Do NOT pass JSON-LD qualifications (often "Mid level").
         descriptionSection: detail.descriptionHtml,
-        requirementsSection: detail.qualifications || '',
+        requirementsSection: '',
         industryHint: detail.industry,
         jobFunctionHint: detail.occupationalCategory,
         tagsHint: normalized.tags,
-        rawContent: [detail.descriptionHtml, detail.qualifications]
-          .filter(Boolean)
-          .join('\n\n'),
+        rawContent: detail.descriptionHtml || '',
       }
     } else if (adapterType === 'psc') {
       const advertNumber =
@@ -591,8 +592,13 @@ export async function runScrapeProcessOne(
       description: parsed.description || normalized.description,
       responsibilities:
         parsed.responsibilities || normalized.responsibilities || null,
-      required_qualifications:
-        parsed.required_qualifications || normalized.required_qualifications || null,
+      required_qualifications: (() => {
+        const parsedQ = parsed.required_qualifications
+        if (parsedQ && !isMissingOrLabelOnlyQualifications(parsedQ)) return parsedQ
+        const normQ = normalized.required_qualifications
+        if (normQ && !isMissingOrLabelOnlyQualifications(normQ)) return normQ
+        return null
+      })(),
       additional_info: sanitizeAdditionalInfoApplyCopy(
         parsed.additional_info || null,
         {

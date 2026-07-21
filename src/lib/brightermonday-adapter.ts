@@ -437,7 +437,9 @@ export function normalizeBrighterMondayJob(detail: BrighterMondayJobDetail): Nor
     company: detail.company,
     description: detail.descriptionHtml || `<p>${detail.title}</p>`,
     responsibilities: '',
-    required_qualifications: detail.qualifications || '',
+    // BM JSON-LD "qualifications" is usually an experience label ("Mid level"),
+    // not real requirements — leave empty so parse extracts from descriptionHtml.
+    required_qualifications: '',
     employment_type: detail.employmentType,
     job_location_type: /remote/i.test(detail.location) ? 'REMOTE' : 'ON_SITE',
     job_location_country: 'Kenya',
