@@ -61,15 +61,16 @@ assert.equal(
 
 const history =
   'ftlx0!|!ftlUtil_resetPage!$!requisitionDescriptionInterface!|!descRequisition!|!rdPager!$!63153!|!true!|!63153!|!false!|!Submission for the position%5C: Banking Investigations Team Leader - (Job Number%5C: 2600009F)!|!false!|!63153!|!false!|!true!|!Banking Investigations Team Leader!|!' +
-  '!*!<p>Equity Bank purpose statement.</p>' +
-  '!*!<p>Equity Bank purpose statement.</p>' +
-  '!*!<p>Qualifications go here.</p>' +
-  '!*!<p>Qualifications go here.</p>'
+  '!*!<p>Equity Bank purpose statement.</p>!|!' +
+  '!*!<p>Equity Bank purpose statement.</p>!|!' +
+  '!*!<p>Qualifications go here.</p>!|!' +
+  '!*!<p>Qualifications go here.</p>!|!'
 
 const parsed = parseTaleoInitialHistory(history)
 assert.equal(parsed.title, 'Banking Investigations Team Leader')
 assert.equal(parsed.descriptionHtml, '<p>Equity Bank purpose statement.</p>')
 assert.equal(parsed.qualificationsHtml, '<p>Qualifications go here.</p>')
+assert.equal(parsed.descriptionHtml.includes('!|!'), false)
 
 // AKU-style: URI-encoded HTML mixed with literal CSS percentages (115%).
 const akuHistory =

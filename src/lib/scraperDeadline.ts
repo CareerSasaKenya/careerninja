@@ -211,3 +211,31 @@ export function normalizeJobUrl(url: string): string {
     return url.trim().replace(/\/+$/, '')
   }
 }
+
+/**
+ * Portal-level apply URLs shared by many distinct postings.
+ * These must not be used for application_url duplicate detection —
+ * e.g. every PSC PDF role applies via psckjobs.go.ke.
+ */
+export function isGenericApplicationUrl(url: string | null | undefined): boolean {
+  if (!url?.trim()) return true
+  try {
+    const u = new URL(url.trim())
+    const host = u.hostname.toLowerCase().replace(/^www\./, '')
+    const path = (u.pathname || '/').replace(/\/+$/, '') || '/'
+    const pathLower = path.toLowerCase()
+
+    if (host === 'psckjobs.go.ke') {
+      // Job-specific advert detail pages are fine for dedupe
+      if (u.searchParams.has('kpx') || /advertdetails/i.test(pathLower)) return false
+      return true
+    }
+
+    // Bare site roots / login landings are never job-unique
+    if (path === '/' || /\/login/i.test(pathLower)) return true
+
+    return false
+  } catch {
+    return false
+  }
+}

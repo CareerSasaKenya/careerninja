@@ -521,6 +521,13 @@ export async function discoverTaleoJobs(
 }
 
 /**
+ * Strip leftover Taleo AJAX delimiters that sometimes leak into HTML chunks.
+ */
+function scrubTaleoHtml(html: string): string {
+  return html.replace(/!\|\s*!/g, '').replace(/!\|!/g, '').trim()
+}
+
+/**
  * Parse Taleo jobdetail #initialHistory into title + HTML sections.
  * Description chunks are duplicated in the history blob; we dedupe exact copies.
  */
@@ -544,7 +551,8 @@ export function parseTaleoInitialHistory(rawValue: string): {
 
   const uniqueHtml: string[] = []
   for (const part of htmlParts) {
-    if (!uniqueHtml.includes(part)) uniqueHtml.push(part)
+    const scrubbed = scrubTaleoHtml(part)
+    if (scrubbed && !uniqueHtml.includes(scrubbed)) uniqueHtml.push(scrubbed)
   }
 
   const descriptionHtml = uniqueHtml[0] || ''

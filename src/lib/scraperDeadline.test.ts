@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import {
   isDeadlineExpired,
+  isGenericApplicationUrl,
   normalizeJobUrl,
   parseDeadlineDate,
   extractApplicationDeadline,
@@ -69,5 +70,18 @@ assert.equal(
   normalizeJobUrl('https://apply.workable.com/tatucity/j/ABC123/'),
   'https://apply.workable.com/tatucity/j/ABC123'
 )
+
+assert.equal(isGenericApplicationUrl('https://www.psckjobs.go.ke/'), true)
+assert.equal(isGenericApplicationUrl('https://www.psckjobs.go.ke'), true)
+assert.equal(isGenericApplicationUrl('https://www.psckjobs.go.ke/loginPage.aspx'), true)
+assert.equal(
+  isGenericApplicationUrl('https://www.psckjobs.go.ke/AdvertDetailsExt.aspx?kpx=158/2025'),
+  false
+)
+assert.equal(
+  isGenericApplicationUrl('https://apply.workable.com/tatucity/j/ABC123'),
+  false
+)
+assert.equal(isGenericApplicationUrl(null), true)
 
 console.log('scraperDeadline.test.ts: all assertions passed')
