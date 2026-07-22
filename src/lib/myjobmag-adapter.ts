@@ -432,15 +432,39 @@ function companyFromHtml($: cheerio.CheerioAPI): string | null {
 /**
  * MyJobMag keeps "Method of Application" outside JobPosting JSON-LD /
  * `.job-details`. That block holds the real employer CTA, usually as
- * `<a href="/apply-now/{id}">Employer on careers.example.com</a>`.
+ * `<a href="/apply-now/{id}">Employer on careers.example.com</a>`,
+ * an email, or a Google Form — never prefer the MyJobMag listing when
+ * any of those exist.
  */
 export function extractMyJobMagMethodOfApplicationHtml(html: string): string {
   const $ = cheerio.load(html)
   const heading = $('#application-method').first()
   if (heading.length) {
-    const container = heading.parent()
-    const chunk = container.html() || ''
-    if (/apply-now|to apply|method of application/i.test(chunk)) return chunk
+    const parts: string[] = [$.html(heading) || '']
+    let el = heading.next()
+    let capturedCta = false
+    while (el.length) {
+      const id = (el.attr('id') || '').toLowerCase()
+      const cls = (el.attr('class') || '').toLowerCase()
+      if (el.is('h2') || id === 'apply-sec' || cls.includes('apply-sec')) break
+      const chunk = $.html(el) || ''
+      parts.push(chunk)
+      if (
+        /apply-now|mailto:|forms\.gle|docs\.google\.com\/forms|to apply|@|https?:\/\//i.test(
+          chunk
+        )
+      ) {
+        capturedCta = true
+        break
+      }
+      // Stop after a couple of siblings if nothing useful — avoid the whole page
+      if (parts.length >= 4) break
+      el = el.next()
+    }
+    const joined = parts.join('\n')
+    if (capturedCta || /apply-now|to apply|method of application|mailto:|@/i.test(joined)) {
+      return joined
+    }
   }
 
   // Fallback: any apply-now CTA on the page

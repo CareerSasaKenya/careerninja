@@ -125,4 +125,50 @@ assert.equal(
 )
 assert.equal(mjmLinkout.used_board_fallback, false)
 
+// Employer email only → never fall back to MyJobMag listing
+const emailOnlyMjm = resolveJobBoardApplication({
+  boardJobUrl: 'https://www.myjobmag.co.ke/job/finance-officer',
+  descriptionHtml:
+    '<h2>Method of Application</h2><p>Send CV only to <strong>recruitment@careeroptionsafricagroup.com</strong></p>',
+  boardHosts: ['myjobmag.co.ke'],
+})
+assert.equal(emailOnlyMjm.apply_email, 'recruitment@careeroptionsafricagroup.com')
+assert.equal(emailOnlyMjm.application_url, null)
+assert.equal(emailOnlyMjm.apply_link, null)
+assert.equal(emailOnlyMjm.used_board_fallback, false)
+
+// Google Form in posting → prefer form over board listing
+const googleForm = resolveJobBoardApplication({
+  boardJobUrl: 'https://www.myjobmag.co.ke/job/x',
+  descriptionHtml:
+    '<p>Apply via Google Form: https://forms.gle/abc123XYZ</p>',
+  boardHosts: ['myjobmag.co.ke'],
+})
+assert.ok(googleForm.application_url?.includes('forms.gle'))
+assert.equal(googleForm.used_board_fallback, false)
+
+// Bare www. employer site without scheme
+const bareWww = resolveJobBoardApplication({
+  boardJobUrl: 'https://www.myjobmag.co.ke/job/x',
+  descriptionHtml:
+    '<p>Apply on the Council website www.nckenya.com before the deadline.</p>',
+  boardHosts: ['myjobmag.co.ke'],
+})
+assert.ok(bareWww.application_url?.includes('nckenya.com'))
+assert.equal(bareWww.used_board_fallback, false)
+
+// No employer email/link/form → board listing is last resort
+const boardOnly = resolveJobBoardApplication({
+  boardJobUrl: 'https://www.myjobmag.co.ke/job/php-backend-software-developer',
+  descriptionHtml:
+    '<h2>Method of Application</h2><div>Interested candidates should apply using the Apply Now button below.</div>',
+  boardHosts: ['myjobmag.co.ke'],
+})
+assert.equal(
+  boardOnly.application_url,
+  'https://www.myjobmag.co.ke/job/php-backend-software-developer'
+)
+assert.equal(boardOnly.apply_link, null)
+assert.equal(boardOnly.used_board_fallback, true)
+
 console.log('jobBoardApply.test.ts: ok')
