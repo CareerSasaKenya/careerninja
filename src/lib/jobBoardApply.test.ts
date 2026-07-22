@@ -84,6 +84,7 @@ assert.equal(fallback.used_board_fallback, true)
 
 assert.equal(isJobBoardSource({ type: 'brightermonday' }), true)
 assert.equal(isJobBoardSource({ type: 'myjobmag' }), true)
+assert.equal(isJobBoardSource({ type: 'fuzu' }), true)
 assert.equal(isJobBoardSource({ type: 'workable', sourceKind: 'job_board' }), true)
 assert.equal(isJobBoardSource({ type: 'workable' }), false)
 
