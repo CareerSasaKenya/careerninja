@@ -62,6 +62,13 @@ const SOCIAL_OR_TRACKING_HOSTS = [
 const EMAIL_RE = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi
 const HREF_RE = /href=["'](https?:\/\/[^"']+)["']/gi
 const BARE_URL_RE = /https?:\/\/[^\s<>"'\\)]+/gi
+/** MyJobMag-style CTA: "Go to Employer on careers.example.com to apply" */
+const ON_HOST_RE =
+  /\bon\s+([a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+)\b/gi
+const ANCHOR_RE = /<a\b[^>]*\bhref=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi
+/** Hostname-ish token inside anchor/link text (e.g. pscims.publicservice.go.ke) */
+const HOST_IN_TEXT_RE =
+  /\b([a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?){1,})\b/gi
 
 const BLOCKED_EMAIL_LOCAL = new Set([
   'anonymous',
@@ -98,6 +105,37 @@ function stripHtml(html: string): string {
     .trim()
 }
 
+function looksLikeHostname(value: string): boolean {
+  const host = value.trim().toLowerCase().replace(/^www\./, '')
+  if (!host || host.length > 253) return false
+  if (!/^[a-z0-9.-]+$/.test(host)) return false
+  if (!host.includes('.')) return false
+  if (host.startsWith('.') || host.endsWith('.') || host.includes('..')) return false
+  // Require a plausible TLD (ke, com, org, go.ke via multi-label already covered)
+  const labels = host.split('.')
+  const tld = labels[labels.length - 1]
+  if (!tld || tld.length < 2 || !/^[a-z]+$/.test(tld)) return false
+  // Skip version-like / IP-ish noise
+  if (/^\d+(\.\d+)+$/.test(host)) return false
+  return true
+}
+
+function hostnameToHttpsUrl(hostname: string): string | null {
+  if (!looksLikeHostname(hostname)) return null
+  return `https://${hostname.replace(/^www\./i, '').toLowerCase()}/`
+}
+
+/** Drop common board tracking params from employer destinations. */
+export function stripBoardTrackingParams(url: string): string {
+  // String surgery avoids URL() re-encoding query values (e.g. kpx=138/2026).
+  const stripped = url
+    .replace(/([?&])(utm_[^=&#]*|fbclid|gclid)=[^&#]*/gi, '$1')
+    .replace(/[?&]+$/, '')
+    .replace(/\?&+/g, '?')
+    .replace(/&&+/g, '&')
+  return stripped.endsWith('?') ? stripped.slice(0, -1) : stripped
+}
+
 function normalizeCandidateUrl(raw: string): string | null {
   if (!raw) return null
   let url = raw.trim()
@@ -107,10 +145,66 @@ function normalizeCandidateUrl(raw: string): string | null {
   try {
     const parsed = new URL(url)
     if (!['http:', 'https:'].includes(parsed.protocol)) return null
-    return parsed.toString()
+    return stripBoardTrackingParams(parsed.toString())
   } catch {
     return null
   }
+}
+
+function hostsFromPlainText(text: string, boardHosts: string[]): string[] {
+  const found: string[] = []
+  const seen = new Set<string>()
+
+  ON_HOST_RE.lastIndex = 0
+  let match: RegExpExecArray | null
+  while ((match = ON_HOST_RE.exec(text)) !== null) {
+    const host = match[1].toLowerCase()
+    if (!looksLikeHostname(host)) continue
+    if (isBlockedHost(host, boardHosts)) continue
+    if (seen.has(host)) continue
+    seen.add(host)
+    found.push(host)
+  }
+
+  return found
+}
+
+function hostsFromAnchorText(descriptionHtml: string, boardHosts: string[]): string[] {
+  const found: string[] = []
+  const seen = new Set<string>()
+
+  ANCHOR_RE.lastIndex = 0
+  let match: RegExpExecArray | null
+  while ((match = ANCHOR_RE.exec(descriptionHtml)) !== null) {
+    const href = match[1] || ''
+    const text = stripHtml(match[2] || '')
+    if (!text) continue
+
+    // Prefer "on example.com" inside the anchor label
+    for (const host of hostsFromPlainText(text, boardHosts)) {
+      if (seen.has(host)) continue
+      seen.add(host)
+      found.push(host)
+    }
+
+    // Absolute employer href already handled by HREF_RE; for relative/board
+    // redirects, harvest hostnames mentioned in the visible label.
+    const hrefHost = hostnameOf(href.startsWith('http') ? href : '')
+    if (hrefHost && !isBlockedHost(hrefHost, boardHosts)) continue
+
+    HOST_IN_TEXT_RE.lastIndex = 0
+    let hostMatch: RegExpExecArray | null
+    while ((hostMatch = HOST_IN_TEXT_RE.exec(text)) !== null) {
+      const host = hostMatch[1].toLowerCase()
+      if (!looksLikeHostname(host)) continue
+      if (isBlockedHost(host, boardHosts)) continue
+      if (seen.has(host)) continue
+      seen.add(host)
+      found.push(host)
+    }
+  }
+
+  return found
 }
 
 function scoreApplyUrl(url: string): number {
@@ -183,6 +277,16 @@ export function extractJobBoardApplyUrls(
     const host = hostnameOf(url)
     if (!host || isBlockedHost(host, boardHosts)) continue
     found.add(url)
+  }
+
+  // Employer hostnames embedded in CTA / anchor text (no absolute href).
+  // Example: <a href="/apply-now/123">PSCK on pscims.publicservice.go.ke</a>
+  for (const host of [
+    ...hostsFromAnchorText(descriptionHtml, boardHosts),
+    ...hostsFromPlainText(text, boardHosts),
+  ]) {
+    const url = hostnameToHttpsUrl(host)
+    if (url) found.add(url)
   }
 
   return [...found].sort((a, b) => scoreApplyUrl(b) - scoreApplyUrl(a))

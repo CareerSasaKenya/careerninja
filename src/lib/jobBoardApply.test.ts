@@ -88,4 +88,41 @@ assert.equal(isJobBoardSource({ type: 'fuzu' }), true)
 assert.equal(isJobBoardSource({ type: 'workable', sourceKind: 'job_board' }), true)
 assert.equal(isJobBoardSource({ type: 'workable' }), false)
 
+// MyJobMag Method of Application: relative /apply-now/ + employer host in anchor text
+const mjmMethod = `
+<h2 id="application-method"><b>Method of Application</b></h2>
+<div>Interested and qualified? Go to
+  <a target="_blank" rel="nofollow" href="/apply-now/1284822">
+    Public Service Commission Kenya (PSCK) on pscims.publicservice.go.ke
+  </a> to apply
+</div>
+`
+const mjmUrls = extractJobBoardApplyUrls(mjmMethod, ['myjobmag.co.ke'])
+assert.ok(
+  mjmUrls.some(u => /pscims\.publicservice\.go\.ke/i.test(u)),
+  `expected PSCK host from anchor text, got ${JSON.stringify(mjmUrls)}`
+)
+const mjmResolved = resolveJobBoardApplication({
+  boardJobUrl: 'https://www.myjobmag.co.ke/job/instructor-iii-clothing-technology-textile-2-posts-public-service-commission-kenya-psck',
+  descriptionHtml: mjmMethod,
+  boardHosts: ['myjobmag.co.ke'],
+})
+assert.equal(mjmResolved.used_board_fallback, false)
+assert.ok(mjmResolved.application_url?.includes('pscims.publicservice.go.ke'))
+assert.equal(mjmResolved.apply_link, mjmResolved.application_url)
+
+// Explicit redirected linkout wins (full employer path)
+const mjmLinkout = resolveJobBoardApplication({
+  boardJobUrl: 'https://www.myjobmag.co.ke/job/x',
+  descriptionHtml: mjmMethod,
+  linkoutUrl:
+    'https://pscims.publicservice.go.ke/jobs/AdvertDetailsExt.aspx?kpx=138/2026&kpage=ActiveAdverts.aspx&utm_source=MyJobMag',
+  boardHosts: ['myjobmag.co.ke'],
+})
+assert.equal(
+  mjmLinkout.application_url,
+  'https://pscims.publicservice.go.ke/jobs/AdvertDetailsExt.aspx?kpx=138/2026&kpage=ActiveAdverts.aspx'
+)
+assert.equal(mjmLinkout.used_board_fallback, false)
+
 console.log('jobBoardApply.test.ts: ok')
