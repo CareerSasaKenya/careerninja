@@ -31,6 +31,7 @@ const DEFAULT_BOARD_HOSTS = [
   'brightermonday.co.ke',
   'myjobmag.co.ke',
   'jobberman.com',
+  'fuzu.com',
 ]
 
 const SOCIAL_OR_TRACKING_HOSTS = [
@@ -244,5 +245,9 @@ export function resolveJobBoardApplication(
 export function isJobBoardSource(selectors: unknown): boolean {
   const config = (selectors || {}) as { type?: string; sourceKind?: string }
   if (config.sourceKind === 'job_board') return true
-  return config.type === 'brightermonday' || config.type === 'myjobmag'
+  return (
+    config.type === 'brightermonday' ||
+    config.type === 'myjobmag' ||
+    config.type === 'fuzu'
+  )
 }

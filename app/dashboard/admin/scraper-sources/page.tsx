@@ -576,7 +576,9 @@ export default function AdminScraperSourcesPage() {
           <CardTitle>Seeded Kenyan sources</CardTitle>
           <CardDescription>
             Included in migrations <code className="text-xs">20260715_combined_kenyan_scraper_sources.sql</code>
-            {' '}and <code className="text-xs">20260720_seed_brightermonday_scraper_source.sql</code>
+            {', '}
+            <code className="text-xs">20260720_seed_brightermonday_scraper_source.sql</code>
+            {' '}and <code className="text-xs">20260722_seed_fuzu_scraper_source.sql</code>
           </CardDescription>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
@@ -585,7 +587,7 @@ export default function AdminScraperSourcesPage() {
           <p><strong>NGO:</strong> Amref Health Africa (SmartRecruiters, Kenya filter)</p>
           <p><strong>Employers:</strong> Inkomoko (Workable), SALIX Data Africa, Digital Divide Data (SmartRecruiters, Kenya filter)</p>
           <p><strong>Batch A (verified):</strong> PowerGen Renewable Energy, iHub (SmartRecruiters). Workable pipeline (paused): Tala, Branch, KCB, Komaza, Sanergy, Copia, Apollo</p>
-          <p><strong>Job boards:</strong> BrighterMonday Kenya (JSON-LD). Employer apply link/email from the posting is preferred; the BrighterMonday listing URL is only used as a last resort.</p>
+          <p><strong>Job boards:</strong> BrighterMonday Kenya and Fuzu Kenya (JSON-LD). Employer apply link/email from the posting is preferred; the board listing URL is only used as a last resort.</p>
         </CardContent>
       </Card>
     </div>

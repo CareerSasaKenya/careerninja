@@ -49,4 +49,16 @@ assert.equal(bm!.requirementsSection, '')
 assert.ok(bm!.descriptionSection.includes('Bachelor'))
 assert.ok(!(bm!.requirementsSection || '').includes('Mid'))
 
+const fuzu = buildReenrichInput('fuzu-kenya', 'B2B Sales Executive', 'Identify Africa', {
+  jobUrl: 'https://www.fuzu.com/kenya/jobs/b2b-sales-executive-identify-africa',
+  descriptionHtml:
+    '<p>JOB SUMMARY</p><p>Sell identity products</p><p>Requirements:</p><p>• 3 years experience</p>',
+  location: 'Nairobi, Kenya',
+  industry: 'Financial Services',
+})
+assert.ok(fuzu)
+assert.equal(fuzu!.requirementsSection, '')
+assert.ok(fuzu!.descriptionSection.includes('Sell identity'))
+assert.ok((fuzu!.tagsHint || '').includes('Fuzu'))
+
 console.log('reenrichScrapedJobs.test.ts: all assertions passed')

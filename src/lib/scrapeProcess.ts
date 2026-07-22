@@ -57,6 +57,7 @@ import {
   fetchBrighterMondayJobDetails,
   normalizeBrighterMondayJob,
 } from '@/lib/brightermonday-adapter'
+import { fetchFuzuJobDetails, normalizeFuzuJob } from '@/lib/fuzu-adapter'
 import { mapEducationLevel } from '@/lib/jobMetadataExtraction'
 import { limitTags } from '@/lib/jobParseNormalization'
 import {
@@ -376,6 +377,23 @@ export async function runScrapeProcessOne(
         tagsHint: normalized.tags,
         rawContent: detail.descriptionHtml || '',
       }
+    } else if (adapterType === 'fuzu') {
+      const detail = await fetchFuzuJobDetails(queueItem.job_url)
+      normalized = normalizeFuzuJob(detail)
+      rawData = detail
+
+      parseInput = {
+        title: normalized.title,
+        company: normalized.company,
+        location: normalized.location,
+        employmentType: normalized.employment_type,
+        workplace: normalized.job_location_type,
+        descriptionSection: detail.descriptionHtml,
+        requirementsSection: '',
+        industryHint: detail.industry,
+        tagsHint: normalized.tags,
+        rawContent: detail.descriptionHtml || '',
+      }
     } else if (adapterType === 'psc') {
       const advertNumber =
         extractPscAdvertNumber(queueItem.job_url) ||
@@ -434,7 +452,7 @@ export async function runScrapeProcessOne(
     if (!normalized.title) throw new Error('Job title is empty after normalization')
 
     const dedupCompany =
-      adapterType === 'psc' || adapterType === 'brightermonday'
+      adapterType === 'psc' || adapterType === 'brightermonday' || adapterType === 'fuzu'
         ? normalized.company
         : hiringCompany
     const contentHash = workableHash(
@@ -641,7 +659,7 @@ export async function runScrapeProcessOne(
       apply_link: jobBoard
         ? (normalized.apply_link?.trim() ||
             (parsed.apply_link &&
-            !/brightermonday\.co\.ke|myjobmag\.co\.ke/i.test(parsed.apply_link)
+            !/brightermonday\.co\.ke|myjobmag\.co\.ke|fuzu\.com/i.test(parsed.apply_link)
               ? parsed.apply_link
               : null) ||
             null)

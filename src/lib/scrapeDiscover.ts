@@ -15,6 +15,7 @@ import {
   discoverBrighterMondayJobs,
   BrighterMondaySourceConfig,
 } from './brightermonday-adapter'
+import { discoverFuzuJobs, FuzuSourceConfig } from './fuzu-adapter'
 import { normalizeJobUrl } from './scraperDeadline'
 
 export interface DiscoverSourceResult {
@@ -51,6 +52,7 @@ const SUPPORTED_TYPES = new Set([
   'psc',
   'psc_pdf',
   'brightermonday',
+  'fuzu',
   'html',
 ])
 
@@ -140,6 +142,11 @@ export async function runScrapeDiscover(
       } else if (adapterType === 'brightermonday') {
         discovered = await discoverBrighterMondayJobs(
           source.selectors as BrighterMondaySourceConfig,
+          source.base_url
+        )
+      } else if (adapterType === 'fuzu') {
+        discovered = await discoverFuzuJobs(
+          source.selectors as FuzuSourceConfig,
           source.base_url
         )
       } else {

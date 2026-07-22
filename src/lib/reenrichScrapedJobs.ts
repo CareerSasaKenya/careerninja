@@ -117,6 +117,21 @@ export function buildReenrichInput(
     }
   }
 
+  if (sourceId === 'fuzu-kenya' || /fuzu\.com\/kenya\/jobs\//i.test(String(bmRaw.jobUrl || ''))) {
+    const html = typeof bmRaw.descriptionHtml === 'string' ? bmRaw.descriptionHtml : ''
+    if (!html.trim()) return null
+    return {
+      title: title || bmRaw.title || 'Untitled',
+      company,
+      location: bmRaw.location,
+      descriptionSection: html,
+      requirementsSection: '',
+      industryHint: bmRaw.industry || null,
+      tagsHint: [bmRaw.industry, 'Fuzu'].filter(Boolean).join(', '),
+      rawContent: html,
+    }
+  }
+
   // SmartRecruiters
   if ((raw as RawSmartRecruiters).jobAd) {
     const sr = raw as RawSmartRecruiters
