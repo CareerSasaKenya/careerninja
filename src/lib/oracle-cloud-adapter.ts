@@ -266,6 +266,13 @@ export async function discoverOracleCloudJobs(
   }))
 }
 
+function scrubOracleCloudHtml(html: string): string {
+  return html
+    .replace(/\bJob Description Document\b/gi, '')
+    .replace(/<br\s*\/?>\s*<br\s*\/?>/gi, '<br>')
+    .trim()
+}
+
 export async function fetchOracleCloudJobDetails(
   host: string,
   siteNumber: string,
@@ -283,10 +290,12 @@ export async function fetchOracleCloudJobDetails(
   }
 
   const descriptionHtml =
-    detail.ExternalDescriptionStr ||
-    detail.ShortDescriptionStr ||
-    listing?.shortDescription ||
-    `<p>${detail.Title || listing?.title || 'Role'}</p>`
+    scrubOracleCloudHtml(
+      detail.ExternalDescriptionStr ||
+        detail.ShortDescriptionStr ||
+        listing?.shortDescription ||
+        `<p>${detail.Title || listing?.title || 'Role'}</p>`
+    )
 
   const location =
     detail.PrimaryLocation ||

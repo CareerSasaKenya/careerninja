@@ -8,6 +8,7 @@ import { mapEducationLevel } from './jobMetadataExtraction'
 import { limitTags } from './jobParseNormalization'
 import {
   expiresAtFromValidThrough,
+  isGenericApplicationUrl,
   normalizeJobUrl,
   resolveScrapedDeadline,
 } from './scraperDeadline'
@@ -141,16 +142,19 @@ export async function publishScrapedJob(
     employerApplicationUrl ||
     (normalized.apply_email?.trim() ? null : normalizeJobUrl(jobUrl))
 
+  const dedupeByAppUrl =
+    applicationUrl && !isGenericApplicationUrl(applicationUrl) ? applicationUrl : null
+
   const [{ data: existingByHash }, { data: existingByUrl }, { data: existingByAppUrl }] =
     await Promise.all([
       supabase.from('scraped_job_sources').select('id').eq('content_hash', contentHash).maybeSingle(),
       supabase.from('scraped_job_sources').select('id').eq('job_url', canonicalUrl).maybeSingle(),
-      applicationUrl
+      dedupeByAppUrl
         ? supabase
             .from('jobs')
             .select('id')
             .eq('source', 'Scraper')
-            .eq('application_url', applicationUrl)
+            .eq('application_url', dedupeByAppUrl)
             .maybeSingle()
         : Promise.resolve({ data: null }),
     ])

@@ -61,6 +61,7 @@ import { mapEducationLevel } from '@/lib/jobMetadataExtraction'
 import { limitTags } from '@/lib/jobParseNormalization'
 import {
   expiresAtFromValidThrough,
+  isGenericApplicationUrl,
   normalizeJobUrl,
   resolveScrapedDeadline,
 } from '@/lib/scraperDeadline'
@@ -110,9 +111,27 @@ export async function runScrapeProcessOne(
       const scraperUserId = await getScraperUserId()
       const pdfResult = await processPscPdfQueueItem(queueItem, source, supabase, scraperUserId)
 
+      const noPosts =
+        pdfResult.published === 0 &&
+        pdfResult.duplicates === 0 &&
+        pdfResult.jobs.length === 0
+      const onlyDupes =
+        pdfResult.published === 0 && pdfResult.duplicates > 0 && pdfResult.errors.length === 0
+
       await supabase
         .from('scrape_queue')
-        .update({ status: 'done', processed_at: new Date().toISOString() })
+        .update({
+          status: pdfResult.errors.length > 0 && pdfResult.published === 0 ? 'failed' : 'done',
+          processed_at: new Date().toISOString(),
+          error_message:
+            pdfResult.errors.length > 0
+              ? pdfResult.errors.slice(0, 3).join('; ').slice(0, 500)
+              : onlyDupes
+                ? `All ${pdfResult.duplicates} extracted role(s) were duplicates`
+                : noPosts
+                  ? 'PSC PDF processed but no roles were extracted/published'
+                  : null,
+        })
         .eq('id', queueItem.id)
 
       return {
@@ -450,14 +469,15 @@ export async function runScrapeProcessOne(
       .eq('job_url', canonicalUrl)
       .maybeSingle()
 
-    const { data: existingByAppUrl } = applicationUrl
-      ? await supabase
-          .from('jobs')
-          .select('id')
-          .eq('source', 'Scraper')
-          .eq('application_url', applicationUrl)
-          .maybeSingle()
-      : { data: null }
+    const { data: existingByAppUrl } =
+      applicationUrl && !isGenericApplicationUrl(applicationUrl)
+        ? await supabase
+            .from('jobs')
+            .select('id')
+            .eq('source', 'Scraper')
+            .eq('application_url', applicationUrl)
+            .maybeSingle()
+        : { data: null }
 
     if (existingByHash || existingByUrl || existingByAppUrl) {
       await supabase

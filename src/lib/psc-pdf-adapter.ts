@@ -15,7 +15,10 @@ import { callAI } from './aiProviders'
 // Discover only scrapes HTML listing pages; loading pdf-parse/pdfjs at
 // import time crashes Vercel (DOMMatrix / @napi-rs/canvas missing).
 
+/** @deprecated Prefer PSC_PDF_JOB_PARAM — hash fragments are stripped by normalizeJobUrl */
 export const PSC_PDF_JOB_FRAGMENT = '#psc-job-'
+/** Query param that keeps each role in a multi-job PDF uniquely dedupable */
+export const PSC_PDF_JOB_PARAM = 'psc_job'
 
 export interface PscPdfSourceConfig {
   type: 'psc_pdf'
@@ -173,10 +176,24 @@ export function buildPscPdfJobUrl(pdfUrl: string, job: PscPdfExtractedJob, index
     .replace(/^-|-$/g, '')
 
   const suffix = slug || `index-${index}`
-  return `${canonicalPscPdfUrl(pdfUrl)}${PSC_PDF_JOB_FRAGMENT}${suffix}`
+  try {
+    const url = new URL(canonicalPscPdfUrl(pdfUrl))
+    url.searchParams.set(PSC_PDF_JOB_PARAM, suffix)
+    return url.toString()
+  } catch {
+    const base = canonicalPscPdfUrl(pdfUrl)
+    const join = base.includes('?') ? '&' : '?'
+    return `${base}${join}${PSC_PDF_JOB_PARAM}=${encodeURIComponent(suffix)}`
+  }
 }
 
 export function extractPscPdfJobSuffix(jobUrl: string): string | null {
+  try {
+    const fromQuery = new URL(jobUrl).searchParams.get(PSC_PDF_JOB_PARAM)
+    if (fromQuery) return fromQuery
+  } catch {
+    /* fall through */
+  }
   const match = jobUrl.match(/#psc-job-(.+)$/)
   return match ? match[1] : null
 }
@@ -258,6 +275,18 @@ export function normalizePscPdfJob(
     ? `<p><strong>Terms of service:</strong> ${job.terms_of_service}</p>`
     : ''
 
+  // Keep candidate apply landing on the PSC portal, but make the stored URL
+  // unique per role so application_url dedupe cannot collapse a whole PDF.
+  let uniqueApply = applyUrl
+  try {
+    const u = new URL(applyUrl)
+    if (job.advert_number) u.searchParams.set('advert', job.advert_number)
+    u.searchParams.set('role', title.slice(0, 80))
+    uniqueApply = u.toString()
+  } catch {
+    /* keep applyUrl */
+  }
+
   return {
     title,
     company,
@@ -270,8 +299,8 @@ export function normalizePscPdfJob(
     job_location_county: '',
     job_location_city: '',
     location: job.location || 'Kenya',
-    apply_link: applyUrl,
-    application_url: applyUrl,
+    apply_link: uniqueApply,
+    application_url: uniqueApply,
     valid_through: job.deadline || defaultDeadline,
     salary_min: null,
     salary_max: null,
