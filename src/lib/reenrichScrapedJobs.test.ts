@@ -61,4 +61,18 @@ assert.equal(fuzu!.requirementsSection, '')
 assert.ok(fuzu!.descriptionSection.includes('Sell identity'))
 assert.ok((fuzu!.tagsHint || '').includes('Fuzu'))
 
+const mjm = buildReenrichInput('myjobmag-kenya', 'Internal Auditor', 'APDK', {
+  jobUrl: 'https://www.myjobmag.co.ke/job/internal-auditor-association-for-the-physically-disabled-of-kenya',
+  descriptionHtml:
+    '<p>Role Summary</p><p>Audit records</p><p>Requirements:</p><p>• CPA</p>',
+  location: 'Nairobi, Kenya',
+  industry: 'NGO / Non-Profit Associations',
+  occupationalCategory: 'Finance / Accounting / Audit',
+})
+assert.ok(mjm)
+assert.equal(mjm!.requirementsSection, '')
+assert.ok(mjm!.descriptionSection.includes('Audit records'))
+assert.ok((mjm!.tagsHint || '').includes('MyJobMag'))
+assert.equal(mjm!.jobFunctionHint, 'Finance / Accounting / Audit')
+
 console.log('reenrichScrapedJobs.test.ts: all assertions passed')

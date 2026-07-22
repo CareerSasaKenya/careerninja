@@ -9,6 +9,7 @@ export type ScraperAdapterType =
   | 'psc_pdf'
   | 'brightermonday'
   | 'fuzu'
+  | 'myjobmag'
   | 'html'
   | 'unknown'
 
@@ -26,7 +27,8 @@ export function getAdapterType(selectors: unknown): ScraperAdapterType {
     type === 'psc' ||
     type === 'psc_pdf' ||
     type === 'brightermonday' ||
-    type === 'fuzu'
+    type === 'fuzu' ||
+    type === 'myjobmag'
   ) {
     return type
   }
@@ -51,6 +53,7 @@ export const ADAPTER_LABELS: Record<ScraperAdapterType, string> = {
   psc_pdf: 'PSC PDF Adverts (full detail)',
   brightermonday: 'BrighterMonday (JSON-LD)',
   fuzu: 'Fuzu (JSON-LD)',
+  myjobmag: 'MyJobMag (JSON-LD / HTML)',
   html: 'HTML / CSS',
   unknown: 'Unknown',
 }

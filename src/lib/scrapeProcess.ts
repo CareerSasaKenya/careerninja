@@ -58,6 +58,7 @@ import {
   normalizeBrighterMondayJob,
 } from '@/lib/brightermonday-adapter'
 import { fetchFuzuJobDetails, normalizeFuzuJob } from '@/lib/fuzu-adapter'
+import { fetchMyJobMagJobDetails, normalizeMyJobMagJob } from '@/lib/myjobmag-adapter'
 import { mapEducationLevel } from '@/lib/jobMetadataExtraction'
 import { limitTags } from '@/lib/jobParseNormalization'
 import {
@@ -394,6 +395,24 @@ export async function runScrapeProcessOne(
         tagsHint: normalized.tags,
         rawContent: detail.descriptionHtml || '',
       }
+    } else if (adapterType === 'myjobmag') {
+      const detail = await fetchMyJobMagJobDetails(queueItem.job_url)
+      normalized = normalizeMyJobMagJob(detail)
+      rawData = detail
+
+      parseInput = {
+        title: normalized.title,
+        company: normalized.company,
+        location: normalized.location,
+        employmentType: normalized.employment_type,
+        workplace: normalized.job_location_type,
+        descriptionSection: detail.descriptionHtml,
+        requirementsSection: '',
+        industryHint: detail.industry,
+        jobFunctionHint: detail.occupationalCategory,
+        tagsHint: normalized.tags,
+        rawContent: detail.descriptionHtml || '',
+      }
     } else if (adapterType === 'psc') {
       const advertNumber =
         extractPscAdvertNumber(queueItem.job_url) ||
@@ -452,7 +471,10 @@ export async function runScrapeProcessOne(
     if (!normalized.title) throw new Error('Job title is empty after normalization')
 
     const dedupCompany =
-      adapterType === 'psc' || adapterType === 'brightermonday' || adapterType === 'fuzu'
+      adapterType === 'psc' ||
+      adapterType === 'brightermonday' ||
+      adapterType === 'fuzu' ||
+      adapterType === 'myjobmag'
         ? normalized.company
         : hiringCompany
     const contentHash = workableHash(
