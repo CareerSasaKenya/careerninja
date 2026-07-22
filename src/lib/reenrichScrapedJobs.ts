@@ -132,6 +132,25 @@ export function buildReenrichInput(
     }
   }
 
+  if (
+    sourceId === 'myjobmag-kenya' ||
+    /myjobmag\.co\.ke\/job\//i.test(String(bmRaw.jobUrl || ''))
+  ) {
+    const html = typeof bmRaw.descriptionHtml === 'string' ? bmRaw.descriptionHtml : ''
+    if (!html.trim()) return null
+    return {
+      title: title || bmRaw.title || 'Untitled',
+      company,
+      location: bmRaw.location,
+      descriptionSection: html,
+      requirementsSection: '',
+      industryHint: bmRaw.industry || null,
+      jobFunctionHint: bmRaw.occupationalCategory || null,
+      tagsHint: [bmRaw.occupationalCategory, bmRaw.industry, 'MyJobMag'].filter(Boolean).join(', '),
+      rawContent: html,
+    }
+  }
+
   // SmartRecruiters
   if ((raw as RawSmartRecruiters).jobAd) {
     const sr = raw as RawSmartRecruiters
