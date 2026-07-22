@@ -17,7 +17,7 @@
 
 import * as cheerio from 'cheerio'
 import { generateContentHash, NormalizedJob } from './scraper'
-import { resolveJobBoardApplication } from './jobBoardApply'
+import { resolveJobBoardApplication, stripBoardTrackingParams } from './jobBoardApply'
 import { extractApplicationDeadline } from './scraperDeadline'
 
 const DEFAULT_BASE = 'https://www.myjobmag.co.ke'
@@ -429,7 +429,114 @@ function companyFromHtml($: cheerio.CheerioAPI): string | null {
   return null
 }
 
-export function parseMyJobMagJobHtml(html: string, jobUrl: string): MyJobMagJobDetail {
+/**
+ * MyJobMag keeps "Method of Application" outside JobPosting JSON-LD /
+ * `.job-details`. That block holds the real employer CTA, usually as
+ * `<a href="/apply-now/{id}">Employer on careers.example.com</a>`,
+ * an email, or a Google Form — never prefer the MyJobMag listing when
+ * any of those exist.
+ */
+export function extractMyJobMagMethodOfApplicationHtml(html: string): string {
+  const $ = cheerio.load(html)
+  const heading = $('#application-method').first()
+  if (heading.length) {
+    const parts: string[] = [$.html(heading) || '']
+    let el = heading.next()
+    let capturedCta = false
+    while (el.length) {
+      const id = (el.attr('id') || '').toLowerCase()
+      const cls = (el.attr('class') || '').toLowerCase()
+      if (el.is('h2') || id === 'apply-sec' || cls.includes('apply-sec')) break
+      const chunk = $.html(el) || ''
+      parts.push(chunk)
+      if (
+        /apply-now|mailto:|forms\.gle|docs\.google\.com\/forms|to apply|@|https?:\/\//i.test(
+          chunk
+        )
+      ) {
+        capturedCta = true
+        break
+      }
+      // Stop after a couple of siblings if nothing useful — avoid the whole page
+      if (parts.length >= 4) break
+      el = el.next()
+    }
+    const joined = parts.join('\n')
+    if (capturedCta || /apply-now|to apply|method of application|mailto:|@/i.test(joined)) {
+      return joined
+    }
+  }
+
+  // Fallback: any apply-now CTA on the page
+  const applyNow = $('a[href*="/apply-now/"]').first()
+  if (applyNow.length) {
+    const parent = applyNow.parent()
+    return parent.html() || $.html(applyNow) || ''
+  }
+  return ''
+}
+
+export function extractMyJobMagApplyNow(html: string): {
+  path: string | null
+  hostFromText: string | null
+} {
+  const $ = cheerio.load(html)
+  const anchor =
+    $('#application-method').parent().find('a[href*="/apply-now/"]').first().length
+      ? $('#application-method').parent().find('a[href*="/apply-now/"]').first()
+      : $('a[href*="/apply-now/"]').first()
+
+  if (!anchor.length) return { path: null, hostFromText: null }
+
+  const href = String(anchor.attr('href') || '').trim()
+  const pathMatch = href.match(/^(\/apply-now\/\d+)/i)
+  const path = pathMatch ? pathMatch[1] : null
+  const label = cleanText(anchor.text()) || ''
+  const onHost = label.match(/\bon\s+([a-z0-9.-]+\.[a-z0-9.-]+)/i)
+  const hostFromText = onHost?.[1]?.toLowerCase().replace(/[),.;]+$/g, '') || null
+
+  return { path, hostFromText }
+}
+
+/** Follow MyJobMag `/apply-now/{id}` 302 to the employer application URL. */
+export async function resolveMyJobMagApplyNowRedirect(
+  applyNowPath: string,
+  origin = DEFAULT_BASE
+): Promise<string | null> {
+  const path = applyNowPath.startsWith('/') ? applyNowPath : `/${applyNowPath}`
+  if (!/^\/apply-now\/\d+/i.test(path)) return null
+
+  const url = `${origin.replace(/\/$/, '')}${path}`
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      redirect: 'manual',
+      headers: {
+        Accept: 'text/html,application/xhtml+xml',
+        'User-Agent': 'Mozilla/5.0 (compatible; careersasa-scraper/1.0)',
+        'Accept-Language': 'en-KE,en;q=0.9',
+      },
+      signal: withTimeout(15000),
+    })
+
+    const location = response.headers.get('location')
+    if (!location) return null
+    const absolute = location.startsWith('http')
+      ? location
+      : new URL(location, origin).toString()
+    const host = new URL(absolute).hostname.replace(/^www\./i, '').toLowerCase()
+    if (BOARD_HOSTS.some(h => host === h || host.endsWith(`.${h}`))) return null
+    return stripBoardTrackingParams(absolute)
+  } catch {
+    return null
+  }
+}
+
+export function parseMyJobMagJobHtml(
+  html: string,
+  jobUrl: string,
+  options?: { linkoutUrl?: string | null }
+): MyJobMagJobDetail {
   const $ = cheerio.load(html)
   const posting = parseJobPostingLd(html)
   const keyInfo = extractKeyInfo($)
@@ -452,6 +559,13 @@ export function parseMyJobMagJobHtml(html: string, jobUrl: string): MyJobMagJobD
     typeof posting?.description === 'string' ? decodeHtmlEntities(posting.description) : ''
   if (!descriptionHtml.trim()) {
     descriptionHtml = $('.job-details').first().html() || ''
+  }
+
+  const methodHtml = extractMyJobMagMethodOfApplicationHtml(html)
+  if (methodHtml.trim()) {
+    descriptionHtml = descriptionHtml
+      ? `${descriptionHtml}\n${methodHtml}`
+      : methodHtml
   }
 
   const locality = cleanText(address.addressLocality) || keyInfo.location || null
@@ -482,9 +596,19 @@ export function parseMyJobMagJobHtml(html: string, jobUrl: string): MyJobMagJobD
       : null
   const applicationDeadline = fromDescription || fromKeyInfo || fromValidThrough
 
+  // Prefer resolved /apply-now/ redirect; else host from CTA text ("on example.com")
+  let linkoutUrl = options?.linkoutUrl || null
+  if (!linkoutUrl) {
+    const applyNow = extractMyJobMagApplyNow(html)
+    if (applyNow.hostFromText) {
+      linkoutUrl = `https://${applyNow.hostFromText}/`
+    }
+  }
+
   const apply = resolveJobBoardApplication({
     boardJobUrl: jobUrl,
     descriptionHtml,
+    linkoutUrl,
     boardHosts: BOARD_HOSTS,
   })
 
@@ -527,7 +651,18 @@ export function parseMyJobMagJobHtml(html: string, jobUrl: string): MyJobMagJobD
 
 export async function fetchMyJobMagJobDetails(jobUrl: string): Promise<MyJobMagJobDetail> {
   const html = await fetchPageHtml(jobUrl)
-  return parseMyJobMagJobHtml(html, jobUrl)
+  const origin = originFromBaseUrl(jobUrl)
+  const applyNow = extractMyJobMagApplyNow(html)
+
+  let linkoutUrl: string | null = null
+  if (applyNow.path) {
+    linkoutUrl = await resolveMyJobMagApplyNowRedirect(applyNow.path, origin)
+  }
+  if (!linkoutUrl && applyNow.hostFromText) {
+    linkoutUrl = `https://${applyNow.hostFromText}/`
+  }
+
+  return parseMyJobMagJobHtml(html, jobUrl, { linkoutUrl })
 }
 
 export function normalizeMyJobMagJob(detail: MyJobMagJobDetail): NormalizedJob {

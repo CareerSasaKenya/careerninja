@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict'
 import {
+  extractMyJobMagApplyNow,
+  extractMyJobMagMethodOfApplicationHtml,
   normalizeMyJobMagJob,
   parseMyJobMagJobHtml,
   resolveMyJobMagLocation,
@@ -154,5 +156,65 @@ assert.ok(htmlDetail.location.includes('Mombasa'))
 assert.equal(htmlDetail.employmentType, 'CONTRACTOR')
 assert.equal(htmlDetail.applyEmail, 'hr@acme.co.ke')
 assert.ok(htmlDetail.descriptionHtml.includes('Manage books'))
+
+// Method of Application CTA (outside JSON-LD) must yield employer apply URL —
+// not the MyJobMag listing.
+const psckPage = `
+<html><body>
+<script type="application/ld+json">
+{
+  "@type": "JobPosting",
+  "title": "Instructor III - Clothing Technology/Textile -2 Posts",
+  "description": "&lt;p&gt;Duties and Responsibilities&lt;/p&gt;",
+  "hiringOrganization": { "@type": "Organization", "name": "Public Service Commission Kenya (PSCK)" },
+  "jobLocation": {
+    "@type": "Place",
+    "address": { "@type": "PostalAddress", "addressLocality": "Nairobi", "addressCountry": "KE" }
+  }
+}
+</script>
+<div class="job-details"><p>Duties and Responsibilities</p></div>
+<li id="printable" class="job-description">
+  <h2 id="application-method"><b>Method of Application</b></h2>
+  <div class="mag-b bm-b-30">
+    Interested and qualified? Go to
+    <a target="_blank" rel="nofollow" href="/apply-now/1284822">
+      Public Service Commission Kenya (PSCK) on pscims.publicservice.go.ke
+    </a> to apply
+  </div>
+</li>
+</body></html>
+`
+
+const methodHtml = extractMyJobMagMethodOfApplicationHtml(psckPage)
+assert.ok(methodHtml.includes('apply-now/1284822'))
+assert.ok(methodHtml.includes('pscims.publicservice.go.ke'))
+
+const applyNow = extractMyJobMagApplyNow(psckPage)
+assert.equal(applyNow.path, '/apply-now/1284822')
+assert.equal(applyNow.hostFromText, 'pscims.publicservice.go.ke')
+
+const psckDetail = parseMyJobMagJobHtml(
+  psckPage,
+  'https://www.myjobmag.co.ke/job/instructor-iii-clothing-technology-textile-2-posts-public-service-commission-kenya-psck',
+  {
+    linkoutUrl:
+      'https://pscims.publicservice.go.ke/jobs/AdvertDetailsExt.aspx?kpx=138/2026&kpage=ActiveAdverts.aspx',
+  }
+)
+assert.equal(
+  psckDetail.applicationUrl,
+  'https://pscims.publicservice.go.ke/jobs/AdvertDetailsExt.aspx?kpx=138/2026&kpage=ActiveAdverts.aspx'
+)
+assert.equal(psckDetail.applyLink, psckDetail.applicationUrl)
+assert.ok(!/myjobmag\.co\.ke/i.test(psckDetail.applicationUrl || ''))
+
+// Without redirect resolution, host-from-text still beats board fallback
+const psckFallbackHost = parseMyJobMagJobHtml(
+  psckPage,
+  'https://www.myjobmag.co.ke/job/instructor-iii-clothing-technology-textile-2-posts-public-service-commission-kenya-psck'
+)
+assert.ok(psckFallbackHost.applicationUrl?.includes('pscims.publicservice.go.ke'))
+assert.ok(!/myjobmag\.co\.ke\/job\//i.test(psckFallbackHost.applicationUrl || ''))
 
 console.log('myjobmag-adapter.test.ts: ok')

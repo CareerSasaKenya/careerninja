@@ -88,4 +88,87 @@ assert.equal(isJobBoardSource({ type: 'fuzu' }), true)
 assert.equal(isJobBoardSource({ type: 'workable', sourceKind: 'job_board' }), true)
 assert.equal(isJobBoardSource({ type: 'workable' }), false)
 
+// MyJobMag Method of Application: relative /apply-now/ + employer host in anchor text
+const mjmMethod = `
+<h2 id="application-method"><b>Method of Application</b></h2>
+<div>Interested and qualified? Go to
+  <a target="_blank" rel="nofollow" href="/apply-now/1284822">
+    Public Service Commission Kenya (PSCK) on pscims.publicservice.go.ke
+  </a> to apply
+</div>
+`
+const mjmUrls = extractJobBoardApplyUrls(mjmMethod, ['myjobmag.co.ke'])
+assert.ok(
+  mjmUrls.some(u => /pscims\.publicservice\.go\.ke/i.test(u)),
+  `expected PSCK host from anchor text, got ${JSON.stringify(mjmUrls)}`
+)
+const mjmResolved = resolveJobBoardApplication({
+  boardJobUrl: 'https://www.myjobmag.co.ke/job/instructor-iii-clothing-technology-textile-2-posts-public-service-commission-kenya-psck',
+  descriptionHtml: mjmMethod,
+  boardHosts: ['myjobmag.co.ke'],
+})
+assert.equal(mjmResolved.used_board_fallback, false)
+assert.ok(mjmResolved.application_url?.includes('pscims.publicservice.go.ke'))
+assert.equal(mjmResolved.apply_link, mjmResolved.application_url)
+
+// Explicit redirected linkout wins (full employer path)
+const mjmLinkout = resolveJobBoardApplication({
+  boardJobUrl: 'https://www.myjobmag.co.ke/job/x',
+  descriptionHtml: mjmMethod,
+  linkoutUrl:
+    'https://pscims.publicservice.go.ke/jobs/AdvertDetailsExt.aspx?kpx=138/2026&kpage=ActiveAdverts.aspx&utm_source=MyJobMag',
+  boardHosts: ['myjobmag.co.ke'],
+})
+assert.equal(
+  mjmLinkout.application_url,
+  'https://pscims.publicservice.go.ke/jobs/AdvertDetailsExt.aspx?kpx=138/2026&kpage=ActiveAdverts.aspx'
+)
+assert.equal(mjmLinkout.used_board_fallback, false)
+
+// Employer email only → never fall back to MyJobMag listing
+const emailOnlyMjm = resolveJobBoardApplication({
+  boardJobUrl: 'https://www.myjobmag.co.ke/job/finance-officer',
+  descriptionHtml:
+    '<h2>Method of Application</h2><p>Send CV only to <strong>recruitment@careeroptionsafricagroup.com</strong></p>',
+  boardHosts: ['myjobmag.co.ke'],
+})
+assert.equal(emailOnlyMjm.apply_email, 'recruitment@careeroptionsafricagroup.com')
+assert.equal(emailOnlyMjm.application_url, null)
+assert.equal(emailOnlyMjm.apply_link, null)
+assert.equal(emailOnlyMjm.used_board_fallback, false)
+
+// Google Form in posting → prefer form over board listing
+const googleForm = resolveJobBoardApplication({
+  boardJobUrl: 'https://www.myjobmag.co.ke/job/x',
+  descriptionHtml:
+    '<p>Apply via Google Form: https://forms.gle/abc123XYZ</p>',
+  boardHosts: ['myjobmag.co.ke'],
+})
+assert.ok(googleForm.application_url?.includes('forms.gle'))
+assert.equal(googleForm.used_board_fallback, false)
+
+// Bare www. employer site without scheme
+const bareWww = resolveJobBoardApplication({
+  boardJobUrl: 'https://www.myjobmag.co.ke/job/x',
+  descriptionHtml:
+    '<p>Apply on the Council website www.nckenya.com before the deadline.</p>',
+  boardHosts: ['myjobmag.co.ke'],
+})
+assert.ok(bareWww.application_url?.includes('nckenya.com'))
+assert.equal(bareWww.used_board_fallback, false)
+
+// No employer email/link/form → board listing is last resort
+const boardOnly = resolveJobBoardApplication({
+  boardJobUrl: 'https://www.myjobmag.co.ke/job/php-backend-software-developer',
+  descriptionHtml:
+    '<h2>Method of Application</h2><div>Interested candidates should apply using the Apply Now button below.</div>',
+  boardHosts: ['myjobmag.co.ke'],
+})
+assert.equal(
+  boardOnly.application_url,
+  'https://www.myjobmag.co.ke/job/php-backend-software-developer'
+)
+assert.equal(boardOnly.apply_link, null)
+assert.equal(boardOnly.used_board_fallback, true)
+
 console.log('jobBoardApply.test.ts: ok')

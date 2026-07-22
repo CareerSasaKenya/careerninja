@@ -62,6 +62,16 @@ const SOCIAL_OR_TRACKING_HOSTS = [
 const EMAIL_RE = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi
 const HREF_RE = /href=["'](https?:\/\/[^"']+)["']/gi
 const BARE_URL_RE = /https?:\/\/[^\s<>"'\\)]+/gi
+/** Bare www.example.com or forms.gle/xyz without a scheme */
+const BARE_WWW_OR_FORM_RE =
+  /(?:^|[\s("'>(])((?:www\.[a-z0-9.-]+\.[a-z]{2,}|(?:forms\.gle|docs\.google\.com\/forms)\/[^\s"'<>]+|(?:forms\.office\.com)\/[^\s"'<>]+)(?:\/[^\s"'<>]*)?)/gi
+/** MyJobMag-style CTA: "Go to Employer on careers.example.com to apply" */
+const ON_HOST_RE =
+  /\bon\s+([a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+)\b/gi
+const ANCHOR_RE = /<a\b[^>]*\bhref=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi
+/** Hostname-ish token inside anchor/link text (e.g. pscims.publicservice.go.ke) */
+const HOST_IN_TEXT_RE =
+  /\b([a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?){1,})\b/gi
 
 const BLOCKED_EMAIL_LOCAL = new Set([
   'anonymous',
@@ -98,6 +108,37 @@ function stripHtml(html: string): string {
     .trim()
 }
 
+function looksLikeHostname(value: string): boolean {
+  const host = value.trim().toLowerCase().replace(/^www\./, '')
+  if (!host || host.length > 253) return false
+  if (!/^[a-z0-9.-]+$/.test(host)) return false
+  if (!host.includes('.')) return false
+  if (host.startsWith('.') || host.endsWith('.') || host.includes('..')) return false
+  // Require a plausible TLD (ke, com, org, go.ke via multi-label already covered)
+  const labels = host.split('.')
+  const tld = labels[labels.length - 1]
+  if (!tld || tld.length < 2 || !/^[a-z]+$/.test(tld)) return false
+  // Skip version-like / IP-ish noise
+  if (/^\d+(\.\d+)+$/.test(host)) return false
+  return true
+}
+
+function hostnameToHttpsUrl(hostname: string): string | null {
+  if (!looksLikeHostname(hostname)) return null
+  return `https://${hostname.replace(/^www\./i, '').toLowerCase()}/`
+}
+
+/** Drop common board tracking params from employer destinations. */
+export function stripBoardTrackingParams(url: string): string {
+  // String surgery avoids URL() re-encoding query values (e.g. kpx=138/2026).
+  const stripped = url
+    .replace(/([?&])(utm_[^=&#]*|fbclid|gclid)=[^&#]*/gi, '$1')
+    .replace(/[?&]+$/, '')
+    .replace(/\?&+/g, '?')
+    .replace(/&&+/g, '&')
+  return stripped.endsWith('?') ? stripped.slice(0, -1) : stripped
+}
+
 function normalizeCandidateUrl(raw: string): string | null {
   if (!raw) return null
   let url = raw.trim()
@@ -107,26 +148,103 @@ function normalizeCandidateUrl(raw: string): string | null {
   try {
     const parsed = new URL(url)
     if (!['http:', 'https:'].includes(parsed.protocol)) return null
-    return parsed.toString()
+    return stripBoardTrackingParams(parsed.toString())
   } catch {
     return null
   }
 }
 
+function hostsFromPlainText(text: string, boardHosts: string[]): string[] {
+  const found: string[] = []
+  const seen = new Set<string>()
+
+  ON_HOST_RE.lastIndex = 0
+  let match: RegExpExecArray | null
+  while ((match = ON_HOST_RE.exec(text)) !== null) {
+    const host = match[1].toLowerCase()
+    if (!looksLikeHostname(host)) continue
+    if (isBlockedHost(host, boardHosts)) continue
+    if (seen.has(host)) continue
+    seen.add(host)
+    found.push(host)
+  }
+
+  return found
+}
+
+function hostsFromAnchorText(descriptionHtml: string, boardHosts: string[]): string[] {
+  const found: string[] = []
+  const seen = new Set<string>()
+
+  ANCHOR_RE.lastIndex = 0
+  let match: RegExpExecArray | null
+  while ((match = ANCHOR_RE.exec(descriptionHtml)) !== null) {
+    const href = match[1] || ''
+    const text = stripHtml(match[2] || '')
+    if (!text) continue
+
+    // Prefer "on example.com" inside the anchor label
+    for (const host of hostsFromPlainText(text, boardHosts)) {
+      if (seen.has(host)) continue
+      seen.add(host)
+      found.push(host)
+    }
+
+    // Absolute employer href already handled by HREF_RE; for relative/board
+    // redirects, harvest hostnames mentioned in the visible label.
+    const hrefHost = hostnameOf(href.startsWith('http') ? href : '')
+    if (hrefHost && !isBlockedHost(hrefHost, boardHosts)) continue
+
+    HOST_IN_TEXT_RE.lastIndex = 0
+    let hostMatch: RegExpExecArray | null
+    while ((hostMatch = HOST_IN_TEXT_RE.exec(text)) !== null) {
+      const host = hostMatch[1].toLowerCase()
+      if (!looksLikeHostname(host)) continue
+      if (isBlockedHost(host, boardHosts)) continue
+      if (seen.has(host)) continue
+      seen.add(host)
+      found.push(host)
+    }
+  }
+
+  return found
+}
+
 function scoreApplyUrl(url: string): number {
   const lower = url.toLowerCase()
   let score = 0
+  // Google / Microsoft / Typeform application forms — strong employer signals
+  if (
+    /forms\.gle|docs\.google\.com\/forms|forms\.office\.com|typeform\.com|airtable\.com/.test(
+      lower
+    )
+  ) {
+    score += 80
+  }
   if (/\/(apply|application|applications)\b/.test(lower)) score += 50
   if (/\b(careers?|jobs?|vacancies|recruit|hiring)\b/.test(lower)) score += 30
-  if (/forms\.gle|docs\.google\.com\/forms|forms\.office\.com|typeform\.com|airtable\.com|lever\.co|greenhouse\.io|workable\.com|smartrecruiters\.com|taleo\.net|oraclecloud\.com/.test(lower)) {
+  if (
+    /lever\.co|greenhouse\.io|workable\.com|smartrecruiters\.com|taleo\.net|oraclecloud\.com|publicservice\.go\.ke|psckjobs\.go\.ke/.test(
+      lower
+    )
+  ) {
     score += 40
   }
   if (/\b(apply|application)\b/.test(lower)) score += 15
-  // Prefer shorter clean career paths over deep tracking URLs
+  // Bare homepage roots are weaker than real apply paths
   try {
     const u = new URL(url)
+    const pathParts = u.pathname.split('/').filter(Boolean)
+    if (pathParts.length === 0) score -= 10
     if (u.searchParams.size === 0) score += 5
-    if (u.pathname.split('/').filter(Boolean).length <= 3) score += 5
+    if (pathParts.length > 0 && pathParts.length <= 3) score += 5
+    // Promo shorteners without an apply cue are weak candidates
+    if (
+      /^(bit\.ly|tinyurl\.com|t\.co|ow\.ly)$/i.test(u.hostname.replace(/^www\./, '')) &&
+      !/apply|job|career|form/i.test(u.pathname)
+    ) {
+      score -= 40
+    }
   } catch {
     /* ignore */
   }
@@ -165,24 +283,41 @@ export function extractJobBoardApplyUrls(
   if (!descriptionHtml) return []
   const found = new Set<string>()
 
+  const addUrl = (raw: string) => {
+    const url = normalizeCandidateUrl(raw)
+    if (!url) return
+    const host = hostnameOf(url)
+    if (!host || isBlockedHost(host, boardHosts)) return
+    found.add(url)
+  }
+
   HREF_RE.lastIndex = 0
   let match: RegExpExecArray | null
   while ((match = HREF_RE.exec(descriptionHtml)) !== null) {
-    const url = normalizeCandidateUrl(match[1])
-    if (!url) continue
-    const host = hostnameOf(url)
-    if (!host || isBlockedHost(host, boardHosts)) continue
-    found.add(url)
+    addUrl(match[1])
   }
 
   const text = stripHtml(descriptionHtml)
   BARE_URL_RE.lastIndex = 0
   while ((match = BARE_URL_RE.exec(text)) !== null) {
-    const url = normalizeCandidateUrl(match[0])
-    if (!url) continue
-    const host = hostnameOf(url)
-    if (!host || isBlockedHost(host, boardHosts)) continue
-    found.add(url)
+    addUrl(match[0])
+  }
+
+  // Scheme-less www. / Google Form short links in plain text
+  BARE_WWW_OR_FORM_RE.lastIndex = 0
+  while ((match = BARE_WWW_OR_FORM_RE.exec(text)) !== null) {
+    const raw = match[1].replace(/[),.;]+$/g, '')
+    addUrl(raw.startsWith('http') ? raw : `https://${raw}`)
+  }
+
+  // Employer hostnames embedded in CTA / anchor text (no absolute href).
+  // Example: <a href="/apply-now/123">PSCK on pscims.publicservice.go.ke</a>
+  for (const host of [
+    ...hostsFromAnchorText(descriptionHtml, boardHosts),
+    ...hostsFromPlainText(text, boardHosts),
+  ]) {
+    const url = hostnameToHttpsUrl(host)
+    if (url) found.add(url)
   }
 
   return [...found].sort((a, b) => scoreApplyUrl(b) - scoreApplyUrl(a))
@@ -191,11 +326,11 @@ export function extractJobBoardApplyUrls(
 /**
  * Resolve how candidates should apply for a job scraped from a portal.
  *
- * Priority:
- * 1. Explicit linkout / external apply URL from the board
- * 2. Employer apply/career URL found in the job description
- * 3. Employer apply email found in the job description
- * 4. Board listing URL (last resort)
+ * Priority (never prefer the job-board listing when a real method exists):
+ * 1. Explicit employer linkout / redirected apply URL from the board
+ * 2. Employer apply URL in the posting (career page, Google Form, ATS, etc.)
+ * 3. Employer apply email in the posting
+ * 4. Board listing URL — last resort only
  */
 export function resolveJobBoardApplication(
   input: ResolveJobBoardApplyInput
