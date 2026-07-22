@@ -210,7 +210,8 @@ function hostsFromAnchorText(descriptionHtml: string, boardHosts: string[]): str
   return found
 }
 
-function scoreApplyUrl(url: string): number {
+/** Exported for tests — higher = more likely a real employer apply destination. */
+export function scoreApplyUrl(url: string): number {
   const lower = url.toLowerCase()
   let score = 0
   // Google / Microsoft / Typeform application forms — strong employer signals
@@ -250,6 +251,12 @@ function scoreApplyUrl(url: string): number {
   }
   return score
 }
+
+/**
+ * Bare informational homepages (e.g. www.nckenya.com) often appear next to
+ * a real "apply by email" CTA. Prefer the email when the URL looks weak.
+ */
+const WEAK_APPLY_URL_SCORE = 20
 
 export function extractJobBoardEmails(
   descriptionHtml: string | null | undefined,
@@ -351,6 +358,16 @@ export function resolveJobBoardApplication(
   const applyEmail = emails[0] || null
 
   if (employerUrl) {
+    const urlScore = scoreApplyUrl(employerUrl)
+    // Prefer email over weak homepage / host-only linkouts when both exist
+    if (applyEmail && urlScore < WEAK_APPLY_URL_SCORE) {
+      return {
+        application_url: null,
+        apply_link: null,
+        apply_email: applyEmail,
+        used_board_fallback: false,
+      }
+    }
     return {
       application_url: employerUrl,
       apply_link: employerUrl,

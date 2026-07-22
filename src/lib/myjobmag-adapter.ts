@@ -306,9 +306,61 @@ function matchCounty(value: string | null | undefined): string {
   for (const county of KENYAN_COUNTIES) {
     if (haystack.includes(county.toLowerCase())) return county
   }
+  // Town / city aliases that MyJobMag often uses instead of the county name
   if (/\bnbi\b/.test(haystack) || haystack.includes('nairobi county')) return 'Nairobi'
   if (haystack.includes('eldoret')) return 'Uasin Gishu'
+  if (haystack.includes('kitale')) return 'Trans Nzoia'
+  if (haystack.includes('naivasha') || haystack.includes('gilgil')) return 'Nakuru'
+  if (haystack.includes('thika') || haystack.includes('ruiru') || haystack.includes('kikuyu'))
+    return 'Kiambu'
+  if (haystack.includes('malindi') || haystack.includes('watamu')) return 'Kilifi'
+  if (haystack.includes("athi's river") || haystack.includes('athi river')) return 'Machakos'
+  if (haystack.includes('ngong') || haystack.includes('kitengela') || haystack.includes('ongata'))
+    return 'Kajiado'
+  if (haystack.includes('limuru')) return 'Kiambu'
   return ''
+}
+
+/**
+ * Known Kenyan places that appear in MyJobMag titles (e.g. "DSA - Naivasha")
+ * when the structured Location field still says the employer's HQ city.
+ * Longer keys first so "North Rift" wins over bare "Rift".
+ */
+const TITLE_PLACE_HINTS: Array<{ pattern: RegExp; city: string; county: string }> = [
+  { pattern: /\bnorth\s*rift\b/i, city: 'North Rift', county: '' },
+  { pattern: /\bcentral\s*rift\b/i, city: 'Central Rift', county: '' },
+  { pattern: /\bsouth\s*rift\b/i, city: 'South Rift', county: '' },
+  { pattern: /\beldoret\b/i, city: 'Eldoret', county: 'Uasin Gishu' },
+  { pattern: /\bkitale\b/i, city: 'Kitale', county: 'Trans Nzoia' },
+  { pattern: /\bnaivasha\b/i, city: 'Naivasha', county: 'Nakuru' },
+  { pattern: /\bnakuru\b/i, city: 'Nakuru', county: 'Nakuru' },
+  { pattern: /\bthika\b/i, city: 'Thika', county: 'Kiambu' },
+  { pattern: /\bmalindi\b/i, city: 'Malindi', county: 'Kilifi' },
+  { pattern: /\bkisumu\b/i, city: 'Kisumu', county: 'Kisumu' },
+  { pattern: /\bmombasa\b/i, city: 'Mombasa', county: 'Mombasa' },
+  { pattern: /\bkericho\b/i, city: 'Kericho', county: 'Kericho' },
+  { pattern: /\bnyeri\b/i, city: 'Nyeri', county: 'Nyeri' },
+  { pattern: /\bkakamega\b/i, city: 'Kakamega', county: 'Kakamega' },
+  { pattern: /\bgarissa\b/i, city: 'Garissa', county: 'Garissa' },
+  { pattern: /\bmachakos\b/i, city: 'Machakos', county: 'Machakos' },
+  { pattern: /\bkajiado\b/i, city: 'Kajiado', county: 'Kajiado' },
+  { pattern: /\bkiambu\b/i, city: 'Kiambu', county: 'Kiambu' },
+  { pattern: /\bmeru\b/i, city: 'Meru', county: 'Meru' },
+  { pattern: /\bkisii\b/i, city: 'Kisii', county: 'Kisii' },
+  { pattern: /\bbungoma\b/i, city: 'Bungoma', county: 'Bungoma' },
+  { pattern: /\bembu\b/i, city: 'Embu', county: 'Embu' },
+  { pattern: /\bnairobi\b/i, city: 'Nairobi', county: 'Nairobi' },
+]
+
+export function placeHintFromTitle(title: string | null | undefined): {
+  city: string
+  county: string
+} | null {
+  if (!title?.trim()) return null
+  for (const hint of TITLE_PLACE_HINTS) {
+    if (hint.pattern.test(title)) return { city: hint.city, county: hint.county }
+  }
+  return null
 }
 
 export function resolveMyJobMagLocation(input: {
@@ -316,7 +368,28 @@ export function resolveMyJobMagLocation(input: {
   region?: string | null
   country?: string | null
   jobLocationType?: string | null
+  /** Job title — often carries the real duty station (e.g. "… - Naivasha") */
+  title?: string | null
 }): { display: string; city: string; county: string } {
+  const titlePlace = placeHintFromTitle(input.title)
+
+  // MyJobMag frequently tags the employer's HQ (usually Nairobi) while the
+  // title names the actual duty station. When the title carries a place,
+  // treat it as authoritative.
+  if (titlePlace) {
+    const county = titlePlace.county || matchCounty(titlePlace.city)
+    const parts = [
+      titlePlace.city || null,
+      county && county !== titlePlace.city ? county : null,
+      'Kenya',
+    ].filter(Boolean)
+    return {
+      display: [...new Set(parts)].join(', ') || 'Kenya',
+      city: titlePlace.city,
+      county: county || '',
+    }
+  }
+
   const preferred =
     (!isVagueLocationPart(input.locality) && input.locality?.trim()) ||
     (!isVagueLocationPart(input.region) && input.region?.trim()) ||
@@ -429,6 +502,18 @@ function companyFromHtml($: cheerio.CheerioAPI): string | null {
   return null
 }
 
+/** MyJobMag returns HTTP 200 with an empty shell for removed listings. */
+export function isMyJobMagJobNotFound(html: string): boolean {
+  if (/<title>\s*Job Not Found\b/i.test(html)) return true
+  if (/\bjob\s+not\s+found\b/i.test(html) && !/application\/ld\+json/i.test(html)) {
+    const $ = cheerio.load(html)
+    if (!$('.subjob-title').length && !$('.job-details').length && !$('.job-key-info').length) {
+      return true
+    }
+  }
+  return false
+}
+
 /**
  * MyJobMag keeps "Method of Application" outside JobPosting JSON-LD /
  * `.job-details`. That block holds the real employer CTA, usually as
@@ -537,6 +622,10 @@ export function parseMyJobMagJobHtml(
   jobUrl: string,
   options?: { linkoutUrl?: string | null }
 ): MyJobMagJobDetail {
+  if (isMyJobMagJobNotFound(html)) {
+    throw new Error(`MyJobMag listing not found: ${jobUrl}`)
+  }
+
   const $ = cheerio.load(html)
   const posting = parseJobPostingLd(html)
   const keyInfo = extractKeyInfo($)
@@ -579,6 +668,7 @@ export function parseMyJobMagJobHtml(
     region,
     country,
     jobLocationType,
+    title,
   })
 
   const salary = parseSalaryRange(keyInfo['salary range'])
@@ -638,7 +728,7 @@ export function parseMyJobMagJobHtml(
     salaryPeriod: salary.period,
     minimumExperienceYears,
     addressLocality: location.city || locality,
-    addressRegion: location.county || region,
+    addressRegion: location.county || null,
     addressCountry: 'Kenya',
     jobLocationType,
     applicationDeadline,
@@ -672,8 +762,9 @@ export function normalizeMyJobMagJob(detail: MyJobMagJobDetail): NormalizedJob {
     region: detail.addressRegion,
     country: detail.addressCountry,
     jobLocationType: detail.jobLocationType,
+    title: detail.title,
   })
-  const county = resolved.county || matchCounty(detail.location)
+  const county = resolved.county || matchCounty(detail.location) || matchCounty(detail.title)
   const city = resolved.city || county
   const remote =
     /remote/i.test(detail.location) ||

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import {
   extractMyJobMagApplyNow,
   extractMyJobMagMethodOfApplicationHtml,
+  isMyJobMagJobNotFound,
   normalizeMyJobMagJob,
   parseMyJobMagJobHtml,
   resolveMyJobMagLocation,
@@ -15,6 +16,34 @@ assert.deepEqual(
     country: 'KE',
   }),
   { display: 'Nairobi, Kenya', city: 'Nairobi', county: 'Nairobi' }
+)
+
+// Duty station in title beats HQ locality (common MyJobMag pattern)
+assert.deepEqual(
+  resolveMyJobMagLocation({
+    locality: 'Nairobi',
+    region: 'Nairobi',
+    country: 'KE',
+    title: 'Direct Sales Agent - Naivasha',
+  }),
+  { display: 'Naivasha, Nakuru, Kenya', city: 'Naivasha', county: 'Nakuru' }
+)
+
+assert.deepEqual(
+  resolveMyJobMagLocation({
+    locality: 'Kitale',
+    country: 'KE',
+    title: 'Chief Manager Commercial and Corporate Affairs',
+  }),
+  { display: 'Kitale, Trans Nzoia, Kenya', city: 'Kitale', county: 'Trans Nzoia' }
+)
+
+assert.deepEqual(
+  resolveMyJobMagLocation({
+    locality: 'Nairobi',
+    title: 'Sales Van Representative – North Rift',
+  }),
+  { display: 'North Rift, Kenya', city: 'North Rift', county: '' }
 )
 
 const brokenLd = `{
@@ -216,5 +245,32 @@ const psckFallbackHost = parseMyJobMagJobHtml(
 )
 assert.ok(psckFallbackHost.applicationUrl?.includes('pscims.publicservice.go.ke'))
 assert.ok(!/myjobmag\.co\.ke\/job\//i.test(psckFallbackHost.applicationUrl || ''))
+
+// Title duty station overrides HQ locality on normalize
+const naivashaHtml = sampleHtml
+  .replace(/Internal Auditor/g, 'Direct Sales Agent - Naivasha')
+  .replace('Association for the Physically Disabled of Kenya', 'HCS Affiliates Group')
+const naivashaDetail = parseMyJobMagJobHtml(
+  naivashaHtml,
+  'https://www.myjobmag.co.ke/job/direct-sales-agent-naivasha-hcs-affiliates-group-1'
+)
+assert.equal(naivashaDetail.location, 'Naivasha, Nakuru, Kenya')
+const naivashaNorm = normalizeMyJobMagJob(naivashaDetail)
+assert.equal(naivashaNorm.job_location_city, 'Naivasha')
+assert.equal(naivashaNorm.job_location_county, 'Nakuru')
+
+// Removed listings must not parse as empty Untitled jobs
+assert.equal(
+  isMyJobMagJobNotFound('<html><head><title>Job Not Found |  MyJobMag</title></head><body></body></html>'),
+  true
+)
+assert.throws(
+  () =>
+    parseMyJobMagJobHtml(
+      '<html><head><title>Job Not Found |  MyJobMag</title></head><body><p>Job Not Found</p></body></html>',
+      'https://www.myjobmag.co.ke/job/missing-role'
+    ),
+  /not found/i
+)
 
 console.log('myjobmag-adapter.test.ts: ok')

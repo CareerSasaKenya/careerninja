@@ -157,6 +157,40 @@ const bareWww = resolveJobBoardApplication({
 assert.ok(bareWww.application_url?.includes('nckenya.com'))
 assert.equal(bareWww.used_board_fallback, false)
 
+// Informational homepage + explicit apply-by-email → prefer email
+const nckEmailOverSite = resolveJobBoardApplication({
+  boardJobUrl: 'https://www.myjobmag.co.ke/job/corporate-communications-officer',
+  descriptionHtml: `
+    <h2 id="application-method">Method of Application</h2>
+    <p>Detailed job descriptions can be accessed at <a href="http://www.nckenya.com">www.nckenya.com</a></p>
+    <p>Apply through the Council email: <strong>careers@nckenya.go.ke</strong></p>
+  `,
+  boardHosts: ['myjobmag.co.ke'],
+})
+assert.equal(nckEmailOverSite.apply_email, 'careers@nckenya.go.ke')
+assert.equal(nckEmailOverSite.application_url, null)
+assert.equal(nckEmailOverSite.apply_link, null)
+assert.equal(nckEmailOverSite.used_board_fallback, false)
+
+// Weak host-only linkout + email → prefer email
+const weakLinkoutEmail = resolveJobBoardApplication({
+  boardJobUrl: 'https://www.myjobmag.co.ke/job/x',
+  descriptionHtml: '<p>Send CV to hr@example.co.ke</p>',
+  linkoutUrl: 'https://example.co.ke/',
+  boardHosts: ['myjobmag.co.ke'],
+})
+assert.equal(weakLinkoutEmail.apply_email, 'hr@example.co.ke')
+assert.equal(weakLinkoutEmail.application_url, null)
+
+// Strong career/apply URL still wins over email
+const strongUrlKeeps = resolveJobBoardApplication({
+  boardJobUrl: 'https://www.myjobmag.co.ke/job/x',
+  descriptionHtml: '<p>Email hr@intexafrica.com or apply at https://intexafrica.com/careers/apply</p>',
+  boardHosts: ['myjobmag.co.ke'],
+})
+assert.ok(strongUrlKeeps.application_url?.includes('intexafrica.com'))
+assert.equal(strongUrlKeeps.apply_email, 'hr@intexafrica.com')
+
 // No employer email/link/form → board listing is last resort
 const boardOnly = resolveJobBoardApplication({
   boardJobUrl: 'https://www.myjobmag.co.ke/job/php-backend-software-developer',
