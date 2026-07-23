@@ -3,9 +3,11 @@
  *
  * Behavior:
  * 1. Reuse existing companies.logo if already stored (future posts of same company).
- * 2. Persist a manually/parsed logo URL when provided.
+ * 2. Persist a manually/parsed/portal logo URL when provided.
  * 3. Otherwise fetch a verified logo from website / known brand and store it
  *    so the next job for this company skips the fetch.
+ * 4. Fill empty profile fields (website, description, location, size, industry)
+ *    from job-board company tabs when provided — never overwrite non-empty values.
  *
  * Matching order:
  * 1. Explicit companyId
@@ -26,19 +28,29 @@ import { fetchCompanyLogoUrl } from './companyLogoFetch';
 import { resolveCompanyDomainSmart } from './companyDomainLookup';
 import { normalizeCompanyIdentityKey } from './companyIdentity';
 import { inferCompanyIndustry } from './companyIndustryInference';
+import {
+  cleanJobBoardCompanyDescription,
+  sanitizeEmployerWebsite,
+} from './jobBoardCompany';
 
 export type EnsureCompanyForJobInput = {
   name: string;
   userId: string;
   companyId?: string | null;
   website?: string | null;
-  /** Manual, parsed, or profile logo URL — stored after basic validation. */
+  /** Manual, parsed, or portal logo URL — stored after basic validation. */
   logo?: string | null;
   /**
    * Optional employer-profile industry only.
    * Do NOT pass the job posting's industry — agencies/gov advertise across sectors.
    */
   industry?: string | null;
+  /** Portal / employer about blurb — only fills empty companies.description. */
+  description?: string | null;
+  /** HQ or operating location from the portal company tab. */
+  location?: string | null;
+  /** Headcount band from the portal (e.g. "1-10 people"). */
+  size?: string | null;
 };
 
 export type EnsureCompanyForJobResult = {
@@ -54,7 +66,14 @@ type CompanyRow = {
   name: string;
   logo: string | null;
   website: string | null;
+  description: string | null;
+  location: string | null;
+  size: string | null;
+  industry: string | null;
 };
+
+const COMPANY_SELECT =
+  'id, name, logo, website, description, location, size, industry';
 
 async function findCompanyByExactName(
   supabase: SupabaseClient,
@@ -66,7 +85,7 @@ async function findCompanyByExactName(
   // Case-insensitive exact match (DB unique index is LOWER(name))
   const { data } = await supabase
     .from('companies')
-    .select('id, name, logo, website')
+    .select(COMPANY_SELECT)
     .ilike('name', trimmed)
     .limit(5);
 
@@ -95,7 +114,7 @@ async function findCompanyByIdentity(
 
   const { data, error } = await supabase
     .from('companies')
-    .select('id, name, logo, website')
+    .select(COMPANY_SELECT)
     .ilike('name', `%${token}%`)
     .limit(100);
 
@@ -121,7 +140,7 @@ async function findCompany(
   if (input.companyId) {
     const { data } = await supabase
       .from('companies')
-      .select('id, name, logo, website')
+      .select(COMPANY_SELECT)
       .eq('id', input.companyId)
       .maybeSingle();
     if (data) return data;
@@ -136,34 +155,77 @@ async function findCompany(
   return findCompanyByIdentity(supabase, name);
 }
 
+function profileFieldsFromInput(input: EnsureCompanyForJobInput): {
+  website: string | null;
+  logo: string | null;
+  industry: string | null;
+  description: string | null;
+  location: string | null;
+  size: string | null;
+} {
+  const website =
+    sanitizeEmployerWebsite(input.website) ||
+    buildCompanyLogoEnrichment({
+      name: input.name.trim(),
+      website: input.website,
+      logo: input.logo,
+    }).website ||
+    null;
+  const logo = isUsableLogoUrl(input.logo) ? input.logo!.trim() : null;
+  const industry =
+    input.industry?.trim() ||
+    inferCompanyIndustry(input.name.trim(), website) ||
+    null;
+  return {
+    website,
+    logo,
+    industry,
+    description: cleanJobBoardCompanyDescription(input.description),
+    location: input.location?.trim() || null,
+    size: input.size?.trim() || null,
+  };
+}
+
+/** Only fill empty columns — never clobber employer-edited profile data. */
+function emptyProfilePatch(
+  company: CompanyRow,
+  input: EnsureCompanyForJobInput,
+): Record<string, string> {
+  const fields = profileFieldsFromInput({ ...input, name: company.name });
+  const patch: Record<string, string> = {};
+
+  if (!company.website && fields.website) patch.website = fields.website;
+  if (!isUsableLogoUrl(company.logo) && fields.logo) patch.logo = fields.logo;
+  if (!company.description?.trim() && fields.description) {
+    patch.description = fields.description;
+  }
+  if (!company.location?.trim() && fields.location) patch.location = fields.location;
+  if (!company.size?.trim() && fields.size) patch.size = fields.size;
+  if (!company.industry?.trim() && fields.industry) patch.industry = fields.industry;
+
+  return patch;
+}
+
 async function createCompany(
   supabase: SupabaseClient,
   input: EnsureCompanyForJobInput,
 ): Promise<CompanyRow | null> {
   const name = input.name.trim();
-  const enrichment = buildCompanyLogoEnrichment({
-    name,
-    website: input.website,
-    logo: input.logo,
-  });
-  const website = input.website?.trim() || enrichment.website || null;
-  const logo = isUsableLogoUrl(input.logo) ? input.logo!.trim() : null;
-  // Prefer explicit profile industry, else infer from employer identity — never from the job role.
-  const industry =
-    input.industry?.trim() ||
-    inferCompanyIndustry(name, website) ||
-    null;
+  const fields = profileFieldsFromInput(input);
 
   const { data, error } = await supabase
     .from('companies')
     .insert({
       name,
       user_id: input.userId,
-      website,
-      logo,
-      industry,
+      website: fields.website,
+      logo: fields.logo,
+      industry: fields.industry,
+      description: fields.description,
+      location: fields.location,
+      size: fields.size,
     })
-    .select('id, name, logo, website')
+    .select(COMPANY_SELECT)
     .single();
 
   if (!error && data) return data;
@@ -176,7 +238,7 @@ async function createCompany(
 }
 
 /**
- * Look up or create the company, then ensure logo/website are populated when possible.
+ * Look up or create the company, then ensure logo/website/profile are populated when possible.
  */
 export async function ensureCompanyForJob(
   supabase: SupabaseClient,
@@ -207,15 +269,15 @@ export async function ensureCompanyForJob(
     };
   }
 
+  // Fill any empty profile fields from the portal payload (even when logo exists)
+  const profilePatch = emptyProfilePatch(company, input);
+  if (Object.keys(profilePatch).length > 0) {
+    await supabase.from('companies').update(profilePatch).eq('id', company.id);
+    company = { ...company, ...profilePatch };
+  }
+
   // ── Fast path: logo already on the company — reuse for this and future jobs ─
   if (isUsableLogoUrl(company.logo)) {
-    if (!company.website) {
-      const website = input.website?.trim() || resolveCompanyWebsite(company.name, null);
-      if (website) {
-        await supabase.from('companies').update({ website }).eq('id', company.id);
-        company = { ...company, website };
-      }
-    }
     return {
       companyId: company.id,
       logo: company.logo,
@@ -230,14 +292,14 @@ export async function ensureCompanyForJob(
 
   if (!company.website) {
     const website =
-      input.website?.trim() ||
+      sanitizeEmployerWebsite(input.website) ||
       resolveCompanyWebsite(company.name, null) ||
       buildCompanyLogoEnrichment({ name: company.name }).website ||
       null;
     if (website) patch.website = website;
   }
 
-  // Prefer explicit manual / parsed / profile logo
+  // Prefer explicit manual / parsed / portal logo
   if (isUsableLogoUrl(input.logo)) {
     patch.logo = input.logo!.trim();
   } else {

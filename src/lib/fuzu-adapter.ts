@@ -3,8 +3,12 @@
  *
  * Discovers listing URLs from /kenya/job pages (ItemList JSON-LD + hrefs)
  * and parses schema.org JobPosting JSON-LD on each /kenya/jobs/{slug}
- * detail page. Recruiter apply emails are not in JSON-LD — they come from
- * GET /api/v1/browse/jobs/{id}/recruiter_information (client-rendered UI).
+ * detail page.
+ *
+ * - Company-tab data (logo, about, website, size) from
+ *   GET /api/v1/browse/companies/{id|slug}
+ * - Recruiter apply emails from
+ *   GET /api/v1/browse/jobs/{id}/recruiter_information
  *
  * Source config in scraper_sources.selectors:
  * {
@@ -18,6 +22,12 @@
 import { generateContentHash, NormalizedJob } from './scraper'
 import { resolveJobBoardApplication } from './jobBoardApply'
 import { extractApplicationDeadline } from './scraperDeadline'
+import {
+  JobBoardCompanyProfile,
+  cleanJobBoardCompanyDescription,
+  preferFullFuzuLogo,
+  sanitizeEmployerWebsite,
+} from './jobBoardCompany'
 
 const DEFAULT_BASE = 'https://www.fuzu.com'
 const LISTING_PATH = '/kenya/job'
@@ -57,6 +67,8 @@ export interface FuzuJobDetail {
   applyLink: string | null
   applicationUrl: string | null
   fuzuJobId: string | null
+  companyId: string | null
+  companySlug: string | null
   companyLogo: string | null
 }
 
@@ -93,6 +105,26 @@ async function fetchPageHtml(url: string): Promise<string> {
   }
 
   return response.text()
+}
+
+function unescapeJsonString(value: string): string {
+  return value.replace(/\\u002F/g, '/').replace(/\\\//g, '/').replace(/\\"/g, '"').trim()
+}
+
+/** Pull company id/slug/logo from the job-page bootstrap (not always in JSON-LD). */
+export function extractFuzuCompanyRef(html: string): {
+  companyId: string | null
+  companySlug: string | null
+  companyLogo: string | null
+} {
+  const companyId = html.match(/"company_id"\s*:\s*(\d+)/)?.[1] || null
+  const slugRaw = html.match(/"company_slug"\s*:\s*"([^"]*)"/)?.[1]
+  const companySlug = slugRaw ? unescapeJsonString(slugRaw) || null : null
+  const logoRaw = html.match(/"company_logo"\s*:\s*"([^"]*)"/)?.[1]
+  const companyLogo = logoRaw
+    ? preferFullFuzuLogo(unescapeJsonString(logoRaw))
+    : null
+  return { companyId, companySlug, companyLogo }
 }
 
 function normalizeEmployerEmail(value: unknown): string | null {
@@ -165,6 +197,74 @@ function extractBootstrapExternalEmail(html: string): string | null {
   const match = html.match(/"external_email_address"\s*:\s*"([^"]*)"/)
   if (!match?.[1]) return null
   return normalizeEmployerEmail(unescapeJsonString(match[1]))
+}
+
+/**
+ * Fuzu company tab — public browse API (same data as /company/{slug}).
+ * Accepts numeric id or slug.
+ */
+export async function fetchFuzuCompanyProfile(
+  companyIdOrSlug: string,
+  origin = DEFAULT_BASE
+): Promise<JobBoardCompanyProfile | null> {
+  const key = String(companyIdOrSlug || '').trim()
+  if (!key) return null
+
+  const url = `${origin.replace(/\/$/, '')}/api/v1/browse/companies/${encodeURIComponent(key)}`
+  try {
+    const response = await fetch(url, {
+      headers: {
+        Accept: 'application/json',
+        'User-Agent': 'Mozilla/5.0 (compatible; careersasa-scraper/1.0)',
+        'Accept-Language': 'en-KE,en;q=0.9',
+      },
+      signal: withTimeout(15000),
+    })
+    if (!response.ok) return null
+    const payload = (await response.json()) as {
+      company?: {
+        id?: number | string
+        name?: string
+        slug?: string
+        path?: string
+        logo?: string | null
+        website?: string | null
+        description?: string | null
+        location?: string | null
+        jobs_locations?: string[] | null
+        employer_size?: { name?: string } | null
+        industries?: Array<{ name?: string }> | null
+      }
+    }
+    const company = payload.company
+    if (!company?.name?.trim()) return null
+
+    const industry = company.industries?.find(i => i?.name?.trim())?.name?.trim() || null
+    const size = company.employer_size?.name?.trim() || null
+    const location =
+      (Array.isArray(company.jobs_locations) && company.jobs_locations[0]?.trim()) ||
+      company.location?.trim() ||
+      null
+
+    return {
+      name: company.name.trim(),
+      logo: preferFullFuzuLogo(company.logo || null),
+      website: sanitizeEmployerWebsite(company.website || null),
+      description: cleanJobBoardCompanyDescription(company.description),
+      location,
+      size,
+      industry,
+      source: 'fuzu',
+      sourceUrl: company.path
+        ? `${origin.replace(/\/$/, '')}${company.path}`
+        : company.slug
+          ? `${origin.replace(/\/$/, '')}/company/${company.slug}`
+          : null,
+      externalId: company.id != null ? String(company.id) : key,
+    }
+  } catch {
+    return null
+  }
 }
 
 /** Fuzu pagination is 0-indexed (`?page=0`, `?page=1`, …). */
@@ -292,10 +392,6 @@ function isoDateOnly(value: unknown): string | null {
   if (typeof value !== 'string' || !value.trim()) return null
   const m = value.trim().match(/^(\d{4}-\d{2}-\d{2})/)
   return m ? m[1] : null
-}
-
-function unescapeJsonString(value: string): string {
-  return value.replace(/\\u002F/g, '/').replace(/\\\//g, '/').replace(/\\"/g, '"').trim()
 }
 
 const KENYAN_COUNTIES = [
@@ -457,6 +553,7 @@ export function parseFuzuJobHtml(
 
   const externalMatch = html.match(/"external_url"\s*:\s*"([^"]*)"/)
   const externalUrl = externalMatch?.[1] ? unescapeJsonString(externalMatch[1]) || null : null
+  const companyRef = extractFuzuCompanyRef(html)
   const recruiterEmail =
     normalizeEmployerEmail(options?.recruiterEmail) || extractBootstrapExternalEmail(html)
 
@@ -474,9 +571,11 @@ export function parseFuzuJobHtml(
   const applicationDeadline = fromDescription || fromValidThrough
 
   const logo =
-    typeof org.logo === 'string' && org.logo.trim() && !/fuzu\.com\/static/i.test(org.logo)
-      ? org.logo.trim()
-      : null
+    preferFullFuzuLogo(
+      typeof org.logo === 'string' && org.logo.trim() && !/fuzu\.com\/static/i.test(org.logo)
+        ? org.logo.trim()
+        : null
+    ) || companyRef.companyLogo
 
   const detail: FuzuJobDetail = {
     jobUrl,
@@ -504,6 +603,8 @@ export function parseFuzuJobHtml(
     applyLink: apply.apply_link,
     applicationUrl: apply.application_url,
     fuzuJobId: identifier.value != null ? String(identifier.value) : null,
+    companyId: companyRef.companyId,
+    companySlug: companyRef.companySlug,
     companyLogo: logo,
   }
 
@@ -518,6 +619,37 @@ export async function fetchFuzuJobDetails(jobUrl: string): Promise<FuzuJobDetail
   const origin = originFromBaseUrl(jobUrl)
   const recruiterEmail = await fetchFuzuRecruiterEmail(parsed.fuzuJobId, origin)
   return applyFuzuRecruiterEmail(parsed, recruiterEmail)
+}
+
+/** Resolve portal company-tab profile for a parsed Fuzu job. */
+export async function resolveFuzuCompanyProfile(
+  detail: FuzuJobDetail,
+  origin = DEFAULT_BASE
+): Promise<JobBoardCompanyProfile | null> {
+  const key = detail.companyId || detail.companySlug
+  if (!key) return null
+  const profile = await fetchFuzuCompanyProfile(key, origin)
+  if (!profile) {
+    // Fall back to whatever we already scraped from the job page
+    if (!detail.companyLogo) return null
+    return {
+      name: detail.company,
+      logo: detail.companyLogo,
+      website: null,
+      description: null,
+      location: null,
+      size: null,
+      industry: detail.industry,
+      source: 'fuzu',
+      sourceUrl: detail.companySlug
+        ? `${origin.replace(/\/$/, '')}/company/${detail.companySlug}`
+        : null,
+      externalId: detail.companyId,
+    }
+  }
+  // Prefer job-page full logo if API returned nothing
+  if (!profile.logo && detail.companyLogo) profile.logo = detail.companyLogo
+  return profile
 }
 
 export function normalizeFuzuJob(detail: FuzuJobDetail): NormalizedJob {

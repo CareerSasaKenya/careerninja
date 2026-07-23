@@ -4,6 +4,7 @@ import {
   extractMyJobMagMethodOfApplicationHtml,
   isMyJobMagJobNotFound,
   normalizeMyJobMagJob,
+  parseMyJobMagCompanyHtml,
   parseMyJobMagJobHtml,
   resolveMyJobMagLocation,
   sanitizeJsonLdText,
@@ -181,10 +182,45 @@ const htmlDetail = parseMyJobMagJobHtml(
 )
 assert.equal(htmlDetail.title, 'Finance Officer')
 assert.equal(htmlDetail.company, 'Acme Kenya')
+assert.equal(htmlDetail.companySlug, 'acme-kenya')
 assert.ok(htmlDetail.location.includes('Mombasa'))
 assert.equal(htmlDetail.employmentType, 'CONTRACTOR')
 assert.equal(htmlDetail.applyEmail, 'hr@acme.co.ke')
 assert.ok(htmlDetail.descriptionHtml.includes('Manage books'))
+
+// Company tab LocalBusiness JSON-LD
+const companyTabHtml = `
+<html><head><title>Glantix Jobs in Kenya | MyJobMag</title></head><body>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "image": ["https://www.myjobmag.co.ke/company_logo/86/35570glantix.png"],
+  "name": "Glantix",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Moi Avenue Bihi Towers, Nairobi, Kenya"
+  },
+  "url": "https://glantix.co.ke/",
+  "telephone": "(+254)0700 000736"
+}
+</script>
+<img alt="Glantix logo" src="/company_logo/86/35570glantix.png" />
+<a href="/jobs-at/glantix">Glantix</a>
+</body></html>
+`
+const companyProfile = parseMyJobMagCompanyHtml(
+  companyTabHtml,
+  'https://www.myjobmag.co.ke/jobs-at/glantix'
+)
+assert.ok(companyProfile)
+assert.equal(companyProfile!.name, 'Glantix')
+assert.equal(companyProfile!.website, 'https://glantix.co.ke/')
+assert.equal(
+  companyProfile!.logo,
+  'https://www.myjobmag.co.ke/company_logo/35570glantix.png'
+)
+assert.ok(companyProfile!.location?.includes('Nairobi'))
 
 // Method of Application CTA (outside JSON-LD) must yield employer apply URL —
 // not the MyJobMag listing.

@@ -20,6 +20,7 @@ import {
 } from './scraperJobParsing'
 import { ensureCompanyForJob } from './ensureCompanyForJob'
 import { inferCompanyIndustry } from './companyIndustryInference'
+import { companyProfileToEnsureInput, type JobBoardCompanyProfile } from './jobBoardCompany'
 import { sanitizeAdditionalInfoApplyCopy } from './applyInstructionsCopy'
 import { isMissingOrLabelOnlyQualifications } from './experienceLevelLabel'
 
@@ -238,6 +239,9 @@ export async function publishScrapedJob(
     const ensured = await ensureCompanyForJob(supabase, {
       name: dedupCompany,
       userId: scraperUserId,
+      ...companyProfileToEnsureInput(
+        (rawData as { companyProfile?: JobBoardCompanyProfile | null } | null)?.companyProfile
+      ),
     })
     const companyId = ensured.companyId
 

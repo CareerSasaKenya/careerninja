@@ -19,6 +19,12 @@ import * as cheerio from 'cheerio'
 import { generateContentHash, NormalizedJob } from './scraper'
 import { resolveJobBoardApplication, stripBoardTrackingParams } from './jobBoardApply'
 import { extractApplicationDeadline } from './scraperDeadline'
+import {
+  JobBoardCompanyProfile,
+  cleanJobBoardCompanyDescription,
+  preferFullMyJobMagLogo,
+  sanitizeEmployerWebsite,
+} from './jobBoardCompany'
 
 const DEFAULT_BASE = 'https://www.myjobmag.co.ke'
 const LISTING_PATH = '/jobs'
@@ -56,6 +62,7 @@ export interface MyJobMagJobDetail {
   applyEmail: string | null
   applyLink: string | null
   applicationUrl: string | null
+  companySlug: string | null
   companyLogo: string | null
 }
 
@@ -502,6 +509,150 @@ function companyFromHtml($: cheerio.CheerioAPI): string | null {
   return null
 }
 
+/** Slug for MyJobMag company tab `/jobs-at/{slug}`. */
+export function extractMyJobMagCompanySlug(html: string): string | null {
+  const href = html.match(/href=["']\/jobs-at\/([a-z0-9-]+)["']/i)
+  if (href?.[1]) return href[1]
+  const path = html.match(/\/jobs-at\/([a-z0-9-]+)/i)
+  return path?.[1] || null
+}
+
+function logoFromMyJobMagHtml($: cheerio.CheerioAPI, origin: string): string | null {
+  const img =
+    $('img[alt$="logo" i]').first().attr('src') ||
+    $('img[src*="/company_logo/"]').first().attr('src') ||
+    null
+  if (!img?.trim()) return null
+  if (/myjobmag-logo/i.test(img)) return null
+  const absolute = img.startsWith('http')
+    ? img.trim()
+    : `${origin.replace(/\/$/, '')}${img.startsWith('/') ? img : `/${img}`}`
+  return preferFullMyJobMagLogo(absolute)
+}
+
+/**
+ * MyJobMag company tab (`/jobs-at/{slug}`) — LocalBusiness JSON-LD + logo img.
+ */
+export function parseMyJobMagCompanyHtml(
+  html: string,
+  companyUrl: string
+): JobBoardCompanyProfile | null {
+  const origin = originFromBaseUrl(companyUrl)
+  const $ = cheerio.load(html)
+
+  let ld: Record<string, unknown> | null = null
+  const blocks = html.matchAll(
+    /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi
+  )
+  for (const block of blocks) {
+    try {
+      const payload = JSON.parse(block[1]) as Record<string, unknown> | Array<Record<string, unknown>>
+      const candidates = Array.isArray(payload) ? payload : [payload]
+      for (const node of candidates) {
+        const type = node?.['@type']
+        if (
+          type === 'LocalBusiness' ||
+          type === 'Organization' ||
+          (Array.isArray(type) &&
+            (type.includes('LocalBusiness') || type.includes('Organization')))
+        ) {
+          ld = node
+          break
+        }
+      }
+      if (ld) break
+    } catch {
+      /* ignore */
+    }
+  }
+
+  const nameFromTitle = cleanText($('title').first().text())?.replace(/\s+Jobs\b.*$/i, '').trim()
+  const name =
+    cleanText(ld?.name) ||
+    companyFromHtml($) ||
+    nameFromTitle ||
+    null
+  if (!name) return null
+
+  const address = (ld?.address as Record<string, unknown>) || {}
+  const street = cleanText(address.streetAddress)
+  const logoFromLd = Array.isArray(ld?.image)
+    ? preferFullMyJobMagLogo(String(ld?.image[0] || ''))
+    : preferFullMyJobMagLogo(typeof ld?.image === 'string' ? ld.image : null)
+  const logo = logoFromLd || logoFromMyJobMagHtml($, origin)
+  const website = sanitizeEmployerWebsite(
+    typeof ld?.url === 'string' ? ld.url : null
+  )
+
+  // Meta description is usually "Apply for jobs at X" boilerplate — skip those
+  const metaDesc =
+    $('meta[name="description"]').attr('content') ||
+    $('meta[property="og:description"]').attr('content') ||
+    null
+
+  return {
+    name,
+    logo,
+    website,
+    description: cleanJobBoardCompanyDescription(metaDesc),
+    location: street,
+    size: null,
+    industry: null,
+    source: 'myjobmag',
+    sourceUrl: companyUrl,
+    externalId: extractMyJobMagCompanySlug(html),
+  }
+}
+
+export async function fetchMyJobMagCompanyProfile(
+  slugOrUrl: string,
+  origin = DEFAULT_BASE
+): Promise<JobBoardCompanyProfile | null> {
+  const raw = String(slugOrUrl || '').trim()
+  if (!raw) return null
+
+  let url = raw
+  if (!/^https?:\/\//i.test(raw)) {
+    const slug = raw.replace(/^\/jobs-at\//i, '').replace(/^\//, '')
+    url = `${origin.replace(/\/$/, '')}/jobs-at/${slug}`
+  }
+
+  try {
+    const html = await fetchPageHtml(url)
+    return parseMyJobMagCompanyHtml(html, url)
+  } catch {
+    return null
+  }
+}
+
+export async function resolveMyJobMagCompanyProfile(
+  detail: MyJobMagJobDetail,
+  origin = DEFAULT_BASE
+): Promise<JobBoardCompanyProfile | null> {
+  if (detail.companySlug) {
+    const profile = await fetchMyJobMagCompanyProfile(detail.companySlug, origin)
+    if (profile) {
+      if (!profile.logo && detail.companyLogo) profile.logo = detail.companyLogo
+      return profile
+    }
+  }
+  if (!detail.companyLogo) return null
+  return {
+    name: detail.company,
+    logo: preferFullMyJobMagLogo(detail.companyLogo),
+    website: null,
+    description: null,
+    location: null,
+    size: null,
+    industry: detail.industry,
+    source: 'myjobmag',
+    sourceUrl: detail.companySlug
+      ? `${origin.replace(/\/$/, '')}/jobs-at/${detail.companySlug}`
+      : null,
+    externalId: detail.companySlug,
+  }
+}
+
 /** MyJobMag returns HTTP 200 with an empty shell for removed listings. */
 export function isMyJobMagJobNotFound(html: string): boolean {
   if (/<title>\s*Job Not Found\b/i.test(html)) return true
@@ -703,13 +854,21 @@ export function parseMyJobMagJobHtml(
   })
 
   const logo =
-    typeof org.logo === 'string' && org.logo.trim() && !/myjobmag\.co\.ke/i.test(org.logo)
-      ? org.logo.trim()
-      : typeof posting?.image === 'string' &&
-          posting.image.trim() &&
-          !/myjobmag\.co\.ke/i.test(posting.image)
+    preferFullMyJobMagLogo(
+      typeof org.logo === 'string' && org.logo.trim() && !/myjobmag\.co\.ke\/(?:images\/)?myjobmag/i.test(org.logo)
+        ? org.logo.trim()
+        : null
+    ) ||
+    preferFullMyJobMagLogo(
+      typeof posting?.image === 'string' &&
+        posting.image.trim() &&
+        !/myjobmag\.co\.ke\/(?:images\/)?myjobmag/i.test(posting.image)
         ? posting.image.trim()
         : null
+    ) ||
+    logoFromMyJobMagHtml($, originFromBaseUrl(jobUrl))
+
+  const companySlug = extractMyJobMagCompanySlug(html)
 
   return {
     jobUrl,
@@ -735,6 +894,7 @@ export function parseMyJobMagJobHtml(
     applyEmail: apply.apply_email,
     applyLink: apply.apply_link,
     applicationUrl: apply.application_url,
+    companySlug,
     companyLogo: logo,
   }
 }
