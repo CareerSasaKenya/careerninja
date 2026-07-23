@@ -57,8 +57,13 @@ import {
   fetchBrighterMondayJobDetails,
   normalizeBrighterMondayJob,
 } from '@/lib/brightermonday-adapter'
-import { fetchFuzuJobDetails, normalizeFuzuJob } from '@/lib/fuzu-adapter'
-import { fetchMyJobMagJobDetails, normalizeMyJobMagJob } from '@/lib/myjobmag-adapter'
+import { fetchFuzuJobDetails, normalizeFuzuJob, resolveFuzuCompanyProfile } from '@/lib/fuzu-adapter'
+import {
+  fetchMyJobMagJobDetails,
+  normalizeMyJobMagJob,
+  resolveMyJobMagCompanyProfile,
+} from '@/lib/myjobmag-adapter'
+import { companyProfileToEnsureInput, type JobBoardCompanyProfile } from '@/lib/jobBoardCompany'
 import { mapEducationLevel } from '@/lib/jobMetadataExtraction'
 import { limitTags } from '@/lib/jobParseNormalization'
 import {
@@ -107,6 +112,7 @@ export async function runScrapeProcessOne(
   const source = queueItem.scraper_sources
   const adapterType = (source.selectors as { type?: string }).type || 'html'
   const hiringCompany = resolveHiringCompany(source.name, adapterType, queueItem.partial_data)
+  let boardCompanyProfile: JobBoardCompanyProfile | null = null
 
   try {
     if (adapterType === 'psc_pdf') {
@@ -381,7 +387,8 @@ export async function runScrapeProcessOne(
     } else if (adapterType === 'fuzu') {
       const detail = await fetchFuzuJobDetails(queueItem.job_url)
       normalized = normalizeFuzuJob(detail)
-      rawData = detail
+      boardCompanyProfile = await resolveFuzuCompanyProfile(detail)
+      rawData = { ...detail, companyProfile: boardCompanyProfile }
 
       parseInput = {
         title: normalized.title,
@@ -398,7 +405,8 @@ export async function runScrapeProcessOne(
     } else if (adapterType === 'myjobmag') {
       const detail = await fetchMyJobMagJobDetails(queueItem.job_url)
       normalized = normalizeMyJobMagJob(detail)
-      rawData = detail
+      boardCompanyProfile = await resolveMyJobMagCompanyProfile(detail)
+      rawData = { ...detail, companyProfile: boardCompanyProfile }
 
       parseInput = {
         title: normalized.title,
@@ -625,9 +633,11 @@ export async function runScrapeProcessOne(
     const jobFunctionRow = jobFunctionRows[0] || null
 
     const scraperUserId = await getScraperUserId()
+    const companyFields = companyProfileToEnsureInput(boardCompanyProfile)
     const ensured = await ensureCompanyForJob(supabase, {
       name: dedupCompany,
       userId: scraperUserId,
+      ...companyFields,
     })
     const companyId = ensured.companyId
 

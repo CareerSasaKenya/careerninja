@@ -81,6 +81,25 @@ assert.equal(detail.employmentType, 'FULL_TIME')
 assert.equal(detail.minimumExperienceYears, 3)
 assert.equal(detail.fuzuJobId, '945267')
 assert.equal(detail.industry, 'Financial Services')
+assert.equal(detail.companyId, null)
+assert.equal(detail.companySlug, null)
+assert.ok(detail.companyLogo?.includes('public-s3.fuzu.com/employers/example.jpg'))
+
+// Bootstrap company refs on the job page
+const withCompanyRefHtml = sampleHtml.replace(
+  'window.__FUZU__={"external_url":""};',
+  'window.__FUZU__={"company_id":209277,"company_slug":"digital-qatalyst","company_logo":"https://public-s3.fuzu.com/employers/medium_abc.png","external_url":""};'
+)
+const withRef = parseFuzuJobHtml(
+  withCompanyRefHtml,
+  'https://www.fuzu.com/kenya/jobs/b2b-sales-executive-identify-africa'
+)
+assert.equal(withRef.companyId, '209277')
+assert.equal(withRef.companySlug, 'digital-qatalyst')
+assert.equal(
+  withRef.companyLogo,
+  'https://public-s3.fuzu.com/employers/example.jpg'
+) // JSON-LD logo wins over medium bootstrap when both present
 
 const entityHtml = sampleHtml.replace(
   '"title": "B2B Sales Executive"',
