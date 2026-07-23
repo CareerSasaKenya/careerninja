@@ -3,8 +3,12 @@
  *
  * Discovers listing URLs from /kenya/job pages (ItemList JSON-LD + hrefs)
  * and parses schema.org JobPosting JSON-LD on each /kenya/jobs/{slug}
- * detail page. Company-tab data (logo, about, website, size) comes from
- * GET /api/v1/browse/companies/{id|slug}.
+ * detail page.
+ *
+ * - Company-tab data (logo, about, website, size) from
+ *   GET /api/v1/browse/companies/{id|slug}
+ * - Recruiter apply emails from
+ *   GET /api/v1/browse/jobs/{id}/recruiter_information
  *
  * Source config in scraper_sources.selectors:
  * {
@@ -121,6 +125,78 @@ export function extractFuzuCompanyRef(html: string): {
     ? preferFullFuzuLogo(unescapeJsonString(logoRaw))
     : null
   return { companyId, companySlug, companyLogo }
+}
+
+function normalizeEmployerEmail(value: unknown): string | null {
+  if (typeof value !== 'string') return null
+  const email = value.trim().toLowerCase()
+  if (!email || !email.includes('@')) return null
+  // Never treat Fuzu's own addresses as the employer apply target
+  const domain = email.split('@')[1] || ''
+  if (domain === 'fuzu.com' || domain.endsWith('.fuzu.com')) return null
+  return email
+}
+
+/**
+ * Fuzu hides recruiter emails from SSR/JSON-LD and loads them via this
+ * public browse API (powers "Contact our recruiter" on the job page).
+ */
+export async function fetchFuzuRecruiterEmail(
+  fuzuJobId: string,
+  origin = DEFAULT_BASE
+): Promise<string | null> {
+  const id = String(fuzuJobId || '').trim()
+  if (!id) return null
+
+  const url = `${origin.replace(/\/$/, '')}/api/v1/browse/jobs/${encodeURIComponent(id)}/recruiter_information`
+  try {
+    const response = await fetch(url, {
+      headers: {
+        Accept: 'application/json',
+        'User-Agent': 'Mozilla/5.0 (compatible; careersasa-scraper/1.0)',
+        'Accept-Language': 'en-KE,en;q=0.9',
+      },
+      signal: withTimeout(15000),
+    })
+    if (!response.ok) return null
+    const data = (await response.json()) as { recruiter_email?: unknown }
+    return normalizeEmployerEmail(data.recruiter_email)
+  } catch {
+    return null
+  }
+}
+
+/** Prefer recruiter email over falling back to the Fuzu listing URL. */
+export function applyFuzuRecruiterEmail(
+  detail: FuzuJobDetail,
+  recruiterEmail: string | null | undefined
+): FuzuJobDetail {
+  const email = normalizeEmployerEmail(recruiterEmail) || detail.applyEmail
+  if (!email) return detail
+
+  const usedBoardFallback =
+    !detail.applyLink &&
+    (!detail.applicationUrl || detail.applicationUrl === detail.jobUrl)
+
+  if (usedBoardFallback) {
+    return {
+      ...detail,
+      applyEmail: email,
+      applyLink: null,
+      applicationUrl: null,
+    }
+  }
+
+  return {
+    ...detail,
+    applyEmail: email,
+  }
+}
+
+function extractBootstrapExternalEmail(html: string): string | null {
+  const match = html.match(/"external_email_address"\s*:\s*"([^"]*)"/)
+  if (!match?.[1]) return null
+  return normalizeEmployerEmail(unescapeJsonString(match[1]))
 }
 
 /**
@@ -413,7 +489,11 @@ export function resolveFuzuLocation(input: {
   return { display, city: city || '', county: county || '' }
 }
 
-export function parseFuzuJobHtml(html: string, jobUrl: string): FuzuJobDetail {
+export function parseFuzuJobHtml(
+  html: string,
+  jobUrl: string,
+  options?: { recruiterEmail?: string | null }
+): FuzuJobDetail {
   // Prefer the JobPosting block when multiple LD scripts exist
   let posting: Record<string, unknown> | null = null
   let sawLd = false
@@ -474,6 +554,8 @@ export function parseFuzuJobHtml(html: string, jobUrl: string): FuzuJobDetail {
   const externalMatch = html.match(/"external_url"\s*:\s*"([^"]*)"/)
   const externalUrl = externalMatch?.[1] ? unescapeJsonString(externalMatch[1]) || null : null
   const companyRef = extractFuzuCompanyRef(html)
+  const recruiterEmail =
+    normalizeEmployerEmail(options?.recruiterEmail) || extractBootstrapExternalEmail(html)
 
   const apply = resolveJobBoardApplication({
     boardJobUrl: jobUrl,
@@ -495,7 +577,7 @@ export function parseFuzuJobHtml(html: string, jobUrl: string): FuzuJobDetail {
         : null
     ) || companyRef.companyLogo
 
-  return {
+  const detail: FuzuJobDetail = {
     jobUrl,
     title: cleanText(posting.title) || 'Untitled Position',
     company,
@@ -525,11 +607,18 @@ export function parseFuzuJobHtml(html: string, jobUrl: string): FuzuJobDetail {
     companySlug: companyRef.companySlug,
     companyLogo: logo,
   }
+
+  return applyFuzuRecruiterEmail(detail, recruiterEmail)
 }
 
 export async function fetchFuzuJobDetails(jobUrl: string): Promise<FuzuJobDetail> {
   const html = await fetchPageHtml(jobUrl)
-  return parseFuzuJobHtml(html, jobUrl)
+  const parsed = parseFuzuJobHtml(html, jobUrl)
+  if (!parsed.fuzuJobId || parsed.applyEmail) return parsed
+
+  const origin = originFromBaseUrl(jobUrl)
+  const recruiterEmail = await fetchFuzuRecruiterEmail(parsed.fuzuJobId, origin)
+  return applyFuzuRecruiterEmail(parsed, recruiterEmail)
 }
 
 /** Resolve portal company-tab profile for a parsed Fuzu job. */

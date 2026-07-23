@@ -134,6 +134,31 @@ assert.equal(emailed.applicationUrl, null)
 assert.equal(emailed.applyLink, null)
 assert.equal(emailed.applicationDeadline, '2026-07-25')
 
+// Recruiter email from Fuzu browse API (not in JSON-LD description) beats board URL fallback
+const withRecruiter = parseFuzuJobHtml(
+  sampleHtml,
+  'https://www.fuzu.com/kenya/jobs/b2b-sales-executive-identify-africa',
+  { recruiterEmail: 'hr@digitalqatalyst.com' }
+)
+assert.equal(withRecruiter.applyEmail, 'hr@digitalqatalyst.com')
+assert.equal(withRecruiter.applicationUrl, null)
+assert.equal(withRecruiter.applyLink, null)
+const recruiterNormalized = normalizeFuzuJob(withRecruiter)
+assert.equal(recruiterNormalized.apply_email, 'hr@digitalqatalyst.com')
+assert.equal(recruiterNormalized.application_url, '')
+
+// Bootstrap external_email_address when present
+const bootstrapEmailHtml = sampleHtml.replace(
+  'window.__FUZU__={"external_url":""};',
+  'window.__FUZU__={"external_fields":{"external_email_address":"talent@example.co.ke","external_url":""}};'
+)
+const bootstrapped = parseFuzuJobHtml(
+  bootstrapEmailHtml,
+  'https://www.fuzu.com/kenya/jobs/b2b-sales-executive-identify-africa'
+)
+assert.equal(bootstrapped.applyEmail, 'talent@example.co.ke')
+assert.equal(bootstrapped.applicationUrl, null)
+
 // When description has no deadline, use Fuzu validThrough
 const noDeadlineHtml = sampleHtml.replace(
   '<p>Deadline: 25th July 2026</p>',
