@@ -39,17 +39,11 @@ export function hasBrokenJobBoardRelativeLinks(html: string | null | undefined):
   return /<a\b[^>]*\bhref\s*=\s*["']\/(?:apply-now|jobs-at|job)\//i.test(html)
 }
 
-function rewriteMyJobMagStoredHtml(
-  html: string | null | undefined,
-  employerApplyUrl: string | null
-): string | null {
+function rewriteMyJobMagStoredHtml(html: string | null | undefined): string | null {
   if (!html?.trim()) return html ?? null
-  const needsRewrite =
-    hasBrokenJobBoardRelativeLinks(html) ||
-    (Boolean(employerApplyUrl) && /myjobmag\.co\.ke\/apply-now\//i.test(html))
-  if (!needsRewrite) return html
+  if (!hasBrokenJobBoardRelativeLinks(html)) return html
+  // Absolutize relative /apply-now/ only — do not inject apply_link heuristics.
   return rewriteJobBoardDescriptionLinks(html, {
-    employerApplyUrl,
     boardOrigin: MYJOBMAG_ORIGIN,
     boardHosts: MYJOBMAG_HOSTS,
   })
@@ -268,14 +262,7 @@ export async function runFixMyJobMagPublishedJobs(
         detail = await fetchMyJobMagJobDetails(jobUrl)
         normalized = normalizeMyJobMagJob(detail)
       } catch (fetchErr) {
-        // Live listing gone — still try an in-place description rewrite using
-        // the stored employer apply URL when relative /apply-now/ remains.
-        const storedEmployer =
-          normStr(job.apply_link) ||
-          (normStr(job.application_url) &&
-          !/myjobmag\.co\.ke/i.test(String(job.application_url))
-            ? normStr(job.application_url)
-            : null)
+        // Live listing gone — absolutize any remaining relative /apply-now/ anchors.
         const htmlFields = [
           'description',
           'additional_info',
@@ -285,7 +272,7 @@ export async function runFixMyJobMagPublishedJobs(
         const offlinePatch: Record<string, unknown> = {}
         for (const field of htmlFields) {
           const current = asHtmlString((job as Record<string, unknown>)[field])
-          const fixed = rewriteMyJobMagStoredHtml(current, storedEmployer)
+          const fixed = rewriteMyJobMagStoredHtml(current)
           if (fixed != null && fixed !== current) {
             offlinePatch[field] = fixed
           }
@@ -337,9 +324,6 @@ export async function runFixMyJobMagPublishedJobs(
       // Prefer employer URL; email-only leaves application_url null;
       // only fall back to the MyJobMag listing when no employer method exists.
       const applicationUrl = employerAppUrl || (applyEmail ? null : jobUrl)
-      const employerForRewrite =
-        applyLink ||
-        (employerAppUrl && !/myjobmag\.co\.ke/i.test(employerAppUrl) ? employerAppUrl : null)
 
       const validThrough = deadline.validThrough
       const expiresAt = expiresAtFromValidThrough(validThrough)
@@ -364,13 +348,28 @@ export async function runFixMyJobMagPublishedJobs(
         expires_at: expiresAt,
       }
 
+      // Prefer the exact apply-now redirect embedded in freshly fetched
+      // descriptionHtml; otherwise only absolutize relative /apply-now/.
+      const ctaHref =
+        detail.descriptionHtml.match(
+          /Interested and qualified[\s\S]*?<a\b[^>]*\bhref=["']([^"']+)["']/i
+        )?.[1] || null
+
       for (const field of htmlFields) {
         const current =
           field === 'description'
             ? asHtmlString(job.description) || normalized.description
             : asHtmlString((job as Record<string, unknown>)[field])
-        const fixed = rewriteMyJobMagStoredHtml(current, employerForRewrite)
-        if (fixed != null && fixed !== asHtmlString((job as Record<string, unknown>)[field])) {
+        if (!current) continue
+        let fixed = current
+        if (ctaHref && /Interested and qualified/i.test(current) && /\/apply-now\//i.test(current)) {
+          fixed = current.replace(
+            /(<a\b[^>]*\bhref=["'])(\/apply-now\/\d+|https?:\/\/(?:www\.)?myjobmag\.co\.ke\/apply-now\/\d+)(["'])/gi,
+            `$1${ctaHref}$3`
+          )
+        }
+        fixed = rewriteMyJobMagStoredHtml(fixed) || fixed
+        if (fixed !== asHtmlString((job as Record<string, unknown>)[field])) {
           patch[field] = fixed
         }
       }
