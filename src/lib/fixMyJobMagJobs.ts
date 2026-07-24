@@ -19,6 +19,20 @@ export const MYJOBMAG_SOURCE_ID = 'myjobmag-kenya'
 const MYJOBMAG_ORIGIN = 'https://www.myjobmag.co.ke'
 const MYJOBMAG_HOSTS = ['myjobmag.co.ke']
 
+function asHtmlString(value: unknown): string | null {
+  if (value == null) return null
+  if (typeof value === 'string') return value
+  if (typeof value === 'object') {
+    // jsonb HTML sometimes stored as a JSON string value
+    try {
+      return String(value)
+    } catch {
+      return null
+    }
+  }
+  return String(value)
+}
+
 /** True when HTML still has CareerSasa-breaking board-relative anchors. */
 export function hasBrokenJobBoardRelativeLinks(html: string | null | undefined): boolean {
   if (!html) return false
@@ -39,6 +53,18 @@ function rewriteMyJobMagStoredHtml(
     boardOrigin: MYJOBMAG_ORIGIN,
     boardHosts: MYJOBMAG_HOSTS,
   })
+}
+
+function jobHasBrokenBoardLinks(job: Record<string, unknown>): boolean {
+  for (const field of [
+    'description',
+    'additional_info',
+    'responsibilities',
+    'required_qualifications',
+  ]) {
+    if (hasBrokenJobBoardRelativeLinks(asHtmlString(job[field]))) return true
+  }
+  return false
 }
 
 export interface FixMyJobMagJobResult {
@@ -201,7 +227,7 @@ export async function runFixMyJobMagPublishedJobs(
       const { data: job, error: jobErr } = await supabase
         .from('jobs')
         .select(
-          'id, title, company, location, job_location_city, job_location_county, job_location_country, application_url, apply_link, apply_email, valid_through, expires_at, date_posted, created_at, hiring_organization_name, description, additional_info'
+          'id, title, company, location, job_location_city, job_location_county, job_location_country, application_url, apply_link, apply_email, valid_through, expires_at, date_posted, created_at, hiring_organization_name, description, additional_info, responsibilities, required_qualifications'
         )
         .eq('id', jobId)
         .maybeSingle()
@@ -220,11 +246,9 @@ export async function runFixMyJobMagPublishedJobs(
         const app = `${job.application_url || ''} ${job.apply_link || ''}`
         const stillBoard = /myjobmag\.co\.ke/i.test(app)
         const hasEmail = Boolean(normStr(job.apply_email))
-        const brokenDesc =
-          hasBrokenJobBoardRelativeLinks(job.description as string) ||
-          hasBrokenJobBoardRelativeLinks(job.additional_info as string)
+        const brokenDesc = jobHasBrokenBoardLinks(job as Record<string, unknown>)
         // Also fix email-only posts that wrongly still have a board application_url,
-        // board-URL posts that need an employer method, and descriptions with
+        // board-URL posts that need an employer method, and HTML fields with
         // relative /apply-now/ anchors that 404 on CareerSasa.
         if (!stillBoard && hasEmail && !brokenDesc) {
           unchanged++
@@ -252,20 +276,19 @@ export async function runFixMyJobMagPublishedJobs(
           !/myjobmag\.co\.ke/i.test(String(job.application_url))
             ? normStr(job.application_url)
             : null)
-        const fixedDesc = rewriteMyJobMagStoredHtml(
-          job.description as string,
-          storedEmployer
-        )
-        const fixedInfo = rewriteMyJobMagStoredHtml(
-          job.additional_info as string,
-          storedEmployer
-        )
+        const htmlFields = [
+          'description',
+          'additional_info',
+          'responsibilities',
+          'required_qualifications',
+        ] as const
         const offlinePatch: Record<string, unknown> = {}
-        if (fixedDesc && fixedDesc !== job.description) {
-          offlinePatch.description = fixedDesc
-        }
-        if (fixedInfo && fixedInfo !== job.additional_info) {
-          offlinePatch.additional_info = fixedInfo
+        for (const field of htmlFields) {
+          const current = asHtmlString((job as Record<string, unknown>)[field])
+          const fixed = rewriteMyJobMagStoredHtml(current, storedEmployer)
+          if (fixed != null && fixed !== current) {
+            offlinePatch[field] = fixed
+          }
         }
         if (Object.keys(offlinePatch).length === 0) {
           skipped++
@@ -321,14 +344,12 @@ export async function runFixMyJobMagPublishedJobs(
       const validThrough = deadline.validThrough
       const expiresAt = expiresAtFromValidThrough(validThrough)
 
-      const fixedDescription = rewriteMyJobMagStoredHtml(
-        (job.description as string) || normalized.description,
-        employerForRewrite
-      )
-      const fixedAdditionalInfo = rewriteMyJobMagStoredHtml(
-        job.additional_info as string,
-        employerForRewrite
-      )
+      const htmlFields = [
+        'description',
+        'additional_info',
+        'responsibilities',
+        'required_qualifications',
+      ] as const
 
       const patch: Record<string, unknown> = {
         location: normalized.location || job.location || 'Kenya',
@@ -343,14 +364,15 @@ export async function runFixMyJobMagPublishedJobs(
         expires_at: expiresAt,
       }
 
-      if (fixedDescription && fixedDescription !== job.description) {
-        patch.description = fixedDescription
-      }
-      if (
-        fixedAdditionalInfo != null &&
-        fixedAdditionalInfo !== (job.additional_info as string | null)
-      ) {
-        patch.additional_info = fixedAdditionalInfo
+      for (const field of htmlFields) {
+        const current =
+          field === 'description'
+            ? asHtmlString(job.description) || normalized.description
+            : asHtmlString((job as Record<string, unknown>)[field])
+        const fixed = rewriteMyJobMagStoredHtml(current, employerForRewrite)
+        if (fixed != null && fixed !== asHtmlString((job as Record<string, unknown>)[field])) {
+          patch[field] = fixed
+        }
       }
 
       if (

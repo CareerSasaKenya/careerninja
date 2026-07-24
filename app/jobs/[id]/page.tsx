@@ -27,6 +27,7 @@ import {
   MAX_JOB_TAGS,
 } from "@/lib/jobParseNormalization";
 import { getLookupOptions } from "@/lib/jobParsingOptimized";
+import { sanitizeScrapedJobHtmlForDisplay } from "@/lib/jobBoardApply";
 
 function getDisplayLabels(values: string[] | null | undefined, fallback?: string | null): string[] {
   return dedupeStrings(values?.length ? values : fallback ? [fallback] : []);
@@ -296,6 +297,32 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
   );
   const jobExpired = isJobExpired(job.valid_through);
   const hasRelatedJobs = relatedJobs && relatedJobs.length > 0;
+
+  const applyMethods = {
+    apply_link: job.apply_link,
+    application_url: job.application_url,
+  };
+  const descriptionHtml = sanitizeScrapedJobHtmlForDisplay(job.description, applyMethods);
+  const responsibilitiesHtml = sanitizeScrapedJobHtmlForDisplay(
+    job.responsibilities,
+    applyMethods
+  );
+  const qualificationsHtml = sanitizeScrapedJobHtmlForDisplay(
+    typeof job.required_qualifications === "string"
+      ? job.required_qualifications
+      : job.required_qualifications == null
+        ? null
+        : String(job.required_qualifications),
+    applyMethods
+  );
+  const softwareSkillsHtml = sanitizeScrapedJobHtmlForDisplay(
+    job.software_skills,
+    applyMethods
+  );
+  const additionalInfoHtml = sanitizeScrapedJobHtmlForDisplay(
+    job.additional_info,
+    applyMethods
+  );
   
   return (
     <>
@@ -360,10 +387,10 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                       <Briefcase className="h-5 w-5" />
                       Job Description
                     </h3>
-                    <div className="richtext-content text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: job.description }} />
+                    <div className="richtext-content text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: descriptionHtml }} />
                   </div>
 
-                  {job.responsibilities && (
+                  {responsibilitiesHtml && (
                     <>
                       <Separator />
                       <div>
@@ -371,12 +398,12 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                           <FileText className="h-5 w-5" />
                           Key Responsibilities
                         </h3>
-                        <div className="richtext-content text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: job.responsibilities }} />
+                        <div className="richtext-content text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: responsibilitiesHtml }} />
                       </div>
                     </>
                   )}
 
-                  {job.required_qualifications && (
+                  {qualificationsHtml && (
                     <>
                       <Separator />
                       <div>
@@ -384,12 +411,12 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                           <Award className="h-5 w-5" />
                           Required Qualifications
                         </h3>
-                        <div className="richtext-content text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: job.required_qualifications }} />
+                        <div className="richtext-content text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: qualificationsHtml }} />
                       </div>
                     </>
                   )}
 
-                  {job.software_skills && (
+                  {softwareSkillsHtml && (
                     <>
                       <Separator />
                       <div>
@@ -397,7 +424,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                           <Code className="h-5 w-5" />
                           Required Skills & Software
                         </h3>
-                        <div className="richtext-content text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: job.software_skills }} />
+                        <div className="richtext-content text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: softwareSkillsHtml }} />
                       </div>
                     </>
                   )}
@@ -410,13 +437,13 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
               <RoleDetails job={job} primaryJobFunction={primaryJobFunction} />
               
               {/* Additional Info Section */}
-              {job.additional_info && (
+              {additionalInfoHtml && (
                 <Card className="border-border">
                   <CardHeader className="pb-3 pt-4 sm:pb-4 sm:pt-5">
                     <CardTitle className="text-lg text-[#0A66C2]">Additional Information</CardTitle>
                   </CardHeader>
                   <CardContent className="pb-4 pt-0 sm:pb-5">
-                    <div className="richtext-content text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: job.additional_info }} />
+                    <div className="richtext-content text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: additionalInfoHtml }} />
                   </CardContent>
                 </Card>
               )}

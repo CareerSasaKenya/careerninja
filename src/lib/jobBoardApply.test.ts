@@ -5,6 +5,7 @@ import {
   isJobBoardSource,
   resolveJobBoardApplication,
   rewriteJobBoardDescriptionLinks,
+  sanitizeScrapedJobHtmlForDisplay,
 } from './jobBoardApply'
 
 const descWithEmail = `
@@ -258,5 +259,22 @@ const absBoard = rewriteJobBoardDescriptionLinks(
 )
 assert.ok(absBoard.includes('href="https://erecruitment.kra.go.ke/"'))
 assert.ok(!/apply-now/i.test(absBoard))
+
+// Display sanitizer: qualifications field with relative apply-now + employer apply URL
+const qualsWithCta = `
+<ul><li>Bachelor's degree</li></ul>
+<div class="mag-b bm-b-30">
+  Interested and qualified? Go to
+  <a target="_blank" rel="nofollow" href="/apply-now/1284192">
+    Kenya Revenue Authority (KRA) on erecruitment.kra.go.ke
+  </a> to apply
+</div>
+`
+const displaySafe = sanitizeScrapedJobHtmlForDisplay(qualsWithCta, {
+  apply_link: 'https://erecruitment.kra.go.ke/login',
+  application_url: 'https://erecruitment.kra.go.ke/login',
+})
+assert.ok(displaySafe.includes('href="https://erecruitment.kra.go.ke/login"'))
+assert.ok(!/href=["']\/apply-now\//i.test(displaySafe))
 
 console.log('jobBoardApply.test.ts: ok')
