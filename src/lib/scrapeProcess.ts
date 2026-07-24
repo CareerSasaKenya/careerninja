@@ -707,14 +707,19 @@ export async function runScrapeProcessOne(
     const jobPayload = {
       ...normalized,
       description: rewriteBoardHtml(rawDescription) || rawDescription,
-      responsibilities:
-        parsed.responsibilities || normalized.responsibilities || null,
+      responsibilities: rewriteBoardHtml(
+        parsed.responsibilities || normalized.responsibilities || null
+      ),
       required_qualifications: (() => {
         const parsedQ = parsed.required_qualifications
-        if (parsedQ && !isMissingOrLabelOnlyQualifications(parsedQ)) return parsedQ
-        const normQ = normalized.required_qualifications
-        if (normQ && !isMissingOrLabelOnlyQualifications(normQ)) return normQ
-        return null
+        const chosen =
+          parsedQ && !isMissingOrLabelOnlyQualifications(parsedQ)
+            ? parsedQ
+            : normalized.required_qualifications &&
+                !isMissingOrLabelOnlyQualifications(normalized.required_qualifications)
+              ? normalized.required_qualifications
+              : null
+        return rewriteBoardHtml(chosen)
       })(),
       additional_info: rewriteBoardHtml(rawAdditionalInfo),
       company_id: companyId,

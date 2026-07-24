@@ -504,3 +504,38 @@ export function rewriteJobBoardDescriptionLinks(
     }
   )
 }
+
+/**
+ * Display-time sanitizer for scraped job HTML fields.
+ * AI parsing often moves MyJobMag Method of Application CTAs into
+ * required_qualifications (not only description), so rewrite every rich-text
+ * field before dangerouslySetInnerHTML.
+ */
+export function sanitizeScrapedJobHtmlForDisplay(
+  html: string | null | undefined,
+  methods?: {
+    apply_link?: string | null
+    application_url?: string | null
+  }
+): string {
+  if (html == null) return ''
+  const asString = typeof html === 'string' ? html : String(html)
+  if (!asString) return ''
+  if (!/href\s*=/i.test(asString)) return asString
+
+  const candidates = [methods?.apply_link, methods?.application_url]
+    .map(v => (v || '').trim())
+    .filter(Boolean)
+  const employerApplyUrl =
+    candidates.find(url => {
+      const host = hostnameOf(url)
+      if (!host) return false
+      return !isBlockedHost(host, DEFAULT_BOARD_HOSTS)
+    }) || null
+
+  return rewriteJobBoardDescriptionLinks(asString, {
+    employerApplyUrl,
+    boardOrigin: 'https://www.myjobmag.co.ke',
+    boardHosts: DEFAULT_BOARD_HOSTS,
+  })
+}
