@@ -298,31 +298,19 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
   const jobExpired = isJobExpired(job.valid_through);
   const hasRelatedJobs = relatedJobs && relatedJobs.length > 0;
 
-  const applyMethods = {
-    apply_link: job.apply_link,
-    application_url: job.application_url,
-  };
-  const descriptionHtml = sanitizeScrapedJobHtmlForDisplay(job.description, applyMethods);
-  const responsibilitiesHtml = sanitizeScrapedJobHtmlForDisplay(
-    job.responsibilities,
-    applyMethods
-  );
+  // Only fix relative MyJobMag /apply-now/ anchors (404 on CareerSasa).
+  // Do not substitute apply_link / application_url into body HTML.
+  const descriptionHtml = sanitizeScrapedJobHtmlForDisplay(job.description);
+  const responsibilitiesHtml = sanitizeScrapedJobHtmlForDisplay(job.responsibilities);
   const qualificationsHtml = sanitizeScrapedJobHtmlForDisplay(
     typeof job.required_qualifications === "string"
       ? job.required_qualifications
       : job.required_qualifications == null
         ? null
-        : String(job.required_qualifications),
-    applyMethods
+        : String(job.required_qualifications)
   );
-  const softwareSkillsHtml = sanitizeScrapedJobHtmlForDisplay(
-    job.software_skills,
-    applyMethods
-  );
-  const additionalInfoHtml = sanitizeScrapedJobHtmlForDisplay(
-    job.additional_info,
-    applyMethods
-  );
+  const softwareSkillsHtml = sanitizeScrapedJobHtmlForDisplay(job.software_skills);
+  const additionalInfoHtml = sanitizeScrapedJobHtmlForDisplay(job.additional_info);
   
   return (
     <>

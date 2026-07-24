@@ -673,20 +673,13 @@ export async function runScrapeProcessOne(
           : adapterType === 'fuzu'
             ? 'https://www.fuzu.com'
             : null
-    const employerForDescRewrite =
-      jobBoard &&
-      (normalized.apply_link?.trim() ||
-        (employerApplicationUrl &&
-        boardHostsForRewrite.every(
-          h => !employerApplicationUrl.toLowerCase().includes(h)
-        )
-          ? employerApplicationUrl
-          : null))
 
+    // Absolutize leftover relative board anchors only. Do not inject apply_link /
+    // application_url into body HTML — MyJobMag already rewrites /apply-now/
+    // using the exact employer redirect from that link.
     const rewriteBoardHtml = (html: string | null | undefined): string | null => {
       if (!html || !boardOriginForRewrite) return html ?? null
       return rewriteJobBoardDescriptionLinks(html, {
-        employerApplyUrl: employerForDescRewrite || null,
         boardOrigin: boardOriginForRewrite,
         boardHosts: boardHostsForRewrite,
       })

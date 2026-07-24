@@ -207,7 +207,8 @@ assert.equal(
 assert.equal(boardOnly.apply_link, null)
 assert.equal(boardOnly.used_board_fallback, true)
 
-// Relative /apply-now/ must not stay site-relative (404s on CareerSasa)
+// Relative /apply-now/ must not stay site-relative (404s on CareerSasa).
+// Prefer the exact MyJobMag apply-now redirect target when known.
 const kraCta = `
 <div>Interested and qualified? Go to
   <a target="_blank" rel="nofollow" href="/apply-now/1284199">
@@ -217,13 +218,13 @@ const kraCta = `
 <a href="/jobs-at/kenya-revenue-authority-kra">More KRA jobs</a>
 `
 const kraRewritten = rewriteJobBoardDescriptionLinks(kraCta, {
-  employerApplyUrl: 'https://erecruitment.kra.go.ke/login',
+  applyNowDestinationUrl: 'https://erecruitment.kra.go.ke/login?utm_source=MyJobMag',
   boardOrigin: 'https://www.myjobmag.co.ke',
   boardHosts: ['myjobmag.co.ke'],
 })
 assert.ok(
   kraRewritten.includes('href="https://erecruitment.kra.go.ke/login"'),
-  `expected employer href, got: ${kraRewritten}`
+  `expected exact apply-now redirect target, got: ${kraRewritten}`
 )
 assert.ok(!/href=["']\/apply-now\//i.test(kraRewritten), 'relative apply-now must be gone')
 assert.ok(
@@ -234,11 +235,10 @@ assert.ok(
 )
 assert.ok(kraRewritten.includes('erecruitment.kra.go.ke'), 'anchor text preserved')
 
-// Without employer URL, absolutize apply-now to MyJobMag (redirect still works)
+// Without redirect target, absolutize apply-now to MyJobMag (original employer route)
 const absOnly = rewriteJobBoardDescriptionLinks(
   '<a href="/apply-now/99">Employer on careers.example.com</a>',
   {
-    employerApplyUrl: null,
     boardOrigin: 'https://www.myjobmag.co.ke',
     boardHosts: ['myjobmag.co.ke'],
   }
@@ -248,19 +248,7 @@ assert.equal(
   '<a href="https://www.myjobmag.co.ke/apply-now/99">Employer on careers.example.com</a>'
 )
 
-// Absolute MyJobMag apply-now also rewritten to employer
-const absBoard = rewriteJobBoardDescriptionLinks(
-  '<a href="https://www.myjobmag.co.ke/apply-now/1284199">KRA</a>',
-  {
-    employerApplyUrl: 'https://erecruitment.kra.go.ke/',
-    boardOrigin: 'https://www.myjobmag.co.ke',
-    boardHosts: ['myjobmag.co.ke'],
-  }
-)
-assert.ok(absBoard.includes('href="https://erecruitment.kra.go.ke/"'))
-assert.ok(!/apply-now/i.test(absBoard))
-
-// Display sanitizer: qualifications field with relative apply-now + employer apply URL
+// Display sanitizer must NOT inject apply_link — only absolutize relative apply-now
 const qualsWithCta = `
 <ul><li>Bachelor's degree</li></ul>
 <div class="mag-b bm-b-30">
@@ -270,11 +258,12 @@ const qualsWithCta = `
   </a> to apply
 </div>
 `
-const displaySafe = sanitizeScrapedJobHtmlForDisplay(qualsWithCta, {
-  apply_link: 'https://erecruitment.kra.go.ke/login',
-  application_url: 'https://erecruitment.kra.go.ke/login',
-})
-assert.ok(displaySafe.includes('href="https://erecruitment.kra.go.ke/login"'))
+const displaySafe = sanitizeScrapedJobHtmlForDisplay(qualsWithCta)
+assert.ok(
+  displaySafe.includes('href="https://www.myjobmag.co.ke/apply-now/1284192"'),
+  `expected absolute MyJobMag apply-now, got: ${displaySafe}`
+)
 assert.ok(!/href=["']\/apply-now\//i.test(displaySafe))
+assert.ok(!displaySafe.includes('erecruitment.kra.go.ke/login'))
 
 console.log('jobBoardApply.test.ts: ok')

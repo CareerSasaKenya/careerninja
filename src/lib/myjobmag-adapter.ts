@@ -857,25 +857,26 @@ export function parseMyJobMagJobHtml(
     boardHosts: BOARD_HOSTS,
   })
 
-  // Relative /apply-now/ (and /jobs-at/) hrefs 404 on CareerSasa when the
-  // description is rendered with dangerouslySetInnerHTML. Point apply CTAs at
-  // the employer destination; absolutize other board paths.
-  const employerForRewrite =
-    apply.apply_link ||
-    (apply.application_url && !apply.used_board_fallback ? apply.application_url : null) ||
-    (linkoutUrl && !BOARD_HOSTS.some(h => {
+  // Relative /apply-now/ hrefs 404 on CareerSasa. Use the exact employer URL
+  // from following MyJobMag's apply-now redirect when we have it (options.linkoutUrl
+  // from resolveMyJobMagApplyNowRedirect). Otherwise absolutize to
+  // myjobmag.co.ke/apply-now/{id}. Never put host-from-text or apply_link guesses
+  // into the body HTML.
+  const realApplyNowRedirect =
+    options?.linkoutUrl &&
+    !BOARD_HOSTS.some(h => {
       try {
-        const host = new URL(linkoutUrl).hostname.replace(/^www\./i, '').toLowerCase()
+        const host = new URL(options.linkoutUrl!).hostname.replace(/^www\./i, '').toLowerCase()
         return host === h || host.endsWith(`.${h}`)
       } catch {
         return false
       }
     })
-      ? linkoutUrl
-      : null)
+      ? options.linkoutUrl
+      : null
 
   descriptionHtml = rewriteJobBoardDescriptionLinks(descriptionHtml, {
-    employerApplyUrl: employerForRewrite,
+    applyNowDestinationUrl: realApplyNowRedirect,
     boardOrigin: originFromBaseUrl(jobUrl),
     boardHosts: BOARD_HOSTS,
   })

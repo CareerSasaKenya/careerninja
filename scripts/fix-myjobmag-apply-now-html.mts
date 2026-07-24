@@ -1,6 +1,7 @@
 /**
  * One-shot: rewrite relative MyJobMag /apply-now/ anchors in published job HTML
- * fields (description, responsibilities, required_qualifications, additional_info).
+ * fields. Absolutizes to https://www.myjobmag.co.ke/apply-now/{id} so the
+ * original employer redirect is preserved. Does not inject apply_link.
  *
  *   npx tsx scripts/fix-myjobmag-apply-now-html.mts
  *   npx tsx scripts/fix-myjobmag-apply-now-html.mts --apply
@@ -39,7 +40,7 @@ async function main() {
     const { data: rows, error } = await supabase
       .from('jobs')
       .select(
-        'id,title,job_slug,status,description,responsibilities,required_qualifications,additional_info,apply_link,application_url'
+        'id,title,job_slug,status,description,responsibilities,required_qualifications,additional_info'
       )
       .order('created_at', { ascending: false })
       .range(from, from + 199)
@@ -49,16 +50,12 @@ async function main() {
 
     for (const job of rows) {
       examined++
-      const methods = {
-        apply_link: job.apply_link as string | null,
-        application_url: job.application_url as string | null,
-      }
       const patch: Record<string, string> = {}
       for (const field of HTML_FIELDS) {
         const current = asHtml((job as Record<string, unknown>)[field])
         if (!current || !/href\s*=/i.test(current)) continue
         if (!/\/apply-now\//i.test(current) && !/\/jobs-at\//i.test(current)) continue
-        const fixed = sanitizeScrapedJobHtmlForDisplay(current, methods)
+        const fixed = sanitizeScrapedJobHtmlForDisplay(current)
         if (fixed && fixed !== current) patch[field] = fixed
       }
       if (Object.keys(patch).length === 0) continue

@@ -440,22 +440,28 @@ function absolutizeBoardHref(href: string, boardOrigin: string): string | null {
 }
 
 export interface RewriteJobBoardDescriptionLinksOptions {
-  /** Real employer apply destination when known (never a board listing fallback). */
+  /**
+   * Exact employer destination from following MyJobMag `/apply-now/{id}`
+   * (the Location redirect). When set, relative apply-now anchors use this URL.
+   * Do not pass CareerSasa apply_link / application_url heuristics here.
+   */
+  applyNowDestinationUrl?: string | null
+  /** @deprecated Use applyNowDestinationUrl — same meaning. */
   employerApplyUrl?: string | null
-  /** Origin used to absolutize remaining board-relative paths (e.g. https://www.myjobmag.co.ke). */
+  /** Origin used to absolutize board-relative paths (e.g. https://www.myjobmag.co.ke). */
   boardOrigin: string
   boardHosts?: string[]
 }
 
 /**
- * Rewrite board-relative anchors in scraped HTML so they do not resolve on
- * CareerSasa (e.g. href="/apply-now/123" → careersasa.co.ke/apply-now/123 → 404).
+ * Fix board-relative anchors in scraped HTML so they do not 404 on CareerSasa.
  *
- * MyJobMag "Method of Application" CTAs look like:
+ * MyJobMag CTAs look like:
  *   Go to <a href="/apply-now/1284199">KRA on erecruitment.kra.go.ke</a> to apply
  *
- * Prefer the resolved employer apply URL; otherwise absolutize against the board.
- * Other relative board paths (/jobs-at/..., /job/...) are also absolutized.
+ * Prefer the exact `/apply-now/{id}` redirect target when known; otherwise
+ * absolutize to https://www.myjobmag.co.ke/apply-now/{id} so MyJobMag still
+ * routes to the employer-provided link. Never invent a different apply URL.
  */
 export function rewriteJobBoardDescriptionLinks(
   html: string | null | undefined,
@@ -469,11 +475,12 @@ export function rewriteJobBoardDescriptionLinks(
   )
   const boardOrigin = options.boardOrigin.replace(/\/$/, '') || 'https://www.myjobmag.co.ke'
 
-  const employerRaw = options.employerApplyUrl?.trim() || null
-  const employer = employerRaw ? normalizeCandidateUrl(employerRaw) : null
-  const employerHost = employer ? hostnameOf(employer) : null
-  const employerIsExternal = Boolean(
-    employer && employerHost && !isBlockedHost(employerHost, boardHosts)
+  const destinationRaw =
+    options.applyNowDestinationUrl?.trim() || options.employerApplyUrl?.trim() || null
+  const destination = destinationRaw ? normalizeCandidateUrl(destinationRaw) : null
+  const destinationHost = destination ? hostnameOf(destination) : null
+  const destinationIsExternal = Boolean(
+    destination && destinationHost && !isBlockedHost(destinationHost, boardHosts)
   )
 
   return html.replace(
@@ -483,18 +490,30 @@ export function rewriteJobBoardDescriptionLinks(
       if (!raw) return full
 
       if (isBoardApplyNowHref(raw, boardHosts, boardOrigin)) {
-        const target = employerIsExternal
-          ? employer!
-          : absolutizeBoardHref(
-              /^https?:\/\//i.test(raw) ? raw : raw.match(/^(\/apply-now\/\d+)/i)?.[1] || raw,
-              boardOrigin
-            )
+        // Keep the original MyJobMag apply-now route unless we have its exact
+        // employer redirect target from following that same apply-now link.
+        const applyNowPath =
+          raw.match(/(\/apply-now\/\d+)/i)?.[1] ||
+          ( /^https?:\/\//i.test(raw)
+            ? (() => {
+                try {
+                  return new URL(raw).pathname.match(/(\/apply-now\/\d+)/i)?.[1] || null
+                } catch {
+                  return null
+                }
+              })()
+            : null)
+        const target = destinationIsExternal
+          ? destination!
+          : applyNowPath
+            ? absolutizeBoardHref(applyNowPath, boardOrigin)
+            : absolutizeBoardHref(raw, boardOrigin)
         if (!target || target === raw) return full
         return `<a${preAttrs}href=${quote}${target}${quote}${postAttrs}>`
       }
 
-      // Other relative board paths would also 404 on CareerSasa
-      if (raw.startsWith('/') && !raw.startsWith('//')) {
+      // Only absolutize other known MyJobMag board paths that would 404 here
+      if (/^\/(?:jobs-at|job)\//i.test(raw)) {
         const absolute = absolutizeBoardHref(raw, boardOrigin)
         if (!absolute || absolute === raw) return full
         return `<a${preAttrs}href=${quote}${absolute}${quote}${postAttrs}>`
@@ -506,36 +525,23 @@ export function rewriteJobBoardDescriptionLinks(
 }
 
 /**
- * Display-time sanitizer for scraped job HTML fields.
- * AI parsing often moves MyJobMag Method of Application CTAs into
- * required_qualifications (not only description), so rewrite every rich-text
- * field before dangerouslySetInnerHTML.
+ * Display-time fix for scraped job HTML: rewrite relative MyJobMag `/apply-now/`
+ * anchors to absolute MyJobMag URLs so they keep the original employer redirect.
+ * Does not substitute CareerSasa apply_link / application_url.
  */
 export function sanitizeScrapedJobHtmlForDisplay(
-  html: string | null | undefined,
-  methods?: {
-    apply_link?: string | null
-    application_url?: string | null
-  }
+  html: string | null | undefined
 ): string {
   if (html == null) return ''
   const asString = typeof html === 'string' ? html : String(html)
   if (!asString) return ''
   if (!/href\s*=/i.test(asString)) return asString
-
-  const candidates = [methods?.apply_link, methods?.application_url]
-    .map(v => (v || '').trim())
-    .filter(Boolean)
-  const employerApplyUrl =
-    candidates.find(url => {
-      const host = hostnameOf(url)
-      if (!host) return false
-      return !isBlockedHost(host, DEFAULT_BOARD_HOSTS)
-    }) || null
+  if (!/\/apply-now\//i.test(asString) && !/\/(?:jobs-at|job)\//i.test(asString)) {
+    return asString
+  }
 
   return rewriteJobBoardDescriptionLinks(asString, {
-    employerApplyUrl,
     boardOrigin: 'https://www.myjobmag.co.ke',
-    boardHosts: DEFAULT_BOARD_HOSTS,
+    boardHosts: ['myjobmag.co.ke'],
   })
 }

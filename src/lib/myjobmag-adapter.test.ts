@@ -297,9 +297,10 @@ assert.ok(psckFallbackHost.applicationUrl?.includes('pscims.publicservice.go.ke'
 assert.ok(!/myjobmag\.co\.ke\/job\//i.test(psckFallbackHost.applicationUrl || ''))
 assert.ok(!/href=["']\/apply-now\//i.test(psckFallbackHost.descriptionHtml))
 assert.ok(
-  /href=["']https:\/\/pscims\.publicservice\.go\.ke\/["']/i.test(
+  /href=["']https:\/\/www\.myjobmag\.co\.ke\/apply-now\/1284822["']/i.test(
     psckFallbackHost.descriptionHtml
-  )
+  ),
+  `without real redirect, keep absolute MyJobMag apply-now, got: ${psckFallbackHost.descriptionHtml}`
 )
 
 // KRA-style CTA: relative apply-now + erecruitment host in label
