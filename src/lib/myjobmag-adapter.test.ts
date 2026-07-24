@@ -273,6 +273,20 @@ assert.equal(
 )
 assert.equal(psckDetail.applyLink, psckDetail.applicationUrl)
 assert.ok(!/myjobmag\.co\.ke/i.test(psckDetail.applicationUrl || ''))
+assert.ok(
+  !/href=["']\/apply-now\//i.test(psckDetail.descriptionHtml),
+  'description must not keep relative /apply-now/ links'
+)
+assert.ok(
+  psckDetail.descriptionHtml.includes('pscims.publicservice.go.ke'),
+  'employer host should appear in description CTA'
+)
+assert.ok(
+  /href=["']https:\/\/pscims\.publicservice\.go\.ke[^"']*["']/i.test(
+    psckDetail.descriptionHtml
+  ),
+  `apply CTA should point at employer URL, got: ${psckDetail.descriptionHtml}`
+)
 
 // Without redirect resolution, host-from-text still beats board fallback
 const psckFallbackHost = parseMyJobMagJobHtml(
@@ -281,7 +295,54 @@ const psckFallbackHost = parseMyJobMagJobHtml(
 )
 assert.ok(psckFallbackHost.applicationUrl?.includes('pscims.publicservice.go.ke'))
 assert.ok(!/myjobmag\.co\.ke\/job\//i.test(psckFallbackHost.applicationUrl || ''))
+assert.ok(!/href=["']\/apply-now\//i.test(psckFallbackHost.descriptionHtml))
+assert.ok(
+  /href=["']https:\/\/pscims\.publicservice\.go\.ke\/["']/i.test(
+    psckFallbackHost.descriptionHtml
+  )
+)
 
+// KRA-style CTA: relative apply-now + erecruitment host in label
+const kraPage = `<!DOCTYPE html><html><head>
+<script type="application/ld+json">
+{
+  "@type": "JobPosting",
+  "title": "Pension Officer - Administration",
+  "description": "&lt;p&gt;Role details&lt;/p&gt;",
+  "hiringOrganization": { "@type": "Organization", "name": "Kenya Revenue Authority (KRA)" },
+  "jobLocation": {
+    "@type": "Place",
+    "address": { "@type": "PostalAddress", "addressLocality": "Nairobi", "addressCountry": "KE" }
+  }
+}
+</script>
+</head><body>
+<div class="job-details"><p>Role details</p></div>
+<li id="printable" class="job-description">
+  <h2 id="application-method"><b>Method of Application</b></h2>
+  <div class="mag-b bm-b-30">
+    Interested and qualified? Go to
+    <a target="_blank" rel="nofollow" href="/apply-now/1284199">
+      Kenya Revenue Authority (KRA) on erecruitment.kra.go.ke
+    </a> to apply
+  </div>
+</li>
+</body></html>`
+
+const kraDetail = parseMyJobMagJobHtml(
+  kraPage,
+  'https://www.myjobmag.co.ke/job/pension-officer-administration-kenya-revenue-authority-kra',
+  { linkoutUrl: 'https://erecruitment.kra.go.ke/login' }
+)
+assert.equal(kraDetail.applicationUrl, 'https://erecruitment.kra.go.ke/login')
+assert.ok(!/href=["']\/apply-now\//i.test(kraDetail.descriptionHtml))
+assert.ok(
+  kraDetail.descriptionHtml.includes('href="https://erecruitment.kra.go.ke/login"'),
+  `KRA CTA must link to employer portal, got: ${kraDetail.descriptionHtml}`
+)
+assert.ok(
+  /Interested and qualified\? Go to/i.test(kraDetail.descriptionHtml)
+)
 // Title duty station overrides HQ locality on normalize
 const naivashaHtml = sampleHtml
   .replace(/Internal Auditor/g, 'Direct Sales Agent - Naivasha')

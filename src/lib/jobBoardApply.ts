@@ -403,3 +403,104 @@ export function isJobBoardSource(selectors: unknown): boolean {
     config.type === 'fuzu'
   )
 }
+
+function isBoardApplyNowHref(
+  href: string,
+  boardHosts: string[],
+  boardOrigin: string
+): boolean {
+  const raw = href.trim()
+  if (/^\/apply-now\/\d+/i.test(raw)) return true
+  try {
+    const absolute = /^https?:\/\//i.test(raw)
+      ? raw
+      : new URL(raw, boardOrigin.endsWith('/') ? boardOrigin : `${boardOrigin}/`).toString()
+    const parsed = new URL(absolute)
+    const host = parsed.hostname.replace(/^www\./i, '').toLowerCase()
+    if (!boardHosts.some(h => host === h || host.endsWith(`.${h}`))) return false
+    return /^\/apply-now\/\d+/i.test(parsed.pathname)
+  } catch {
+    return false
+  }
+}
+
+function absolutizeBoardHref(href: string, boardOrigin: string): string | null {
+  const raw = href.trim()
+  if (!raw || raw.startsWith('#') || /^mailto:/i.test(raw) || /^tel:/i.test(raw)) {
+    return null
+  }
+  if (/^https?:\/\//i.test(raw)) return raw
+  if (raw.startsWith('//')) return `https:${raw}`
+  if (!raw.startsWith('/')) return null
+  try {
+    return new URL(raw, boardOrigin.endsWith('/') ? boardOrigin : `${boardOrigin}/`).toString()
+  } catch {
+    return `${boardOrigin.replace(/\/$/, '')}${raw}`
+  }
+}
+
+export interface RewriteJobBoardDescriptionLinksOptions {
+  /** Real employer apply destination when known (never a board listing fallback). */
+  employerApplyUrl?: string | null
+  /** Origin used to absolutize remaining board-relative paths (e.g. https://www.myjobmag.co.ke). */
+  boardOrigin: string
+  boardHosts?: string[]
+}
+
+/**
+ * Rewrite board-relative anchors in scraped HTML so they do not resolve on
+ * CareerSasa (e.g. href="/apply-now/123" → careersasa.co.ke/apply-now/123 → 404).
+ *
+ * MyJobMag "Method of Application" CTAs look like:
+ *   Go to <a href="/apply-now/1284199">KRA on erecruitment.kra.go.ke</a> to apply
+ *
+ * Prefer the resolved employer apply URL; otherwise absolutize against the board.
+ * Other relative board paths (/jobs-at/..., /job/...) are also absolutized.
+ */
+export function rewriteJobBoardDescriptionLinks(
+  html: string | null | undefined,
+  options: RewriteJobBoardDescriptionLinksOptions
+): string {
+  if (!html) return ''
+  if (!html.includes('<a') && !html.includes('<A')) return html
+
+  const boardHosts = (options.boardHosts?.length ? options.boardHosts : DEFAULT_BOARD_HOSTS).map(
+    h => h.replace(/^www\./i, '').toLowerCase()
+  )
+  const boardOrigin = options.boardOrigin.replace(/\/$/, '') || 'https://www.myjobmag.co.ke'
+
+  const employerRaw = options.employerApplyUrl?.trim() || null
+  const employer = employerRaw ? normalizeCandidateUrl(employerRaw) : null
+  const employerHost = employer ? hostnameOf(employer) : null
+  const employerIsExternal = Boolean(
+    employer && employerHost && !isBlockedHost(employerHost, boardHosts)
+  )
+
+  return html.replace(
+    /<a\b([^>]*?)\bhref\s*=\s*(["'])([^"']*)\2([^>]*)>/gi,
+    (full, preAttrs: string, quote: string, href: string, postAttrs: string) => {
+      const raw = String(href || '').trim()
+      if (!raw) return full
+
+      if (isBoardApplyNowHref(raw, boardHosts, boardOrigin)) {
+        const target = employerIsExternal
+          ? employer!
+          : absolutizeBoardHref(
+              /^https?:\/\//i.test(raw) ? raw : raw.match(/^(\/apply-now\/\d+)/i)?.[1] || raw,
+              boardOrigin
+            )
+        if (!target || target === raw) return full
+        return `<a${preAttrs}href=${quote}${target}${quote}${postAttrs}>`
+      }
+
+      // Other relative board paths would also 404 on CareerSasa
+      if (raw.startsWith('/') && !raw.startsWith('//')) {
+        const absolute = absolutizeBoardHref(raw, boardOrigin)
+        if (!absolute || absolute === raw) return full
+        return `<a${preAttrs}href=${quote}${absolute}${quote}${postAttrs}>`
+      }
+
+      return full
+    }
+  )
+}
