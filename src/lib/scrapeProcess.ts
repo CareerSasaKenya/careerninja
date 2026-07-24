@@ -79,7 +79,7 @@ import {
 } from '@/lib/scraperJobParsing'
 import { ensureCompanyForJob } from '@/lib/ensureCompanyForJob'
 import { inferCompanyIndustry } from '@/lib/companyIndustryInference'
-import { isJobBoardSource } from '@/lib/jobBoardApply'
+import { isJobBoardSource, rewriteJobBoardDescriptionLinks } from '@/lib/jobBoardApply'
 import { sanitizeAdditionalInfoApplyCopy } from '@/lib/applyInstructionsCopy'
 import { isMissingOrLabelOnlyQualifications } from '@/lib/experienceLevelLabel'
 import type { WorkableJobDetail } from '@/lib/workable-adapter'
@@ -657,9 +657,56 @@ export async function runScrapeProcessOne(
         ? parsed.job_location_types
         : [sanitizeJobLocationType(normalized.job_location_type)]
 
+    const boardHostsForRewrite =
+      adapterType === 'myjobmag'
+        ? ['myjobmag.co.ke']
+        : adapterType === 'brightermonday'
+          ? ['brightermonday.co.ke', 'jobberman.com']
+          : adapterType === 'fuzu'
+            ? ['fuzu.com']
+            : []
+    const boardOriginForRewrite =
+      adapterType === 'myjobmag'
+        ? 'https://www.myjobmag.co.ke'
+        : adapterType === 'brightermonday'
+          ? 'https://www.brightermonday.co.ke'
+          : adapterType === 'fuzu'
+            ? 'https://www.fuzu.com'
+            : null
+    const employerForDescRewrite =
+      jobBoard &&
+      (normalized.apply_link?.trim() ||
+        (employerApplicationUrl &&
+        boardHostsForRewrite.every(
+          h => !employerApplicationUrl.toLowerCase().includes(h)
+        )
+          ? employerApplicationUrl
+          : null))
+
+    const rewriteBoardHtml = (html: string | null | undefined): string | null => {
+      if (!html || !boardOriginForRewrite) return html ?? null
+      return rewriteJobBoardDescriptionLinks(html, {
+        employerApplyUrl: employerForDescRewrite || null,
+        boardOrigin: boardOriginForRewrite,
+        boardHosts: boardHostsForRewrite,
+      })
+    }
+
+    const rawDescription = parsed.description || normalized.description
+    const rawAdditionalInfo = sanitizeAdditionalInfoApplyCopy(
+      parsed.additional_info || null,
+      {
+        apply_email: boardApplyEmail || parsed.apply_email || null,
+        apply_link: jobBoard
+          ? normalized.apply_link?.trim() || null
+          : parsed.apply_link || normalized.apply_link || null,
+        application_url: applicationUrl,
+      }
+    )
+
     const jobPayload = {
       ...normalized,
-      description: parsed.description || normalized.description,
+      description: rewriteBoardHtml(rawDescription) || rawDescription,
       responsibilities:
         parsed.responsibilities || normalized.responsibilities || null,
       required_qualifications: (() => {
@@ -669,16 +716,7 @@ export async function runScrapeProcessOne(
         if (normQ && !isMissingOrLabelOnlyQualifications(normQ)) return normQ
         return null
       })(),
-      additional_info: sanitizeAdditionalInfoApplyCopy(
-        parsed.additional_info || null,
-        {
-          apply_email: boardApplyEmail || parsed.apply_email || null,
-          apply_link: jobBoard
-            ? normalized.apply_link?.trim() || null
-            : parsed.apply_link || normalized.apply_link || null,
-          application_url: applicationUrl,
-        }
-      ),
+      additional_info: rewriteBoardHtml(rawAdditionalInfo),
       company_id: companyId,
       user_id: scraperUserId,
       hiring_organization_name: dedupCompany,

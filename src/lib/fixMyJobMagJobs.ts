@@ -9,12 +9,37 @@ import {
   fetchMyJobMagJobDetails,
   normalizeMyJobMagJob,
 } from './myjobmag-adapter'
+import { rewriteJobBoardDescriptionLinks } from './jobBoardApply'
 import {
   expiresAtFromValidThrough,
   resolveScrapedDeadline,
 } from './scraperDeadline'
 
 export const MYJOBMAG_SOURCE_ID = 'myjobmag-kenya'
+const MYJOBMAG_ORIGIN = 'https://www.myjobmag.co.ke'
+const MYJOBMAG_HOSTS = ['myjobmag.co.ke']
+
+/** True when HTML still has CareerSasa-breaking board-relative anchors. */
+export function hasBrokenJobBoardRelativeLinks(html: string | null | undefined): boolean {
+  if (!html) return false
+  return /<a\b[^>]*\bhref\s*=\s*["']\/(?:apply-now|jobs-at|job)\//i.test(html)
+}
+
+function rewriteMyJobMagStoredHtml(
+  html: string | null | undefined,
+  employerApplyUrl: string | null
+): string | null {
+  if (!html?.trim()) return html ?? null
+  const needsRewrite =
+    hasBrokenJobBoardRelativeLinks(html) ||
+    (Boolean(employerApplyUrl) && /myjobmag\.co\.ke\/apply-now\//i.test(html))
+  if (!needsRewrite) return html
+  return rewriteJobBoardDescriptionLinks(html, {
+    employerApplyUrl,
+    boardOrigin: MYJOBMAG_ORIGIN,
+    boardHosts: MYJOBMAG_HOSTS,
+  })
+}
 
 export interface FixMyJobMagJobResult {
   source_row_id: string
@@ -176,7 +201,7 @@ export async function runFixMyJobMagPublishedJobs(
       const { data: job, error: jobErr } = await supabase
         .from('jobs')
         .select(
-          'id, title, company, location, job_location_city, job_location_county, job_location_country, application_url, apply_link, apply_email, valid_through, expires_at, date_posted, created_at, hiring_organization_name'
+          'id, title, company, location, job_location_city, job_location_county, job_location_country, application_url, apply_link, apply_email, valid_through, expires_at, date_posted, created_at, hiring_organization_name, description, additional_info'
         )
         .eq('id', jobId)
         .maybeSingle()
@@ -195,16 +220,20 @@ export async function runFixMyJobMagPublishedJobs(
         const app = `${job.application_url || ''} ${job.apply_link || ''}`
         const stillBoard = /myjobmag\.co\.ke/i.test(app)
         const hasEmail = Boolean(normStr(job.apply_email))
+        const brokenDesc =
+          hasBrokenJobBoardRelativeLinks(job.description as string) ||
+          hasBrokenJobBoardRelativeLinks(job.additional_info as string)
         // Also fix email-only posts that wrongly still have a board application_url,
-        // and board-URL posts that need an employer method.
-        if (!stillBoard && hasEmail) {
+        // board-URL posts that need an employer method, and descriptions with
+        // relative /apply-now/ anchors that 404 on CareerSasa.
+        if (!stillBoard && hasEmail && !brokenDesc) {
           unchanged++
           results.push({ ...base, status: 'unchanged' })
           log(`ok already employer method ${base.title}`)
           if (delayMs > 0) await sleep(delayMs)
           continue
         }
-        if (!stillBoard && !hasEmail) {
+        if (!stillBoard && !hasEmail && !brokenDesc) {
           // May still need email/link discovery from live page
         }
       }
@@ -215,15 +244,61 @@ export async function runFixMyJobMagPublishedJobs(
         detail = await fetchMyJobMagJobDetails(jobUrl)
         normalized = normalizeMyJobMagJob(detail)
       } catch (fetchErr) {
-        skipped++
-        results.push({
-          ...base,
-          status: 'skipped',
-          error: `MyJobMag listing unavailable: ${
-            fetchErr instanceof Error ? fetchErr.message : String(fetchErr)
-          }`,
-        })
-        log(`skip unavailable ${base.title}`)
+        // Live listing gone — still try an in-place description rewrite using
+        // the stored employer apply URL when relative /apply-now/ remains.
+        const storedEmployer =
+          normStr(job.apply_link) ||
+          (normStr(job.application_url) &&
+          !/myjobmag\.co\.ke/i.test(String(job.application_url))
+            ? normStr(job.application_url)
+            : null)
+        const fixedDesc = rewriteMyJobMagStoredHtml(
+          job.description as string,
+          storedEmployer
+        )
+        const fixedInfo = rewriteMyJobMagStoredHtml(
+          job.additional_info as string,
+          storedEmployer
+        )
+        const offlinePatch: Record<string, unknown> = {}
+        if (fixedDesc && fixedDesc !== job.description) {
+          offlinePatch.description = fixedDesc
+        }
+        if (fixedInfo && fixedInfo !== job.additional_info) {
+          offlinePatch.additional_info = fixedInfo
+        }
+        if (Object.keys(offlinePatch).length === 0) {
+          skipped++
+          results.push({
+            ...base,
+            status: 'skipped',
+            error: `MyJobMag listing unavailable: ${
+              fetchErr instanceof Error ? fetchErr.message : String(fetchErr)
+            }`,
+          })
+          log(`skip unavailable ${base.title}`)
+          if (delayMs > 0) await sleep(delayMs)
+          continue
+        }
+
+        const offlineChanges: Record<string, { from: unknown; to: unknown }> = {}
+        for (const [field, to] of Object.entries(offlinePatch)) {
+          trackChange(offlineChanges, field, (job as Record<string, unknown>)[field], to)
+        }
+        if (!apply) {
+          updated++
+          results.push({ ...base, status: 'would_update', changes: offlineChanges })
+          log(`would update offline links ${base.title}: ${Object.keys(offlineChanges).join(', ')}`)
+        } else {
+          const { error: updErr } = await supabase
+            .from('jobs')
+            .update(offlinePatch)
+            .eq('id', jobId)
+          if (updErr) throw updErr
+          updated++
+          results.push({ ...base, status: 'updated', changes: offlineChanges })
+          log(`updated offline links ${base.title}: ${Object.keys(offlineChanges).join(', ')}`)
+        }
         if (delayMs > 0) await sleep(delayMs)
         continue
       }
@@ -239,9 +314,21 @@ export async function runFixMyJobMagPublishedJobs(
       // Prefer employer URL; email-only leaves application_url null;
       // only fall back to the MyJobMag listing when no employer method exists.
       const applicationUrl = employerAppUrl || (applyEmail ? null : jobUrl)
+      const employerForRewrite =
+        applyLink ||
+        (employerAppUrl && !/myjobmag\.co\.ke/i.test(employerAppUrl) ? employerAppUrl : null)
 
       const validThrough = deadline.validThrough
       const expiresAt = expiresAtFromValidThrough(validThrough)
+
+      const fixedDescription = rewriteMyJobMagStoredHtml(
+        (job.description as string) || normalized.description,
+        employerForRewrite
+      )
+      const fixedAdditionalInfo = rewriteMyJobMagStoredHtml(
+        job.additional_info as string,
+        employerForRewrite
+      )
 
       const patch: Record<string, unknown> = {
         location: normalized.location || job.location || 'Kenya',
@@ -254,6 +341,16 @@ export async function runFixMyJobMagPublishedJobs(
         apply_email: applyEmail,
         valid_through: validThrough,
         expires_at: expiresAt,
+      }
+
+      if (fixedDescription && fixedDescription !== job.description) {
+        patch.description = fixedDescription
+      }
+      if (
+        fixedAdditionalInfo != null &&
+        fixedAdditionalInfo !== (job.additional_info as string | null)
+      ) {
+        patch.additional_info = fixedAdditionalInfo
       }
 
       if (
@@ -299,7 +396,8 @@ export async function runFixMyJobMagPublishedJobs(
               : '') +
             (changes.apply_email
               ? ` [email ${changes.apply_email.from} → ${changes.apply_email.to}]`
-              : '')
+              : '') +
+            (changes.description ? ' [description links]' : '')
         )
       } else {
         const { error: updErr } = await supabase.from('jobs').update(patch).eq('id', jobId)

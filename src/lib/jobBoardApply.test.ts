@@ -4,6 +4,7 @@ import {
   extractJobBoardEmails,
   isJobBoardSource,
   resolveJobBoardApplication,
+  rewriteJobBoardDescriptionLinks,
 } from './jobBoardApply'
 
 const descWithEmail = `
@@ -204,5 +205,58 @@ assert.equal(
 )
 assert.equal(boardOnly.apply_link, null)
 assert.equal(boardOnly.used_board_fallback, true)
+
+// Relative /apply-now/ must not stay site-relative (404s on CareerSasa)
+const kraCta = `
+<div>Interested and qualified? Go to
+  <a target="_blank" rel="nofollow" href="/apply-now/1284199">
+    Kenya Revenue Authority (KRA) on erecruitment.kra.go.ke
+  </a> to apply
+</div>
+<a href="/jobs-at/kenya-revenue-authority-kra">More KRA jobs</a>
+`
+const kraRewritten = rewriteJobBoardDescriptionLinks(kraCta, {
+  employerApplyUrl: 'https://erecruitment.kra.go.ke/login',
+  boardOrigin: 'https://www.myjobmag.co.ke',
+  boardHosts: ['myjobmag.co.ke'],
+})
+assert.ok(
+  kraRewritten.includes('href="https://erecruitment.kra.go.ke/login"'),
+  `expected employer href, got: ${kraRewritten}`
+)
+assert.ok(!/href=["']\/apply-now\//i.test(kraRewritten), 'relative apply-now must be gone')
+assert.ok(
+  kraRewritten.includes(
+    'href="https://www.myjobmag.co.ke/jobs-at/kenya-revenue-authority-kra"'
+  ),
+  'relative /jobs-at/ should be absolutized'
+)
+assert.ok(kraRewritten.includes('erecruitment.kra.go.ke'), 'anchor text preserved')
+
+// Without employer URL, absolutize apply-now to MyJobMag (redirect still works)
+const absOnly = rewriteJobBoardDescriptionLinks(
+  '<a href="/apply-now/99">Employer on careers.example.com</a>',
+  {
+    employerApplyUrl: null,
+    boardOrigin: 'https://www.myjobmag.co.ke',
+    boardHosts: ['myjobmag.co.ke'],
+  }
+)
+assert.equal(
+  absOnly,
+  '<a href="https://www.myjobmag.co.ke/apply-now/99">Employer on careers.example.com</a>'
+)
+
+// Absolute MyJobMag apply-now also rewritten to employer
+const absBoard = rewriteJobBoardDescriptionLinks(
+  '<a href="https://www.myjobmag.co.ke/apply-now/1284199">KRA</a>',
+  {
+    employerApplyUrl: 'https://erecruitment.kra.go.ke/',
+    boardOrigin: 'https://www.myjobmag.co.ke',
+    boardHosts: ['myjobmag.co.ke'],
+  }
+)
+assert.ok(absBoard.includes('href="https://erecruitment.kra.go.ke/"'))
+assert.ok(!/apply-now/i.test(absBoard))
 
 console.log('jobBoardApply.test.ts: ok')

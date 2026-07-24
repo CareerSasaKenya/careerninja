@@ -17,7 +17,11 @@
 
 import * as cheerio from 'cheerio'
 import { generateContentHash, NormalizedJob } from './scraper'
-import { resolveJobBoardApplication, stripBoardTrackingParams } from './jobBoardApply'
+import {
+  resolveJobBoardApplication,
+  rewriteJobBoardDescriptionLinks,
+  stripBoardTrackingParams,
+} from './jobBoardApply'
 import { extractApplicationDeadline } from './scraperDeadline'
 import {
   JobBoardCompanyProfile,
@@ -850,6 +854,29 @@ export function parseMyJobMagJobHtml(
     boardJobUrl: jobUrl,
     descriptionHtml,
     linkoutUrl,
+    boardHosts: BOARD_HOSTS,
+  })
+
+  // Relative /apply-now/ (and /jobs-at/) hrefs 404 on CareerSasa when the
+  // description is rendered with dangerouslySetInnerHTML. Point apply CTAs at
+  // the employer destination; absolutize other board paths.
+  const employerForRewrite =
+    apply.apply_link ||
+    (apply.application_url && !apply.used_board_fallback ? apply.application_url : null) ||
+    (linkoutUrl && !BOARD_HOSTS.some(h => {
+      try {
+        const host = new URL(linkoutUrl).hostname.replace(/^www\./i, '').toLowerCase()
+        return host === h || host.endsWith(`.${h}`)
+      } catch {
+        return false
+      }
+    })
+      ? linkoutUrl
+      : null)
+
+  descriptionHtml = rewriteJobBoardDescriptionLinks(descriptionHtml, {
+    employerApplyUrl: employerForRewrite,
+    boardOrigin: originFromBaseUrl(jobUrl),
     boardHosts: BOARD_HOSTS,
   })
 
