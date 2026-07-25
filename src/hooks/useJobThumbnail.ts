@@ -267,36 +267,77 @@ export const useJobThumbnail = (): UseJobThumbnailReturn => {
           img.src = imageUrl;
         });
         
-        // Draw the professional image on the right side with better positioning
-        const imgWidth = canvas.width * 0.4;
-        const imgHeight = canvas.height * 0.7;
-        const imgX = canvas.width * 0.55;
-        const imgY = canvas.height * 0.15;
-        
-        // Apply a subtle shadow effect
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-        ctx.shadowBlur = 10;
-        ctx.shadowOffsetX = 5;
-        ctx.shadowOffsetY = 5;
-        
-        // Draw rounded rectangle clip path for better presentation
+        // Creative circular frame on the right side
+        const diameter = Math.min(canvas.width * 0.35, canvas.height * 0.68);
+        const centerX = canvas.width * 0.78;
+        const centerY = canvas.height * 0.48;
+        const ringWidth = 10;
+        const trimWidth = 6;
+
+        // Soft halo
         ctx.save();
         ctx.beginPath();
-        const radius = 25;
-        ctx.moveTo(imgX + radius, imgY);
-        ctx.lineTo(imgX + imgWidth - radius, imgY);
-        ctx.quadraticCurveTo(imgX + imgWidth, imgY, imgX + imgWidth, imgY + radius);
-        ctx.lineTo(imgX + imgWidth, imgY + imgHeight - radius);
-        ctx.quadraticCurveTo(imgX + imgWidth, imgY + imgHeight, imgX + imgWidth - radius, imgY + imgHeight);
-        ctx.lineTo(imgX + radius, imgY + imgHeight);
-        ctx.quadraticCurveTo(imgX, imgY + imgHeight, imgX, imgY + imgHeight - radius);
-        ctx.lineTo(imgX, imgY + radius);
-        ctx.quadraticCurveTo(imgX, imgY, imgX + radius, imgY);
+        ctx.arc(centerX, centerY, diameter / 2 + 12, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+        ctx.fill();
+        ctx.restore();
+
+        // Gradient ring
+        const ringGradient = ctx.createLinearGradient(
+          centerX - diameter / 2,
+          centerY - diameter / 2,
+          centerX + diameter / 2,
+          centerY + diameter / 2,
+        );
+        ringGradient.addColorStop(0, 'hsl(25 95% 53%)'); // orange
+        ringGradient.addColorStop(0.55, 'hsl(188 94% 70%)'); // light teal
+        ringGradient.addColorStop(1, '#ffffff');
+
+        ctx.save();
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+        ctx.shadowBlur = 16;
+        ctx.shadowOffsetX = 4;
+        ctx.shadowOffsetY = 8;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, diameter / 2, 0, Math.PI * 2);
+        ctx.fillStyle = ringGradient;
+        ctx.fill();
+        ctx.restore();
+
+        // White trim
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, diameter / 2 - ringWidth, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+
+        // Circular photo clip
+        const photoRadius = diameter / 2 - ringWidth - trimWidth;
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, photoRadius, 0, Math.PI * 2);
         ctx.closePath();
         ctx.clip();
-        
-        ctx.drawImage(img, imgX, imgY, imgWidth, imgHeight);
+        ctx.drawImage(
+          img,
+          centerX - photoRadius,
+          centerY - photoRadius,
+          photoRadius * 2,
+          photoRadius * 2,
+        );
         ctx.restore();
+
+        // Accent dot on the ring
+        const accentAngle = -Math.PI / 4;
+        const accentR = diameter / 2 - ringWidth / 2;
+        const accentX = centerX + Math.cos(accentAngle) * accentR;
+        const accentY = centerY + Math.sin(accentAngle) * accentR;
+        ctx.beginPath();
+        ctx.arc(accentX, accentY, 10, 0, Math.PI * 2);
+        ctx.fillStyle = 'hsl(25 95% 53%)';
+        ctx.fill();
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#ffffff';
+        ctx.stroke();
       } catch (error) {
         console.warn('Failed to load professional image, continuing without it:', error);
       }

@@ -1,6 +1,5 @@
 "use client";
 
-import { Metadata } from "next";
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import MobileNav from "@/components/MobileNav";
@@ -9,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Mail, Phone, MapPin, Clock } from "lucide-react";
+import { Mail, Clock } from "lucide-react";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -121,27 +120,6 @@ export default function ContactPage() {
 
                   <div className="flex items-start gap-4">
                     <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Phone className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground mb-1">Phone</h3>
-                      <p className="text-muted-foreground">+254795564135</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <MapPin className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground mb-1">Office Address</h3>
-                      <p className="text-muted-foreground">Westlands, Nairobi</p>
-                      <p className="text-muted-foreground">Kenya</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
                       <Clock className="w-5 h-5 text-primary" />
                     </div>
                     <div>
@@ -157,7 +135,7 @@ export default function ContactPage() {
               <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg p-6 space-y-3">
                 <h3 className="text-xl font-bold text-primary">Quick Support</h3>
                 <p className="text-muted-foreground">
-                  For urgent matters, please call us directly or use our live chat feature. We typically respond to emails within 24 hours during business days.
+                  Email us anytime — we typically respond within 24 hours during business days.
                 </p>
               </div>
 

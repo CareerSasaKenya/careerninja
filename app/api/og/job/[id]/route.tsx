@@ -304,30 +304,94 @@ export async function GET(
               position: 'relative',
             }}
           >
-            {/* Industry professional — right side (~40% width), omit if fetch failed */}
+            {/* Industry professional — creative circular frame on the right */}
             {personImageSrc ? (
               <div
                 style={{
                   position: 'absolute',
-                  top: '95px',
-                  left: '660px',
-                  width: '480px',
-                  height: '441px',
-                  borderRadius: '25px',
-                  overflow: 'hidden',
+                  top: '55px',
+                  left: '710px',
+                  width: '400px',
+                  height: '400px',
                   display: 'flex',
-                  boxShadow: '0 10px 24px rgba(0, 0, 0, 0.35)',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
-                <img
-                  src={personImageSrc}
-                  alt=""
-                  width={480}
-                  height={441}
+                {/* Soft outer halo */}
+                <div
                   style={{
-                    width: '480px',
-                    height: '441px',
-                    objectFit: 'cover',
+                    position: 'absolute',
+                    width: '400px',
+                    height: '400px',
+                    borderRadius: '200px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+                    display: 'flex',
+                  }}
+                />
+                {/* Gradient ring (brand orange → teal → white) */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    width: '380px',
+                    height: '380px',
+                    borderRadius: '190px',
+                    background: `linear-gradient(145deg, ${COLORS.orange}, ${COLORS.lightTeal}, ${COLORS.white})`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 14px 36px rgba(0, 0, 0, 0.35)',
+                  }}
+                >
+                  {/* Inner white trim */}
+                  <div
+                    style={{
+                      width: '352px',
+                      height: '352px',
+                      borderRadius: '176px',
+                      backgroundColor: COLORS.white,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    {/* Circular photo */}
+                    <div
+                      style={{
+                        width: '336px',
+                        height: '336px',
+                        borderRadius: '168px',
+                        overflow: 'hidden',
+                        display: 'flex',
+                        backgroundColor: COLORS.primary,
+                      }}
+                    >
+                      <img
+                        src={personImageSrc}
+                        alt=""
+                        width={336}
+                        height={336}
+                        style={{
+                          width: '336px',
+                          height: '336px',
+                          objectFit: 'cover',
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+                {/* Accent dot on the ring */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '24px',
+                    right: '44px',
+                    width: '26px',
+                    height: '26px',
+                    borderRadius: '13px',
+                    backgroundColor: COLORS.orange,
+                    border: '4px solid white',
+                    display: 'flex',
                   }}
                 />
               </div>
