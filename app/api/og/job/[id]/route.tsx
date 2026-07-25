@@ -276,10 +276,23 @@ export async function GET(
     );
     const personImageSrc = await loadIndustryModelDataUrl(modelCategory, assetOrigin);
 
-    // Truncate long text to fit in the image
+    // Word-aware truncate — avoids mid-word ellipsis like "Offic..."
     const truncateText = (text: string, maxLength: number) => {
-      return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+      const value = (text || '').trim();
+      if (value.length <= maxLength) return value;
+      const cut = value.slice(0, maxLength);
+      const lastSpace = cut.lastIndexOf(' ');
+      const base = lastSpace > Math.floor(maxLength * 0.55) ? cut.slice(0, lastSpace) : cut;
+      return `${base.trimEnd()}...`;
     };
+
+    // Long titles shrink + wrap; left column is a flex stack so meta always
+    // sits below the title (no fixed absolute top that can overlap).
+    const titleLength = jobTitle.trim().length;
+    const titleFontSize = titleLength > 48 ? 38 : titleLength > 34 ? 44 : 52;
+    const titleMaxChars = titleLength > 48 ? 56 : 64;
+    const displayTitle = truncateText(jobTitle, titleMaxChars);
+    const leftColumnWidth = personImageSrc ? 620 : 1120;
 
     return new ImageResponse(
       (
@@ -288,55 +301,185 @@ export async function GET(
             height: '100%',
             width: '100%',
             display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
+            flexDirection: 'row',
             background: `linear-gradient(to bottom right, ${COLORS.primary}, ${COLORS.teal})`,
-            // Less bottom padding so APPLY NOW can sit clear of the circular frame
-            padding: '40px 40px 20px 40px',
+            padding: '36px 36px 18px 36px',
             fontFamily: 'sans-serif',
           }}
         >
+          {/* LEFT: flowing column — title height pushes company/meta down */}
           <div
             style={{
               display: 'flex',
-              width: '100%',
+              flexDirection: 'column',
+              width: `${leftColumnWidth}px`,
               height: '100%',
-              position: 'relative',
+              justifyContent: 'space-between',
             }}
           >
-            {/* Industry professional — creative circular frame on the right */}
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '36px',
+                width: '100%',
+              }}
+            >
+              {/* Logo + title row */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'flex-start',
+                  gap: '20px',
+                  width: '100%',
+                }}
+              >
+                <div
+                  style={{
+                    width: '80px',
+                    height: '80px',
+                    borderRadius: '16px',
+                    backgroundColor: companyLogo ? COLORS.white : COLORS.orange,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '28px',
+                    fontWeight: 'bold',
+                    color: 'white',
+                    overflow: 'hidden',
+                    flexShrink: 0,
+                  }}
+                >
+                  {companyLogo ? (
+                    <img
+                      src={companyLogo}
+                      alt={companyName}
+                      width={72}
+                      height={72}
+                      style={{ objectFit: 'contain' }}
+                    />
+                  ) : (
+                    companyInitials(companyName)
+                  )}
+                </div>
+
+                <div
+                  style={{
+                    display: 'flex',
+                    flex: 1,
+                    fontSize: `${titleFontSize}px`,
+                    fontWeight: 'bold',
+                    color: 'white',
+                    lineHeight: 1.15,
+                    maxWidth: personImageSrc ? '500px' : '980px',
+                  }}
+                >
+                  {displayTitle}
+                </div>
+              </div>
+
+              {/* Meta — always below title because of flex flow */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '18px',
+                  color: 'white',
+                  paddingLeft: '8px',
+                  maxWidth: personImageSrc ? '540px' : '90%',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <svg width="28" height="28" fill="white" viewBox="0 0 24 24">
+                    <path d="M3 3h18v18H3z" />
+                  </svg>
+                  <span style={{ fontSize: '32px', fontWeight: 600 }}>
+                    {truncateText(companyName, 28)}
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <svg width="28" height="28" fill="white" viewBox="0 0 24 24">
+                    <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" />
+                  </svg>
+                  <span style={{ fontSize: '30px' }}>{truncateText(location, 28)}</span>
+                </div>
+
+                {(salaryMin || salaryMax) && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <svg width="28" height="28" fill="white" viewBox="0 0 24 24">
+                      <path d="M12 1L3 5v6c0 5.25 3.75 10.74 9 12 5.25-1.26 9-6.75 9-12V5l-9-4zm1 16h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                    </svg>
+                    <span style={{ fontSize: '30px', fontWeight: 600 }}>
+                      {salaryCurrency} {salaryMin?.toLocaleString()} - {salaryMax?.toLocaleString()}/
+                      {salaryPeriod.toLowerCase()}
+                    </span>
+                  </div>
+                )}
+
+                {jobFunction ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <svg width="28" height="28" fill="white" viewBox="0 0 24 24">
+                      <path d="M4 7h16v2H4zm0 4h16v2H4zm0 4h10v2H4z" />
+                    </svg>
+                    <span style={{ fontSize: '30px' }}>{truncateText(jobFunction, 28)}</span>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: 'flex',
+                fontSize: '22px',
+                color: 'white',
+                fontWeight: 'bold',
+              }}
+            >
+              CareerSasa.co.ke — Enrich Your Career Now
+            </div>
+          </div>
+
+          {/* RIGHT: circular portrait + CTA */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              flex: 1,
+              height: '100%',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingTop: '8px',
+            }}
+          >
             {personImageSrc ? (
               <div
                 style={{
-                  position: 'absolute',
-                  top: '28px',
-                  left: '720px',
-                  width: '370px',
-                  height: '370px',
+                  width: '360px',
+                  height: '360px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  position: 'relative',
                 }}
               >
-                {/* Soft outer halo — keep tight so it does not collide with CTA */}
                 <div
                   style={{
                     position: 'absolute',
-                    width: '370px',
-                    height: '370px',
-                    borderRadius: '185px',
+                    width: '360px',
+                    height: '360px',
+                    borderRadius: '180px',
                     backgroundColor: 'rgba(255, 255, 255, 0.10)',
                     display: 'flex',
                   }}
                 />
-                {/* Gradient ring (brand orange → teal → white) */}
                 <div
                   style={{
                     position: 'absolute',
-                    width: '350px',
-                    height: '350px',
-                    borderRadius: '175px',
+                    width: '340px',
+                    height: '340px',
+                    borderRadius: '170px',
                     background: `linear-gradient(145deg, ${COLORS.orange}, ${COLORS.lightTeal}, ${COLORS.white})`,
                     display: 'flex',
                     alignItems: 'center',
@@ -344,24 +487,22 @@ export async function GET(
                     boxShadow: '0 8px 18px rgba(0, 0, 0, 0.28)',
                   }}
                 >
-                  {/* Inner white trim */}
                   <div
                     style={{
-                      width: '324px',
-                      height: '324px',
-                      borderRadius: '162px',
+                      width: '316px',
+                      height: '316px',
+                      borderRadius: '158px',
                       backgroundColor: COLORS.white,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    {/* Circular photo */}
                     <div
                       style={{
-                        width: '308px',
-                        height: '308px',
-                        borderRadius: '154px',
+                        width: '300px',
+                        height: '300px',
+                        borderRadius: '150px',
                         overflow: 'hidden',
                         display: 'flex',
                         backgroundColor: COLORS.primary,
@@ -370,23 +511,22 @@ export async function GET(
                       <img
                         src={personImageSrc}
                         alt=""
-                        width={308}
-                        height={308}
+                        width={300}
+                        height={300}
                         style={{
-                          width: '308px',
-                          height: '308px',
+                          width: '300px',
+                          height: '300px',
                           objectFit: 'cover',
                         }}
                       />
                     </div>
                   </div>
                 </div>
-                {/* Accent dot on the ring */}
                 <div
                   style={{
                     position: 'absolute',
-                    top: '20px',
-                    right: '38px',
+                    top: '18px',
+                    right: '34px',
                     width: '22px',
                     height: '22px',
                     borderRadius: '11px',
@@ -396,119 +536,13 @@ export async function GET(
                   }}
                 />
               </div>
-            ) : null}
+            ) : (
+              <div style={{ display: 'flex', width: '1px', height: '1px' }} />
+            )}
 
-            {/* Company Logo - Top Left */}
             <div
               style={{
-                position: 'absolute',
-                top: '40px',
-                left: '40px',
-                width: '80px',
-                height: '80px',
-                borderRadius: '16px',
-                backgroundColor: companyLogo ? COLORS.white : COLORS.orange,
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '28px',
-                fontWeight: 'bold',
-                color: 'white',
-                overflow: 'hidden',
-              }}
-            >
-              {companyLogo ? (
-                <img
-                  src={companyLogo}
-                  alt={companyName}
-                  width={72}
-                  height={72}
-                  style={{ objectFit: 'contain' }}
-                />
-              ) : (
-                companyInitials(companyName)
-              )}
-            </div>
-            
-            {/* Job Title — left when person image present; centered otherwise.
-                Satori does not support transform: none, so omit transform entirely. */}
-            <div
-              style={{
-                position: 'absolute',
-                top: '50px',
-                left: personImageSrc ? '140px' : '180px',
-                fontSize: personImageSrc ? '52px' : '60px',
-                fontWeight: 'bold',
-                color: 'white',
-                textAlign: personImageSrc ? 'left' : 'center',
-                maxWidth: personImageSrc ? '480px' : '840px',
-                width: personImageSrc ? '480px' : '840px',
-                lineHeight: '1.2',
-                display: 'flex',
-                justifyContent: personImageSrc ? 'flex-start' : 'center',
-              }}
-            >
-              {truncateText(jobTitle, personImageSrc ? 40 : 45)}
-            </div>
-            
-            {/* Left Column - Company Info */}
-            <div
-              style={{
-                position: 'absolute',
-                top: '220px',
-                left: '60px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '25px',
-                color: 'white',
-                maxWidth: personImageSrc ? '520px' : '90%',
-              }}
-            >
-              {/* Company Name */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                <svg width="30" height="30" fill="white" viewBox="0 0 24 24">
-                  <path d="M3 3h18v18H3z"/>
-                </svg>
-                <span style={{ fontSize: '36px', fontWeight: '600' }}>{truncateText(companyName, 25)}</span>
-              </div>
-              
-              {/* Location */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                <svg width="30" height="30" fill="white" viewBox="0 0 24 24">
-                  <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>
-                </svg>
-                <span style={{ fontSize: '32px' }}>{truncateText(location, 25)}</span>
-              </div>
-              
-              {/* Salary Range (only if available) */}
-              {(salaryMin || salaryMax) && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                  <svg width="30" height="30" fill="white" viewBox="0 0 24 24">
-                    <path d="M12 1L3 5v6c0 5.25 3.75 10.74 9 12 5.25-1.26 9-6.75 9-12V5l-9-4zm1 16h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-                  </svg>
-                  <span style={{ fontSize: '34px', fontWeight: '600' }}>
-                    {salaryCurrency} {salaryMin?.toLocaleString()} - {salaryMax?.toLocaleString()}/{salaryPeriod.toLowerCase()}
-                  </span>
-                </div>
-              )}
-              
-              {/* Job Function */}
-              {jobFunction && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                  <svg width="30" height="30" fill="white" viewBox="0 0 24 24">
-                    <path d="M4 7h16v2H4zm0 4h16v2H4zm0 4h10v2H4z"/>
-                  </svg>
-                  <span style={{ fontSize: '32px' }}>{truncateText(jobFunction, 25)}</span>
-                </div>
-              )}
-            </div>
-            
-            {/* CTA button - Bottom Right (clear of circular thumbnail frame) */}
-            <div
-              style={{
-                position: 'absolute',
-                bottom: '0px',
-                right: '36px',
                 padding: '14px 34px',
                 borderRadius: '12px',
                 backgroundColor: COLORS.orange,
@@ -516,23 +550,10 @@ export async function GET(
                 fontSize: '28px',
                 fontWeight: 'bold',
                 boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)',
+                alignSelf: 'flex-end',
               }}
             >
               APPLY NOW
-            </div>
-            
-            {/* Branding text - Bottom Left */}
-            <div
-              style={{
-                position: 'absolute',
-                bottom: '10px',
-                left: '40px',
-                fontSize: '22px',
-                color: 'white',
-                fontWeight: 'bold',
-              }}
-            >
-              CareerSasa.co.ke — Enrich Your Career Now
             </div>
           </div>
         </div>
