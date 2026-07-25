@@ -365,19 +365,22 @@ export async function GET(
               )}
             </div>
             
-            {/* Job Title — left/center so it clears the person image */}
+            {/* Job Title — left when person image present; centered otherwise.
+                Satori does not support transform: none, so omit transform entirely. */}
             <div
               style={{
                 position: 'absolute',
                 top: '50px',
-                left: personImageSrc ? '140px' : '50%',
-                transform: personImageSrc ? 'none' : 'translateX(-50%)',
+                left: personImageSrc ? '140px' : '180px',
                 fontSize: personImageSrc ? '52px' : '60px',
                 fontWeight: 'bold',
                 color: 'white',
                 textAlign: personImageSrc ? 'left' : 'center',
-                maxWidth: personImageSrc ? '480px' : '70%',
+                maxWidth: personImageSrc ? '480px' : '840px',
+                width: personImageSrc ? '480px' : '840px',
                 lineHeight: '1.2',
+                display: 'flex',
+                justifyContent: personImageSrc ? 'flex-start' : 'center',
               }}
             >
               {truncateText(jobTitle, personImageSrc ? 40 : 45)}
@@ -448,7 +451,6 @@ export async function GET(
                 fontSize: '32px',
                 fontWeight: 'bold',
                 boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)',
-                zIndex: 2,
               }}
             >
               APPLY NOW
@@ -463,7 +465,6 @@ export async function GET(
                 fontSize: '24px',
                 color: 'white',
                 fontWeight: 'bold',
-                zIndex: 2,
               }}
             >
               CareerSasa.co.ke — Enrich Your Career Now
