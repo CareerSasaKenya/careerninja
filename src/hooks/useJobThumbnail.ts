@@ -19,8 +19,9 @@ interface UseJobThumbnailReturn {
   error: string | null;
 }
 
-// Bundled for client canvas generation only — OG route fetches from /public instead
-const MODEL_IMAGES: Record<string, string> = {
+// Bundled for client canvas generation only — OG route fetches from /public instead.
+// Next image imports are StaticImageData (or string URL depending on config).
+const MODEL_IMAGES: Record<string, string | { src: string }> = {
   healthcare: healthcareImg,
   technology: technologyImg,
   education: educationImg,
@@ -253,9 +254,11 @@ export const useJobThumbnail = (): UseJobThumbnailReturn => {
       
       // Load and draw professional image based on industry
       const category = getModelForJob(data.jobTitle, data.company);
-      const imageUrl = MODEL_IMAGES[category];
+      const imageAsset = MODEL_IMAGES[category];
+      const imageUrl = typeof imageAsset === 'string' ? imageAsset : imageAsset?.src;
       
       try {
+        if (!imageUrl) throw new Error('Missing industry model image');
         const img = new Image();
         img.crossOrigin = 'anonymous';
         await new Promise<void>((resolve, reject) => {
