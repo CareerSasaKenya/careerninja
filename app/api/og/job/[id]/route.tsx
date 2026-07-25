@@ -292,7 +292,8 @@ export async function GET(
             alignItems: 'center',
             justifyContent: 'center',
             background: `linear-gradient(to bottom right, ${COLORS.primary}, ${COLORS.teal})`,
-            padding: '40px',
+            // Less bottom padding so APPLY NOW can sit clear of the circular frame
+            padding: '40px 40px 20px 40px',
             fontFamily: 'sans-serif',
           }}
         >
@@ -309,23 +310,23 @@ export async function GET(
               <div
                 style={{
                   position: 'absolute',
-                  top: '55px',
-                  left: '710px',
-                  width: '400px',
-                  height: '400px',
+                  top: '28px',
+                  left: '720px',
+                  width: '370px',
+                  height: '370px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                {/* Soft outer halo */}
+                {/* Soft outer halo — keep tight so it does not collide with CTA */}
                 <div
                   style={{
                     position: 'absolute',
-                    width: '400px',
-                    height: '400px',
-                    borderRadius: '200px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+                    width: '370px',
+                    height: '370px',
+                    borderRadius: '185px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.10)',
                     display: 'flex',
                   }}
                 />
@@ -333,22 +334,22 @@ export async function GET(
                 <div
                   style={{
                     position: 'absolute',
-                    width: '380px',
-                    height: '380px',
-                    borderRadius: '190px',
+                    width: '350px',
+                    height: '350px',
+                    borderRadius: '175px',
                     background: `linear-gradient(145deg, ${COLORS.orange}, ${COLORS.lightTeal}, ${COLORS.white})`,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    boxShadow: '0 14px 36px rgba(0, 0, 0, 0.35)',
+                    boxShadow: '0 8px 18px rgba(0, 0, 0, 0.28)',
                   }}
                 >
                   {/* Inner white trim */}
                   <div
                     style={{
-                      width: '352px',
-                      height: '352px',
-                      borderRadius: '176px',
+                      width: '324px',
+                      height: '324px',
+                      borderRadius: '162px',
                       backgroundColor: COLORS.white,
                       display: 'flex',
                       alignItems: 'center',
@@ -358,9 +359,9 @@ export async function GET(
                     {/* Circular photo */}
                     <div
                       style={{
-                        width: '336px',
-                        height: '336px',
-                        borderRadius: '168px',
+                        width: '308px',
+                        height: '308px',
+                        borderRadius: '154px',
                         overflow: 'hidden',
                         display: 'flex',
                         backgroundColor: COLORS.primary,
@@ -369,11 +370,11 @@ export async function GET(
                       <img
                         src={personImageSrc}
                         alt=""
-                        width={336}
-                        height={336}
+                        width={308}
+                        height={308}
                         style={{
-                          width: '336px',
-                          height: '336px',
+                          width: '308px',
+                          height: '308px',
                           objectFit: 'cover',
                         }}
                       />
@@ -384,13 +385,13 @@ export async function GET(
                 <div
                   style={{
                     position: 'absolute',
-                    top: '24px',
-                    right: '44px',
-                    width: '26px',
-                    height: '26px',
-                    borderRadius: '13px',
+                    top: '20px',
+                    right: '38px',
+                    width: '22px',
+                    height: '22px',
+                    borderRadius: '11px',
                     backgroundColor: COLORS.orange,
-                    border: '4px solid white',
+                    border: '3px solid white',
                     display: 'flex',
                   }}
                 />
@@ -502,17 +503,17 @@ export async function GET(
               )}
             </div>
             
-            {/* CTA button - Bottom Right */}
+            {/* CTA button - Bottom Right (clear of circular thumbnail frame) */}
             <div
               style={{
                 position: 'absolute',
-                bottom: '40px',
-                right: '40px',
-                padding: '20px 40px',
+                bottom: '0px',
+                right: '36px',
+                padding: '14px 34px',
                 borderRadius: '12px',
                 backgroundColor: COLORS.orange,
                 color: 'white',
-                fontSize: '32px',
+                fontSize: '28px',
                 fontWeight: 'bold',
                 boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)',
               }}
@@ -524,9 +525,9 @@ export async function GET(
             <div
               style={{
                 position: 'absolute',
-                bottom: '40px',
+                bottom: '10px',
                 left: '40px',
-                fontSize: '24px',
+                fontSize: '22px',
                 color: 'white',
                 fontWeight: 'bold',
               }}
