@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from '@supabase/supabase-js';
 import { Flag } from "lucide-react";
@@ -11,7 +10,6 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import JobCard from "@/components/JobCard";
 import JobDetailsHeader from "@/components/JobDetailsHeader";
-import { buildLocationString } from "@/lib/textUtils";
 import JobStructuredData from "@/components/JobStructuredData";
 import ApplySection from "@/components/ApplySection";
 import SocialShare from "@/components/SocialShare";
@@ -226,44 +224,9 @@ async function getRelatedJobs(jobId: string, industries?: string[], jobFunctions
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-// SEO-friendly metadata: "Accounting Manager Job in Nairobi, Kenya - CareerSasa"
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
-  const { id } = await params;
-  const job = await getJobData(id);
-  
-  if (!job) {
-    return { title: "Job Not Found - CareerSasa" };
-  }
-  
-  // Build SEO-friendly title: "[Post] at [Company] in [City], [County], Kenya | CareerSasa"
-  const companyName = job.companies?.name || job.company || null;
-  const isRemote = job.job_location_type === 'REMOTE';
-  const seoTitle = isRemote
-    ? `${job.title}${companyName ? ` at ${companyName}` : ''} Job — Remote (Kenya) | CareerSasa`
-    : `${job.title}${companyName ? ` at ${companyName}` : ''} Job in ${buildLocationString(job.job_location_city, job.job_location_county, job.location)} | CareerSasa`;
-  
-  const locationPart = buildLocationString(job.job_location_city, job.job_location_county, job.location);
-  
-  const description = job.description
-    ? job.description.replace(/<[^>]*>/g, '').substring(0, 160)
-    : `${job.title} job at ${job.companies?.name || job.company || 'a top company'} in ${locationPart}. Apply now on CareerSasa.`;
-  
-  return {
-    title: seoTitle,
-    description: description,
-    openGraph: {
-      title: seoTitle,
-      description: description,
-      type: 'website',
-      url: `https://www.careersasa.co.ke/jobs/${job.job_slug || job.id}`,
-    },
-    twitter: {
-      card: 'summary',
-      title: seoTitle,
-      description: description,
-    },
-  };
-}
+// Metadata (including og:image) lives in layout.tsx via generateJobMetadata.
+// Do not export generateMetadata here — Next.js replaces nested openGraph/twitter
+// from the page over the layout, which previously wiped the job OG image.
 
 // Main page component
 export default async function JobDetails({ params }: { params: Promise<{ id: string }> }) {
