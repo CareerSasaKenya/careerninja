@@ -385,15 +385,17 @@ export function companyInitials(name?: string | null): string {
 
 /**
  * Fields to write when creating/updating a company.
- * Only writes `website` (from known domain map) — logo is left for the
- * server-side verified fetcher (enrich-company-logos cron) to populate.
- * This avoids storing unverified CDN URLs (Twitter placeholders etc.) in the DB.
+ * Only writes `website` from an explicit input or curated known-brand map —
+ * never invents a domain from the company name slug.
+ * Logo is left for the server-side verified fetcher (ensureCompanyForJob /
+ * enrich-company-logos cron) so we never store unverified CDN placeholders.
  */
 export function buildCompanyLogoEnrichment(input: {
   name: string;
   logo?: string | null;
   website?: string | null;
 }): { logo?: string; website?: string } {
+  // Prefer explicit website; otherwise curated brand map only (no AI / no invent).
   const website = input.website || resolveCompanyWebsite(input.name, null);
   const patch: { logo?: string; website?: string } = {};
   if (!input.website && website) patch.website = website;

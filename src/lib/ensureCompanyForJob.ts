@@ -3,11 +3,14 @@
  *
  * Behavior:
  * 1. Reuse existing companies.logo if already stored (future posts of same company).
- * 2. Persist a manually/parsed/portal logo URL when provided.
+ * 2. Persist a manually/parsed/portal logo URL only after image verification.
  * 3. Otherwise fetch a verified logo from website / known brand and store it
  *    so the next job for this company skips the fetch.
  * 4. Fill empty profile fields (website, description, location, size, industry)
  *    from job-board company tabs when provided — never overwrite non-empty values.
+ *
+ * HARD RULE: never invent domains or logos. Websites are stored only when live;
+ * logos are stored only when image bytes verify as a real mark.
  *
  * Matching order:
  * 1. Explicit companyId
@@ -19,12 +22,11 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
-  buildCompanyLogoEnrichment,
   extractDomain,
   isUsableLogoUrl,
-  resolveCompanyWebsite,
+  lookupBrand,
 } from './companyLogo';
-import { fetchCompanyLogoUrl } from './companyLogoFetch';
+import { fetchCompanyLogoUrl, verifyImageUrl } from './companyLogoFetch';
 import { resolveCompanyDomainSmart } from './companyDomainLookup';
 import { normalizeCompanyIdentityKey } from './companyIdentity';
 import { inferCompanyIndustry } from './companyIndustryInference';
@@ -38,7 +40,7 @@ export type EnsureCompanyForJobInput = {
   userId: string;
   companyId?: string | null;
   website?: string | null;
-  /** Manual, parsed, or portal logo URL — stored after basic validation. */
+  /** Manual, parsed, or portal logo URL — stored after image verification. */
   logo?: string | null;
   /**
    * Optional employer-profile industry only.
@@ -155,6 +157,16 @@ async function findCompany(
   return findCompanyByIdentity(supabase, name);
 }
 
+/** Portal / parsed logo URLs — keep only if image bytes verify. Never invent. */
+async function verifiedPortalLogo(
+  logo: string | null | undefined,
+): Promise<string | null> {
+  if (!isUsableLogoUrl(logo)) return null;
+  const url = logo!.trim();
+  if (await verifyImageUrl(url)) return url;
+  return null;
+}
+
 function profileFieldsFromInput(input: EnsureCompanyForJobInput): {
   website: string | null;
   logo: string | null;
@@ -163,14 +175,9 @@ function profileFieldsFromInput(input: EnsureCompanyForJobInput): {
   location: string | null;
   size: string | null;
 } {
-  const website =
-    sanitizeEmployerWebsite(input.website) ||
-    buildCompanyLogoEnrichment({
-      name: input.name.trim(),
-      website: input.website,
-      logo: input.logo,
-    }).website ||
-    null;
+  // Website is resolved + live-verified later in ensureCompanyForJob.
+  // Do not invent from brand map / slug here — prevents dead-end domains on insert.
+  const website = sanitizeEmployerWebsite(input.website);
   const logo = isUsableLogoUrl(input.logo) ? input.logo!.trim() : null;
   const industry =
     input.industry?.trim() ||
@@ -194,6 +201,7 @@ function emptyProfilePatch(
   const fields = profileFieldsFromInput({ ...input, name: company.name });
   const patch: Record<string, string> = {};
 
+  // Website only from sanitizeEmployerWebsite (hint) — live check happens below
   if (!company.website && fields.website) patch.website = fields.website;
   if (!isUsableLogoUrl(company.logo) && fields.logo) patch.logo = fields.logo;
   if (!company.description?.trim() && fields.description) {
@@ -212,14 +220,16 @@ async function createCompany(
 ): Promise<CompanyRow | null> {
   const name = input.name.trim();
   const fields = profileFieldsFromInput(input);
+  // Defer website/logo until live + image verification in ensureCompanyForJob
+  const logo = await verifiedPortalLogo(fields.logo);
 
   const { data, error } = await supabase
     .from('companies')
     .insert({
       name,
       user_id: input.userId,
-      website: fields.website,
-      logo: fields.logo,
+      website: null,
+      logo,
       industry: fields.industry,
       description: fields.description,
       location: fields.location,
@@ -270,61 +280,80 @@ export async function ensureCompanyForJob(
   }
 
   // Fill any empty profile fields from the portal payload (even when logo exists)
+  // Skip website here — handled with live verification below
   const profilePatch = emptyProfilePatch(company, input);
+  delete profilePatch.website;
+  if (profilePatch.logo) {
+    const ok = await verifiedPortalLogo(profilePatch.logo);
+    if (ok) profilePatch.logo = ok;
+    else delete profilePatch.logo;
+  }
   if (Object.keys(profilePatch).length > 0) {
     await supabase.from('companies').update(profilePatch).eq('id', company.id);
     company = { ...company, ...profilePatch };
   }
 
+  const patch: { logo?: string | null; website?: string | null } = {};
+  let fetchedLogo = false;
+
+  // Resolve a LIVE domain only — never invent, never keep dead-end sites
+  const smart = await resolveCompanyDomainSmart(company.name, {
+    websiteHint: sanitizeEmployerWebsite(input.website) || company.website,
+    allowAI: true,
+  });
+
+  if (smart.domain) {
+    const nextWebsite = `https://${smart.domain}`;
+    const currentHost = extractDomain(company.website);
+    if (!company.website || currentHost !== smart.domain) {
+      // Prefer curated/verified domain over a wrong stored hint
+      if (
+        !company.website ||
+        smart.source === 'known_brand' ||
+        smart.deadHint ||
+        (lookupBrand(company.name)?.domain === smart.domain &&
+          currentHost !== smart.domain)
+      ) {
+        patch.website = nextWebsite;
+      }
+    }
+  } else if (smart.deadHint && company.website) {
+    // Clear dead-end website rather than leave users on a 404
+    patch.website = null;
+  }
+
   // ── Fast path: logo already on the company — reuse for this and future jobs ─
   if (isUsableLogoUrl(company.logo)) {
+    if (Object.keys(patch).length > 0) {
+      await supabase.from('companies').update(patch).eq('id', company.id);
+    }
     return {
       companyId: company.id,
       logo: company.logo,
-      website: company.website,
+      website: patch.website !== undefined ? patch.website : company.website,
       reusedLogo: true,
       fetchedLogo: false,
     };
   }
 
-  const patch: { logo?: string; website?: string } = {};
-  let fetchedLogo = false;
-
-  if (!company.website) {
-    const website =
-      sanitizeEmployerWebsite(input.website) ||
-      resolveCompanyWebsite(company.name, null) ||
-      buildCompanyLogoEnrichment({ name: company.name }).website ||
-      null;
-    if (website) patch.website = website;
-  }
-
-  // Prefer explicit manual / parsed / portal logo
-  if (isUsableLogoUrl(input.logo)) {
-    patch.logo = input.logo!.trim();
+  // Prefer explicit manual / parsed / portal logo after image verification
+  const portalLogo = await verifiedPortalLogo(input.logo);
+  if (portalLogo) {
+    patch.logo = portalLogo;
   } else {
-    let domain = extractDomain(patch.website || company.website || input.website || null);
-
-    // If no domain yet, ask AI (Gemini waterfall) for the official site, then verify logo.
-    if (!domain) {
-      const smart = await resolveCompanyDomainSmart(company.name, {
-        websiteHint: input.website,
-        allowAI: true,
-      });
-      if (smart.domain) {
-        domain = smart.domain;
-        if (!company.website && !patch.website) {
-          patch.website = `https://${smart.domain}`;
-        }
-      }
-    }
+    const domain =
+      smart.domain ||
+      extractDomain(patch.website || company.website || input.website || null) ||
+      lookupBrand(company.name)?.domain ||
+      null;
 
     const result = await fetchCompanyLogoUrl(domain, company.name);
     if (result) {
       patch.logo = result.url;
       fetchedLogo = true;
-      if (!company.website && !patch.website && domain) {
-        patch.website = `https://${domain}`;
+      // If we discovered a working logo domain and still have no website, persist it
+      if (!company.website && patch.website === undefined && result.domain) {
+        patch.website = `https://${result.domain}`;
       }
     }
   }
@@ -335,8 +364,8 @@ export async function ensureCompanyForJob(
 
   return {
     companyId: company.id,
-    logo: patch.logo ?? company.logo,
-    website: patch.website ?? company.website,
+    logo: patch.logo !== undefined ? patch.logo : company.logo,
+    website: patch.website !== undefined ? patch.website : company.website,
     reusedLogo: false,
     fetchedLogo,
   };

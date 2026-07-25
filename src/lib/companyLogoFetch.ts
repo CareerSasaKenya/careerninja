@@ -4,11 +4,15 @@
  * Tries multiple sources in priority order, verifies the image is real
  * (checks content-type + minimum byte size), and returns the working URL.
  *
+ * HARD RULE: never invent a logo URL. Only return URLs that verify as real images.
+ * Prefer known-brand domains over wrong/dead website hints.
+ *
  * THIS FILE must only be imported from server-side code (API routes, cron).
  * It uses Node.js fetch which is not available in edge runtime.
  */
 
 import { extractDomain, getKnownBrandTwitterHandle, lookupBrand } from './companyLogo';
+import { normalizeHostname } from './domainVerification';
 
 const UA = 'Mozilla/5.0 (compatible; careersasa-bot/1.0; +https://careersasa.co.ke)';
 
@@ -20,6 +24,7 @@ const GENERIC_PLACEHOLDER_BYTES = 726;
 interface FetchLogoResult {
   url: string;
   source: string;
+  domain?: string;
 }
 
 /**
@@ -83,7 +88,7 @@ function jpegDims(buf: ArrayBuffer): { w: number; h: number } | null {
 }
 
 /** Check that a URL returns a real image (not a generic 16×16 placeholder). */
-async function verifyImageUrl(url: string): Promise<boolean> {
+export async function verifyImageUrl(url: string): Promise<boolean> {
   try {
     const res = await fetch(url, {
       method: 'GET',
@@ -129,6 +134,15 @@ async function tryIconHorse(domain: string): Promise<string | null> {
 /** Try Clearbit logo API (free, no key). Works from Vercel production IPs. */
 async function tryClearbit(domain: string): Promise<string | null> {
   const url = `https://logo.clearbit.com/${domain}?size=128`;
+  if (await verifyImageUrl(url)) return url;
+  return null;
+}
+
+/** Try Logo.dev when a token is configured (higher hit-rate for known brands). */
+async function tryLogoDev(domain: string): Promise<string | null> {
+  const token = process.env.LOGO_DEV_API_KEY || process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN;
+  if (!token) return null;
+  const url = `https://img.logo.dev/${encodeURIComponent(domain)}?token=${encodeURIComponent(token)}&size=128&format=png`;
   if (await verifyImageUrl(url)) return url;
   return null;
 }
@@ -214,46 +228,76 @@ async function tryTwitterAvatar(handle: string): Promise<string | null> {
   return null;
 }
 
+/** Try all logo sources for a single domain. */
+async function fetchLogoForDomain(domain: string): Promise<FetchLogoResult | null> {
+  const scraped = await scrapeWebsiteForLogo(domain);
+  if (scraped) return { url: scraped, source: 'scraped', domain };
+
+  const direct = await tryDirectAssets(domain);
+  if (direct) return { url: direct, source: 'direct-asset', domain };
+
+  const logoDev = await tryLogoDev(domain);
+  if (logoDev) return { url: logoDev, source: 'logo.dev', domain };
+
+  const clearbit = await tryClearbit(domain);
+  if (clearbit) return { url: clearbit, source: 'clearbit', domain };
+
+  const gstatic = await trygstatic(domain);
+  if (gstatic) return { url: gstatic, source: 'gstatic', domain };
+
+  const iconHorse = await tryIconHorse(domain);
+  if (iconHorse) return { url: iconHorse, source: 'iconhorse', domain };
+
+  return null;
+}
+
+function uniqueDomains(
+  ...values: Array<string | null | undefined>
+): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const raw of values) {
+    const host = normalizeHostname(raw) || (raw ? extractDomain(raw) : null);
+    if (!host || seen.has(host)) continue;
+    seen.add(host);
+    out.push(host);
+  }
+  return out;
+}
+
 /**
  * Fetch the best available logo URL for a company.
  * Tries sources in priority order; returns the first verified result.
  *
- * @param domain  - company's primary domain (e.g. "equitybank.co.ke")
- * @param companyName - used to look up known brand Twitter handle
+ * Domain order: known brand domain FIRST, then any provided domain.
+ * This fixes the case where a wrong/dead website blocked real brand logos.
+ *
+ * @param domain  - company's primary domain (e.g. "equitybank.co.ke") — may be wrong
+ * @param companyName - used to look up known brand domain + Twitter handle
  */
 export async function fetchCompanyLogoUrl(
   domain: string | null | undefined,
   companyName?: string | null
 ): Promise<FetchLogoResult | null> {
-  const effectiveDomain = domain || (companyName ? lookupBrand(companyName)?.domain : null);
+  const brand = companyName ? lookupBrand(companyName) : null;
+  const candidates = uniqueDomains(brand?.domain, domain);
 
-  if (effectiveDomain) {
-    // 1. Scrape company website HTML (most accurate when reachable)
-    const scraped = await scrapeWebsiteForLogo(effectiveDomain);
-    if (scraped) return { url: scraped, source: 'scraped' };
-
-    // 2. Direct asset paths on the company website
-    const direct = await tryDirectAssets(effectiveDomain);
-    if (direct) return { url: direct, source: 'direct-asset' };
-
-    // 3. Clearbit (best quality when reachable; often blocked from some IPs)
-    const clearbit = await tryClearbit(effectiveDomain);
-    if (clearbit) return { url: clearbit, source: 'clearbit' };
-
-    // 4. gstatic favicon (filtered to real images, rejects 16×16 placeholders)
-    const gstatic = await trygstatic(effectiveDomain);
-    if (gstatic) return { url: gstatic, source: 'gstatic' };
-
-    // 5. icon.horse (verifyImageUrl rejects tiny placeholders)
-    const iconHorse = await tryIconHorse(effectiveDomain);
-    if (iconHorse) return { url: iconHorse, source: 'iconhorse' };
+  for (const candidate of candidates) {
+    const found = await fetchLogoForDomain(candidate);
+    if (found) return found;
   }
 
-  // 5. Twitter profile picture (only for known brands with verified handles)
+  // Twitter profile picture (only for known brands with verified handles)
   const twitterHandle = companyName ? getKnownBrandTwitterHandle(companyName) : null;
   if (twitterHandle) {
     const twitter = await tryTwitterAvatar(twitterHandle);
-    if (twitter) return { url: twitter, source: 'twitter' };
+    if (twitter) {
+      return {
+        url: twitter,
+        source: 'twitter',
+        domain: brand?.domain || candidates[0],
+      };
+    }
   }
 
   return null;
