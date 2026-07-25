@@ -2,6 +2,9 @@
  * One-shot: find logos for companies missing them (known brands + optional AI),
  * then sync hiring_organization_logo onto related jobs.
  *
+ * HARD RULE: never invent domains or logos — only persist live domains +
+ * image-verified logo URLs. Clears dead website hints when found.
+ *
  *   npx tsx scripts/enrich-company-logos-now.mts
  *   npx tsx scripts/enrich-company-logos-now.mts --apply
  *   npx tsx scripts/enrich-company-logos-now.mts --apply --allow-ai
@@ -9,7 +12,7 @@
  */
 import { config } from 'dotenv'
 import { createClient } from '@supabase/supabase-js'
-import { extractDomain, isUsableLogoUrl } from '../src/lib/companyLogo'
+import { extractDomain, isUsableLogoUrl, lookupBrand } from '../src/lib/companyLogo'
 import { fetchCompanyLogoUrl } from '../src/lib/companyLogoFetch'
 import { resolveCompanyDomainSmart } from '../src/lib/companyDomainLookup'
 
@@ -40,26 +43,65 @@ async function main() {
 
   let updated = 0
   let syncedJobs = 0
+  let clearedDead = 0
 
   for (const company of companies || []) {
     const domainLookup = await resolveCompanyDomainSmart(company.name, {
       websiteHint: company.website,
       allowAI,
     })
+
+    const patch: { logo?: string | null; website?: string | null } = {}
+
+    if (domainLookup.domain) {
+      const next = `https://${domainLookup.domain}`
+      const currentHost = extractDomain(company.website)
+      if (!company.website || currentHost !== domainLookup.domain) {
+        if (
+          !company.website ||
+          domainLookup.deadHint ||
+          domainLookup.source === 'known_brand' ||
+          lookupBrand(company.name)?.domain === domainLookup.domain
+        ) {
+          patch.website = next
+          if (domainLookup.deadHint) clearedDead++
+        }
+      }
+    } else if (domainLookup.deadHint && company.website) {
+      patch.website = null
+      clearedDead++
+      console.log(`clear dead website: ${company.name} ← ${company.website}`)
+    }
+
     const domain =
-      extractDomain(company.website) || domainLookup.domain
+      domainLookup.domain ||
+      extractDomain(patch.website || company.website) ||
+      lookupBrand(company.name)?.domain ||
+      null
+
     if (!domain) {
-      console.log(`skip (no domain): ${company.name}`)
+      console.log(`skip (no verified domain): ${company.name}`)
+      if (apply && Object.keys(patch).length > 0) {
+        await supabase.from('companies').update(patch).eq('id', company.id)
+      }
       continue
     }
 
     const result = await fetchCompanyLogoUrl(domain, company.name)
     if (!result) {
       console.log(`no logo: ${company.name} (${domain}, via ${domainLookup.source})`)
+      if (apply && Object.keys(patch).length > 0) {
+        await supabase.from('companies').update(patch).eq('id', company.id)
+      }
       continue
     }
 
-    const website = company.website || `https://${domain}`
+    patch.logo = result.url
+    if (patch.website === undefined && !company.website && result.domain) {
+      patch.website = `https://${result.domain}`
+    }
+
+    const website = patch.website ?? company.website ?? `https://${result.domain || domain}`
     console.log(
       `${apply ? 'update' : 'would update'}: ${company.name} ← ${result.source} ${result.url.slice(0, 90)}`
     )
@@ -71,7 +113,7 @@ async function main() {
 
     const { error: upErr } = await supabase
       .from('companies')
-      .update({ logo: result.url, website })
+      .update(patch)
       .eq('id', company.id)
     if (upErr) {
       console.error('  company update failed', upErr.message)
@@ -118,7 +160,7 @@ async function main() {
     }
   }
 
-  console.log(`Done. companies=${updated} jobs_synced=${syncedJobs}`)
+  console.log(`Done. companies=${updated} jobs_synced=${syncedJobs} cleared_dead=${clearedDead}`)
 }
 
 main().catch(err => {

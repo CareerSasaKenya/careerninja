@@ -1,17 +1,26 @@
 /**
  * Resolve an employer's official website domain when the known-brand map misses.
  *
- * Uses Gemini/Groq/OpenRouter (same stack as job parsing) — never generates logos.
- * Suggested domains are always verified later via fetchCompanyLogoUrl().
+ * HARD RULE: never invent a domain.
+ * - Known brand map = curated human list (trusted without inventing)
+ * - Website hints / AI suggestions = stored only when positively LIVE
+ * - Dead hints (NXDOMAIN) are flagged for clearing; unreachable is inconclusive
+ *
+ * Never generates logos — logos go through fetchCompanyLogoUrl() image checks.
  */
 
 import { callAI, hasAIConfigured } from './aiProviders'
-import { extractDomain, lookupBrand, resolveCompanyDomain } from './companyLogo'
+import { extractDomain, lookupBrand } from './companyLogo'
+import { checkDomainLiveness, normalizeHostname } from './domainVerification'
 
 export type DomainLookupResult = {
   domain: string | null
-  source: 'known_brand' | 'heuristic' | 'ai' | 'none'
+  source: 'known_brand' | 'website_hint' | 'ai' | 'none'
   confidence?: 'high' | 'medium' | 'low'
+  /** True when a website hint was NXDOMAIN / clearly dead (safe to clear). */
+  deadHint?: boolean
+  /** True when returned domain was positively live-checked (known brands may be false). */
+  verified?: boolean
 }
 
 const memoryCache = new Map<string, DomainLookupResult>()
@@ -24,24 +33,20 @@ Rules:
 2. Prefer country-specific domains when the org is clearly Kenyan/East African (.co.ke, .or.ke, .go.ke, .ac.ke).
 3. domain must be hostname only, lowercase, no protocol, no path, no www. (e.g. "amref.org")
 4. If you are not reasonably sure, return domain null.
-5. Never invent a domain that does not exist.
+5. Never invent a domain that does not exist. If unsure, domain MUST be null.
+6. Never guess by slugifying the company name (e.g. do NOT turn "Acme Kenya Ltd" into "acmekenya.co.ke").
 
 JSON shape:
-{"domain":"example.com"|"null as JSON null","confidence":"high"|"medium"|"low","reason":"short"}`
+{"domain":"example.com"|null,"confidence":"high"|"medium"|"low","reason":"short"}`
 
-function cacheKey(name: string): string {
-  return name.trim().toLowerCase().replace(/\s+/g, ' ')
+function cacheKey(name: string, hint?: string | null): string {
+  return `${name.trim().toLowerCase().replace(/\s+/g, ' ')}|${(hint || '').trim().toLowerCase()}`
 }
 
 function sanitizeDomain(raw: unknown): string | null {
   if (typeof raw !== 'string' || !raw.trim()) return null
-  let value = raw.trim().toLowerCase()
-  value = value.replace(/^https?:\/\//, '').replace(/^www\./, '')
-  value = value.split('/')[0].split('?')[0].replace(/\.$/, '')
-  if (!/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/.test(value)) {
-    return null
-  }
-  // Reject social / job-board domains — not employer logos
+  const value = normalizeHostname(raw)
+  if (!value) return null
   const blocked = [
     'linkedin.com',
     'facebook.com',
@@ -64,26 +69,30 @@ function sanitizeDomain(raw: unknown): string | null {
 }
 
 /**
- * Resolve domain without AI (known brands + optional website hint).
+ * Resolve domain without AI and WITHOUT live verification.
+ * Prefer known brands over raw website hints (hints are often wrong/dead).
  */
 export function resolveDomainLocally(
   companyName: string,
   websiteHint?: string | null
 ): DomainLookupResult {
-  const fromHint = extractDomain(websiteHint || null)
-  if (fromHint) return { domain: fromHint, source: 'heuristic' }
-
   const brand = lookupBrand(companyName)
   if (brand?.domain) return { domain: brand.domain, source: 'known_brand' }
 
-  const heuristic = resolveCompanyDomain(companyName, null)
-  if (heuristic) return { domain: heuristic, source: 'heuristic' }
+  const fromHint = extractDomain(websiteHint || null)
+  if (fromHint) return { domain: fromHint, source: 'website_hint' }
 
   return { domain: null, source: 'none' }
 }
 
 /**
- * Resolve domain with optional AI assist when local maps miss.
+ * Resolve a domain we are willing to persist.
+ *
+ * Priority:
+ * 1. Known brand map (curated — not invented)
+ * 2. Website hint — only if positively alive
+ * 3. AI suggestion — only if medium/high confidence AND positively alive
+ * 4. none (leave empty rather than invent)
  */
 export async function resolveCompanyDomainSmart(
   companyName: string,
@@ -92,54 +101,102 @@ export async function resolveCompanyDomainSmart(
   const name = companyName?.trim()
   if (!name) return { domain: null, source: 'none' }
 
-  const key = cacheKey(name)
+  const hint = options?.websiteHint ?? null
+  const key = cacheKey(name, hint)
   const cached = memoryCache.get(key)
   if (cached) return cached
 
-  const local = resolveDomainLocally(name, options?.websiteHint)
-  if (local.domain) {
-    memoryCache.set(key, local)
-    return local
+  const hintDomain = sanitizeDomain(extractDomain(hint) || hint)
+  let deadHint = false
+  let hintLiveness: Awaited<ReturnType<typeof checkDomainLiveness>> | null = null
+
+  if (hintDomain) {
+    hintLiveness = await checkDomainLiveness(hintDomain)
+    if (hintLiveness === 'dead') deadHint = true
   }
 
+  // 1. Known brand first — curated list, never invent by slugifying names
+  const brand = lookupBrand(name)
+  if (brand?.domain) {
+    const result: DomainLookupResult = {
+      domain: brand.domain,
+      source: 'known_brand',
+      confidence: 'high',
+      verified: false,
+      deadHint,
+    }
+    memoryCache.set(key, result)
+    return result
+  }
+
+  // 2. Website hint — only when positively alive (not unreachable)
+  if (hintDomain && hintLiveness === 'alive') {
+    const result: DomainLookupResult = {
+      domain: hintDomain,
+      source: 'website_hint',
+      confidence: 'medium',
+      verified: true,
+    }
+    memoryCache.set(key, result)
+    return result
+  }
+
+  // 3. AI — suggest then prove LIVE. Never accept unverified AI guesses.
   const allowAI = options?.allowAI !== false
-  if (!allowAI || !hasAIConfigured()) {
-    memoryCache.set(key, local)
-    return local
-  }
+  if (allowAI && hasAIConfigured()) {
+    try {
+      const result = await callAI(
+        `COMPANY / ORGANIZATION NAME: ${name}\nCOUNTRY CONTEXT: Kenya / East Africa (prefer local official site when applicable)\nIf unsure, return {"domain":null,"confidence":"low","reason":"uncertain"}`,
+        {
+          systemPrompt: DOMAIN_LOOKUP_PROMPT,
+          json: true,
+          temperature: 0,
+          maxTokens: 200,
+        }
+      )
 
-  try {
-    const result = await callAI(
-      `COMPANY / ORGANIZATION NAME: ${name}\nCOUNTRY CONTEXT: Kenya / East Africa (prefer local official site when applicable)`,
-      {
-        systemPrompt: DOMAIN_LOOKUP_PROMPT,
-        json: true,
-        temperature: 0,
-        maxTokens: 200,
+      const parsed = (result.parsed || {}) as {
+        domain?: string | null
+        confidence?: 'high' | 'medium' | 'low'
       }
-    )
+      const domain = sanitizeDomain(parsed.domain)
+      const confidence = parsed.confidence || 'low'
 
-    const parsed = (result.parsed || {}) as {
-      domain?: string | null
-      confidence?: 'high' | 'medium' | 'low'
+      if (domain && (confidence === 'high' || confidence === 'medium')) {
+        const live = await checkDomainLiveness(domain)
+        if (live === 'alive') {
+          const aiResult: DomainLookupResult = {
+            domain,
+            source: 'ai',
+            confidence,
+            verified: true,
+            deadHint,
+          }
+          memoryCache.set(key, aiResult)
+          return aiResult
+        }
+        console.warn(
+          '[companyDomainLookup] Rejected AI domain (not live):',
+          name,
+          domain,
+          live
+        )
+      }
+    } catch (err) {
+      console.warn(
+        '[companyDomainLookup] AI domain lookup failed for',
+        name,
+        err instanceof Error ? err.message : err
+      )
     }
-    const domain = sanitizeDomain(parsed.domain)
-    const confidence = parsed.confidence || 'low'
-
-    // Only accept medium/high confidence suggestions
-    if (domain && (confidence === 'high' || confidence === 'medium')) {
-      const aiResult: DomainLookupResult = { domain, source: 'ai', confidence }
-      memoryCache.set(key, aiResult)
-      return aiResult
-    }
-  } catch (err) {
-    console.warn(
-      '[companyDomainLookup] AI domain lookup failed for',
-      name,
-      err instanceof Error ? err.message : err
-    )
   }
 
-  memoryCache.set(key, local)
-  return local
+  const none: DomainLookupResult = {
+    domain: null,
+    source: 'none',
+    deadHint,
+    verified: false,
+  }
+  memoryCache.set(key, none)
+  return none
 }

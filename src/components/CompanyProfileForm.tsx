@@ -15,7 +15,7 @@ import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { buildCompanyLogoEnrichment, resolveCompanyLogoUrl } from "@/lib/companyLogo";
+import { resolveCompanyLogoUrl } from "@/lib/companyLogo";
 import { CompanyLogo } from "@/components/CompanyLogo";
 
 interface Company {
@@ -189,14 +189,10 @@ const CompanyProfileForm = () => {
     setSaving(true);
 
     try {
-      // Persist profile fields first (manual logo/website win when provided)
-      const enrichment = buildCompanyLogoEnrichment({
-        name: formData.name,
-        logo: formData.logo || null,
-        website: formData.website || null,
-      });
-      let logoToSave = formData.logo || enrichment.logo || null;
-      let websiteToSave = formData.website || enrichment.website || null;
+      // Persist only user-provided website/logo first — never invent domains.
+      // ensure-for-job below live-verifies domains and image-verifies logos.
+      let logoToSave = formData.logo || null;
+      let websiteToSave = formData.website || null;
 
       if (company) {
         const { error } = await supabase
