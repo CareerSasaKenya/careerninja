@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { JobThumbnailData } from '@/lib/thumbnailUtils';
+import { getModelForJob } from '@/lib/jobIndustryModel';
 import healthcareImg from '@/assets/job-thumbnails/healthcare-professional.jpg';
 import technologyImg from '@/assets/job-thumbnails/technology-professional.jpg';
 import educationImg from '@/assets/job-thumbnails/education-professional.jpg';
@@ -18,9 +19,9 @@ interface UseJobThumbnailReturn {
   error: string | null;
 }
 
-// Map of job categories to professional model images
-// All images feature Black/African professionals as required
-const MODEL_IMAGES: Record<string, any> = {
+// Bundled for client canvas generation only — OG route fetches from /public instead.
+// Next image imports are StaticImageData (or string URL depending on config).
+const MODEL_IMAGES: Record<string, string | { src: string }> = {
   healthcare: healthcareImg,
   technology: technologyImg,
   education: educationImg,
@@ -34,126 +35,7 @@ const MODEL_IMAGES: Record<string, any> = {
   professional: professionalImg,
 };
 
-// Enhanced function to determine which model image to use based on job title and industry
-// Updated to better reflect Kenyan/African professionals and ensure all images feature Black/African professionals
-const getModelForJob = (jobTitle: string, company: string): string => {
-  const combined = `${jobTitle} ${company}`.toLowerCase();
-  
-  // NGO/Non-profit sector - common in Kenya (check first to avoid conflicts)
-  if (combined.includes('ngo') || combined.includes('non profit') || combined.includes('charity') ||
-      combined.includes('foundation') || combined.includes('humanitarian') || combined.includes('community') ||
-      combined.includes('development') || combined.includes('advocacy') || combined.includes('social work')) {
-    return 'professional'; // Using default professional image for NGO sector
-  }
-  
-  // Government/Public Service - civil servants, police, military
-  if (combined.includes('government') || combined.includes('county') || combined.includes('public') || 
-      combined.includes('civil service') || combined.includes('ministry') || combined.includes('military') ||
-      combined.includes('police') || combined.includes('firefighter') || combined.includes('officer') ||
-      combined.includes('administration') || combined.includes('parliament') || combined.includes('judiciary') ||
-      combined.includes('senate') || combined.includes('assembly')) {
-    return 'government';
-  }
-  
-  // Education - teachers, professors, academic roles
-  if (combined.includes('teacher') || combined.includes('educator') || combined.includes('school') || 
-      combined.includes('professor') || combined.includes('academic') || combined.includes('lecturer') ||
-      combined.includes('tutor') || combined.includes('trainer') || combined.includes('instruction') ||
-      combined.includes('research') || combined.includes('university') || combined.includes('college') ||
-      combined.includes('kindergarten') || combined.includes('tuition')) {
-    return 'education';
-  }
-  
-  // Healthcare - doctors, nurses, medical professionals
-  if (combined.includes('doctor') || combined.includes('nurse') || combined.includes('medical') || 
-      combined.includes('health') || combined.includes('clinical') || combined.includes('physician') ||
-      combined.includes('surgeon') || combined.includes('pharmacist') || combined.includes('therapy') ||
-      combined.includes('hospital') || combined.includes('clinic') || combined.includes('dentist') ||
-      combined.includes('veterinary') || combined.includes('optometrist')) {
-    return 'healthcare';
-  }
-  
-  // Technology - developers, engineers, IT professionals
-  if (combined.includes('developer') || combined.includes('engineer') || combined.includes('software') || 
-      combined.includes('tech') || combined.includes('programmer') || combined.includes('it ') ||
-      combined.includes('data') || combined.includes('analyst') || combined.includes('cyber') ||
-      combined.includes('web') || combined.includes('frontend') || combined.includes('backend') ||
-      combined.includes('fullstack') || combined.includes('devops') || combined.includes('cloud') ||
-      combined.includes('ai') || combined.includes('machine learning') || combined.includes('blockchain') ||
-      combined.includes('network') || combined.includes('database') || combined.includes('systems')) {
-    return 'technology';
-  }
-  
-  // Finance - accountants, bankers, financial analysts
-  // Check for finance terms but exclude cases that might conflict with technology
-  if ((combined.includes('finance') || combined.includes('accountant') || combined.includes('bank') || 
-      combined.includes('auditor') || combined.includes('investment') ||
-      combined.includes('financial') || combined.includes('insurance') || combined.includes('tax') ||
-      combined.includes('wealth') || combined.includes('credit') || combined.includes('loan') ||
-      combined.includes('broker') || combined.includes('trading') || combined.includes('stock')) &&
-      !combined.includes('data analyst')) {
-    return 'finance';
-  }
-  
-  // Hospitality - hotel staff, restaurant workers, tourism
-  // Check for hospitality terms but exclude cases that might conflict with creative
-  if ((combined.includes('hotel') || combined.includes('restaurant') || combined.includes('chef') || 
-      combined.includes('hospitality') || combined.includes('tourism') || combined.includes('catering') ||
-      combined.includes('waiter') || combined.includes('bartender') || combined.includes('cook') ||
-      combined.includes('barista') || combined.includes('lodging') || combined.includes('travel') ||
-      combined.includes('resort') || combined.includes('cafe')) &&
-      !combined.includes('tour guide') && !combined.includes('kenya wildlife service')) {
-    return 'hospitality';
-  }
-  
-  // Agriculture - farmers, agronomists, livestock workers
-  // Check for agriculture terms but exclude cases that might conflict with government
-  if ((combined.includes('farm') || combined.includes('agriculture') || combined.includes('crop') || 
-      combined.includes('livestock') || combined.includes('agri') || combined.includes('farming') ||
-      combined.includes('ranch') || combined.includes('agronomist') || combined.includes('horticulture') ||
-      combined.includes('fisheries') || combined.includes('forestry') || combined.includes('dairy') ||
-      combined.includes('tea') || combined.includes('coffee') || combined.includes('maize') ||
-      combined.includes('wheat') || combined.includes('sugarcane')) &&
-      !combined.includes('ministry of agriculture') && !combined.includes('fisheries officer')) {
-    return 'agriculture';
-  }
-  
-  // Construction - builders, architects, civil engineers
-  // Check for construction terms but exclude cases that might conflict with technology
-  if ((combined.includes('construction') || combined.includes('architect') || combined.includes('civil') || 
-      combined.includes('builder') || combined.includes('contractor') || combined.includes('surveyor') ||
-      combined.includes('foreman') || combined.includes('welding') ||
-      combined.includes('mechanical') || combined.includes('electrician') || combined.includes('plumber') ||
-      combined.includes('carpenter') || combined.includes('mason') || combined.includes('painter') ||
-      combined.includes('roofer') || combined.includes('tiler')) &&
-      !combined.includes('civil engineer') && !combined.includes('data')) {
-    return 'construction';
-  }
-  
-  // Retail - salespeople, shop workers, customer service
-  if (combined.includes('sales') || combined.includes('retail') || combined.includes('shop') || 
-      combined.includes('store') || combined.includes('customer service') || combined.includes('cashier') ||
-      combined.includes('merchandiser') || combined.includes('clerk') || combined.includes('associate') ||
-      combined.includes('market') || combined.includes('mall') || combined.includes('boutique')) {
-    return 'retail';
-  }
-  
-  // Creative/Design - designers, artists, marketers
-  if (combined.includes('designer') || combined.includes('creative') || combined.includes('artist') || 
-      combined.includes('graphic') || combined.includes('marketing') || combined.includes('brand') ||
-      combined.includes('ui') || combined.includes('ux') || combined.includes('media') ||
-      combined.includes('content') || combined.includes('writer') || combined.includes('photographer') ||
-      combined.includes('music') || combined.includes('film') || combined.includes('video') ||
-      combined.includes('advertising') || combined.includes('pr ') || combined.includes('public relations')) {
-    return 'creative';
-  }
-  
-  return 'professional';
-};
-
-/**
- * Hook for generating job thumbnails with industry-specific images and brand colors
- */
+/** Re-export for existing imports (thumbnailTest, etc.) */
 export { getModelForJob };
 
 export const useJobThumbnail = (): UseJobThumbnailReturn => {
@@ -372,9 +254,11 @@ export const useJobThumbnail = (): UseJobThumbnailReturn => {
       
       // Load and draw professional image based on industry
       const category = getModelForJob(data.jobTitle, data.company);
-      const imageUrl = MODEL_IMAGES[category];
+      const imageAsset = MODEL_IMAGES[category];
+      const imageUrl = typeof imageAsset === 'string' ? imageAsset : imageAsset?.src;
       
       try {
+        if (!imageUrl) throw new Error('Missing industry model image');
         const img = new Image();
         img.crossOrigin = 'anonymous';
         await new Promise<void>((resolve, reject) => {

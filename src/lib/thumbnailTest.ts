@@ -2,7 +2,7 @@
  * Test utility for verifying thumbnail generation with various job types
  */
 
-import { getModelForJob } from '@/hooks/useJobThumbnail';
+import { getModelForJob } from '@/lib/jobIndustryModel';
 
 // Test cases for different job categories
 const testCases = [

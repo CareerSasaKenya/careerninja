@@ -2,11 +2,14 @@ import { ImageResponse } from '@vercel/og';
 import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { companyInitials, resolveCompanyLogoUrl } from '@/lib/companyLogo';
+import { getModelForJob, loadIndustryModelDataUrl } from '@/lib/jobIndustryModel';
 
 export const runtime = 'edge';
 
 // Revalidate every 15 minutes to ensure fresh data while still caching
 export const revalidate = 900;
+
+const SITE_URL = 'https://www.careersasa.co.ke';
 
 // Brand colors based on the new design
 const COLORS = {
@@ -241,7 +244,14 @@ export async function GET(
     }
 
     // Extract company name and logo (stored → website/domain → known brand CDN)
-    const companyRow = job.companies && job.companies.length > 0 ? job.companies[0] : null;
+    // Supabase many-to-one may return object or array depending on relationship shape
+    const companiesRel = job.companies as
+      | { name?: string; logo?: string | null; website?: string | null }
+      | { name?: string; logo?: string | null; website?: string | null }[]
+      | null;
+    const companyRow = Array.isArray(companiesRel)
+      ? companiesRel[0] ?? null
+      : companiesRel;
     const companyName = companyRow?.name || job.company || 'Company';
     const companyLogo = resolveCompanyLogoUrl({
       logo: companyRow?.logo,
@@ -256,6 +266,15 @@ export async function GET(
     const salaryCurrency = job.salary_currency || 'KES';
     const salaryPeriod = job.salary_period || 'MONTH';
     const jobFunction = job.job_function || '';
+
+    // Industry person image: fetch ONE public JPG as data URL (not bundled into Edge).
+    // Prefer request origin so preview deploys serve local assets; fall back to prod.
+    const assetOrigin = request.nextUrl?.origin || SITE_URL;
+    const modelCategory = getModelForJob(
+      jobTitle,
+      `${companyName} ${jobFunction}`,
+    );
+    const personImageSrc = await loadIndustryModelDataUrl(modelCategory, assetOrigin);
 
     // Truncate long text to fit in the image
     const truncateText = (text: string, maxLength: number) => {
@@ -285,6 +304,35 @@ export async function GET(
               position: 'relative',
             }}
           >
+            {/* Industry professional — right side (~40% width), omit if fetch failed */}
+            {personImageSrc ? (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '95px',
+                  left: '660px',
+                  width: '480px',
+                  height: '441px',
+                  borderRadius: '25px',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  boxShadow: '0 10px 24px rgba(0, 0, 0, 0.35)',
+                }}
+              >
+                <img
+                  src={personImageSrc}
+                  alt=""
+                  width={480}
+                  height={441}
+                  style={{
+                    width: '480px',
+                    height: '441px',
+                    objectFit: 'cover',
+                  }}
+                />
+              </div>
+            ) : null}
+
             {/* Company Logo - Top Left */}
             <div
               style={{
@@ -317,34 +365,38 @@ export async function GET(
               )}
             </div>
             
-            {/* Job Title - Top Center */}
+            {/* Job Title — left when person image present; centered otherwise.
+                Satori does not support transform: none, so omit transform entirely. */}
             <div
               style={{
                 position: 'absolute',
-                top: '60px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                fontSize: '60px',
+                top: '50px',
+                left: personImageSrc ? '140px' : '180px',
+                fontSize: personImageSrc ? '52px' : '60px',
                 fontWeight: 'bold',
                 color: 'white',
-                textAlign: 'center',
-                maxWidth: '70%',
+                textAlign: personImageSrc ? 'left' : 'center',
+                maxWidth: personImageSrc ? '480px' : '840px',
+                width: personImageSrc ? '480px' : '840px',
                 lineHeight: '1.2',
+                display: 'flex',
+                justifyContent: personImageSrc ? 'flex-start' : 'center',
               }}
             >
-              {truncateText(jobTitle, 45)}
+              {truncateText(jobTitle, personImageSrc ? 40 : 45)}
             </div>
             
-            {/* Left Column - Company Info (moved down for better spacing) */}
+            {/* Left Column - Company Info */}
             <div
               style={{
                 position: 'absolute',
-                top: '220px', // Moved down to create space after title
+                top: '220px',
                 left: '60px',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '25px',
                 color: 'white',
+                maxWidth: personImageSrc ? '520px' : '90%',
               }}
             >
               {/* Company Name */}
@@ -386,7 +438,7 @@ export async function GET(
               )}
             </div>
             
-            {/* CTA button - Bottom Right (same line as tagline) */}
+            {/* CTA button - Bottom Right */}
             <div
               style={{
                 position: 'absolute',
@@ -404,7 +456,7 @@ export async function GET(
               APPLY NOW
             </div>
             
-            {/* Branding text - Bottom Left (same line as CTA button) */}
+            {/* Branding text - Bottom Left */}
             <div
               style={{
                 position: 'absolute',
