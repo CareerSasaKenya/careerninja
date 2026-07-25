@@ -56,7 +56,7 @@ export default function ContactPage() {
                     id="name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="John Doe"
+                    placeholder="George Juma"
                     required
                   />
                 </div>
@@ -68,7 +68,7 @@ export default function ContactPage() {
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="john@example.com"
+                    placeholder="george@example.com"
                     required
                   />
                 </div>
