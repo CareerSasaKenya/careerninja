@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 import { resolveCompanyLogoUrl } from '@/lib/companyLogo';
 import { getModelForJob, loadIndustryModelDataUrl } from '@/lib/jobIndustryModel';
 import { JobSocialCard } from '@/components/og/JobSocialCard';
+import { JobSocialCardTemplate2 } from '@/components/og/JobSocialCardTemplate2';
 import {
   OG_CARD_SIZES,
   OG_COLORS,
@@ -73,6 +74,7 @@ export async function GET(
   const { id } = await params;
   const size = resolveOgCardSize(request.nextUrl.searchParams.get('size'));
   const { width, height } = OG_CARD_SIZES[size];
+  const template = request.nextUrl.searchParams.get('template');
 
   try {
     if (!id) {
@@ -191,7 +193,13 @@ export async function GET(
       size,
     };
 
-    return new ImageResponse(<JobSocialCard {...cardData} />, {
+    const card = template === '2' ? (
+      <JobSocialCardTemplate2 {...cardData} />
+    ) : (
+      <JobSocialCard {...cardData} />
+    );
+
+    return new ImageResponse(card, {
       width,
       height,
       fonts: fonts.length ? fonts : undefined,
