@@ -6,6 +6,7 @@ import {
   FALLBACK_JOB_FUNCTIONS,
   normalizeParsedJobFields,
 } from '@/lib/jobParseNormalization';
+import { sanitizeStockTipsCopy } from '@/lib/sanitizeStockTipsCopy';
 
 // Create a Supabase client for server-side operations
 // Check if required environment variables are present
@@ -407,7 +408,16 @@ export async function finalizeParsedJobData(
 ): Promise<ParsedJobData> {
   const { industries, jobFunctions } = await getLookupOptions();
   const stripped = stripParsedMetaFields(data);
-  return normalizeParsedJobFields(stripped, industries, jobFunctions);
+  const normalized = normalizeParsedJobFields(stripped, industries, jobFunctions);
+  if (normalized.additional_info) {
+    const cleaned = sanitizeStockTipsCopy(
+      normalized.additional_info,
+      normalized.title || null
+    );
+    if (cleaned) normalized.additional_info = cleaned;
+    else delete normalized.additional_info;
+  }
+  return normalized;
 }
 
 function parseAIResponse(content: string): ParsedJobData {

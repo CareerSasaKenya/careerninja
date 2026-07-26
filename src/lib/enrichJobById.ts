@@ -266,11 +266,15 @@ export async function enrichJobById(
     )
     setIf(
       'additional_info',
-      sanitizeAdditionalInfoApplyCopy(parsed.additional_info || null, {
-        apply_email: parsed.apply_email || row.apply_email || null,
-        apply_link: parsed.apply_link || row.apply_link || null,
-        application_url: row.application_url || null,
-      })
+      sanitizeAdditionalInfoApplyCopy(
+        parsed.additional_info || null,
+        {
+          apply_email: parsed.apply_email || row.apply_email || null,
+          apply_link: parsed.apply_link || row.apply_link || null,
+          application_url: row.application_url || null,
+        },
+        row.title || null
+      )
     )
     setIf('education_level_id', educationLevelId)
     setIf('area_of_study', parsed.area_of_study || null)

@@ -258,20 +258,10 @@ ADDITIONAL_INFO (HTML only — How to Apply + tips):
 2) CAREER TIPS — ALWAYS GENERATE (meaty, job-specific, non-repetitive)
 - After How to Apply, add an enticing <h3> subtopic customized to THIS posting's duties, tools, industry, and seniority.
 - Do NOT use bland headings: "Tips", "Application Tips", "Interview Tips", "Career Tips".
-- FORBIDDEN heading patterns (these are overused — never use them):
-  - "How to Actually Win This [Job Title] Interview"
-  - "How to Win This … Interview"
-  - "How to Actually Land This …"
-  - Any title that is only "How to … This [exact job title] Interview"
-- Write a fresh heading every time. Vary angle by role: CV proof for this craft, first 90 days, what hiring managers probe, portfolio/demo prep, field realities, stakeholder communication, etc. Ground the title in something concrete from THIS posting (tools, sector, seniority, or core duty) — not a fill-in-the-blank job-title template.
+- Never use a fill-in-the-blank heading that only swaps the job title into a fixed interview-win template. Ground the title in a concrete duty, tool, stakeholder, or screen from THIS posting.
+- Vary angle by role: CV proof for this craft, first 90 days, what hiring managers probe, portfolio/demo prep, field realities, stakeholder communication, etc.
 - Immediately under the <h3>, write one short intro <p> with a hook (2–3 sentences). Speak like a sharp Kenyan career coach: warm, direct, specific. No fluff.
-- FORBIDDEN intro closers / stock lines (never use):
-  - "Here's how to stand out from the crowd."
-  - "Here's how to stand out."
-  - "Follow these tips to stand out."
-  - "Use these tips to beat the competition."
-  - Ending the intro with a generic "here's how…" teaser that could fit any job.
-- End the intro with a line that is specific to this role's realities (e.g. what this employer will actually test or what weak applications usually miss for THIS function) — not a crowd/competition cliché.
+- Do not end the intro with a generic teaser about standing out from the crowd or beating the competition. Close with something specific to this role's hiring screen.
 - Then exactly 8 numbered tips, customized to this role’s duties, tools, seniority, and hiring context. Do not reuse generic advice that could fit any job.
 - Each tip format:
   <p><strong>N. Short tip title:</strong> Then 3 to 5 full explanation sentences. Make them practical and concrete (what to put on the CV, what to prepare, what managers for this role usually probe). Optional one brief concrete example in the same paragraph — do not invent employer policies or benefits.</p>

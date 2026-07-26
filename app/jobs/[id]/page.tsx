@@ -26,6 +26,7 @@ import {
 } from "@/lib/jobParseNormalization";
 import { getLookupOptions } from "@/lib/jobParsingOptimized";
 import { sanitizeScrapedJobHtmlForDisplay } from "@/lib/jobBoardApply";
+import { sanitizeStockTipsCopy } from "@/lib/sanitizeStockTipsCopy";
 
 function getDisplayLabels(values: string[] | null | undefined, fallback?: string | null): string[] {
   return dedupeStrings(values?.length ? values : fallback ? [fallback] : []);
@@ -273,7 +274,10 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
         : String(job.required_qualifications)
   );
   const softwareSkillsHtml = sanitizeScrapedJobHtmlForDisplay(job.software_skills);
-  const additionalInfoHtml = sanitizeScrapedJobHtmlForDisplay(job.additional_info);
+  const additionalInfoHtml = sanitizeStockTipsCopy(
+    sanitizeScrapedJobHtmlForDisplay(job.additional_info),
+    job.title
+  );
   
   return (
     <>
