@@ -31,6 +31,7 @@ The job management system requires periodic tasks to:
 - **Scrape Discover**: Daily at 5:00 AM UTC (`0 5 * * *`) — queues new jobs from active sources
 - **Scrape Process**: Every 2 hours (`0 */2 * * *`) — publishes pending queue items (Pro)
 - **Email Automations**: Daily at 8:00 AM UTC (`0 8 * * *`)
+- **Social Share**: Every 30 minutes, weekdays 05:00–13:30 UTC (`*/30 5-13 * * 1-5`) — Kenyan business hours (08:00–17:00 EAT), max 10 distinct jobs/day
 
 ### Endpoints
 
@@ -41,6 +42,7 @@ The job management system requires periodic tasks to:
 - `GET /api/cron/scrape-discover`
 - `GET /api/cron/scrape-process`
 - `GET /api/cron/email-automations`
+- `GET /api/cron/social-share`
 
 ## Option 2: PostgreSQL pg_cron Extension
 
@@ -311,6 +313,33 @@ curl -X GET -H "Authorization: Bearer $CRON_SECRET" \
 ```
 
 Or use **Admin → Scraper Sources** → Discover all active / Process queue (10).
+
+## Social share automation
+
+`GET /api/cron/social-share` posts new active jobs to Facebook Page and/or LinkedIn Company Page.
+
+Rules enforced in code:
+- Only Mon–Fri **08:00–17:00 Africa/Nairobi**
+- Max **10 distinct jobs per EAT day** (one job to FB+LinkedIn counts as 1)
+- Dedupe via unique `(job_id, platform)`
+- Skip expired / non-active jobs
+- Highly AI-rewritten captions (Gemini → Groq → OpenRouter)
+
+Required env vars (add what you use):
+- `CRON_SECRET`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- AI keys (`GEMINI_API_KEY*` / `GROQ_API_KEY` / `OPENROUTER_API_KEY`)
+- Facebook: `FACEBOOK_PAGE_ID`, `FACEBOOK_PAGE_ACCESS_TOKEN`
+- LinkedIn: `LINKEDIN_ORGANIZATION_ID`, `LINKEDIN_ACCESS_TOKEN` (optional `LINKEDIN_API_VERSION`)
+- Optional: `SOCIAL_SHARE_DRY_RUN=true` to exercise the pipeline without calling platform APIs
+
+Apply migration: `supabase/migrations/20260726_create_social_share_queue.sql`
+
+Manual kickoff:
+```bash
+curl -X GET -H "Authorization: Bearer $CRON_SECRET" \
+  https://www.careersasa.co.ke/api/cron/social-share
+```
 
 ## Cost Considerations
 

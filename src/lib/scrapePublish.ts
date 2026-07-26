@@ -337,6 +337,14 @@ export async function publishScrapedJob(
       raw_data: rawData,
     })
 
+    // Best-effort: queue for automatic social sharing (never fail publish).
+    try {
+      const { enqueueJobForSocialShare } = await import('./socialShareQueue')
+      await enqueueJobForSocialShare(supabase, insertedJob.id)
+    } catch (shareErr) {
+      console.warn('[scrapePublish] social share enqueue failed', shareErr)
+    }
+
     return {
       status: 'published',
       job_id: insertedJob.id,
