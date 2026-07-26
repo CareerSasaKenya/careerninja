@@ -694,7 +694,8 @@ export async function runScrapeProcessOne(
           ? normalized.apply_link?.trim() || null
           : parsed.apply_link || normalized.apply_link || null,
         application_url: applicationUrl,
-      }
+      },
+      normalized.title || parsed.title || null
     )
 
     const jobPayload = {

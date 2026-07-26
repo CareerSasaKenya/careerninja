@@ -6,6 +6,8 @@
  * visit-link / send-email guidance instead.
  */
 
+import { sanitizeStockTipsCopy } from './sanitizeStockTipsCopy'
+
 export interface ApplyMethodFields {
   apply_email?: string | null
   apply_link?: string | null
@@ -59,7 +61,8 @@ function looksLikeBadOrEmptyHowToApply(innerHtml: string): boolean {
  */
 export function sanitizeAdditionalInfoApplyCopy(
   additionalInfo: string | null | undefined,
-  methods: ApplyMethodFields
+  methods: ApplyMethodFields,
+  jobTitle?: string | null
 ): string | null {
   const hasMethod = !!(
     methods.apply_email?.trim() ||
@@ -99,5 +102,6 @@ export function sanitizeAdditionalInfoApplyCopy(
     }
   }
 
-  return html || null
+  // Hard filter: rewrite stock tip headings / strip stock intro closers
+  return sanitizeStockTipsCopy(html || null, jobTitle)
 }
