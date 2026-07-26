@@ -31,4 +31,4 @@ out/
 
 # Temporary files
 *DESKTOP-*.ts
-*DESKTOP-*.tsx
+*DESKTOP-*.tsxtmp/
