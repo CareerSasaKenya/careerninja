@@ -4,9 +4,12 @@
  */
 
 export const OG_COLORS = {
+  /** CareerSasa primary — LinkedIn / corporate blue family */
   primaryBlue: '#1565C0',
+  linkedinBlue: '#0077B5',
   primaryBlueDeep: '#0D47A1',
   primaryBlueMid: '#1976D2',
+  /** CareerSasa secondary */
   accentOrange: '#FF7A00',
   accentOrangeDeep: '#E86A00',
   white: '#FFFFFF',
@@ -131,6 +134,9 @@ export type OgJobCardData = {
   showVerified: boolean;
   categoryColor: string;
   size: OgCardSize;
+  /** Optional QR (data URL) for high-contrast template footer */
+  qrCodeSrc?: string | null;
+  jobUrl?: string | null;
 };
 
 export async function loadPublicAssetDataUrl(
