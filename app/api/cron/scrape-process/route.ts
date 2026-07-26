@@ -21,10 +21,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const maxJobs = parseInt(request.nextUrl.searchParams.get('max') || '10', 10)
+    // Default 15 / cap 20 — paid DeepSeek can handle denser batches; soft budget
+    // still stops early before Vercel's hard 300s kill.
+    const maxJobs = parseInt(request.nextUrl.searchParams.get('max') || '15', 10)
     const { processed, results, stopped_early } = await runScrapeProcessBatch(getServiceClient(), {
-      maxJobs: Math.min(Math.max(1, maxJobs), 10),
-      budgetMs: 240_000,
+      maxJobs: Math.min(Math.max(1, maxJobs), 20),
+      budgetMs: 270_000,
     })
 
     return NextResponse.json({
