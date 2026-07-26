@@ -440,7 +440,6 @@ export default function AdminImageTemplatesPage() {
                       </Button>
                     </div>
                   ) : (
-                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       key={previewUrl}
                       src={previewUrl}
