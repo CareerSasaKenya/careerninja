@@ -25,7 +25,7 @@ export async function triggerScrapeProcess(): Promise<Record<string, unknown>> {
 }
 
 /** Process up to maxJobs pending queue items (one per in-process call). */
-export async function triggerScrapeProcessBatch(maxJobs: number = 10): Promise<{
+export async function triggerScrapeProcessBatch(maxJobs: number = 15): Promise<{
   processed: number
   results: Record<string, unknown>[]
   stopped_early?: string

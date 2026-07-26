@@ -29,7 +29,7 @@ The job management system requires periodic tasks to:
 - **Expire Promotions**: Daily at 4:00 AM UTC (`0 4 * * *`)
 - **Enrich Company Logos**: Daily at 4:30 AM UTC (`30 4 * * *`)
 - **Scrape Discover**: Daily at 5:00 AM UTC (`0 5 * * *`) — queues new jobs from active sources
-- **Scrape Process**: Every 2 hours (`0 */2 * * *`) — publishes pending queue items (Pro)
+- **Scrape Process**: Hourly (`0 * * * *`) — publishes pending queue items (default 15/run, Pro)
 - **Email Automations**: Daily at 8:00 AM UTC (`0 8 * * *`)
 
 ### Endpoints
@@ -307,7 +307,7 @@ curl -X GET -H "Authorization: Bearer $CRON_SECRET" \
   https://careersasa.co.ke/api/cron/scrape-discover
 
 curl -X GET -H "Authorization: Bearer $CRON_SECRET" \
-  "https://careersasa.co.ke/api/cron/scrape-process?max=10"
+  "https://careersasa.co.ke/api/cron/scrape-process?max=15"
 ```
 
 Or use **Admin → Scraper Sources** → Discover all active / Process queue (10).

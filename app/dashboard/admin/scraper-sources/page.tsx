@@ -150,7 +150,7 @@ export default function AdminScraperSourcesPage() {
     }
   };
 
-  const runProcess = async (max = 3) => {
+  const runProcess = async (max = 10) => {
     try {
       setProcessingQueue(true);
 
@@ -381,8 +381,9 @@ export default function AdminScraperSourcesPage() {
           </Button>
           <Button
             variant="secondary"
-            onClick={() => runProcess(3)}
+            onClick={() => runProcess(10)}
             disabled={busy || (data?.totals.pending ?? 0) === 0}
+            title="Process up to 10 pending queue items with DeepSeek parse/enrich"
           >
             {processingQueue ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
