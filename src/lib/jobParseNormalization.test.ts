@@ -1,0 +1,20 @@
+/**
+ * Run: npx tsx src/lib/jobParseNormalization.test.ts
+ */
+import assert from 'node:assert/strict'
+import { buildJobParseSystemPrompt } from './jobParseNormalization'
+
+const prompt = buildJobParseSystemPrompt(
+  ['Financial Services'],
+  ['Accounting & Finance']
+)
+
+assert.match(prompt, /exactly 8 numbered tips/i)
+assert.match(prompt, /3 to 5 full explanation sentences/i)
+assert.match(prompt, /enticing <h3>/i)
+assert.match(prompt, /hook/i)
+assert.match(prompt, /robotic AI patterns/i)
+assert.match(prompt, /How to Apply/i)
+assert.doesNotMatch(prompt, /4 brief tips/)
+
+console.log('jobParseNormalization.test.ts: all assertions passed')
