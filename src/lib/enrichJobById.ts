@@ -56,11 +56,11 @@ type JobRow = {
 
 function hasAiKeys(): boolean {
   return [
+    process.env.DEEPSEEK_API_KEY,
+    process.env.DEEPSEEK_API_KEY_2,
     process.env.GEMINI_API_KEY,
     process.env.GEMINI_API_KEY_2,
     process.env.GEMINI_API_KEY_3,
-    process.env.GROQ_API_KEY,
-    process.env.OPENROUTER_API_KEY,
   ].some(v => typeof v === 'string' && v.trim().length > 0)
 }
 

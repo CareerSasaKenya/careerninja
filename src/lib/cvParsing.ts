@@ -1,6 +1,6 @@
 import { callAI, hasAIConfigured } from './aiProviders';
 
-// CV Parsing using unified AI provider chain (Gemini → Groq → OpenRouter)
+// CV Parsing using unified AI provider chain (DeepSeek → Gemini)
 // Extracts structured data from CV/Resume documents
 
 interface ParsedCVData {
@@ -179,7 +179,7 @@ export async function parseCVText(
   _maxRetries: number = 2
 ): Promise<{ response: ParsedCVData; modelUsed: string }> {
   if (!hasAIConfigured()) {
-    throw new Error('No AI API key configured. Please add GEMINI_API_KEY, GROQ_API_KEY, or OPENROUTER_API_KEY to environment variables.');
+    throw new Error('No AI API key configured. Please add DEEPSEEK_API_KEY and/or GEMINI_API_KEY to environment variables.');
   }
 
   try {

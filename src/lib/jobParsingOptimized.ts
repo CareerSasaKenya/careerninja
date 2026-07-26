@@ -142,10 +142,10 @@ export async function saveToCache(
   }
 }
 
-/** Quota / auth failures should not burn retries — fall through to Groq fast. */
+/** Quota / auth failures should not burn retries — fall through to next provider. */
 function isNonRetryableAiError(error: unknown): boolean {
   const msg = error instanceof Error ? error.message : String(error)
-  return /(?:\b429\b|\b403\b|quota|rate.?limit|resource.?exhausted|too many requests|insufficient.?quota|api key not valid|invalid.?api.?key|permission.?denied)/i.test(
+  return /(?:\b429\b|\b403\b|quota|rate.?limit|resource.?exhausted|too many requests|insufficient.?quota|api key not valid|invalid.?api.?key|permission.?denied|balance|payment.?required|\b402\b)/i.test(
     msg
   )
 }
@@ -186,7 +186,7 @@ async function tryProviderWithRetries(
       console.warn(
         `[callAIWithRetry] ${label} attempt ${attempt + 1} failed: ${msg}`
       )
-      // Free Gemini quota / bad keys: skip remaining retries and try Groq next
+      // Quota / bad keys: skip remaining retries and try next provider
       if (isNonRetryableAiError(error)) {
         break
       }
@@ -199,24 +199,44 @@ async function tryProviderWithRetries(
 }
 
 // Optimized AI API call with timeout and retry
-// Priority chain: Gemini → Groq → OpenRouter
-// Free Gemini keys that 429 must fail fast so Groq (often free + set in Vercel) can run.
+// Priority chain: DeepSeek (~95%) → Gemini (backup)
 export async function callAIWithRetry(
   jobText: string,
   systemPrompt: string,
   maxRetries: number = 2
 ): Promise<{ response: ParsedJobData; modelUsed: string }> {
+  const deepseekKeys = nonEmptyEnv(
+    process.env.DEEPSEEK_API_KEY,
+    process.env.DEEPSEEK_API_KEY_2
+  )
   const geminiApiKeys = nonEmptyEnv(
     process.env.GEMINI_API_KEY,
     process.env.GEMINI_API_KEY_2,
     process.env.GEMINI_API_KEY_3
   )
-  const groqApiKey = nonEmptyEnv(process.env.GROQ_API_KEY)[0]
-  const openRouterApiKey = nonEmptyEnv(process.env.OPENROUTER_API_KEY)[0]
+  const deepseekModel =
+    process.env.DEEPSEEK_MODEL?.trim() || 'deepseek-v4-flash'
 
   let lastError: unknown = null
 
-  // 1. Try Gemini keys first (fail-fast on quota so Groq is reached)
+  // 1. DeepSeek primary
+  for (let i = 0; i < deepseekKeys.length; i++) {
+    const result = await tryProviderWithRetries(
+      `${deepseekModel}#${i + 1}`,
+      () => callDeepSeekAPI(deepseekKeys[i], jobText, systemPrompt, deepseekModel),
+      maxRetries
+    )
+    if (result.ok) {
+      return { response: result.response, modelUsed: deepseekModel }
+    }
+    lastError = providerFailure(result) || lastError
+  }
+
+  if (!deepseekKeys.length) {
+    console.warn('[callAIWithRetry] DEEPSEEK_API_KEY missing — falling back to Gemini')
+  }
+
+  // 2. Gemini backup
   for (let i = 0; i < geminiApiKeys.length; i++) {
     const result = await tryProviderWithRetries(
       `gemini-2.5-flash#${i + 1}`,
@@ -229,41 +249,69 @@ export async function callAIWithRetry(
     lastError = providerFailure(result) || lastError
   }
 
-  // 2. Fallback to Groq (free tier — primary rescue when Gemini is exhausted)
-  if (groqApiKey) {
-    const result = await tryProviderWithRetries(
-      'llama-3.3-70b-versatile',
-      () => callGroqAPI(groqApiKey, jobText, systemPrompt),
-      maxRetries
-    )
-    if (result.ok) {
-      return { response: result.response, modelUsed: result.modelUsed }
-    }
-    lastError = providerFailure(result) || lastError
-  } else {
-    console.warn('[callAIWithRetry] GROQ_API_KEY missing — cannot fall back to Groq')
-  }
-
-  // 3. Fallback to OpenRouter
-  if (openRouterApiKey) {
-    const result = await tryProviderWithRetries(
-      'openrouter',
-      () => callOpenRouterAPI(openRouterApiKey, jobText, systemPrompt),
-      maxRetries
-    )
-    if (result.ok) {
-      return {
-        response: result.response,
-        modelUsed: 'gemini-2.5-flash (openrouter)',
-      }
-    }
-    lastError = providerFailure(result) || lastError
-  }
-
   throw lastError || new Error('All AI services failed')
 }
 
-// Optimized Gemini API call
+// DeepSeek primary (OpenAI-compatible)
+async function callDeepSeekAPI(
+  apiKey: string,
+  jobText: string,
+  systemPrompt: string,
+  model: string
+): Promise<ParsedJobData> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 45000);
+
+  try {
+    const response = await fetch('https://api.deepseek.com/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          {
+            role: 'system',
+            content: `${systemPrompt}\n\nReturn ONLY valid JSON for the job parse schema (no markdown). The word json is required for JSON mode.`,
+          },
+          { role: 'user', content: `Parse this job posting as JSON:\n\n${jobText}` },
+        ],
+        temperature: 0.1,
+        max_tokens: 6000,
+        response_format: { type: 'json_object' },
+        thinking: { type: 'disabled' },
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const body = await response.text().catch(() => '');
+      throw new Error(
+        `DeepSeek API error: ${response.status} ${response.statusText}${
+          body ? ` — ${body.slice(0, 200)}` : ''
+        }`
+      );
+    }
+
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content;
+
+    if (!content) {
+      throw new Error('No content in DeepSeek response');
+    }
+
+    return parseAIResponse(content);
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
+}
+
+// Gemini backup
 async function callGeminiAPI(apiKey: string, jobText: string, systemPrompt: string): Promise<ParsedJobData> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout
@@ -307,101 +355,6 @@ ${jobText}` }]
     
     if (!content) {
       throw new Error('No content in Gemini response');
-    }
-    
-    return parseAIResponse(content);
-  } catch (error) {
-    clearTimeout(timeoutId);
-    throw error;
-  }
-}
-
-// Optimized Groq API call (Llama 3.3 70B)
-async function callGroqAPI(apiKey: string, jobText: string, systemPrompt: string): Promise<ParsedJobData> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 20000);
-
-  try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Parse this job posting:\n\n${jobText}` },
-        ],
-        temperature: 0.1,
-        max_tokens: 6000,
-      }),
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      const body = await response.text().catch(() => '')
-      throw new Error(
-        `Groq API error: ${response.status} ${response.statusText}${
-          body ? ` — ${body.slice(0, 200)}` : ''
-        }`
-      )
-    }
-
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
-
-    if (!content) {
-      throw new Error('No content in Groq response');
-    }
-
-    return parseAIResponse(content);
-  } catch (error) {
-    clearTimeout(timeoutId);
-    throw error;
-  }
-}
-
-// Optimized OpenRouter API call
-async function callOpenRouterAPI(apiKey: string, jobText: string, systemPrompt: string): Promise<ParsedJobData> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 20000);
-  
-  try {
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "https://careersasa.co.ke",
-        "X-Title": "CareerSasa Job Parser",
-      },
-      body: JSON.stringify({
-        model: "anthropic/claude-3.5-sonnet",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: `Parse this job posting:\n\n${jobText}` },
-        ],
-        temperature: 0.1,
-        max_tokens: 6000, // Reduced from 8000
-      }),
-      signal: controller.signal
-    });
-    
-    clearTimeout(timeoutId);
-    
-    if (!response.ok) {
-      throw new Error(`OpenRouter API error: ${response.status} ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
-    
-    if (!content) {
-      throw new Error('No content in OpenRouter response');
     }
     
     return parseAIResponse(content);

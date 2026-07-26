@@ -12,7 +12,7 @@ export const maxDuration = 300
  * POST /api/admin/jobs/enrich
  *
  * Enrich ANY CareerSasa job (manual, scraped, parse-job, n8n, …) using
- * production Gemini/OpenRouter keys on the server.
+ * production DeepSeek → Gemini keys on the server.
  *
  * Body:
  *   job_id?: string     — enrich one job

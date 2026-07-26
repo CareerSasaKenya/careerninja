@@ -1,12 +1,17 @@
 /**
  * Unified AI Provider Module
- * Priority chain: Gemini → Groq → OpenRouter
+ * Priority chain: DeepSeek (~95%) → Gemini (backup)
  *
  * Usage:
  *   import { callAI } from '@/lib/aiProviders';
  *   const result = await callAI(prompt, { systemPrompt, maxTokens, temperature });
  *
- * Returns: { text: string, model: string, provider: 'gemini' | 'groq' | 'openrouter' }
+ * Env:
+ *   DEEPSEEK_API_KEY (required for primary)
+ *   DEEPSEEK_MODEL (optional, default deepseek-v4-flash)
+ *   GEMINI_API_KEY / GEMINI_API_KEY_2 / GEMINI_API_KEY_3 (fallback)
+ *
+ * Returns: { text: string, model: string, provider: 'deepseek' | 'gemini' }
  * Throws: Error if all providers fail
  */
 
@@ -21,12 +26,103 @@ export interface AIOptions {
 export interface AIResult {
   text: string;
   model: string;
-  provider: 'gemini' | 'groq' | 'openrouter';
+  provider: 'deepseek' | 'gemini';
   parsed?: any;
 }
 
+const DEEPSEEK_BASE = 'https://api.deepseek.com';
+const DEFAULT_DEEPSEEK_MODEL = 'deepseek-v4-flash';
+
+function deepseekModel(): string {
+  const fromEnv = process.env.DEEPSEEK_MODEL?.trim();
+  return fromEnv || DEFAULT_DEEPSEEK_MODEL;
+}
+
+function deepseekKeys(): string[] {
+  return [
+    process.env.DEEPSEEK_API_KEY,
+    process.env.DEEPSEEK_API_KEY_2,
+  ]
+    .map((k) => (typeof k === 'string' ? k.trim() : ''))
+    .filter(Boolean);
+}
+
+function geminiKeys(): string[] {
+  return [
+    process.env.GEMINI_API_KEY,
+    process.env.GEMINI_API_KEY_2,
+    process.env.GEMINI_API_KEY_3,
+  ]
+    .map((k) => (typeof k === 'string' ? k.trim() : ''))
+    .filter(Boolean);
+}
+
 // ---------------------------------------------------------------------------
-// Provider: Gemini
+// Provider: DeepSeek (primary)
+// ---------------------------------------------------------------------------
+async function callDeepSeek(
+  apiKey: string,
+  prompt: string,
+  opts: AIOptions
+): Promise<AIResult> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 45000);
+  const model = deepseekModel();
+
+  const systemParts: string[] = [];
+  if (opts.systemPrompt) systemParts.push(opts.systemPrompt);
+  if (opts.json) {
+    systemParts.push(
+      'Return ONLY valid JSON (no markdown fences). The word json appears here so JSON mode is allowed.'
+    );
+  }
+
+  const messages: Array<{ role: string; content: string }> = [];
+  if (systemParts.length) {
+    messages.push({ role: 'system', content: systemParts.join('\n\n') });
+  }
+  messages.push({ role: 'user', content: prompt });
+
+  const body: Record<string, unknown> = {
+    model,
+    messages,
+    temperature: opts.temperature ?? 0.2,
+    max_tokens: opts.maxTokens ?? 2000,
+    // Bulk CareerSasa work: disable thinking for speed/cost
+    thinking: { type: 'disabled' },
+  };
+  if (opts.json) {
+    body.response_format = { type: 'json_object' };
+  }
+
+  try {
+    const res = await fetch(`${DEEPSEEK_BASE}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => '');
+      throw new Error(`DeepSeek ${res.status}: ${errBody.slice(0, 200)}`);
+    }
+
+    const json = await res.json();
+    const text = json?.choices?.[0]?.message?.content;
+    if (!text) throw new Error('DeepSeek: empty response');
+
+    return { text, model, provider: 'deepseek' };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Provider: Gemini (backup)
 // ---------------------------------------------------------------------------
 async function callGemini(
   apiKey: string,
@@ -37,124 +133,47 @@ async function callGemini(
   const timeout = setTimeout(() => controller.abort(), 20000);
 
   const body: any = {
-    contents: [{ parts: [{ text: opts.systemPrompt ? `${opts.systemPrompt}\n\n${prompt}` : prompt }] }],
+    contents: [
+      {
+        parts: [
+          {
+            text: opts.systemPrompt
+              ? `${opts.systemPrompt}\n\n${prompt}`
+              : prompt,
+          },
+        ],
+      },
+    ],
     generationConfig: {
       temperature: opts.temperature ?? 0.2,
       maxOutputTokens: opts.maxTokens ?? 2000,
     },
   };
 
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-      signal: controller.signal,
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      }
+    );
+
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => '');
+      throw new Error(`Gemini ${res.status}: ${errBody.slice(0, 200)}`);
     }
-  );
-  clearTimeout(timeout);
 
-  if (!res.ok) {
-    const errBody = await res.text().catch(() => '');
-    throw new Error(`Gemini ${res.status}: ${errBody.slice(0, 200)}`);
+    const json = await res.json();
+    const text = json?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) throw new Error('Gemini: empty response');
+
+    return { text, model: 'gemini-2.5-flash', provider: 'gemini' };
+  } finally {
+    clearTimeout(timeout);
   }
-
-  const json = await res.json();
-  const text = json?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error('Gemini: empty response');
-
-  return { text, model: 'gemini-2.5-flash', provider: 'gemini' };
-}
-
-// ---------------------------------------------------------------------------
-// Provider: Groq (Llama 3.3 70B)
-// ---------------------------------------------------------------------------
-async function callGroq(
-  apiKey: string,
-  prompt: string,
-  opts: AIOptions
-): Promise<AIResult> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 20000);
-
-  const messages: any[] = [];
-  if (opts.systemPrompt) {
-    messages.push({ role: 'system', content: opts.systemPrompt });
-  }
-  messages.push({ role: 'user', content: prompt });
-
-  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
-      messages,
-      temperature: opts.temperature ?? 0.2,
-      max_tokens: opts.maxTokens ?? 2000,
-    }),
-    signal: controller.signal,
-  });
-  clearTimeout(timeout);
-
-  if (!res.ok) {
-    const errBody = await res.text().catch(() => '');
-    throw new Error(`Groq ${res.status}: ${errBody.slice(0, 200)}`);
-  }
-
-  const json = await res.json();
-  const text = json?.choices?.[0]?.message?.content;
-  if (!text) throw new Error('Groq: empty response');
-
-  return { text, model: 'llama-3.3-70b-versatile', provider: 'groq' };
-}
-
-// ---------------------------------------------------------------------------
-// Provider: OpenRouter
-// ---------------------------------------------------------------------------
-async function callOpenRouter(
-  apiKey: string,
-  prompt: string,
-  opts: AIOptions
-): Promise<AIResult> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 20000);
-
-  const messages: any[] = [];
-  if (opts.systemPrompt) {
-    messages.push({ role: 'system', content: opts.systemPrompt });
-  }
-  messages.push({ role: 'user', content: prompt });
-
-  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: 'google/gemini-2.5-flash',
-      messages,
-      temperature: opts.temperature ?? 0.2,
-      max_tokens: opts.maxTokens ?? 2000,
-    }),
-    signal: controller.signal,
-  });
-  clearTimeout(timeout);
-
-  if (!res.ok) {
-    const errBody = await res.text().catch(() => '');
-    throw new Error(`OpenRouter ${res.status}: ${errBody.slice(0, 200)}`);
-  }
-
-  const json = await res.json();
-  const text = json?.choices?.[0]?.message?.content;
-  if (!text) throw new Error('OpenRouter: empty response');
-
-  return { text, model: 'gemini-2.5-flash (openrouter)', provider: 'openrouter' };
 }
 
 // ---------------------------------------------------------------------------
@@ -163,56 +182,41 @@ async function callOpenRouter(
 
 /**
  * Call AI with automatic provider fallback.
- * Priority: Gemini (3 keys) → Groq → OpenRouter
+ * Priority: DeepSeek → Gemini
  */
-export async function callAI(prompt: string, opts: AIOptions = {}): Promise<AIResult> {
-  const geminiKeys = [
-    process.env.GEMINI_API_KEY,
-    process.env.GEMINI_API_KEY_2,
-    process.env.GEMINI_API_KEY_3,
-  ].filter(Boolean) as string[];
+export async function callAI(
+  prompt: string,
+  opts: AIOptions = {}
+): Promise<AIResult> {
+  const dsKeys = deepseekKeys();
+  const gKeys = geminiKeys();
 
-  const groqKey = process.env.GROQ_API_KEY;
-  const openRouterKey = process.env.OPENROUTER_API_KEY;
-
-  if (geminiKeys.length === 0 && !groqKey && !openRouterKey) {
-    throw new Error('No AI API keys configured');
+  if (dsKeys.length === 0 && gKeys.length === 0) {
+    throw new Error(
+      'No AI API keys configured. Add DEEPSEEK_API_KEY and/or GEMINI_API_KEY.'
+    );
   }
 
   const errors: string[] = [];
 
-  // 1. Try Gemini keys
-  for (const key of geminiKeys) {
+  // 1. DeepSeek primary (~95% of traffic)
+  for (const key of dsKeys) {
+    try {
+      const result = await callDeepSeek(key, prompt, opts);
+      if (opts.json) {
+        const cleaned = stripFences(result.text);
+        result.parsed = JSON.parse(cleaned);
+      }
+      return result;
+    } catch (err: any) {
+      errors.push(err.message);
+    }
+  }
+
+  // 2. Gemini backup
+  for (const key of gKeys) {
     try {
       const result = await callGemini(key, prompt, opts);
-      if (opts.json) {
-        const cleaned = stripFences(result.text);
-        result.parsed = JSON.parse(cleaned);
-      }
-      return result;
-    } catch (err: any) {
-      errors.push(err.message);
-    }
-  }
-
-  // 2. Try Groq
-  if (groqKey) {
-    try {
-      const result = await callGroq(groqKey, prompt, opts);
-      if (opts.json) {
-        const cleaned = stripFences(result.text);
-        result.parsed = JSON.parse(cleaned);
-      }
-      return result;
-    } catch (err: any) {
-      errors.push(err.message);
-    }
-  }
-
-  // 3. Try OpenRouter
-  if (openRouterKey) {
-    try {
-      const result = await callOpenRouter(openRouterKey, prompt, opts);
       if (opts.json) {
         const cleaned = stripFences(result.text);
         result.parsed = JSON.parse(cleaned);
@@ -231,18 +235,22 @@ export async function callAI(prompt: string, opts: AIOptions = {}): Promise<AIRe
  * Check if at least one AI provider is configured.
  */
 export function hasAIConfigured(): boolean {
-  return Boolean(
-    process.env.GEMINI_API_KEY ||
-    process.env.GEMINI_API_KEY_2 ||
-    process.env.GEMINI_API_KEY_3 ||
-    process.env.GROQ_API_KEY ||
-    process.env.OPENROUTER_API_KEY
-  );
+  return deepseekKeys().length > 0 || geminiKeys().length > 0;
+}
+
+export function aiProviderSummary(): string {
+  const parts: string[] = [];
+  if (deepseekKeys().length) parts.push(`deepseek(${deepseekKeys().length})`);
+  if (geminiKeys().length) parts.push(`gemini(${geminiKeys().length})`);
+  return parts.length ? parts.join(' → ') : 'none';
 }
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 function stripFences(text: string): string {
-  return text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
+  return text
+    .trim()
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```$/i, '');
 }

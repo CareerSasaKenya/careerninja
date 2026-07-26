@@ -297,7 +297,7 @@ Required env vars on Vercel:
 - `SCRAPER_SECRET` — used by `/api/scrape-jobs/*` if called externally
 - `SCRAPER_USER_ID` — admin user UUID that owns scraped jobs
 - `SUPABASE_SERVICE_ROLE_KEY`
-- AI keys for parsing (`GEMINI_API_KEY*` and/or `OPENROUTER_API_KEY`)
+- AI keys for parsing (`DEEPSEEK_API_KEY` primary, `GEMINI_API_KEY*` backup)
 
 Manual kickoff after deploy:
 ```bash

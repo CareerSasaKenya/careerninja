@@ -989,11 +989,11 @@ export async function parseScrapedJobContent(
     options?.jobFunctionNames?.length ? options.jobFunctionNames : [...FALLBACK_JOB_FUNCTIONS]
 
   const hasAIKeys = [
+    process.env.DEEPSEEK_API_KEY,
+    process.env.DEEPSEEK_API_KEY_2,
     process.env.GEMINI_API_KEY,
     process.env.GEMINI_API_KEY_2,
     process.env.GEMINI_API_KEY_3,
-    process.env.GROQ_API_KEY,
-    process.env.OPENROUTER_API_KEY,
   ].some(Boolean)
 
   let parsed = fallback
