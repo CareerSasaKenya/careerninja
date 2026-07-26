@@ -45,8 +45,7 @@ export function JobSocialCardTemplate6(data: OgJobCardData) {
 
   const hx = frame / 2;
   const hy = frame / 2;
-  const hr = portrait / 2 + Math.round(6 * s);
-  const clipId = 't6-hex-clip';
+  const hr = portrait / 2 + Math.round(14 * s);
 
   return (
     <div
@@ -252,41 +251,58 @@ export function JobSocialCardTemplate6(data: OgJobCardData) {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                position: 'relative',
               }}
             >
-              <svg width={frame} height={frame} viewBox={`0 0 ${frame} ${frame}`}>
-                <defs>
-                  <clipPath id={clipId}>
-                    <polygon points={slantedHexPoints(hx, hy, hr)} />
-                  </clipPath>
-                </defs>
+              {/* Slanted hex ring is stroke-only; photo stays circular (Satori-safe). */}
+              <svg
+                width={frame}
+                height={frame}
+                viewBox={`0 0 ${frame} ${frame}`}
+                style={{ position: 'absolute', inset: 0 }}
+              >
                 <polygon
-                  points={slantedHexPoints(hx, hy, hr + Math.round(10 * s))}
-                  fill="rgba(255,122,0,0.18)"
-                />
-                <image
-                  href={data.personImageSrc}
-                  x={hx - hr}
-                  y={hy - hr}
-                  width={hr * 2}
-                  height={hr * 2}
-                  preserveAspectRatio="xMidYMid slice"
-                  clipPath={`url(#${clipId})`}
+                  points={slantedHexPoints(hx, hy, hr + Math.round(8 * s))}
+                  fill="rgba(255,122,0,0.16)"
                 />
                 <polygon
                   points={slantedHexPoints(hx, hy, hr)}
                   fill="none"
                   stroke={OG_COLORS.accentOrange}
-                  strokeWidth={Math.round(9 * s)}
+                  strokeWidth={Math.round(10 * s)}
                 />
                 <polygon
-                  points={slantedHexPoints(hx, hy, hr + Math.round(5 * s))}
+                  points={slantedHexPoints(hx, hy, hr + Math.round(6 * s))}
                   fill="none"
                   stroke={OG_COLORS.primaryBlue}
-                  strokeWidth={Math.round(2.5 * s)}
-                  opacity="0.7"
+                  strokeWidth={Math.round(3 * s)}
+                  opacity="0.75"
                 />
               </svg>
+              <div
+                style={{
+                  width: `${portrait}px`,
+                  height: `${portrait}px`,
+                  borderRadius: `${portrait / 2}px`,
+                  border: `${Math.round(5 * s)}px solid ${OG_COLORS.white}`,
+                  overflow: 'hidden',
+                  display: 'flex',
+                  boxShadow: '0 16px 40px rgba(0,0,0,0.45)',
+                  backgroundColor: '#111',
+                }}
+              >
+                <img
+                  src={data.personImageSrc}
+                  alt=""
+                  width={portrait}
+                  height={portrait}
+                  style={{
+                    width: `${portrait}px`,
+                    height: `${portrait}px`,
+                    objectFit: 'cover',
+                  }}
+                />
+              </div>
             </div>
           ) : null}
 

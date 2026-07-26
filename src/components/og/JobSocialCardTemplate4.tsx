@@ -39,8 +39,7 @@ export function JobSocialCardTemplate4(data: OgJobCardData) {
   for (let i = 0; i < chips.length; i += 2) chipRows.push(chips.slice(i, i + 2));
   const hx = frame / 2;
   const hy = frame / 2;
-  const hr = portrait / 2 + Math.round(4 * s);
-  const clipId = 't4-hex-clip';
+  const hr = portrait / 2 + Math.round(10 * s);
 
   return (
     <div
@@ -238,44 +237,56 @@ export function JobSocialCardTemplate4(data: OgJobCardData) {
                 position: 'relative',
               }}
             >
-              <svg width={frame} height={frame} viewBox={`0 0 ${frame} ${frame}`}>
-                <defs>
-                  <clipPath id={clipId}>
-                    <polygon points={hexPoints(hx, hy, hr)} />
-                  </clipPath>
-                  <linearGradient id="t4-hex-stroke" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor={OG_COLORS.primaryBlue} />
-                    <stop offset="100%" stopColor={OG_COLORS.primaryBlueDeep} />
-                  </linearGradient>
-                </defs>
+              {/* Hex frame is SVG stroke-only; photo stays circular (Satori-safe). */}
+              <svg
+                width={frame}
+                height={frame}
+                viewBox={`0 0 ${frame} ${frame}`}
+                style={{ position: 'absolute', inset: 0 }}
+              >
                 <polygon
-                  points={hexPoints(hx, hy, hr + Math.round(8 * s))}
+                  points={hexPoints(hx, hy, hr + Math.round(10 * s))}
                   fill="rgba(21,101,192,0.10)"
                 />
-                <image
-                  href={data.personImageSrc}
-                  x={hx - hr}
-                  y={hy - hr}
-                  width={hr * 2}
-                  height={hr * 2}
-                  preserveAspectRatio="xMidYMid slice"
-                  clipPath={`url(#${clipId})`}
-                />
                 <polygon
-                  points={hexPoints(hx, hy, hr)}
+                  points={hexPoints(hx, hy, hr + Math.round(2 * s))}
                   fill="none"
-                  stroke="url(#t4-hex-stroke)"
-                  strokeWidth={Math.round(7 * s)}
+                  stroke={OG_COLORS.primaryBlue}
+                  strokeWidth={Math.round(8 * s)}
                 />
                 <polygon
-                  points={hexPoints(hx, hy, hr + Math.round(3 * s))}
+                  points={hexPoints(hx, hy, hr + Math.round(6 * s))}
                   fill="none"
                   stroke={OG_COLORS.accentOrange}
-                  strokeWidth={Math.round(2.5 * s)}
-                  strokeDasharray={`${Math.round(52 * s)} ${Math.round(420 * s)}`}
+                  strokeWidth={Math.round(3 * s)}
+                  strokeDasharray={`${Math.round(58 * s)} ${Math.round(420 * s)}`}
                   strokeLinecap="round"
                 />
               </svg>
+              <div
+                style={{
+                  width: `${portrait}px`,
+                  height: `${portrait}px`,
+                  borderRadius: `${portrait / 2}px`,
+                  border: `${Math.round(5 * s)}px solid ${OG_COLORS.white}`,
+                  overflow: 'hidden',
+                  display: 'flex',
+                  boxShadow: '0 14px 36px rgba(13,71,161,0.20)',
+                  backgroundColor: OG_COLORS.primaryBlueDeep,
+                }}
+              >
+                <img
+                  src={data.personImageSrc}
+                  alt=""
+                  width={portrait}
+                  height={portrait}
+                  style={{
+                    width: `${portrait}px`,
+                    height: `${portrait}px`,
+                    objectFit: 'cover',
+                  }}
+                />
+              </div>
             </div>
           ) : null}
 
