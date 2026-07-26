@@ -309,40 +309,53 @@ export function JobSocialCard(data: OgJobCardData) {
       {data.personImageSrc ? (
         <div
           style={{
-            width: `${portrait}px`,
-            height: `${portrait}px`,
-            borderRadius: `${portrait / 2}px`,
-            border: `${Math.round(6 * s)}px solid ${OG_COLORS.white}`,
-            overflow: 'hidden',
+            width: `${portrait + Math.round(20 * s)}px`,
+            height: `${portrait + Math.round(20 * s)}px`,
             display: 'flex',
-            boxShadow: '0 16px 40px rgba(0,0,0,0.28)',
+            alignItems: 'center',
+            justifyContent: 'center',
             position: 'relative',
-            backgroundColor: OG_COLORS.primaryBlueDeep,
           }}
         >
-          <img
-            src={data.personImageSrc}
-            alt=""
-            width={portrait}
-            height={portrait}
+          {/* The image clips inside this circle; the outer wrapper stays visible
+              so the orange rim dot is never clipped. */}
+          <div
             style={{
               width: `${portrait}px`,
               height: `${portrait}px`,
-              objectFit: 'cover',
+              borderRadius: `${portrait / 2}px`,
+              border: `${Math.round(6 * s)}px solid ${OG_COLORS.white}`,
+              overflow: 'hidden',
+              display: 'flex',
+              boxShadow: '0 16px 40px rgba(0,0,0,0.28)',
+              backgroundColor: OG_COLORS.primaryBlueDeep,
             }}
-          />
-          {/* Accent dot on rim */}
+          >
+            <img
+              src={data.personImageSrc}
+              alt=""
+              width={portrait}
+              height={portrait}
+              style={{
+                width: `${portrait}px`,
+                height: `${portrait}px`,
+                objectFit: 'cover',
+              }}
+            />
+          </div>
+          {/* Accent dot at the upper-right rim, matching the reference. */}
           <div
             style={{
               position: 'absolute',
-              top: `${Math.round(18 * s)}px`,
-              right: `${Math.round(28 * s)}px`,
-              width: `${Math.round(18 * s)}px`,
-              height: `${Math.round(18 * s)}px`,
-              borderRadius: `${Math.round(9 * s)}px`,
+              top: `${Math.round(42 * s)}px`,
+              right: `${Math.round(4 * s)}px`,
+              width: `${Math.round(24 * s)}px`,
+              height: `${Math.round(24 * s)}px`,
+              borderRadius: `${Math.round(12 * s)}px`,
               backgroundColor: OG_COLORS.accentOrange,
-              border: `${Math.round(3 * s)}px solid ${OG_COLORS.white}`,
+              border: `${Math.round(4 * s)}px solid ${OG_COLORS.white}`,
               display: 'flex',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.18)',
             }}
           />
         </div>
@@ -376,30 +389,31 @@ export function JobSocialCard(data: OgJobCardData) {
         height: `${height}px`,
         display: 'flex',
         flexDirection: 'column',
-        background: `linear-gradient(145deg, ${OG_COLORS.primaryBlueDeep} 0%, ${OG_COLORS.primaryBlue} 55%, ${OG_COLORS.primaryBlueMid} 100%)`,
+        background: `linear-gradient(135deg, #084DA5 0%, ${OG_COLORS.primaryBlue} 54%, #1E88E5 100%)`,
         fontFamily: 'Inter',
         position: 'relative',
         overflow: 'hidden',
       }}
     >
-      {/* Subtle geometric atmosphere (3–5% opacity) */}
+      {/* Soft right-side colour field adds depth without making the card busy. */}
+      <div
+        style={{
+          position: 'absolute',
+          top: `${Math.round(-180 * s)}px`,
+          right: `${Math.round(-150 * s)}px`,
+          width: `${Math.round(640 * s)}px`,
+          height: `${Math.round(760 * s)}px`,
+          borderRadius: `${Math.round(320 * s)}px`,
+          background: 'linear-gradient(145deg, rgba(30,136,229,0.28), rgba(3,169,244,0.08))',
+          display: 'flex',
+        }}
+      />
+      {/* Subtle geometric atmosphere (3–5% opacity). */}
       <div
         style={{
           position: 'absolute',
           top: `${Math.round(-80 * s)}px`,
-          right: `${Math.round(-40 * s)}px`,
-          width: `${Math.round(360 * s)}px`,
-          height: `${Math.round(360 * s)}px`,
-          borderRadius: `${Math.round(180 * s)}px`,
-          border: `${Math.round(2 * s)}px solid rgba(255,255,255,0.06)`,
-          display: 'flex',
-        }}
-      />
-      <div
-        style={{
-          position: 'absolute',
-          top: `${Math.round(-40 * s)}px`,
-          right: `${Math.round(0 * s)}px`,
+          left: `${Math.round(420 * s)}px`,
           width: `${Math.round(280 * s)}px`,
           height: `${Math.round(280 * s)}px`,
           borderRadius: `${Math.round(140 * s)}px`,
@@ -410,11 +424,23 @@ export function JobSocialCard(data: OgJobCardData) {
       <div
         style={{
           position: 'absolute',
-          bottom: `${Math.round(120 * s)}px`,
-          left: `${Math.round(200 * s)}px`,
-          width: `${Math.round(220 * s)}px`,
-          height: `${Math.round(220 * s)}px`,
-          borderRadius: `${Math.round(110 * s)}px`,
+          top: `${Math.round(-48 * s)}px`,
+          left: `${Math.round(452 * s)}px`,
+          width: `${Math.round(216 * s)}px`,
+          height: `${Math.round(216 * s)}px`,
+          borderRadius: `${Math.round(108 * s)}px`,
+          border: `${Math.round(2 * s)}px solid rgba(255,255,255,0.04)`,
+          display: 'flex',
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          bottom: `${Math.round(100 * s)}px`,
+          right: `${Math.round(-70 * s)}px`,
+          width: `${Math.round(260 * s)}px`,
+          height: `${Math.round(260 * s)}px`,
+          borderRadius: `${Math.round(130 * s)}px`,
           border: `${Math.round(2 * s)}px solid rgba(255,255,255,0.04)`,
           display: 'flex',
         }}
@@ -474,12 +500,13 @@ export function JobSocialCard(data: OgJobCardData) {
           alignItems: 'center',
           justifyContent: 'space-between',
           height: `${footerH}px`,
-          marginLeft: `${stripW}px`,
+          marginLeft: `${stripW + Math.round(14 * s)}px`,
+          marginRight: `${Math.round(14 * s)}px`,
+          marginBottom: `${Math.round(14 * s)}px`,
           backgroundColor: OG_COLORS.white,
-          borderTopLeftRadius: `${Math.round(20 * s)}px`,
-          borderTopRightRadius: `${Math.round(20 * s)}px`,
+          borderRadius: `${Math.round(20 * s)}px`,
           padding: `0 ${Math.round(28 * s)}px`,
-          boxShadow: '0 -4px 24px rgba(0,0,0,0.08)',
+          boxShadow: '0 8px 28px rgba(0,0,0,0.14)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: `${Math.round(12 * s)}px` }}>
@@ -487,13 +514,12 @@ export function JobSocialCard(data: OgJobCardData) {
             <img
               src={data.brandLogoSrc}
               alt="CareerSasa"
-              width={Math.round(40 * s)}
-              height={Math.round(40 * s)}
+              width={Math.round(46 * s)}
+              height={Math.round(46 * s)}
               style={{
-                width: `${Math.round(40 * s)}px`,
-                height: `${Math.round(40 * s)}px`,
+                width: `${Math.round(46 * s)}px`,
+                height: `${Math.round(46 * s)}px`,
                 objectFit: 'contain',
-                borderRadius: `${Math.round(8 * s)}px`,
               }}
             />
           ) : null}
@@ -506,7 +532,8 @@ export function JobSocialCard(data: OgJobCardData) {
               fontFamily: 'Inter',
             }}
           >
-            CareerSasa
+            <span style={{ color: OG_COLORS.primaryBlue }}>Career</span>
+            <span style={{ color: OG_COLORS.accentOrange }}>Sasa</span>
           </div>
         </div>
 

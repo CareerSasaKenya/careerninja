@@ -151,7 +151,8 @@ export async function GET(
 
     const [personImageSrc, brandLogoSrc, companyLogoSrc, fonts] = await Promise.all([
       loadIndustryModelDataUrl(modelCategory, assetOrigin),
-      loadPublicAssetDataUrl('/logo.png', assetOrigin),
+      // Official CareerSasa symbol only; the wordmark is rendered separately in the footer.
+      loadPublicAssetDataUrl('/careersasa-icon.png', assetOrigin),
       companyLogoUrl
         ? fetch(companyLogoUrl)
             .then(async (res) => {
