@@ -75,7 +75,7 @@ export default function AdminImageTemplatesPage() {
   const [jobKey, setJobKey] = useState<string>("");
   const [manualSlug, setManualSlug] = useState("");
   const [size, setSize] = useState<OgCardSize>("og");
-  const [selectedId, setSelectedId] = useState<OgTemplateId>("1");
+  const [selectedId, setSelectedId] = useState<OgTemplateId>("2");
   const [reviews, setReviews] = useState<OgTemplateReviewsMap>({});
   const [draftNotes, setDraftNotes] = useState("");
   const [draftStatus, setDraftStatus] = useState<OgTemplateReviewStatus>("pending");
@@ -113,16 +113,14 @@ export default function AdminImageTemplatesPage() {
       if (error) throw error;
       const rows = (data || []) as SampleJob[];
       setJobs(rows);
-      if (!jobKey && rows[0]) {
-        setJobKey(rows[0].job_slug || rows[0].id);
-      }
+      setJobKey((prev) => prev || rows[0]?.job_slug || rows[0]?.id || "");
     } catch (err) {
       console.error(err);
       toast.error("Failed to load sample jobs");
     } finally {
       setLoadingJobs(false);
     }
-  }, [jobKey]);
+  }, []);
 
   const loadReviews = useCallback(async () => {
     setLoadingReviews(true);
@@ -364,6 +362,11 @@ export default function AdminImageTemplatesPage() {
                   <div className="flex items-center justify-between gap-2">
                     <div className="font-semibold text-sm">
                       T{tpl.id} · {tpl.name}
+                      {tpl.isDefault ? (
+                        <span className="ml-2 text-[10px] font-bold uppercase tracking-wide text-primary">
+                          Default
+                        </span>
+                      ) : null}
                     </div>
                     <span className={`text-[10px] px-2 py-0.5 rounded ${meta.badge}`}>
                       {meta.label}
@@ -393,9 +396,11 @@ export default function AdminImageTemplatesPage() {
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <span className={`text-xs px-2 py-1 rounded ${selectedTemplate.accent}`}>
-                    {selectedTemplate.queryValue
-                      ? `?template=${selectedTemplate.queryValue}`
-                      : "default (no param)"}
+                    {selectedTemplate.isDefault
+                      ? "default (no param)"
+                      : selectedTemplate.queryValue
+                        ? `?template=${selectedTemplate.queryValue}`
+                        : "default"}
                   </span>
                   {previewUrl ? (
                     <Button variant="outline" size="sm" asChild>

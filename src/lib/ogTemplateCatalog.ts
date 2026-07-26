@@ -1,9 +1,9 @@
 /**
  * Catalog of CareerSasa job OG / social card templates.
- * Used by the admin Image Templates review page and OG route docs.
+ * Kept templates: 2 (default), 4, 5.
  */
 
-export type OgTemplateId = '1' | '2' | '3' | '4' | '5' | '6';
+export type OgTemplateId = '2' | '4' | '5';
 
 export type OgTemplateReviewStatus =
   | 'pending'
@@ -29,27 +29,16 @@ export const OG_TEMPLATE_CATALOG: Array<{
   /** Query value for /api/og/job/{id}?template= — empty = default */
   queryValue: string | null;
   accent: string;
+  isDefault?: boolean;
 }> = [
-  {
-    id: '1',
-    name: 'Default Premium Blue',
-    description: 'Soft CareerSasa blue gradient, pill chips, circular portrait. Live default.',
-    queryValue: null,
-    accent: 'bg-blue-100 text-blue-800',
-  },
   {
     id: '2',
     name: 'Light Split Panel',
-    description: 'White left / blue diagonal right, MetaTiles, orange arc, “Don’t wait” text.',
-    queryValue: '2',
+    description:
+      'Default. White left / blue diagonal right, MetaTiles, orange arc, “Don’t wait” text.',
+    queryValue: null,
     accent: 'bg-sky-100 text-sky-800',
-  },
-  {
-    id: '3',
-    name: 'Deep Navy',
-    description: 'Midnight navy background, dark MetaTiles, circular portrait, white footer.',
-    queryValue: '3',
-    accent: 'bg-slate-200 text-slate-900',
+    isDefault: true,
   },
   {
     id: '4',
@@ -61,16 +50,9 @@ export const OG_TEMPLATE_CATALOG: Array<{
   {
     id: '5',
     name: 'LinkedIn Blue',
-    description: 'Medium LinkedIn-blue gradient (mint reference remapped), circular portrait.',
+    description: 'Medium LinkedIn-blue gradient, circular portrait, white footer.',
     queryValue: '5',
     accent: 'bg-cyan-100 text-cyan-900',
-  },
-  {
-    id: '6',
-    name: 'Bold Black + Orange',
-    description: 'Near-black, orange diagonals, slanted hex frame, last-word orange, QR.',
-    queryValue: '6',
-    accent: 'bg-orange-100 text-orange-900',
   },
 ];
 

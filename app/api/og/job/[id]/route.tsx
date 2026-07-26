@@ -3,12 +3,9 @@ import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { resolveCompanyLogoUrl } from '@/lib/companyLogo';
 import { getModelForJob, loadIndustryModelDataUrl } from '@/lib/jobIndustryModel';
-import { JobSocialCard } from '@/components/og/JobSocialCard';
 import { JobSocialCardTemplate2 } from '@/components/og/JobSocialCardTemplate2';
-import { JobSocialCardTemplate3 } from '@/components/og/JobSocialCardTemplate3';
 import { JobSocialCardTemplate4 } from '@/components/og/JobSocialCardTemplate4';
 import { JobSocialCardTemplate5 } from '@/components/og/JobSocialCardTemplate5';
-import { JobSocialCardTemplate6 } from '@/components/og/JobSocialCardTemplate6';
 import {
   OG_CARD_SIZES,
   OG_COLORS,
@@ -155,9 +152,8 @@ export async function GET(
     const assetOrigin = request.nextUrl?.origin || SITE_URL;
     const modelCategory = getModelForJob(jobTitle, `${companyName} ${jobFunction || ''}`);
     const jobUrl = `${SITE_URL}/jobs/${id}`;
-    const needsQr = template === '6';
 
-    const [personImageSrc, brandLogoSrc, companyLogoSrc, fonts, qrCodeSrc] = await Promise.all([
+    const [personImageSrc, brandLogoSrc, companyLogoSrc, fonts] = await Promise.all([
       loadIndustryModelDataUrl(modelCategory, assetOrigin),
       // Official CareerSasa symbol only; the wordmark is rendered separately in the footer.
       loadPublicAssetDataUrl('/careersasa-icon.png', assetOrigin),
@@ -183,24 +179,6 @@ export async function GET(
             .catch(() => null)
         : Promise.resolve(null),
       loadInterFonts(),
-      needsQr
-        ? fetch(
-            `https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=8&data=${encodeURIComponent(jobUrl)}`,
-          )
-            .then(async (res) => {
-              if (!res.ok) return null;
-              const buf = await res.arrayBuffer();
-              if (!buf.byteLength || buf.byteLength > 400_000) return null;
-              const bytes = new Uint8Array(buf);
-              let binary = '';
-              const chunk = 0x8000;
-              for (let i = 0; i < bytes.length; i += chunk) {
-                binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
-              }
-              return `data:image/png;base64,${btoa(binary)}`;
-            })
-            .catch(() => null)
-        : Promise.resolve(null),
     ]);
 
     const cardData: OgJobCardData = {
@@ -215,23 +193,17 @@ export async function GET(
       showVerified: Boolean(companyLogoSrc || companyRow?.website),
       categoryColor: getCategoryStripColor(jobFunction, jobTitle),
       size,
-      qrCodeSrc,
       jobUrl,
     };
 
+    // Kept templates: 2 (default), 4, 5
     const card =
-      template === '2' ? (
-        <JobSocialCardTemplate2 {...cardData} />
-      ) : template === '3' ? (
-        <JobSocialCardTemplate3 {...cardData} />
-      ) : template === '4' ? (
+      template === '4' ? (
         <JobSocialCardTemplate4 {...cardData} />
       ) : template === '5' ? (
         <JobSocialCardTemplate5 {...cardData} />
-      ) : template === '6' ? (
-        <JobSocialCardTemplate6 {...cardData} />
       ) : (
-        <JobSocialCard {...cardData} />
+        <JobSocialCardTemplate2 {...cardData} />
       );
 
     return new ImageResponse(card, {

@@ -139,9 +139,7 @@ function MetaTile({ icon, label, caption, s }: MetaTileProps) {
 
 /**
  * Template 2: light editorial split-panel card.
- *
- * Deliberately selectable only with `?template=2` during review. The default
- * OG template remains untouched until rotation policy is approved.
+ * This is the default CareerSasa job OG / social card.
  */
 export function JobSocialCardTemplate2(data: OgJobCardData) {
   const { width, height } = OG_CARD_SIZES[data.size];
