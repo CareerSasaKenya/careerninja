@@ -286,13 +286,12 @@ export async function GET(
       return `${base.trimEnd()}...`;
     };
 
-    // Long titles shrink + wrap; left column is a flex stack so meta always
-    // sits below the title (no fixed absolute top that can overlap).
+    // Long titles shrink + wrap; left column flex-stacks so meta cannot overlap title.
     const titleLength = jobTitle.trim().length;
-    const titleFontSize = titleLength > 48 ? 38 : titleLength > 34 ? 44 : 52;
+    const titleFontSize = titleLength > 48 ? 38 : titleLength > 34 ? 44 : 50;
     const titleMaxChars = titleLength > 48 ? 56 : 64;
     const displayTitle = truncateText(jobTitle, titleMaxChars);
-    const leftColumnWidth = personImageSrc ? 620 : 1120;
+    const leftColumnWidth = personImageSrc ? 640 : 1120;
 
     return new ImageResponse(
       (
@@ -302,49 +301,50 @@ export async function GET(
             width: '100%',
             display: 'flex',
             flexDirection: 'row',
+            alignItems: 'stretch',
             background: `linear-gradient(to bottom right, ${COLORS.primary}, ${COLORS.teal})`,
-            padding: '36px 36px 18px 36px',
+            padding: '40px 40px 36px 40px',
             fontFamily: 'sans-serif',
           }}
         >
-          {/* LEFT: flowing column — title height pushes company/meta down */}
+          {/* LEFT: one tight content card, vertically centered with the portrait */}
           <div
             style={{
               display: 'flex',
               flexDirection: 'column',
               width: `${leftColumnWidth}px`,
               height: '100%',
-              justifyContent: 'space-between',
+              justifyContent: 'center',
             }}
           >
             <div
               style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '36px',
                 width: '100%',
+                gap: '16px',
               }}
             >
-              {/* Logo + title row */}
+              {/* Logo + title */}
               <div
                 style={{
                   display: 'flex',
                   flexDirection: 'row',
                   alignItems: 'flex-start',
-                  gap: '20px',
+                  gap: '18px',
                   width: '100%',
                 }}
               >
                 <div
                   style={{
-                    width: '80px',
-                    height: '80px',
+                    width: '76px',
+                    height: '76px',
                     borderRadius: '16px',
                     backgroundColor: companyLogo ? COLORS.white : COLORS.orange,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '28px',
+                    fontSize: '26px',
                     fontWeight: 'bold',
                     color: 'white',
                     overflow: 'hidden',
@@ -355,8 +355,8 @@ export async function GET(
                     <img
                       src={companyLogo}
                       alt={companyName}
-                      width={72}
-                      height={72}
+                      width={68}
+                      height={68}
                       style={{ objectFit: 'contain' }}
                     />
                   ) : (
@@ -372,76 +372,98 @@ export async function GET(
                     fontWeight: 'bold',
                     color: 'white',
                     lineHeight: 1.15,
-                    maxWidth: personImageSrc ? '500px' : '980px',
+                    maxWidth: personImageSrc ? '520px' : '980px',
+                    paddingTop: '4px',
                   }}
                 >
                   {displayTitle}
                 </div>
               </div>
 
-              {/* Meta — always below title because of flex flow */}
+              {/* Accent line flush with logo left + meta pushed right */}
               <div
                 style={{
                   display: 'flex',
-                  flexDirection: 'column',
-                  gap: '18px',
-                  color: 'white',
-                  paddingLeft: '8px',
-                  maxWidth: personImageSrc ? '540px' : '90%',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: '28px',
+                  width: '100%',
+                  maxWidth: personImageSrc ? '560px' : '90%',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                  <svg width="28" height="28" fill="white" viewBox="0 0 24 24">
-                    <path d="M3 3h18v18H3z" />
-                  </svg>
-                  <span style={{ fontSize: '32px', fontWeight: 600 }}>
-                    {truncateText(companyName, 28)}
-                  </span>
-                </div>
+                <div
+                  style={{
+                    width: '6px',
+                    height: '112px',
+                    borderRadius: '3px',
+                    backgroundColor: COLORS.orange,
+                    display: 'flex',
+                    flexShrink: 0,
+                  }}
+                />
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                  <svg width="28" height="28" fill="white" viewBox="0 0 24 24">
-                    <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" />
-                  </svg>
-                  <span style={{ fontSize: '30px' }}>{truncateText(location, 28)}</span>
-                </div>
-
-                {(salaryMin || salaryMax) && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    <svg width="28" height="28" fill="white" viewBox="0 0 24 24">
-                      <path d="M12 1L3 5v6c0 5.25 3.75 10.74 9 12 5.25-1.26 9-6.75 9-12V5l-9-4zm1 16h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '14px',
+                    color: 'white',
+                    flex: 1,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <svg width="26" height="26" fill="white" viewBox="0 0 24 24">
+                      <path d="M3 3h18v18H3z" />
                     </svg>
                     <span style={{ fontSize: '30px', fontWeight: 600 }}>
-                      {salaryCurrency} {salaryMin?.toLocaleString()} - {salaryMax?.toLocaleString()}/
-                      {salaryPeriod.toLowerCase()}
+                      {truncateText(companyName, 28)}
                     </span>
                   </div>
-                )}
 
-                {jobFunction ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    <svg width="28" height="28" fill="white" viewBox="0 0 24 24">
-                      <path d="M4 7h16v2H4zm0 4h16v2H4zm0 4h10v2H4z" />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <svg width="26" height="26" fill="white" viewBox="0 0 24 24">
+                      <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" />
                     </svg>
-                    <span style={{ fontSize: '30px' }}>{truncateText(jobFunction, 28)}</span>
+                    <span style={{ fontSize: '28px' }}>{truncateText(location, 28)}</span>
                   </div>
-                ) : null}
-              </div>
-            </div>
 
-            <div
-              style={{
-                display: 'flex',
-                fontSize: '22px',
-                color: 'white',
-                fontWeight: 'bold',
-              }}
-            >
-              CareerSasa.co.ke — Enrich Your Career Now
+                  {(salaryMin || salaryMax) && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <svg width="26" height="26" fill="white" viewBox="0 0 24 24">
+                        <path d="M12 1L3 5v6c0 5.25 3.75 10.74 9 12 5.25-1.26 9-6.75 9-12V5l-9-4zm1 16h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                      </svg>
+                      <span style={{ fontSize: '28px', fontWeight: 600 }}>
+                        {salaryCurrency} {salaryMin?.toLocaleString()} - {salaryMax?.toLocaleString()}/
+                        {salaryPeriod.toLowerCase()}
+                      </span>
+                    </div>
+                  )}
+
+                  {jobFunction ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <svg width="26" height="26" fill="white" viewBox="0 0 24 24">
+                        <path d="M4 7h16v2H4zm0 4h16v2H4zm0 4h10v2H4z" />
+                      </svg>
+                      <span style={{ fontSize: '28px' }}>{truncateText(jobFunction, 28)}</span>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: 'flex',
+                  fontSize: '20px',
+                  color: 'rgba(255,255,255,0.95)',
+                  fontWeight: 'bold',
+                }}
+              >
+                CareerSasa.co.ke — Enrich Your Career Now
+              </div>
             </div>
           </div>
 
-          {/* RIGHT: circular portrait + CTA */}
+          {/* RIGHT: portrait + CTA vertically centered as one group */}
           <div
             style={{
               display: 'flex',
@@ -449,15 +471,15 @@ export async function GET(
               flex: 1,
               height: '100%',
               alignItems: 'center',
-              justifyContent: 'space-between',
-              paddingTop: '8px',
+              justifyContent: 'center',
+              gap: '20px',
             }}
           >
             {personImageSrc ? (
               <div
                 style={{
-                  width: '360px',
-                  height: '360px',
+                  width: '340px',
+                  height: '340px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -467,9 +489,9 @@ export async function GET(
                 <div
                   style={{
                     position: 'absolute',
-                    width: '360px',
-                    height: '360px',
-                    borderRadius: '180px',
+                    width: '340px',
+                    height: '340px',
+                    borderRadius: '170px',
                     backgroundColor: 'rgba(255, 255, 255, 0.10)',
                     display: 'flex',
                   }}
@@ -477,9 +499,9 @@ export async function GET(
                 <div
                   style={{
                     position: 'absolute',
-                    width: '340px',
-                    height: '340px',
-                    borderRadius: '170px',
+                    width: '322px',
+                    height: '322px',
+                    borderRadius: '161px',
                     background: `linear-gradient(145deg, ${COLORS.orange}, ${COLORS.lightTeal}, ${COLORS.white})`,
                     display: 'flex',
                     alignItems: 'center',
@@ -489,9 +511,9 @@ export async function GET(
                 >
                   <div
                     style={{
-                      width: '316px',
-                      height: '316px',
-                      borderRadius: '158px',
+                      width: '300px',
+                      height: '300px',
+                      borderRadius: '150px',
                       backgroundColor: COLORS.white,
                       display: 'flex',
                       alignItems: 'center',
@@ -500,9 +522,9 @@ export async function GET(
                   >
                     <div
                       style={{
-                        width: '300px',
-                        height: '300px',
-                        borderRadius: '150px',
+                        width: '286px',
+                        height: '286px',
+                        borderRadius: '143px',
                         overflow: 'hidden',
                         display: 'flex',
                         backgroundColor: COLORS.primary,
@@ -511,11 +533,11 @@ export async function GET(
                       <img
                         src={personImageSrc}
                         alt=""
-                        width={300}
-                        height={300}
+                        width={286}
+                        height={286}
                         style={{
-                          width: '300px',
-                          height: '300px',
+                          width: '286px',
+                          height: '286px',
                           objectFit: 'cover',
                         }}
                       />
@@ -525,20 +547,18 @@ export async function GET(
                 <div
                   style={{
                     position: 'absolute',
-                    top: '18px',
-                    right: '34px',
-                    width: '22px',
-                    height: '22px',
-                    borderRadius: '11px',
+                    top: '16px',
+                    right: '30px',
+                    width: '20px',
+                    height: '20px',
+                    borderRadius: '10px',
                     backgroundColor: COLORS.orange,
                     border: '3px solid white',
                     display: 'flex',
                   }}
                 />
               </div>
-            ) : (
-              <div style={{ display: 'flex', width: '1px', height: '1px' }} />
-            )}
+            ) : null}
 
             <div
               style={{
@@ -550,7 +570,6 @@ export async function GET(
                 fontSize: '28px',
                 fontWeight: 'bold',
                 boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)',
-                alignSelf: 'flex-end',
               }}
             >
               APPLY NOW
