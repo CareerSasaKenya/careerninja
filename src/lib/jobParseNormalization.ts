@@ -255,13 +255,27 @@ ADDITIONAL_INFO (HTML only — How to Apply + tips):
 - If apply steps are missing BUT an email, apply link, career page URL, or original source URL is available: tell the candidate to send their application to that email and/or visit the application link. Example: "Send your application to hr@company.com." or "Visit the application link provided on this page to submit your application."
 - NEVER write phrases like "Application instructions were not provided in the job posting" (or similar) when any apply email, website link, external link, or original source is available.
 
-2) CAREER TIPS — ALWAYS GENERATE (meaty, job-specific)
-- After How to Apply, add an enticing <h3> subtopic customized to THIS job title, company type, and industry. Do NOT use a bland generic heading like "Tips" or "Application Tips". Prefer a sharp, human hook such as "How to Actually Win This [Role] Interview" / "What Separates Strong [Role] Applicants" — invent a fresh, fitting title for the posting.
+2) CAREER TIPS — ALWAYS GENERATE (meaty, job-specific, non-repetitive)
+- After How to Apply, add an enticing <h3> subtopic customized to THIS posting's duties, tools, industry, and seniority.
+- Do NOT use bland headings: "Tips", "Application Tips", "Interview Tips", "Career Tips".
+- FORBIDDEN heading patterns (these are overused — never use them):
+  - "How to Actually Win This [Job Title] Interview"
+  - "How to Win This … Interview"
+  - "How to Actually Land This …"
+  - Any title that is only "How to … This [exact job title] Interview"
+- Write a fresh heading every time. Vary angle by role: CV proof for this craft, first 90 days, what hiring managers probe, portfolio/demo prep, field realities, stakeholder communication, etc. Ground the title in something concrete from THIS posting (tools, sector, seniority, or core duty) — not a fill-in-the-blank job-title template.
 - Immediately under the <h3>, write one short intro <p> with a hook (2–3 sentences). Speak like a sharp Kenyan career coach: warm, direct, specific. No fluff.
+- FORBIDDEN intro closers / stock lines (never use):
+  - "Here's how to stand out from the crowd."
+  - "Here's how to stand out."
+  - "Follow these tips to stand out."
+  - "Use these tips to beat the competition."
+  - Ending the intro with a generic "here's how…" teaser that could fit any job.
+- End the intro with a line that is specific to this role's realities (e.g. what this employer will actually test or what weak applications usually miss for THIS function) — not a crowd/competition cliché.
 - Then exactly 8 numbered tips, customized to this role’s duties, tools, seniority, and hiring context. Do not reuse generic advice that could fit any job.
 - Each tip format:
   <p><strong>N. Short tip title:</strong> Then 3 to 5 full explanation sentences. Make them practical and concrete (what to put on the CV, what to prepare, what managers for this role usually probe). Optional one brief concrete example in the same paragraph — do not invent employer policies or benefits.</p>
-- Tip titles stay short (a few words). The meat lives in the sentences beneath.
+- Tip titles stay short (a few words). The meat lives in the sentences beneath. Vary tip openings — do not start every tip with the same verb or phrase.
 - Sound naturally human. Avoid robotic AI patterns: no "In today's competitive landscape", "leverage", "utilize", "delve into", "it's important to note", "furthermore/moreover" stacks, or identical sentence openings across tips.
 - Do NOT invent salary figures, deadlines, company facts, or benefits not in the posting. Tips are advice, not fake employer claims.
 - Allowed tags in additional_info: <p>, <ul>, <li>, <strong>, <em>, <h3>, <a>, <br>.
@@ -294,7 +308,7 @@ Return JSON structure:
   "apply_link": "https://company.com/apply",
   "tags": "quality assurance, ISO, manufacturing",
   "language_requirements": "English",
-  "additional_info": "<p><strong>How to Apply:</strong> Send your CV to careers@company.com.</p><h3>What Separates Strong Quality Officers From The Pack</h3><p>Hook intro here.</p><p><strong>1. Short tip title:</strong> Three to five meaty sentences customized to this role…</p>"
+  "additional_info": "<p><strong>How to Apply:</strong> Send your CV to careers@company.com.</p><h3>Show ISO Discipline On Paper Before You Walk Into QA</h3><p>Quality roles get flooded with vague 'attention to detail' claims. Hiring teams for this kind of post want proof you can catch defects, document findings, and hold a line under production pressure.</p><p><strong>1. Short tip title:</strong> Three to five meaty sentences customized to this role…</p>"
 }`;
 }
 
