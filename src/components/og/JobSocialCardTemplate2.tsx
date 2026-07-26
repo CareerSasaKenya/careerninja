@@ -179,7 +179,7 @@ export function JobSocialCardTemplate2(data: OgJobCardData) {
           key: 'function',
           icon: <MonitorIcon size={Math.round(22 * s)} />,
           label: truncateWords(data.jobFunction, 22),
-          caption: 'Job Function',
+          caption: 'Function',
         }
       : null,
     data.showVerified
