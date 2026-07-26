@@ -273,7 +273,7 @@ export async function enrichJobById(
           apply_link: parsed.apply_link || row.apply_link || null,
           application_url: row.application_url || null,
         },
-        parsed.title || row.title || null
+        row.title || null
       )
     )
     setIf('education_level_id', educationLevelId)
