@@ -16,6 +16,7 @@ import {
   resolveOgCardSize,
   type OgJobCardData,
 } from '@/lib/ogJobCardDesign';
+import { resolveOgTemplateSelection } from '@/lib/ogTemplateCatalog';
 
 export const runtime = 'edge';
 export const revalidate = 900;
@@ -196,11 +197,12 @@ export async function GET(
       jobUrl,
     };
 
-    // Kept templates: 2 (default), 4, 5
+    // Accepted share templates: 2, 4, 5 — stable pick per job unless ?template= overrides.
+    const selectedTemplate = resolveOgTemplateSelection(id, template);
     const card =
-      template === '4' ? (
+      selectedTemplate === '4' ? (
         <JobSocialCardTemplate4 {...cardData} />
-      ) : template === '5' ? (
+      ) : selectedTemplate === '5' ? (
         <JobSocialCardTemplate5 {...cardData} />
       ) : (
         <JobSocialCardTemplate2 {...cardData} />

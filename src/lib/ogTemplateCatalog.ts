@@ -1,6 +1,6 @@
 /**
  * Catalog of CareerSasa job OG / social card templates.
- * Kept templates: 2 (default), 4, 5.
+ * Accepted for social shares: 2, 4, 5 (stable pseudo-random pick per job).
  */
 
 export type OgTemplateId = '2' | '4' | '5';
@@ -22,39 +22,70 @@ export type OgTemplateReviewsMap = Partial<Record<OgTemplateId, OgTemplateReview
 /** app_settings key that stores JSON reviews for all OG templates */
 export const OG_TEMPLATE_REVIEWS_SETTING_KEY = 'og_template_reviews';
 
+/** Templates used when a job link is shared (no explicit ?template= override). */
+export const ACCEPTED_SHARE_TEMPLATES: readonly OgTemplateId[] = ['2', '4', '5'];
+
 export const OG_TEMPLATE_CATALOG: Array<{
   id: OgTemplateId;
   name: string;
   description: string;
-  /** Query value for /api/og/job/{id}?template= — empty = default */
-  queryValue: string | null;
+  /** Query value for /api/og/job/{id}?template= */
+  queryValue: OgTemplateId;
   accent: string;
-  isDefault?: boolean;
 }> = [
   {
     id: '2',
     name: 'Light Split Panel',
     description:
-      'Default. White left / blue diagonal right, MetaTiles, orange arc, “Don’t wait” text.',
-    queryValue: null,
+      'White left / blue diagonal right, MetaTiles, orange arc, “Don’t wait” text. In share rotation.',
+    queryValue: '2',
     accent: 'bg-sky-100 text-sky-800',
-    isDefault: true,
   },
   {
     id: '4',
     name: 'Light Hex Frame',
-    description: 'Light editorial card with CareerSasa blue hexagonal portrait frame.',
+    description:
+      'Light editorial card with CareerSasa blue hexagonal portrait frame. In share rotation.',
     queryValue: '4',
     accent: 'bg-indigo-100 text-indigo-800',
   },
   {
     id: '5',
     name: 'LinkedIn Blue',
-    description: 'Medium LinkedIn-blue gradient, circular portrait, white footer.',
+    description:
+      'Medium LinkedIn-blue gradient, circular portrait, white footer. In share rotation.',
     queryValue: '5',
     accent: 'bg-cyan-100 text-cyan-900',
   },
 ];
+
+/**
+ * Stable pseudo-random template pick for a job.
+ * Same job id/slug always maps to the same template (good for social caches);
+ * different jobs spread across ACCEPTED_SHARE_TEMPLATES.
+ */
+export function pickOgTemplateForJob(jobIdOrSlug: string): OgTemplateId {
+  const key = (jobIdOrSlug || '').trim() || 'careersasa';
+  // FNV-1a 32-bit
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < key.length; i++) {
+    hash ^= key.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  const idx = Math.abs(hash) % ACCEPTED_SHARE_TEMPLATES.length;
+  return ACCEPTED_SHARE_TEMPLATES[idx];
+}
+
+/** Honor explicit ?template= when accepted; otherwise rotate by job. */
+export function resolveOgTemplateSelection(
+  jobIdOrSlug: string,
+  requested?: string | null,
+): OgTemplateId {
+  if (requested === '2' || requested === '4' || requested === '5') {
+    return requested;
+  }
+  return pickOgTemplateForJob(jobIdOrSlug);
+}
 
 export function buildOgPreviewUrl(
   jobIdOrSlug: string,
@@ -62,13 +93,17 @@ export function buildOgPreviewUrl(
   size: string = 'og',
   bustCache = true,
 ): string {
-  const entry = OG_TEMPLATE_CATALOG.find((t) => t.id === templateId);
   const params = new URLSearchParams();
-  if (entry?.queryValue) params.set('template', entry.queryValue);
+  params.set('template', templateId);
   if (size && size !== 'og') params.set('size', size);
   if (bustCache) params.set('t', String(Date.now()));
-  const qs = params.toString();
-  return `/api/og/job/${encodeURIComponent(jobIdOrSlug)}${qs ? `?${qs}` : ''}`;
+  return `/api/og/job/${encodeURIComponent(jobIdOrSlug)}?${params.toString()}`;
+}
+
+/** Canonical share image path (includes chosen template for cache-stable URLs). */
+export function buildShareOgImagePath(jobIdOrSlug: string): string {
+  const template = pickOgTemplateForJob(jobIdOrSlug);
+  return `/api/og/job/${encodeURIComponent(jobIdOrSlug)}?template=${template}`;
 }
 
 export function emptyReview(): OgTemplateReview {

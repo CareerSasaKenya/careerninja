@@ -257,7 +257,9 @@ export default function AdminImageTemplatesPage() {
             Image Templates
           </h1>
           <p className="text-muted-foreground max-w-2xl">
-            Live-preview job social / OG cards, leave review notes, and store approval status.
+            Live-preview accepted job social / OG cards (templates 2, 4, 5), leave review notes,
+            and store approval status. When a job link is shared, the platform picks one of these
+            templates at random (stable per job) so different posts get visual variety.
             Reviews persist in <code className="text-xs">app_settings</code>.
           </p>
         </div>
@@ -362,11 +364,6 @@ export default function AdminImageTemplatesPage() {
                   <div className="flex items-center justify-between gap-2">
                     <div className="font-semibold text-sm">
                       T{tpl.id} · {tpl.name}
-                      {tpl.isDefault ? (
-                        <span className="ml-2 text-[10px] font-bold uppercase tracking-wide text-primary">
-                          Default
-                        </span>
-                      ) : null}
                     </div>
                     <span className={`text-[10px] px-2 py-0.5 rounded ${meta.badge}`}>
                       {meta.label}
@@ -396,11 +393,7 @@ export default function AdminImageTemplatesPage() {
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <span className={`text-xs px-2 py-1 rounded ${selectedTemplate.accent}`}>
-                    {selectedTemplate.isDefault
-                      ? "default (no param)"
-                      : selectedTemplate.queryValue
-                        ? `?template=${selectedTemplate.queryValue}`
-                        : "default"}
+                    {`?template=${selectedTemplate.queryValue}`}
                   </span>
                   {previewUrl ? (
                     <Button variant="outline" size="sm" asChild>

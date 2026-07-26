@@ -2,31 +2,29 @@
  * Utility functions for Open Graph tags and social media sharing
  */
 
+import { buildShareOgImagePath } from '@/lib/ogTemplateCatalog';
+
 /**
- * Generate the URL for a job's Open Graph thumbnail
- * @param jobId The ID of the job
- * @returns The URL for the job's thumbnail
+ * Generate the URL for a job's Open Graph thumbnail.
+ * Picks a stable template from the accepted share set (2 / 4 / 5) per job.
  */
 export const getJobThumbnailUrl = (jobId: string): string => {
-  // For development, use localhost
+  const path = buildShareOgImagePath(jobId);
+
   if (process.env.NODE_ENV === 'development') {
-    return `/api/og/job/${jobId}`;
+    return path;
   }
-  
-  // For production, use the full URL
-  return `https://www.careersasa.co.ke/api/og/job/${jobId}`;
+
+  return `https://www.careersasa.co.ke${path}`;
 };
 
 /**
  * Generate the URL for the default Open Graph thumbnail
- * @returns The URL for the default thumbnail
  */
 export const getDefaultThumbnailUrl = (): string => {
-  // For development, use localhost
   if (process.env.NODE_ENV === 'development') {
     return '/og-image.svg';
   }
-  
-  // For production, use the full URL
+
   return 'https://www.careersasa.co.ke/og-image.svg';
 };
