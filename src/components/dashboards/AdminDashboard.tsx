@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Briefcase, Users, Trash2, FileText, Edit, BarChart, FileEdit, Search, Settings, UserCircle, Mail, MessageSquare, CheckCircle, ChevronLeft, ChevronRight, Star, TrendingUp, Rss } from "lucide-react";
+import { Plus, Briefcase, Users, Trash2, FileText, Edit, BarChart, FileEdit, Search, Settings, UserCircle, Mail, MessageSquare, CheckCircle, ChevronLeft, ChevronRight, Star, TrendingUp, Rss, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useAppSetting, setAppSetting } from "@/hooks/useAppSettings";
 
@@ -377,6 +377,12 @@ const AdminDashboard = () => {
             <Button variant="outline" className="w-full sm:w-auto">
               <Rss className="mr-2 h-4 w-4" />
               Scraper Sources
+            </Button>
+          </Link>
+          <Link href="/dashboard/admin/image-templates">
+            <Button variant="outline" className="w-full sm:w-auto">
+              <ImageIcon className="mr-2 h-4 w-4" />
+              Image Templates
             </Button>
           </Link>
           <Link href="/post-job">

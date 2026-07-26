@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 import { resolveCompanyLogoUrl } from '@/lib/companyLogo';
 import { getModelForJob, loadIndustryModelDataUrl } from '@/lib/jobIndustryModel';
 import { JobSocialCard } from '@/components/og/JobSocialCard';
+import { JobSocialCardTemplate2 } from '@/components/og/JobSocialCardTemplate2';
 import { JobSocialCardTemplate3 } from '@/components/og/JobSocialCardTemplate3';
 import { JobSocialCardTemplate4 } from '@/components/og/JobSocialCardTemplate4';
 import { JobSocialCardTemplate5 } from '@/components/og/JobSocialCardTemplate5';
@@ -219,7 +220,9 @@ export async function GET(
     };
 
     const card =
-      template === '3' ? (
+      template === '2' ? (
+        <JobSocialCardTemplate2 {...cardData} />
+      ) : template === '3' ? (
         <JobSocialCardTemplate3 {...cardData} />
       ) : template === '4' ? (
         <JobSocialCardTemplate4 {...cardData} />
