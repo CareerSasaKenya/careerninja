@@ -278,8 +278,8 @@ async function callDeepSeekAPI(
           },
           { role: 'user', content: `Parse this job posting as JSON:\n\n${jobText}` },
         ],
-        temperature: 0.1,
-        max_tokens: 6000,
+        temperature: 0.35,
+        max_tokens: 8192,
         response_format: { type: 'json_object' },
         thinking: { type: 'disabled' },
       }),
@@ -314,8 +314,8 @@ async function callDeepSeekAPI(
 // Gemini backup
 async function callGeminiAPI(apiKey: string, jobText: string, systemPrompt: string): Promise<ParsedJobData> {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout
-  
+  const timeoutId = setTimeout(() => controller.abort(), 45000);
+
   try {
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
@@ -331,8 +331,8 @@ Parse this job posting:
 ${jobText}` }]
           }],
           generationConfig: {
-            temperature: 0.1,
-            maxOutputTokens: 6000, // Reduced from 8000
+            temperature: 0.35,
+            maxOutputTokens: 8192,
           }
         }),
         signal: controller.signal
