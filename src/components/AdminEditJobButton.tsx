@@ -104,7 +104,7 @@ export function AdminEditJobButton({
           className="gap-1.5"
           disabled={enriching}
           onClick={runEnrich}
-          title="Normalize + AI-enrich this job using production Gemini keys"
+          title="Normalize + AI-enrich this job using production DeepSeek → Gemini keys"
         >
           {enriching ? (
             <Loader2 className="h-4 w-4 animate-spin" />

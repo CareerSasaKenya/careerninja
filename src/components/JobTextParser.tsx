@@ -151,13 +151,12 @@ Steps to fix:
       } else if (result.status === 402) {
         throw new Error(`${errorMsg}
 
-Your Gemini API free quota may be exceeded.
+AI quota or billing may be exhausted (DeepSeek or Gemini).
 
 Options:
-1. Wait for quota to reset (usually 24 hours)
-2. Enable billing in Google Cloud Console
-3. Create a new Gemini API key
-4. Use OpenRouter instead (requires credits)`);
+1. Check DeepSeek balance / API key in Vercel (DEEPSEEK_API_KEY)
+2. Check Gemini quota or enable billing
+3. Wait for quota to reset and retry`);
       } else if (result.status === 504) {
         throw new Error(`Request timeout. The AI service took too long to respond. Please try again.`);
       }

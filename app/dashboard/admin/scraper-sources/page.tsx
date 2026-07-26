@@ -279,7 +279,7 @@ export default function AdminScraperSourcesPage() {
 
       if (body.ai_keys_configured === false) {
         toast.warning(
-          "AI keys missing on server — ran rule-based normalize only. Check Vercel GEMINI/OPENROUTER env."
+          "AI keys missing on server — ran rule-based normalize only. Check Vercel DEEPSEEK_API_KEY / GEMINI_API_KEY."
         );
       }
 

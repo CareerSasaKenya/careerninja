@@ -1,10 +1,12 @@
 /**
- * AI-powered job metadata extraction using Gemini
+ * AI-powered job metadata extraction.
+ * Uses DeepSeek → Gemini via callAI (same stack as the rest of CareerSasa).
  *
  * Sends the complete job text (description + requirements + benefits)
- * to Gemini and extracts structured fields that are not available
- * directly from the source API.
+ * and extracts structured fields that are not available directly from the source API.
  */
+
+import { callAI, hasAIConfigured } from './aiProviders'
 
 export interface ExtractedJobMetadata {
   deadline: string | null           // YYYY-MM-DD format, e.g. "2026-06-16"
@@ -43,43 +45,6 @@ Return this exact JSON structure:
   "salary_period": "MONTH|YEAR|DAY|HOUR|null"
 }`
 
-async function callGemini(apiKey: string, jobText: string): Promise<ExtractedJobMetadata> {
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 7000) // 7s max — must finish within Vercel's 10s
-
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: `${EXTRACTION_PROMPT}\n\nJOB POSTING TEXT:\n${jobText}` }] }],
-          generationConfig: {
-            temperature: 0.0,  // zero temperature = most deterministic output
-            maxOutputTokens: 512,
-          },
-        }),
-        signal: controller.signal,
-      }
-    )
-
-    clearTimeout(timeout)
-
-    if (!response.ok) throw new Error(`Gemini error: ${response.status}`)
-
-    const data = await response.json()
-    const content = data.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
-
-    // Strip markdown code fences if present
-    const cleaned = content.trim().replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/```\n?$/, '')
-
-    return JSON.parse(cleaned) as ExtractedJobMetadata
-  } finally {
-    clearTimeout(timeout)
-  }
-}
-
 /**
  * Extract job metadata from the full job text.
  * Falls back gracefully — if AI fails for any reason, returns all nulls
@@ -100,15 +65,9 @@ export async function extractJobMetadata(
     salary_period: null,
   }
 
-  const apiKeys = [
-    process.env.GEMINI_API_KEY,
-    process.env.GEMINI_API_KEY_2,
-    process.env.GEMINI_API_KEY_3,
-  ].filter(Boolean) as string[]
+  if (!hasAIConfigured()) return fallback
 
-  if (apiKeys.length === 0) return fallback
-
-  // Strip HTML tags from the text before sending to Gemini — cleaner input = better output
+  // Strip HTML tags from the text before sending — cleaner input = better output
   const plainText = fullJobText
     .replace(/<[^>]+>/g, ' ')
     .replace(/\s{2,}/g, ' ')
@@ -116,17 +75,21 @@ export async function extractJobMetadata(
     // Limit to 6000 chars — enough context, avoids hitting token limits
     .slice(0, 6000)
 
-  for (const key of apiKeys) {
-    try {
-      const result = await callGemini(key, plainText)
-      return result
-    } catch (err) {
-      console.warn('[jobMetadata] Gemini key failed, trying next:', err instanceof Error ? err.message : err)
-    }
+  try {
+    const result = await callAI(`JOB POSTING TEXT:\n${plainText}`, {
+      systemPrompt: EXTRACTION_PROMPT,
+      json: true,
+      temperature: 0,
+      maxTokens: 512,
+    })
+    return (result.parsed || fallback) as ExtractedJobMetadata
+  } catch (err) {
+    console.warn(
+      '[jobMetadata] AI extraction failed, using fallback nulls:',
+      err instanceof Error ? err.message : err
+    )
+    return fallback
   }
-
-  console.warn('[jobMetadata] All Gemini keys failed, using fallback nulls')
-  return fallback
 }
 
 /**

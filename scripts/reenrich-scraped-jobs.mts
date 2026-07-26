@@ -31,11 +31,11 @@ async function main() {
   if (!url || !key) throw new Error('Missing Supabase env')
 
   const hasAi = [
+    process.env.DEEPSEEK_API_KEY,
+    process.env.DEEPSEEK_API_KEY_2,
     process.env.GEMINI_API_KEY,
     process.env.GEMINI_API_KEY_2,
     process.env.GEMINI_API_KEY_3,
-    process.env.GROQ_API_KEY,
-    process.env.OPENROUTER_API_KEY,
   ].some(v => !!v && v.trim().length > 0)
 
   if (!hasAi) {

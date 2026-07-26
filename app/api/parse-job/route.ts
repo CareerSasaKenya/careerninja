@@ -25,18 +25,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if any API keys are configured
+    // Check if any API keys are configured (DeepSeek primary, Gemini backup)
+    const deepseekKey = process.env.DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY_2;
     const geminiApiKeys = [
       process.env.GEMINI_API_KEY,
       process.env.GEMINI_API_KEY_2,
       process.env.GEMINI_API_KEY_3,
     ].filter(Boolean);
-    
-    const openRouterApiKey = process.env.OPENROUTER_API_KEY;
-    
-    if (geminiApiKeys.length === 0 && !openRouterApiKey) {
+
+    if (!deepseekKey && geminiApiKeys.length === 0) {
       return NextResponse.json(
-        { error: "No AI API key configured. Please add GEMINI_API_KEY (free) or OPENROUTER_API_KEY to environment variables." },
+        {
+          error:
+            "No AI API key configured. Please add DEEPSEEK_API_KEY and/or GEMINI_API_KEY to environment variables.",
+        },
         { status: 500 }
       );
     }

@@ -17,7 +17,7 @@ export const maxDuration = 300
  *   missing_only?: boolean
  *   dry_run?: boolean
  *
- * Uses server-side GEMINI / OpenRouter keys from Vercel env — never exposed to the browser.
+ * Uses server-side DEEPSEEK / GEMINI keys from Vercel env — never exposed to the browser.
  */
 export async function POST(request: NextRequest) {
   const auth = await requireAdmin(request)
@@ -41,11 +41,11 @@ export async function POST(request: NextRequest) {
     const dryRun = body.dry_run === true
 
     const hasAiKeys = [
+      process.env.DEEPSEEK_API_KEY,
+      process.env.DEEPSEEK_API_KEY_2,
       process.env.GEMINI_API_KEY,
       process.env.GEMINI_API_KEY_2,
       process.env.GEMINI_API_KEY_3,
-      process.env.GROQ_API_KEY,
-      process.env.OPENROUTER_API_KEY,
     ].some(v => typeof v === 'string' && v.trim().length > 0)
 
     const result = await runReenrichScrapedJobs(auth.adminClient, {
