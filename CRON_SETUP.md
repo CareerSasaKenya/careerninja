@@ -31,6 +31,7 @@ The job management system requires periodic tasks to:
 - **Scrape Discover**: Daily at 5:00 AM UTC (`0 5 * * *`) — queues new jobs from active sources
 - **Scrape Process**: Hourly (`0 * * * *`) — publishes pending queue items (default 15/run, Pro)
 - **Email Automations**: Daily at 8:00 AM UTC (`0 8 * * *`)
+- **Google Indexing**: Every 15 minutes (`*/15 * * * *`) — publishes pending job URL notifications
 
 ### Endpoints
 
@@ -41,6 +42,7 @@ The job management system requires periodic tasks to:
 - `GET /api/cron/scrape-discover`
 - `GET /api/cron/scrape-process`
 - `GET /api/cron/email-automations`
+- `GET /api/cron/google-indexing`
 
 ## Option 2: PostgreSQL pg_cron Extension
 
@@ -311,6 +313,33 @@ curl -X GET -H "Authorization: Bearer $CRON_SECRET" \
 ```
 
 Or use **Admin → Scraper Sources** → Discover all active / Process queue (10).
+
+## Google Indexing API (Job Postings)
+
+Speeds up Google discovery of new/updated/removed job pages via `urlNotifications:publish`.
+
+### One-time Google setup
+
+1. Enable **Indexing API** in Google Cloud Console.
+2. Create a service account and download the JSON key.
+3. In [Google Search Console](https://search.google.com/search-console), add the service account email as an **Owner** of the `https://www.careersasa.co.ke` property (must match `SITE_URL`).
+4. Apply migration `supabase/migrations/20260727_google_indexing_queue.sql`.
+5. Set Vercel env vars:
+   - `GOOGLE_INDEXING_CLIENT_EMAIL`
+   - `GOOGLE_INDEXING_PRIVATE_KEY` (PEM; escape newlines as `\n`)
+   - or `GOOGLE_INDEXING_SERVICE_ACCOUNT_JSON`
+   - `SITE_URL=https://www.careersasa.co.ke`
+
+### How it works
+
+- DB trigger enqueues `URL_UPDATED` when a job becomes `active`, and `URL_DELETED` when it leaves `active` or is deleted.
+- Manual/form content updates call `POST /api/jobs/request-indexing`.
+- Cron `GET /api/cron/google-indexing` drains the queue every 15 minutes and sets `jobs.google_indexed`.
+
+```bash
+curl -X GET -H "Authorization: Bearer $CRON_SECRET" \
+  "https://www.careersasa.co.ke/api/cron/google-indexing?max=20"
+```
 
 ## Cost Considerations
 
