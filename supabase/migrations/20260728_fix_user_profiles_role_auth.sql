@@ -120,4 +120,26 @@ BEGIN
 END;
 $$;
 
+-- 6) Optional: ensure known CareerSasa admin accounts stay admins.
+-- Safe to re-run. Uses auth.users emails (service-role / SQL editor only).
+INSERT INTO public.user_roles (user_id, role)
+SELECT au.id, 'admin'::public.app_role
+FROM auth.users au
+WHERE lower(au.email) IN (
+  'ejuma90@gmail.com',
+  'comfonex@gmail.com'
+)
+ON CONFLICT (user_id, role) DO NOTHING;
+
+UPDATE public.user_profiles up
+SET role = 'admin',
+    updated_at = NOW()
+FROM auth.users au
+WHERE up.id = au.id
+  AND lower(au.email) IN (
+    'ejuma90@gmail.com',
+    'comfonex@gmail.com'
+  )
+  AND COALESCE(up.role, '') IS DISTINCT FROM 'admin';
+
 COMMIT;

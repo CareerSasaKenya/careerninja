@@ -32,19 +32,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // the client must never self-assign admin.
   // Comma-separated allowlist for profile-role sync only. Canonical admin
   // grants still live in user_roles and must be set via service role / SQL.
-  const ADMIN_EMAILS = (
+  const ADMIN_EMAILS_RAW =
     process.env.NEXT_PUBLIC_ADMIN_EMAILS ||
     process.env.NEXT_PUBLIC_ADMIN_EMAIL ||
-    "ejuma90@gmail.com,comfonex@gmail.com"
-  )
-    .split(",")
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean);
+    "ejuma90@gmail.com,comfonex@gmail.com";
 
   const ensureAdminRole = useCallback(async (u: User | null) => {
     try {
       if (!u?.email) return;
-      if (!ADMIN_EMAILS.includes(u.email.toLowerCase())) return;
+      const adminEmails = ADMIN_EMAILS_RAW.split(",")
+        .map((email) => email.trim().toLowerCase())
+        .filter(Boolean);
+      if (!adminEmails.includes(u.email.toLowerCase())) return;
 
       const { data: existingAdmin } = await supabase
         .from("user_roles")
@@ -71,7 +70,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (err) {
       console.error("Unexpected error ensuring admin role:", err);
     }
-  }, [ADMIN_EMAILS]);
+  }, [ADMIN_EMAILS_RAW]);
 
   useEffect(() => {
     let mounted = true;
