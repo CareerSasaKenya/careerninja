@@ -63,6 +63,11 @@ import {
   normalizeMyJobMagJob,
   resolveMyJobMagCompanyProfile,
 } from '@/lib/myjobmag-adapter'
+import {
+  fetchReliefWebJobDetails,
+  normalizeReliefWebJob,
+  resolveReliefWebCompanyProfile,
+} from '@/lib/reliefweb-adapter'
 import { companyProfileToEnsureInput, type JobBoardCompanyProfile } from '@/lib/jobBoardCompany'
 import { mapEducationLevel } from '@/lib/jobMetadataExtraction'
 import { limitTags } from '@/lib/jobParseNormalization'
@@ -421,6 +426,28 @@ export async function runScrapeProcessOne(
         tagsHint: normalized.tags,
         rawContent: detail.descriptionHtml || '',
       }
+    } else if (adapterType === 'reliefweb') {
+      const detail = await fetchReliefWebJobDetails(
+        queueItem.job_url,
+        source.selectors as { appname?: string }
+      )
+      normalized = normalizeReliefWebJob(detail)
+      boardCompanyProfile = resolveReliefWebCompanyProfile(detail)
+      rawData = { ...detail, companyProfile: boardCompanyProfile }
+
+      parseInput = {
+        title: normalized.title,
+        company: normalized.company,
+        location: normalized.location,
+        employmentType: normalized.employment_type,
+        workplace: normalized.job_location_type,
+        descriptionSection: detail.descriptionHtml,
+        requirementsSection: '',
+        industryHint: detail.industry,
+        jobFunctionHint: detail.careerCategory,
+        tagsHint: normalized.tags,
+        rawContent: [detail.descriptionHtml, detail.howToApplyHtml].filter(Boolean).join('\n\n'),
+      }
     } else if (adapterType === 'psc') {
       const advertNumber =
         extractPscAdvertNumber(queueItem.job_url) ||
@@ -482,7 +509,8 @@ export async function runScrapeProcessOne(
       adapterType === 'psc' ||
       adapterType === 'brightermonday' ||
       adapterType === 'fuzu' ||
-      adapterType === 'myjobmag'
+      adapterType === 'myjobmag' ||
+      adapterType === 'reliefweb'
         ? normalized.company
         : hiringCompany
     const contentHash = workableHash(
@@ -664,7 +692,9 @@ export async function runScrapeProcessOne(
           ? ['brightermonday.co.ke', 'jobberman.com']
           : adapterType === 'fuzu'
             ? ['fuzu.com']
-            : []
+            : adapterType === 'reliefweb'
+              ? ['reliefweb.int']
+              : []
     const boardOriginForRewrite =
       adapterType === 'myjobmag'
         ? 'https://www.myjobmag.co.ke'
@@ -672,7 +702,9 @@ export async function runScrapeProcessOne(
           ? 'https://www.brightermonday.co.ke'
           : adapterType === 'fuzu'
             ? 'https://www.fuzu.com'
-            : null
+            : adapterType === 'reliefweb'
+              ? 'https://reliefweb.int'
+              : null
 
     // Absolutize leftover relative board anchors only. Do not inject apply_link /
     // application_url into body HTML — MyJobMag already rewrites /apply-now/
@@ -728,7 +760,9 @@ export async function runScrapeProcessOne(
       apply_link: jobBoard
         ? (normalized.apply_link?.trim() ||
             (parsed.apply_link &&
-            !/brightermonday\.co\.ke|myjobmag\.co\.ke|fuzu\.com/i.test(parsed.apply_link)
+            !/brightermonday\.co\.ke|myjobmag\.co\.ke|fuzu\.com|reliefweb\.int/i.test(
+              parsed.apply_link
+            )
               ? parsed.apply_link
               : null) ||
             null)
