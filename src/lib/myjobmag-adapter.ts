@@ -11,8 +11,13 @@
  *   "type": "myjobmag",
  *   "category": "other",
  *   "sourceKind": "job_board",
- *   "maxPages": 5
+ *   "maxPages": 15
  * }
+ *
+ * Listings are newest-first across /jobs/page/N. Discover walks pages until
+ * maxPages, or (when a known-URL checker is provided) until several consecutive
+ * pages contain only URLs we already queued/published — so incremental runs
+ * catch a large new-job wave without re-scraping the whole board.
  */
 
 import * as cheerio from 'cheerio'
@@ -40,6 +45,41 @@ export interface MyJobMagSourceConfig {
   category?: string
   maxPages?: number
   baseHost?: string
+}
+
+/** Absolute ceiling so a bad config cannot fan out forever on Vercel. */
+export const MYJOBMAG_MAX_PAGES_CAP = 30
+
+export interface DiscoverMyJobMagOptions {
+  /**
+   * Return the subset of `urls` that are already in scrape_queue or
+   * scraped_job_sources. When set, discover stops after
+   * `stopAfterKnownPages` consecutive pages with zero unknown URLs.
+   */
+  findKnownUrls?: (urls: string[]) => Promise<Set<string>>
+  /** Default 2 — require two full "already seen" pages before stopping. */
+  stopAfterKnownPages?: number
+}
+
+/** Pure helper for incremental pagination early-stop (unit-tested). */
+export function nextKnownPageStreak(
+  consecutiveKnownPages: number,
+  pageJobUrls: string[],
+  knownOnPage: Set<string>,
+  stopAfterKnownPages: number
+): { consecutiveKnownPages: number; shouldStop: boolean } {
+  if (pageJobUrls.length === 0) {
+    return { consecutiveKnownPages: 0, shouldStop: false }
+  }
+  const unknownOnPage = pageJobUrls.filter(url => !knownOnPage.has(url))
+  if (unknownOnPage.length === 0) {
+    const next = consecutiveKnownPages + 1
+    return {
+      consecutiveKnownPages: next,
+      shouldStop: next >= stopAfterKnownPages,
+    }
+  }
+  return { consecutiveKnownPages: 0, shouldStop: false }
 }
 
 export interface MyJobMagJobDetail {
@@ -107,7 +147,7 @@ async function fetchPageHtml(url: string): Promise<string> {
 
 /** MyJobMag pagination uses `/jobs/page/2`, `/jobs/page/3`, … */
 function listingPageUrls(origin: string, listingPath: string, maxPages: number): string[] {
-  const pages = Math.max(1, Math.min(maxPages, 10))
+  const pages = Math.max(1, Math.min(maxPages, MYJOBMAG_MAX_PAGES_CAP))
   const base = `${origin}${listingPath}`
   const urls: string[] = [base]
   for (let page = 2; page <= pages; page++) {
@@ -142,19 +182,39 @@ function extractListingUrls(html: string, origin: string): string[] {
 
 export async function discoverMyJobMagJobs(
   config: MyJobMagSourceConfig,
-  baseUrl?: string
+  baseUrl?: string,
+  options?: DiscoverMyJobMagOptions
 ): Promise<Array<{ job_url: string; partial_data: { title?: string; location?: string } }>> {
   const origin = originFromBaseUrl(baseUrl, config.baseHost)
   const listingPath = listingPathFromBaseUrl(baseUrl)
-  const maxPages = typeof config.maxPages === 'number' ? config.maxPages : 5
+  const maxPages = typeof config.maxPages === 'number' ? config.maxPages : 15
   const pageUrls = listingPageUrls(origin, listingPath, maxPages)
   const seen = new Set<string>()
+  const findKnownUrls = options?.findKnownUrls
+  const stopAfterKnownPages = Math.max(1, options?.stopAfterKnownPages ?? 2)
+  let consecutiveKnownPages = 0
 
   for (const pageUrl of pageUrls) {
     const html = await fetchPageHtml(pageUrl)
-    for (const jobUrl of extractListingUrls(html, origin)) {
+    const pageJobUrls = extractListingUrls(html, origin)
+    for (const jobUrl of pageJobUrls) {
       seen.add(jobUrl)
     }
+
+    if (!findKnownUrls || pageJobUrls.length === 0) {
+      consecutiveKnownPages = 0
+      continue
+    }
+
+    const known = await findKnownUrls(pageJobUrls)
+    const streak = nextKnownPageStreak(
+      consecutiveKnownPages,
+      pageJobUrls,
+      known,
+      stopAfterKnownPages
+    )
+    consecutiveKnownPages = streak.consecutiveKnownPages
+    if (streak.shouldStop) break
   }
 
   return [...seen].map(job_url => ({

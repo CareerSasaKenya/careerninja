@@ -220,17 +220,37 @@ export default function AdminScraperSourcesPage() {
       const body = await parseJsonResponse(response);
       if (!response.ok) throw new Error(body.error || "Discover failed");
 
-      const result = body.results?.[0] as
-        | { source_id?: string; error?: string | null }
-        | undefined;
+      const results = (body.results || []) as Array<{
+        source_id?: string
+        found?: number
+        queued?: number
+        already_known?: number
+        error?: string | null
+      }>
+      const result = sourceId
+        ? results.find(r => r.source_id === sourceId) || results[0]
+        : results[0]
       const label = sourceId
         ? result?.source_id || sourceId
         : `${body.sources_processed} source(s)`;
+      const found = results.reduce((sum, r) => sum + (r.found || 0), 0)
+      const alreadyKnown = results.reduce((sum, r) => sum + (r.already_known || 0), 0)
+      const queued = typeof body.total_queued === "number"
+        ? body.total_queued
+        : results.reduce((sum, r) => sum + (r.queued || 0), 0)
+      const detail =
+        found > 0
+          ? `${queued} new queued, ${alreadyKnown} already known, ${found} scanned`
+          : `${queued} new queued`
 
-      if (typeof body.total_queued === "number" && body.total_queued > 0) {
-        toast.success(`Discover complete: ${body.total_queued} new item(s) queued (${label})`);
+      if (queued > 0) {
+        toast.success(`Discover complete: ${detail} (${label})`);
       } else if (result?.error) {
         toast.error(`Discover failed for ${label}: ${result.error}`);
+      } else if (found > 0) {
+        toast.info(
+          `Discover complete: no new jobs — ${alreadyKnown} already known of ${found} scanned (${label})`
+        );
       } else {
         toast.info(`Discover complete: no new jobs found (${label})`);
       }
@@ -582,6 +602,8 @@ export default function AdminScraperSourcesPage() {
             {', '}
             <code className="text-xs">20260722_seed_fuzu_scraper_source.sql</code>
             {' '}and <code className="text-xs">20260722_seed_myjobmag_scraper_source.sql</code>
+            {', '}
+            <code className="text-xs">20260728_bump_myjobmag_max_pages.sql</code>
           </CardDescription>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
@@ -591,6 +613,7 @@ export default function AdminScraperSourcesPage() {
           <p><strong>Employers:</strong> Inkomoko (Workable), SALIX Data Africa, Digital Divide Data (SmartRecruiters, Kenya filter)</p>
           <p><strong>Batch A (verified):</strong> PowerGen Renewable Energy, iHub (SmartRecruiters). Workable pipeline (paused): Tala, Branch, KCB, Komaza, Sanergy, Copia, Apollo</p>
           <p><strong>Job boards:</strong> BrighterMonday Kenya, Fuzu Kenya, and MyJobMag Kenya (JSON-LD / HTML). Employer apply link/email from the posting is preferred; the board listing URL is only used as a last resort. Fuzu and MyJobMag also copy hiring-company logo, about, website, size, and location from the portal company tab into CareerSasa company pages when those fields are empty.</p>
+          <p><strong>Discover tip:</strong> The toast counts <em>new</em> queue rows only. Jobs already processed (or queued by the nightly discover cron) are skipped as &quot;already known&quot; — so a quiet Discover after draining a big backlog is expected, not a scraper failure.</p>
         </CardContent>
       </Card>
     </div>
