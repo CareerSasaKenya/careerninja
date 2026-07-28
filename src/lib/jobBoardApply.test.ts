@@ -88,6 +88,8 @@ assert.equal(isJobBoardSource({ type: 'brightermonday' }), true)
 assert.equal(isJobBoardSource({ type: 'myjobmag' }), true)
 assert.equal(isJobBoardSource({ type: 'fuzu' }), true)
 assert.equal(isJobBoardSource({ type: 'workable', sourceKind: 'job_board' }), true)
+assert.equal(isJobBoardSource({ type: 'reliefweb' }), true)
+assert.equal(isJobBoardSource({ type: 'reliefweb', sourceKind: 'job_board' }), true)
 assert.equal(isJobBoardSource({ type: 'workable' }), false)
 
 // MyJobMag Method of Application: relative /apply-now/ + employer host in anchor text

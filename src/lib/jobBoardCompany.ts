@@ -30,6 +30,7 @@ export const JOB_BOARD_WEBSITE_HOSTS = [
   'myjobmag.com',
   'brightermonday.co.ke',
   'jobberman.com',
+  'reliefweb.int',
 ]
 
 export function isJobBoardWebsite(url: string | null | undefined): boolean {

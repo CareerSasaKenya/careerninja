@@ -581,16 +581,18 @@ export default function AdminScraperSourcesPage() {
             <code className="text-xs">20260720_seed_brightermonday_scraper_source.sql</code>
             {', '}
             <code className="text-xs">20260722_seed_fuzu_scraper_source.sql</code>
-            {' '}and <code className="text-xs">20260722_seed_myjobmag_scraper_source.sql</code>
+            {', '}
+            <code className="text-xs">20260722_seed_myjobmag_scraper_source.sql</code>
+            {' '}and <code className="text-xs">20260728_seed_reliefweb_scraper_source.sql</code>
           </CardDescription>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
           <p><strong>Government (full detail):</strong> PSC PDF adverts from <a href="https://www.publicservice.go.ke/jobs/" target="_blank" rel="noopener noreferrer">publicservice.go.ke/jobs</a> — duties, qualifications, salary scales</p>
           <p><strong>Government (listing backup):</strong> PSC portal table on psckjobs.go.ke (paused when PDF source is active)</p>
-          <p><strong>NGO:</strong> Amref Health Africa (SmartRecruiters, Kenya filter)</p>
+          <p><strong>NGO:</strong> Amref Health Africa (SmartRecruiters, Kenya filter); ReliefWeb Kenya (API v2, Kenya filter)</p>
           <p><strong>Employers:</strong> Inkomoko (Workable), SALIX Data Africa, Digital Divide Data (SmartRecruiters, Kenya filter)</p>
           <p><strong>Batch A (verified):</strong> PowerGen Renewable Energy, iHub (SmartRecruiters). Workable pipeline (paused): Tala, Branch, KCB, Komaza, Sanergy, Copia, Apollo</p>
-          <p><strong>Job boards:</strong> BrighterMonday Kenya, Fuzu Kenya, and MyJobMag Kenya (JSON-LD / HTML). Employer apply link/email from the posting is preferred; the board listing URL is only used as a last resort. Fuzu and MyJobMag also copy hiring-company logo, about, website, size, and location from the portal company tab into CareerSasa company pages when those fields are empty.</p>
+          <p><strong>Job boards:</strong> BrighterMonday Kenya, Fuzu Kenya, MyJobMag Kenya, and ReliefWeb Kenya. Employer apply link/email (or org homepage) from the posting is preferred; the board listing URL is only used as a last resort. Fuzu and MyJobMag also copy hiring-company logo, about, website, size, and location from the portal company tab into CareerSasa company pages when those fields are empty.</p>
         </CardContent>
       </Card>
     </div>

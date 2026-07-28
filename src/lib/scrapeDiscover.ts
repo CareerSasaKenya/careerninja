@@ -17,6 +17,7 @@ import {
 } from './brightermonday-adapter'
 import { discoverFuzuJobs, FuzuSourceConfig } from './fuzu-adapter'
 import { discoverMyJobMagJobs, MyJobMagSourceConfig } from './myjobmag-adapter'
+import { discoverReliefWebJobs, ReliefWebSourceConfig } from './reliefweb-adapter'
 import { normalizeJobUrl } from './scraperDeadline'
 
 export interface DiscoverSourceResult {
@@ -55,6 +56,7 @@ const SUPPORTED_TYPES = new Set([
   'brightermonday',
   'fuzu',
   'myjobmag',
+  'reliefweb',
   'html',
 ])
 
@@ -154,6 +156,11 @@ export async function runScrapeDiscover(
       } else if (adapterType === 'myjobmag') {
         discovered = await discoverMyJobMagJobs(
           source.selectors as MyJobMagSourceConfig,
+          source.base_url
+        )
+      } else if (adapterType === 'reliefweb') {
+        discovered = await discoverReliefWebJobs(
+          source.selectors as ReliefWebSourceConfig,
           source.base_url
         )
       } else {

@@ -23,6 +23,7 @@ assert.equal(
 assert.equal(isJobBoardWebsite('https://www.fuzu.com/company/x'), true)
 assert.equal(isJobBoardWebsite('https://digitalqatalyst.com/'), false)
 assert.equal(sanitizeEmployerWebsite('https://www.fuzu.com/company/x'), null)
+assert.equal(sanitizeEmployerWebsite('https://reliefweb.int/job/123/x'), null)
 assert.equal(sanitizeEmployerWebsite('digitalqatalyst.com'), 'https://digitalqatalyst.com/')
 
 assert.ok(
