@@ -13,6 +13,10 @@ export type AdminAuthResult =
   | { ok: true; user: User; adminClient: SupabaseClient }
   | { ok: false; status: number; message: string }
 
+/**
+ * Require a logged-in user with the canonical admin role in `user_roles`.
+ * Do NOT trust `user_profiles.role` — that column can drift / be self-updated.
+ */
 export async function requireAdmin(request: NextRequest): Promise<AdminAuthResult> {
   const accessToken = request.headers.get('authorization')?.replace('Bearer ', '')
   if (!accessToken) {
@@ -34,15 +38,42 @@ export async function requireAdmin(request: NextRequest): Promise<AdminAuthResul
   }
 
   const adminClient = getAdminServiceClient()
-  const { data: profile } = await adminClient
-    .from('user_profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  if (profile?.role !== 'admin') {
+  const isAdmin = await userHasAdminRole(adminClient, user.id)
+  if (!isAdmin) {
     return { ok: false, status: 403, message: 'Forbidden: Admin access required' }
   }
 
   return { ok: true, user, adminClient }
+}
+
+/** Canonical admin check via `user_roles` (has_role / get_is_admin). */
+export async function userHasAdminRole(
+  client: SupabaseClient,
+  userId: string
+): Promise<boolean> {
+  const { data: viaHasRole, error: hasRoleError } = await client.rpc('has_role', {
+    _user_id: userId,
+    _role: 'admin',
+  })
+  if (!hasRoleError && typeof viaHasRole === 'boolean') {
+    return viaHasRole
+  }
+
+  const { data: viaGetIsAdmin, error: getIsAdminError } = await client.rpc(
+    'get_is_admin',
+    { p_user_id: userId }
+  )
+  if (!getIsAdminError && typeof viaGetIsAdmin === 'boolean') {
+    return viaGetIsAdmin
+  }
+
+  // Last-resort direct table read (service role bypasses RLS)
+  const { data: roleRow } = await client
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', userId)
+    .eq('role', 'admin')
+    .maybeSingle()
+
+  return !!roleRow
 }

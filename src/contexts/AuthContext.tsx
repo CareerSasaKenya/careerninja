@@ -27,7 +27,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Ensure the configured admin email always has the 'admin' role
+  // Keep the configured admin email's denormalized profile role in sync.
+  // Canonical grants live in user_roles and must be set via service role / SQL —
+  // the client must never self-assign admin.
   const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "ejumakona@gmail.com";
 
   const ensureAdminRole = useCallback(async (u: User | null) => {
@@ -35,17 +37,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (!u?.email) return;
       if (u.email.toLowerCase() !== String(ADMIN_EMAIL).toLowerCase()) return;
 
-      // upsert admin role for this user
-      const { error } = await supabase
+      const { data: existingAdmin } = await supabase
         .from("user_roles")
-        .upsert(
-          { user_id: u.id, role: "admin" },
-          { onConflict: "user_id" }
-        );
+        .select("id")
+        .eq("user_id", u.id)
+        .eq("role", "admin")
+        .maybeSingle();
 
-      if (error) {
-        // Do not break auth flow, just log
-        console.error("Failed to upsert admin role:", error);
+      if (!existingAdmin) {
+        // Do not insert admin from the browser — that is a privilege-escalation path.
+        console.warn(
+          "Configured admin email is signed in but has no user_roles.admin row. Grant admin via service role/SQL."
+        );
+        return;
+      }
+
+      const { error: profileError } = await supabase
+        .from("user_profiles")
+        .update({ role: "admin" })
+        .eq("id", u.id);
+      if (profileError) {
+        console.error("Failed to sync admin profile role:", profileError);
       }
     } catch (err) {
       console.error("Unexpected error ensuring admin role:", err);

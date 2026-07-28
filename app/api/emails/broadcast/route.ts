@@ -1,14 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { requireAdmin } from '@/lib/adminAuth';
 import { sendEmail } from '@/lib/email';
-
-function getAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
-  );
-}
 
 /**
  * POST /api/emails/broadcast
@@ -27,34 +20,11 @@ function getAdminClient() {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Verify admin auth
-    const accessToken = request.headers.get('authorization')?.replace('Bearer ', '');
-
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
-
-    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
-      },
-    });
-
-    const { data: { user } } = await userClient.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const auth = await requireAdmin(request);
+    if (auth.ok === false) {
+      return NextResponse.json({ error: auth.message }, { status: auth.status });
     }
-
-    const adminClient = getAdminClient();
-
-    const { data: profile } = await adminClient
-      .from('user_profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if (profile?.role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
-    }
+    const { adminClient } = auth;
 
     // Parse body
     const body = await request.json();
@@ -164,20 +134,9 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    const accessToken = request.headers.get('authorization')?.replace('Bearer ', '');
-
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
-
-    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
-      },
-    });
-
-    const { data: { user } } = await userClient.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const auth = await requireAdmin(request);
+    if (auth.ok === false) {
+      return NextResponse.json({ error: auth.message }, { status: auth.status });
     }
 
     const { searchParams } = new URL(request.url);
@@ -188,8 +147,7 @@ export async function GET(request: NextRequest) {
       company_id: searchParams.get('company_id') || undefined,
     };
 
-    const adminClient = getAdminClient();
-    const recipients = await getRecipients(adminClient, filters);
+    const recipients = await getRecipients(auth.adminClient, filters);
 
     return NextResponse.json({
       count: recipients.length,
@@ -220,7 +178,7 @@ interface BroadcastFilters {
 }
 
 async function getRecipients(
-  adminClient: ReturnType<typeof getAdminClient>,
+  adminClient: SupabaseClient,
   filters: BroadcastFilters
 ): Promise<Recipient[]> {
   // Build base query: user_profiles joined with auth.users email

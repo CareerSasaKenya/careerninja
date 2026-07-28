@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Save, Plus, Trash2, RefreshCw } from "lucide-react";
+import { RequireAdmin } from "@/components/RequireAdmin";
 
 interface PageContent {
   id: string;
@@ -175,6 +176,7 @@ export default function ContentEditorPage() {
   };
 
   return (
+    <RequireAdmin>
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-2">Content Editor</h1>
@@ -587,5 +589,6 @@ export default function ContentEditorPage() {
         ))}
       </Tabs>
     </div>
+    </RequireAdmin>
   );
 }

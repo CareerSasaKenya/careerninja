@@ -3,13 +3,16 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserRole } from "@/hooks/useUserRole";
 import Navbar from "@/components/Navbar";
 import JobPostingForm from "@/components/JobPostingForm";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function PostJobPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
+  const { role, loading: roleLoading } = useUserRole();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -17,7 +20,23 @@ export default function PostJobPage() {
     }
   }, [user, loading, router]);
 
-  if (loading) {
+  useEffect(() => {
+    if (loading || roleLoading || !user) return;
+    if (role === "candidate" || role === null) {
+      toast.error("Only employers and admins can post jobs.");
+      router.replace("/dashboard");
+    }
+  }, [loading, roleLoading, user, role, router]);
+
+  if (loading || roleLoading || !user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (role !== "admin" && role !== "employer") {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />

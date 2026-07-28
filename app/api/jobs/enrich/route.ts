@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { getAdminServiceClient } from '@/lib/adminAuth'
+import { getAdminServiceClient, userHasAdminRole } from '@/lib/adminAuth'
 import { enrichJobById } from '@/lib/enrichJobById'
 
 export const runtime = 'nodejs'
@@ -57,13 +57,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Job not found' }, { status: 404 })
     }
 
-    const { data: profile } = await adminClient
-      .from('user_profiles')
-      .select('role')
-      .eq('id', user.id)
-      .maybeSingle()
-
-    const isAdmin = profile?.role === 'admin'
+    const isAdmin = await userHasAdminRole(adminClient, user.id)
     const isOwner = job.user_id === user.id
     if (!isAdmin && !isOwner) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })

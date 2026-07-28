@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Edit, Loader2, Sparkles } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -15,38 +15,15 @@ interface AdminEditJobButtonProps {
 }
 
 /**
- * Renders Edit + Enrich controls only when the logged-in user has admin role.
+ * Renders Edit + Enrich controls only when the logged-in user has admin role
+ * in the canonical `user_roles` table (same source as the dashboard).
  */
 export function AdminEditJobButton({
   jobId,
   variant = "card",
 }: AdminEditJobButtonProps) {
-  const { user } = useAuth();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { role, loading: roleLoading } = useUserRole();
   const [enriching, setEnriching] = useState(false);
-
-  useEffect(() => {
-    if (!user?.id) {
-      setIsAdmin(false);
-      return;
-    }
-    let cancelled = false;
-    (async () => {
-      try {
-        const { data } = await supabase
-          .from("user_profiles")
-          .select("role")
-          .eq("id", user.id)
-          .maybeSingle();
-        if (!cancelled) setIsAdmin(data?.role === "admin");
-      } catch {
-        // Silently fail — don't show button on error
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [user?.id]);
 
   const runEnrich = async () => {
     try {
@@ -87,7 +64,9 @@ export function AdminEditJobButton({
     }
   };
 
-  if (!isAdmin) return null;
+  // Hide for non-admins. Also hide while role is loading so candidates never
+  // briefly flash admin controls.
+  if (roleLoading || role !== "admin") return null;
 
   if (variant === "page") {
     return (

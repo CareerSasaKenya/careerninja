@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Save, Search, Globe, FileText, CheckCircle2, XCircle } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { RequireAdmin } from "@/components/RequireAdmin";
 
 interface PageSEO {
   id: string;
@@ -113,6 +114,7 @@ export default function SEOEditorPage() {
   const descLength = formData.seo_meta_description?.length || 0;
 
   return (
+    <RequireAdmin>
     <div className="container mx-auto px-4 py-8 max-w-5xl">
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-2 flex items-center gap-2">
@@ -339,5 +341,6 @@ export default function SEOEditorPage() {
         ))}
       </Tabs>
     </div>
+    </RequireAdmin>
   );
 }
