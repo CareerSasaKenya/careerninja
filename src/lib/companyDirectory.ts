@@ -66,7 +66,7 @@ type CompanyRow = {
   location: string | null;
   description: string | null;
 };
-type JobRow = { company_id: string | null };
+type JobRow = { id?: string; company_id: string | null };
 type IndustryRow = { id: number | string; name: string };
 
 async function fetchAllRows<T>(
