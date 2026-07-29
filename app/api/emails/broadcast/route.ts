@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     if (auth.ok === false) {
       return NextResponse.json({ error: auth.message }, { status: auth.status });
     }
-    const { adminClient } = auth;
+    const { adminClient, user } = auth;
 
     // Parse body
     const body = await request.json();
