@@ -108,7 +108,7 @@ export async function getCompanyDirectoryData(): Promise<CompanyDirectoryData> {
       fetchAllRows<JobRow>((from, to) =>
         supabase!
           .from("jobs")
-          .select("company_id")
+          .select("id, company_id")
           .eq("status", "active")
           .not("company_id", "is", null)
           .order("id")
