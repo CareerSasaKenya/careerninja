@@ -854,6 +854,32 @@ export interface ScrapeProcessBatchOptions {
   budgetMs?: number
 }
 
+/**
+ * Items left in `processing` after a killed Vercel invocation never get
+ * picked again (picker only reads `pending`). Reclaim stale ones.
+ */
+export async function reclaimStuckScrapeQueueItems(
+  supabase: SupabaseClient,
+  olderThanMs: number = 30 * 60 * 1000
+): Promise<number> {
+  const cutoff = new Date(Date.now() - olderThanMs).toISOString()
+  const { data, error } = await supabase
+    .from('scrape_queue')
+    .update({
+      status: 'pending',
+      error_message: 'Reclaimed from stuck processing',
+    })
+    .eq('status', 'processing')
+    .lt('queued_at', cutoff)
+    .select('id')
+
+  if (error) {
+    console.error('[scrape-process] Failed to reclaim stuck items:', error.message)
+    return 0
+  }
+  return data?.length || 0
+}
+
 /** Process up to maxJobs pending queue items (one at a time). */
 export async function runScrapeProcessBatch(
   supabase: SupabaseClient,
@@ -862,9 +888,14 @@ export async function runScrapeProcessBatch(
   const options: ScrapeProcessBatchOptions =
     typeof maxJobsOrOptions === 'number' ? { maxJobs: maxJobsOrOptions } : maxJobsOrOptions
 
-  const maxJobs = Math.min(Math.max(1, Math.floor(options.maxJobs ?? 10)), 20)
+  const maxJobs = Math.min(Math.max(1, Math.floor(options.maxJobs ?? 10)), 25)
   const budgetMs = options.budgetMs ?? 270_000
   const startedAt = Date.now()
+
+  const reclaimed = await reclaimStuckScrapeQueueItems(supabase)
+  if (reclaimed > 0) {
+    console.log(`[scrape-process] Reclaimed ${reclaimed} stuck processing item(s)`)
+  }
 
   const results: ScrapeProcessResult[] = []
   let processed = 0

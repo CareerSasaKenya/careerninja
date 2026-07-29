@@ -21,11 +21,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Default 15 / cap 20 — paid DeepSeek can handle denser batches; soft budget
-    // still stops early before Vercel's hard 300s kill.
-    const maxJobs = parseInt(request.nextUrl.searchParams.get('max') || '15', 10)
-    const { processed, results, stopped_early } = await runScrapeProcessBatch(getServiceClient(), {
-      maxJobs: Math.min(Math.max(1, maxJobs), 20),
+    // Default 20 / cap 25 — denser batches + every-15m cron drain Discover waves
+    // faster (e.g. MyJobMag Mon/Tue spikes). Soft budget still stops before the
+    // Vercel 300s hard kill.
+    const maxJobs = parseInt(request.nextUrl.searchParams.get('max') || '20', 10)
+    const supabase = getServiceClient()
+    const { processed, results, stopped_early } = await runScrapeProcessBatch(supabase, {
+      maxJobs: Math.min(Math.max(1, maxJobs), 25),
       budgetMs: 270_000,
     })
 

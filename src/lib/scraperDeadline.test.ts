@@ -84,4 +84,16 @@ assert.equal(
 )
 assert.equal(isGenericApplicationUrl(null), true)
 
+// TSC adverts index is shared across many distinct teacher roles
+assert.equal(
+  isGenericApplicationUrl('https://services.tsc.go.ke/adverts/index?page=1'),
+  true
+)
+assert.equal(isGenericApplicationUrl('https://services.tsc.go.ke/adverts'), true)
+assert.equal(isGenericApplicationUrl('https://erecruitment.kra.go.ke/login'), true)
+assert.equal(
+  isGenericApplicationUrl('https://erecruitment-new.azurewebsites.net/portal'),
+  true
+)
+
 console.log('scraperDeadline.test.ts: all assertions passed')

@@ -29,7 +29,7 @@ The job management system requires periodic tasks to:
 - **Expire Promotions**: Daily at 4:00 AM UTC (`0 4 * * *`)
 - **Enrich Company Logos**: Daily at 4:30 AM UTC (`30 4 * * *`)
 - **Scrape Discover**: Daily at 5:00 AM UTC (`0 5 * * *`) — queues new jobs from active sources
-- **Scrape Process**: Hourly (`0 * * * *`) — publishes pending queue items (default 15/run, Pro)
+- **Scrape Process**: Every 15 minutes (`*/15 * * * *`) — publishes pending queue items (default 20/run, Pro)
 - **Email Automations**: Daily at 8:00 AM UTC (`0 8 * * *`)
 
 ### Endpoints
