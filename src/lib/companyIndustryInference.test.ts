@@ -68,5 +68,15 @@ assert(
   inferCompanyIndustry("Catholic Relief Services") === "Charity, NGO & Non-Profit",
   "crs ngo"
 );
+assert(
+  inferCompanyIndustry("Judicial Service Commission") ===
+    "Government & Public Administration",
+  "judicial service commission"
+);
+assert(
+  inferCompanyIndustry("Nursing Council of Kenya NCK") ===
+    "Healthcare, Medical & Pharmaceutical",
+  "nursing council"
+);
 
 console.log("companyIndustryInference.test.ts: all assertions passed");
