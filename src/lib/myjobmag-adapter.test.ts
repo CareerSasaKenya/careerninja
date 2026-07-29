@@ -3,6 +3,7 @@ import {
   extractMyJobMagApplyNow,
   extractMyJobMagMethodOfApplicationHtml,
   isMyJobMagJobNotFound,
+  nextKnownPageStreak,
   normalizeMyJobMagJob,
   parseMyJobMagCompanyHtml,
   parseMyJobMagJobHtml,
@@ -370,5 +371,25 @@ assert.throws(
     ),
   /not found/i
 )
+
+// Incremental discover: stop after N consecutive already-known pages
+{
+  const urls = ['https://www.myjobmag.co.ke/job/a', 'https://www.myjobmag.co.ke/job/b']
+  const known = new Set(urls)
+  const s1 = nextKnownPageStreak(0, urls, known, 2)
+  assert.equal(s1.consecutiveKnownPages, 1)
+  assert.equal(s1.shouldStop, false)
+  const s2 = nextKnownPageStreak(1, urls, known, 2)
+  assert.equal(s2.consecutiveKnownPages, 2)
+  assert.equal(s2.shouldStop, true)
+  const sReset = nextKnownPageStreak(
+    1,
+    urls,
+    new Set(['https://www.myjobmag.co.ke/job/a']),
+    2
+  )
+  assert.equal(sReset.consecutiveKnownPages, 0)
+  assert.equal(sReset.shouldStop, false)
+}
 
 console.log('myjobmag-adapter.test.ts: ok')

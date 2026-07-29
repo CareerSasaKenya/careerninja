@@ -19,7 +19,7 @@ VALUES (
     "type": "myjobmag",
     "category": "other",
     "sourceKind": "job_board",
-    "maxPages": 5
+    "maxPages": 15
   }'::jsonb
 )
 ON CONFLICT (source_id) DO UPDATE SET

@@ -23,6 +23,8 @@ export interface DiscoverSourceResult {
   source_id: string
   found: number
   queued: number
+  /** URLs seen on the board that were already in scrape_queue or scraped_job_sources */
+  already_known: number
   error: string | null
 }
 
@@ -57,6 +59,27 @@ const SUPPORTED_TYPES = new Set([
   'myjobmag',
   'html',
 ])
+
+async function lookupKnownJobUrls(
+  supabase: SupabaseClient,
+  urls: string[]
+): Promise<Set<string>> {
+  const knownUrls = new Set<string>()
+  if (urls.length === 0) return knownUrls
+
+  const normalized = [...new Set(urls.map(u => normalizeJobUrl(u)))]
+  const chunkSize = 100
+  for (let c = 0; c < normalized.length; c += chunkSize) {
+    const chunk = normalized.slice(c, c + chunkSize)
+    const [{ data: alreadyQueued }, { data: alreadyPublished }] = await Promise.all([
+      supabase.from('scrape_queue').select('job_url').in('job_url', chunk),
+      supabase.from('scraped_job_sources').select('job_url').in('job_url', chunk),
+    ])
+    for (const r of alreadyQueued || []) knownUrls.add(normalizeJobUrl(r.job_url))
+    for (const r of alreadyPublished || []) knownUrls.add(normalizeJobUrl(r.job_url))
+  }
+  return knownUrls
+}
 
 export async function runScrapeDiscover(
   supabase: SupabaseClient,
@@ -97,6 +120,7 @@ export async function runScrapeDiscover(
       source_id: source.source_id,
       found: 0,
       queued: 0,
+      already_known: 0,
       error: null,
     }
 
@@ -154,7 +178,20 @@ export async function runScrapeDiscover(
       } else if (adapterType === 'myjobmag') {
         discovered = await discoverMyJobMagJobs(
           source.selectors as MyJobMagSourceConfig,
-          source.base_url
+          source.base_url,
+          {
+            findKnownUrls: async urls => {
+              const knownNormalized = await lookupKnownJobUrls(supabase, urls)
+              const knownAsPassed = new Set<string>()
+              for (const url of urls) {
+                if (knownNormalized.has(normalizeJobUrl(url))) {
+                  knownAsPassed.add(url)
+                }
+              }
+              return knownAsPassed
+            },
+            stopAfterKnownPages: 2,
+          }
         )
       } else {
         const html = await fetchHtml(source.base_url)
@@ -174,21 +211,16 @@ export async function runScrapeDiscover(
         job_url: normalizeJobUrl(j.job_url),
       }))
       const urls = [...new Set(discoveredNormalized.map(j => j.job_url))]
+      const knownUrls = await lookupKnownJobUrls(supabase, urls)
+      sourceResult.already_known = urls.filter(u => knownUrls.has(u)).length
 
-      // Supabase .in() caps around ~100–200 items; chunk to avoid errors
-      const knownUrls = new Set<string>()
-      const chunkSize = 100
-      for (let c = 0; c < urls.length; c += chunkSize) {
-        const chunk = urls.slice(c, c + chunkSize)
-        const [{ data: alreadyQueued }, { data: alreadyPublished }] = await Promise.all([
-          supabase.from('scrape_queue').select('job_url').in('job_url', chunk),
-          supabase.from('scraped_job_sources').select('job_url').in('job_url', chunk),
-        ])
-        for (const r of alreadyQueued || []) knownUrls.add(normalizeJobUrl(r.job_url))
-        for (const r of alreadyPublished || []) knownUrls.add(normalizeJobUrl(r.job_url))
+      const newJobsByUrl = new Map<string, (typeof discoveredNormalized)[number]>()
+      for (const j of discoveredNormalized) {
+        if (!knownUrls.has(j.job_url) && !newJobsByUrl.has(j.job_url)) {
+          newJobsByUrl.set(j.job_url, j)
+        }
       }
-
-      const newJobs = discoveredNormalized.filter(j => !knownUrls.has(j.job_url))
+      const newJobs = [...newJobsByUrl.values()]
 
       if (newJobs.length === 0) {
         results.push(sourceResult)
