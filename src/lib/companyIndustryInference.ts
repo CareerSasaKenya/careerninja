@@ -223,13 +223,16 @@ export function inferCompanyIndustry(
 
   // Government / public sector
   if (
-    /\b(county government|county public service board|public service board|public service commission|ministry of|national assembly|county assembly|revenue authority|state department)\b/.test(
+    /\b(county government|county public service board|public service board|public service commission|judicial service commission|ministry of|national assembly|county assembly|revenue authority|state department|state corporation|council of kenya|high commission|embassy of)\b/.test(
       key
     ) ||
     (/\.go\.ke\b/.test(host) && !/\b(bank|sacco|university|hospital)\b/.test(key))
   ) {
     if (/\b(nema|environment|wildlife|forest)\b/.test(key)) {
       return matchAllowed(ENVIRONMENT, allowedIndustries);
+    }
+    if (/\b(nursing|medical|health|hospital|pharma)\b/.test(key)) {
+      return matchAllowed(HEALTHCARE, allowedIndustries);
     }
     return matchAllowed(GOVERNMENT, allowedIndustries);
   }

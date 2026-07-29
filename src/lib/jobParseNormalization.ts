@@ -132,12 +132,46 @@ export function resolveValidThrough(
   return getDefaultValidThrough(postingDate);
 }
 
+/**
+ * Common free-text / scrape industry labels → canonical CareerSasa industries.
+ * Keys must be lowercase trimmed.
+ */
+export const INDUSTRY_VALUE_ALIASES: Record<string, string> = {
+  governmental: "Government & Public Administration",
+  government: "Government & Public Administration",
+  "public sector": "Government & Public Administration",
+  pharmaceuticals: "Healthcare, Medical & Pharmaceutical",
+  pharmaceutical: "Healthcare, Medical & Pharmaceutical",
+  "health care, medical": "Healthcare, Medical & Pharmaceutical",
+  healthcare: "Healthcare, Medical & Pharmaceutical",
+  "consumer goods": "Retail, Wholesale, E-commerce & FMCG",
+  fmcg: "Retail, Wholesale, E-commerce & FMCG",
+  "ngo/non-profit": "Charity, NGO & Non-Profit",
+  "ngo / non-profit": "Charity, NGO & Non-Profit",
+  "ngo, npo & charity": "Charity, NGO & Non-Profit",
+  "non-profit": "Charity, NGO & Non-Profit",
+  "paper milling": "Manufacturing & Warehousing",
+  manufacturing: "Manufacturing & Warehousing",
+  "transportation, logistics, storage": "Logistics & Transportation",
+  "construction, renovation, maintenance": "Building, Construction & Real Estate",
+  "consulting, business support, auditing": "Consulting & Professional Services",
+  "global wines & spirits": "Food Services, Hospitality & Catering",
+  "wines & spirits": "Food Services, Hospitality & Catering",
+};
+
 export function fuzzyMatchOption(
   parsedValue: string | undefined,
   allowedNames: string[] | undefined
 ): string | null {
   if (!parsedValue || !allowedNames || allowedNames.length === 0) return null;
   const normalized = parsedValue.toLowerCase().trim();
+  const aliased = INDUSTRY_VALUE_ALIASES[normalized];
+  if (aliased) {
+    const aliasExact = allowedNames.find(
+      (n) => n.toLowerCase().trim() === aliased.toLowerCase().trim()
+    );
+    if (aliasExact) return aliasExact;
+  }
   const exact = allowedNames.find((n) => n.toLowerCase().trim() === normalized);
   if (exact) return exact;
   const sub = allowedNames.find((n) => {
@@ -157,6 +191,15 @@ export function fuzzyMatchOption(
     }
   }
   return bestScore > 0 ? bestMatch : null;
+}
+
+/** Map any industry label onto the allowed list, or null if unresolvable. */
+export function resolveIndustryLabel(
+  value: string | null | undefined,
+  allowedNames: string[] | undefined
+): string | null {
+  if (!value?.trim() || !allowedNames?.length) return null;
+  return fuzzyMatchOption(value.trim(), allowedNames);
 }
 
 export function dedupeStrings(values: string[]): string[] {

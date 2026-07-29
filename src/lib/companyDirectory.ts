@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import type { CompanyCardData } from "@/components/CompanyCard";
-import { fuzzyMatchOption } from "@/lib/jobParseNormalization";
+import { inferCompanyIndustry } from "@/lib/companyIndustryInference";
+import { resolveIndustryLabel } from "@/lib/jobParseNormalization";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey =
@@ -66,7 +67,12 @@ type CompanyRow = {
   location: string | null;
   description: string | null;
 };
-type JobRow = { id?: string; company_id: string | null };
+type JobRow = {
+  id?: string;
+  company_id: string | null;
+  industry?: string | string[] | null;
+  industries?: string[] | null;
+};
 type IndustryRow = { id: number | string; name: string };
 
 async function fetchAllRows<T>(
@@ -91,6 +97,91 @@ async function fetchAllRows<T>(
   return rows;
 }
 
+function jobIndustryCandidates(job: JobRow): string[] {
+  const values: string[] = [];
+  if (Array.isArray(job.industries)) {
+    for (const value of job.industries) {
+      if (typeof value === "string" && value.trim()) values.push(value.trim());
+    }
+  }
+  if (Array.isArray(job.industry)) {
+    for (const value of job.industry) {
+      if (typeof value === "string" && value.trim()) values.push(value.trim());
+    }
+  } else if (typeof job.industry === "string" && job.industry.trim()) {
+    values.push(job.industry.trim());
+  }
+  return values;
+}
+
+/**
+ * Resolve a company onto a canonical industry for directory cards.
+ * Prefer stored company industry, then name/website inference, then the
+ * modal industry of that company's active jobs (display-only fallback).
+ */
+export function resolveDirectoryCompanyIndustry(
+  company: Pick<CompanyRow, "name" | "website" | "industry">,
+  industries: string[],
+  modalJobIndustry?: string | null
+): string | null {
+  const fromStored = resolveIndustryLabel(company.industry, industries);
+  if (fromStored) return fromStored;
+
+  const inferred = inferCompanyIndustry(
+    company.name,
+    company.website,
+    industries
+  );
+  if (inferred && industries.includes(inferred)) return inferred;
+
+  if (modalJobIndustry && industries.includes(modalJobIndustry)) {
+    return modalJobIndustry;
+  }
+
+  return null;
+}
+
+function buildOpenJobsAndModalIndustry(
+  jobRows: JobRow[],
+  industries: string[]
+): {
+  openJobsByCompany: Map<string, number>;
+  modalIndustryByCompany: Map<string, string>;
+} {
+  const openJobsByCompany = new Map<string, number>();
+  const industryVotesByCompany = new Map<string, Map<string, number>>();
+
+  for (const job of jobRows) {
+    if (!job.company_id) continue;
+
+    openJobsByCompany.set(
+      job.company_id,
+      (openJobsByCompany.get(job.company_id) || 0) + 1
+    );
+
+    let matched: string | null = null;
+    for (const candidate of jobIndustryCandidates(job)) {
+      matched = resolveIndustryLabel(candidate, industries);
+      if (matched) break;
+    }
+    if (!matched) continue;
+
+    if (!industryVotesByCompany.has(job.company_id)) {
+      industryVotesByCompany.set(job.company_id, new Map());
+    }
+    const votes = industryVotesByCompany.get(job.company_id)!;
+    votes.set(matched, (votes.get(matched) || 0) + 1);
+  }
+
+  const modalIndustryByCompany = new Map<string, string>();
+  for (const [companyId, votes] of industryVotesByCompany) {
+    const top = [...votes.entries()].sort((a, b) => b[1] - a[1])[0];
+    if (top) modalIndustryByCompany.set(companyId, top[0]);
+  }
+
+  return { openJobsByCompany, modalIndustryByCompany };
+}
+
 export async function getCompanyDirectoryData(): Promise<CompanyDirectoryData> {
   if (!supabase) {
     return { companies: [], industries: [], industryCards: [] };
@@ -108,7 +199,7 @@ export async function getCompanyDirectoryData(): Promise<CompanyDirectoryData> {
       fetchAllRows<JobRow>((from, to) =>
         supabase!
           .from("jobs")
-          .select("id, company_id")
+          .select("id, company_id, industry, industries")
           .eq("status", "active")
           .not("company_id", "is", null)
           .order("id")
@@ -124,19 +215,15 @@ export async function getCompanyDirectoryData(): Promise<CompanyDirectoryData> {
       .filter(Boolean)
       .sort((a, b) => a.localeCompare(b));
 
-    const openJobsByCompany = new Map<string, number>();
-    for (const job of jobRows) {
-      if (!job.company_id) continue;
-      openJobsByCompany.set(
-        job.company_id,
-        (openJobsByCompany.get(job.company_id) || 0) + 1
-      );
-    }
+    const { openJobsByCompany, modalIndustryByCompany } =
+      buildOpenJobsAndModalIndustry(jobRows, industries);
 
     const rows: CompanyCardData[] = companyRows.map((company) => {
-      const canonicalIndustry = company.industry
-        ? fuzzyMatchOption(company.industry, industries) || company.industry
-        : null;
+      const canonicalIndustry = resolveDirectoryCompanyIndustry(
+        company,
+        industries,
+        modalIndustryByCompany.get(company.id) || null
+      );
 
       return {
         id: company.id,
