@@ -104,6 +104,31 @@ async function getCompany(id: string): Promise<CompanyRow | null> {
   }
 }
 
+/** PostgREST/Supabase caps each response at max_rows (default 1000). */
+const COMPANY_JOBS_PAGE_SIZE = 1000;
+
+async function fetchAllCompanyJobs(
+  buildQuery: (from: number, to: number) => PromiseLike<{
+    data: CompanyJob[] | null;
+    error: { message: string } | null;
+  }>
+): Promise<CompanyJob[]> {
+  const rows: CompanyJob[] = [];
+  let from = 0;
+
+  for (;;) {
+    const to = from + COMPANY_JOBS_PAGE_SIZE - 1;
+    const { data, error } = await buildQuery(from, to);
+    if (error) throw error;
+    const page = (data || []) as CompanyJob[];
+    rows.push(...page);
+    if (page.length < COMPANY_JOBS_PAGE_SIZE) break;
+    from += COMPANY_JOBS_PAGE_SIZE;
+  }
+
+  return rows;
+}
+
 async function getCompanyJobs(
   companyId: string,
   companyName: string
@@ -122,9 +147,9 @@ async function getCompanyJobs(
       companies ( id, name, logo, website )
     `;
 
-    const [{ data: byId, error: byIdError }, { data: byName, error: byNameError }] =
-      await Promise.all([
-        supabase
+    const [byId, byName] = await Promise.all([
+      fetchAllCompanyJobs((from, to) =>
+        supabase!
           .from("jobs")
           .select(jobSelect)
           .eq("company_id", companyId)
@@ -132,23 +157,23 @@ async function getCompanyJobs(
           .order("is_featured", { ascending: false, nullsFirst: false })
           .order("is_promoted", { ascending: false, nullsFirst: false })
           .order("date_posted", { ascending: false })
-          .limit(50),
-        // Catch active listings that still only have a company name match
-        supabase
+          .range(from, to)
+      ),
+      // Catch active listings that still only have a company name match
+      fetchAllCompanyJobs((from, to) =>
+        supabase!
           .from("jobs")
           .select(jobSelect)
           .is("company_id", null)
           .ilike("company", companyName)
           .eq("status", "active")
           .order("date_posted", { ascending: false })
-          .limit(50),
-      ]);
-
-    if (byIdError) throw byIdError;
-    if (byNameError) throw byNameError;
+          .range(from, to)
+      ),
+    ]);
 
     const merged = new Map<string, CompanyJob>();
-    for (const job of [...(byId || []), ...(byName || [])] as CompanyJob[]) {
+    for (const job of [...byId, ...byName]) {
       merged.set(job.id, job);
     }
 

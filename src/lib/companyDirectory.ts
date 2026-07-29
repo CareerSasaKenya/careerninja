@@ -54,48 +54,72 @@ export function resolveIndustryFromSlug(
   return match ?? null;
 }
 
+/** PostgREST/Supabase caps each response at max_rows (default 1000). */
+const DIRECTORY_PAGE_SIZE = 1000;
+
+type CompanyRow = {
+  id: string;
+  name: string;
+  logo: string | null;
+  website: string | null;
+  industry: string | null;
+  location: string | null;
+  description: string | null;
+};
+type JobRow = { id?: string; company_id: string | null };
+type IndustryRow = { id: number | string; name: string };
+
+async function fetchAllRows<T>(
+  fetchPage: (
+    from: number,
+    to: number
+  ) => PromiseLike<{ data: T[] | null; error: { message: string } | null }>
+): Promise<T[]> {
+  const rows: T[] = [];
+  let from = 0;
+
+  for (;;) {
+    const to = from + DIRECTORY_PAGE_SIZE - 1;
+    const { data, error } = await fetchPage(from, to);
+    if (error) throw error;
+    const page = data || [];
+    rows.push(...page);
+    if (page.length < DIRECTORY_PAGE_SIZE) break;
+    from += DIRECTORY_PAGE_SIZE;
+  }
+
+  return rows;
+}
+
 export async function getCompanyDirectoryData(): Promise<CompanyDirectoryData> {
   if (!supabase) {
     return { companies: [], industries: [], industryCards: [] };
   }
 
   try {
-    const [
-      { data: companies, error: companiesError },
-      { data: jobs, error: jobsError },
-      { data: industryRows, error: industriesError },
-    ] = await Promise.all([
-      supabase
-        .from("companies")
-        .select("id, name, logo, website, industry, location, description")
-        .order("name"),
-      supabase
-        .from("jobs")
-        .select("company_id")
-        .eq("status", "active")
-        .not("company_id", "is", null),
-      supabase.from("industries").select("id, name").order("name"),
+    const [companyRows, jobRows, industryRows] = await Promise.all([
+      fetchAllRows<CompanyRow>((from, to) =>
+        supabase!
+          .from("companies")
+          .select("id, name, logo, website, industry, location, description")
+          .order("name")
+          .range(from, to)
+      ),
+      fetchAllRows<JobRow>((from, to) =>
+        supabase!
+          .from("jobs")
+          .select("id, company_id")
+          .eq("status", "active")
+          .not("company_id", "is", null)
+          .order("id")
+          .range(from, to)
+      ),
+      fetchAllRows<IndustryRow>((from, to) =>
+        supabase!.from("industries").select("id, name").order("name").range(from, to)
+      ),
     ]);
 
-    if (companiesError) throw companiesError;
-    if (jobsError) throw jobsError;
-    if (industriesError) throw industriesError;
-
-    type CompanyRow = {
-      id: string;
-      name: string;
-      logo: string | null;
-      website: string | null;
-      industry: string | null;
-      location: string | null;
-      description: string | null;
-    };
-    type JobRow = { company_id: string | null };
-    type IndustryRow = { id: number | string; name: string };
-
-    const companyRows = (companies || []) as CompanyRow[];
-    const jobRows = (jobs || []) as JobRow[];
-    const industries = ((industryRows || []) as IndustryRow[])
+    const industries = industryRows
       .map((row) => row.name.trim())
       .filter(Boolean)
       .sort((a, b) => a.localeCompare(b));
