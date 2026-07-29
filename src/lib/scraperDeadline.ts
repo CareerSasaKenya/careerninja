@@ -231,6 +231,31 @@ export function isGenericApplicationUrl(url: string | null | undefined): boolean
       return true
     }
 
+    // Teachers Service Commission — many distinct roles share the adverts index
+    // (e.g. https://services.tsc.go.ke/adverts/index?page=1). Treating that as a
+    // unique application_url collapses Senior Master / Deputy Principal / etc.
+    if (host === 'services.tsc.go.ke' || host === 'tsc.go.ke') {
+      if (
+        pathLower === '/' ||
+        pathLower === '/adverts' ||
+        pathLower.startsWith('/adverts/index') ||
+        /\/login/i.test(pathLower)
+      ) {
+        return true
+      }
+    }
+
+    // Shared e-recruitment portals without a job-specific path segment
+    if (
+      (host.endsWith('azurewebsites.net') || host === 'erecruitment.kra.go.ke') &&
+      (pathLower === '/' ||
+        pathLower === '/portal' ||
+        pathLower.endsWith('/portal') ||
+        /\/login/i.test(pathLower))
+    ) {
+      return true
+    }
+
     // Bare site roots / login landings are never job-unique
     if (path === '/' || /\/login/i.test(pathLower)) return true
 
