@@ -32,3 +32,8 @@ out/
 # Temporary files
 *DESKTOP-*.ts
 *DESKTOP-*.tsxtmp/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
