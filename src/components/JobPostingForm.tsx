@@ -890,6 +890,32 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
             if (!enrichRes.ok) {
               console.warn("[JobPostingForm] enrich failed", await enrichRes.text());
             }
+
+            // Re-notify Google after content updates on active jobs.
+            // Status transitions are also covered by the DB indexing trigger.
+            if (data.status === "active") {
+              try {
+                const indexRes = await fetch("/api/jobs/request-indexing", {
+                  method: "POST",
+                  headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    job_id: savedJobId,
+                    type: "URL_UPDATED",
+                  }),
+                });
+                if (!indexRes.ok) {
+                  console.warn(
+                    "[JobPostingForm] request-indexing failed",
+                    await indexRes.text()
+                  );
+                }
+              } catch (indexErr) {
+                console.warn("[JobPostingForm] request-indexing error", indexErr);
+              }
+            }
           }
         } catch (enrichErr) {
           console.warn("[JobPostingForm] enrich error", enrichErr);
