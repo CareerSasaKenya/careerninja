@@ -310,10 +310,37 @@ const _normalizedBrands: Map<string, BrandEntry> = new Map(
   Object.entries(KNOWN_COMPANY_BRANDS).map(([k, v]) => [normalizeCompanyKey(k), v])
 );
 
+/**
+ * Ambiguous short/common brand tokens. These must match at the START of the
+ * company name (e.g. "Care International") — never mid-name
+ * ("Life Care Hospital" must not resolve to care.org).
+ */
+const AMBIGUOUS_BRAND_KEYS = new Set([
+  "care",
+  "bat",
+  "bolt",
+  "branch",
+  "remote",
+  "vert",
+  "tala",
+  "plan",
+  "ddd",
+  "psi",
+  "msf",
+  "red cross",
+]);
+
 /** Whole-word match so short brands like "care" do not match "Encareer". */
 function keyContainsBrand(companyKey: string, brandKey: string): boolean {
   if (companyKey === brandKey) return true;
   if (!brandKey || brandKey.length < 3) return false;
+  if (brandKey.length <= 4 || AMBIGUOUS_BRAND_KEYS.has(brandKey)) {
+    return (
+      companyKey.startsWith(`${brandKey} `) ||
+      companyKey.startsWith(`${brandKey} kenya`) ||
+      companyKey.startsWith(`${brandKey} international`)
+    );
+  }
   const escaped = brandKey.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   return new RegExp(`(?:^|\\s)${escaped}(?:\\s|$)`).test(companyKey);
 }
