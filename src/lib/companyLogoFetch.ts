@@ -202,6 +202,13 @@ async function scrapeWebsiteForLogo(domain: string): Promise<string | null> {
     for (const m of html.matchAll(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/gi)) {
       candidates.push(m[1]);
     }
+    // Inline logo assets (e.g. AMSOL ships brand mark as /assets/*Logo*.jpeg)
+    for (const m of html.matchAll(/<img[^>]+src=["']([^"']*[Ll]ogo[^"']*)["']/gi)) {
+      candidates.push(m[1]);
+    }
+    for (const m of html.matchAll(/["'](\/assets\/[^"']*[Ll]ogo[^"']+\.(?:png|jpe?g|svg|webp))["']/gi)) {
+      candidates.push(m[1]);
+    }
 
     for (const candidate of candidates) {
       const absolute = sanitizeLogoCandidateUrl(candidate, domain);

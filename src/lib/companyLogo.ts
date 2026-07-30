@@ -232,6 +232,10 @@ export const KNOWN_COMPANY_BRANDS: Record<string, BrandEntry> = {
   astrazeneca: { domain: "astrazeneca.com", twitter: "AstraZeneca" },
 
   // ── Staffing / Education / Public ───────────────────────────────────
+  amsol: { domain: "amsol.africa" },
+  "africa management solutions": { domain: "amsol.africa" },
+  "africa management solutions limited": { domain: "amsol.africa" },
+  "africa management solutions limited amsol": { domain: "amsol.africa" },
   "talent grid africa": { domain: "talentgridafrica.com" },
   "talent nexus": { domain: "talentnexus.co.ke" },
   "university of nairobi": { domain: "uonbi.ac.ke" },

@@ -78,6 +78,16 @@ export const OFFICIAL_COMPANY_LOGOS: Record<string, string> = {
   'united nations':
     'https://www.un.org/sites/un2.un.org/files/un0803480.jpg',
 
+  // HR / staffing
+  amsol:
+    'https://amsol.africa/assets/amsolLogo2-CVlLDaHI.jpeg',
+  'africa management solutions':
+    'https://amsol.africa/assets/amsolLogo2-CVlLDaHI.jpeg',
+  'africa management solutions limited amsol':
+    'https://amsol.africa/assets/amsolLogo2-CVlLDaHI.jpeg',
+  'africa management solutions limited':
+    'https://amsol.africa/assets/amsolLogo2-CVlLDaHI.jpeg',
+
   // Telecom (verified gstatic)
   safaricom:
     'https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://safaricom.co.ke&size=128',
