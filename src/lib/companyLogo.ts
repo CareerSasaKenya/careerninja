@@ -3,12 +3,18 @@
  *
  * Architecture:
  * - Display-time (client): resolveCompanyLogoUrl()
- *   Trusts stored companies.logo first, then tries gstatic favicon for website domains.
- *   Does NOT rely on Twitter/unavatar (unreliable — can return generic placeholders).
+ *   Official curated logos → trusted stored logo → brand/website favicon CDN.
+ *   Rejects unavatar / wrong job-board logos; CompanyLogo falls back to initials.
  *
  * - Enrichment-time (server): see src/lib/companyLogoFetch.ts
  *   Verifies real image bytes before writing to companies.logo.
  */
+
+import {
+  isMismatchedJobBoardLogo,
+  isUntrustedLogoUrl,
+  lookupOfficialLogo,
+} from "./officialCompanyLogos";
 
 interface BrandEntry {
   domain: string;
@@ -117,6 +123,14 @@ export const KNOWN_COMPANY_BRANDS: Record<string, BrandEntry> = {
   undp: { domain: "undp.org", twitter: "UNDP" },
   unicef: { domain: "unicef.org", twitter: "UNICEF" },
   unhcr: { domain: "unhcr.org", twitter: "Refugees" },
+  "un women": { domain: "unwomen.org", twitter: "UN_Women" },
+  unep: { domain: "unep.org", twitter: "UNEP" },
+  "united nations environment programme": { domain: "unep.org", twitter: "UNEP" },
+  "united nations environment programme (unep)": { domain: "unep.org", twitter: "UNEP" },
+  "united nations environment programme unep": { domain: "unep.org", twitter: "UNEP" },
+  "united nations": { domain: "un.org", twitter: "UN" },
+  "united nations office for project services": { domain: "unops.org", twitter: "UNOPS" },
+  "united nations office for project services unops": { domain: "unops.org", twitter: "UNOPS" },
   "world bank": { domain: "worldbank.org", twitter: "WorldBank" },
 
   // ── Scraped Kenyan employers / NGOs (common CareerSasa sources) ─────
@@ -292,6 +306,14 @@ const _normalizedBrands: Map<string, BrandEntry> = new Map(
   Object.entries(KNOWN_COMPANY_BRANDS).map(([k, v]) => [normalizeCompanyKey(k), v])
 );
 
+/** Whole-word match so short brands like "care" do not match "Encareer". */
+function keyContainsBrand(companyKey: string, brandKey: string): boolean {
+  if (companyKey === brandKey) return true;
+  if (!brandKey || brandKey.length < 3) return false;
+  const escaped = brandKey.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(?:^|\\s)${escaped}(?:\\s|$)`).test(companyKey);
+}
+
 /** Look up the brand entry for a company name (longest normalized-key match). */
 export function lookupBrand(companyName: string): BrandEntry | null {
   const key = normalizeCompanyKey(companyName);
@@ -300,7 +322,7 @@ export function lookupBrand(companyName: string): BrandEntry | null {
   let best: { known: string; entry: BrandEntry } | null = null;
   for (const [known, entry] of _normalizedBrands) {
     if (known.length < 4) continue;
-    if (key === known || key.includes(known)) {
+    if (keyContainsBrand(key, known)) {
       if (!best || known.length > best.known.length) best = { known, entry };
     }
   }
@@ -343,22 +365,37 @@ export function isUsableLogoUrl(url?: string | null): boolean {
  * Best logo URL for display (client-side, no API calls).
  *
  * Priority:
- * 1. companies.logo (stored & verified in DB) — always trust this
- * 2. hiring_organization_logo on the job row
- * 3. companies.website domain → gstatic favicon (best-effort; may fail for small companies)
- * 4. known brand name → brand domain → gstatic favicon
+ * 1. Curated official logo for well-known employers
+ * 2. companies.logo when trusted (not unavatar / mismatched job-board scrape)
+ * 3. hiring_organization_logo when trusted
+ * 4. known brand domain (preferred) or website → favicon CDN
  *
- * The CompanyLogo component MUST handle image load failures via onError
- * and fall back to initials — gstatic sometimes returns a generic 726B icon
- * for unknown domains (detectable only by checking image size after load).
+ * CompanyLogo falls back to initials when this returns null or the image fails.
  */
 export function resolveCompanyLogoUrl(input: CompanyLogoInput): string | null {
-  if (isUsableLogoUrl(input.logo)) return input.logo!.trim();
-  if (isUsableLogoUrl(input.hiringOrganizationLogo)) return input.hiringOrganizationLogo!.trim();
+  // Prefer curated official logos for well-known employers (fixes Equity / UN mismatches)
+  const official = lookupOfficialLogo(input.companyName);
+  if (official) return official;
+
+  // Trust stored logos only when not known-bad (unavatar, wrong thumbnails, etc.)
+  if (
+    isUsableLogoUrl(input.logo) &&
+    !isUntrustedLogoUrl(input.logo) &&
+    !isMismatchedJobBoardLogo(input.companyName || "", input.logo)
+  ) {
+    return input.logo!.trim();
+  }
+  if (
+    isUsableLogoUrl(input.hiringOrganizationLogo) &&
+    !isUntrustedLogoUrl(input.hiringOrganizationLogo) &&
+    !isMismatchedJobBoardLogo(input.companyName || "", input.hiringOrganizationLogo)
+  ) {
+    return input.hiringOrganizationLogo!.trim();
+  }
 
   const fromWebsite = input.website ? extractDomain(input.website) : null;
   const brand = input.companyName ? lookupBrand(input.companyName) : null;
-  const domain = fromWebsite || brand?.domain || null;
+  const domain = brand?.domain || fromWebsite || null;
 
   return domain ? buildLogoCdnUrl(domain) : null;
 }

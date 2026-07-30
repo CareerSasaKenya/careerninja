@@ -11,7 +11,8 @@
  * It uses Node.js fetch which is not available in edge runtime.
  */
 
-import { extractDomain, getKnownBrandTwitterHandle, lookupBrand } from './companyLogo';
+import { extractDomain, lookupBrand } from './companyLogo';
+import { lookupOfficialLogo } from './officialCompanyLogos';
 import { normalizeHostname } from './domainVerification';
 
 const UA = 'Mozilla/5.0 (compatible; careersasa-bot/1.0; +https://careersasa.co.ke)';
@@ -207,7 +208,11 @@ async function scrapeWebsiteForLogo(domain: string): Promise<string | null> {
       if (!absolute) continue;
 
       // Skip obvious page banners / photos masquerading as logos
-      if (/\.(jpe?g)(\?|$)/i.test(absolute) && /scaled|household|banner|hero|cover/i.test(absolute)) {
+      if (
+        /website-thumbnail|_1200x630_crop|scaled|household|banner|hero|cover|splash|preview_image/i.test(
+          absolute,
+        )
+      ) {
         continue;
       }
 
@@ -221,14 +226,7 @@ async function scrapeWebsiteForLogo(domain: string): Promise<string | null> {
   }
 }
 
-/** Try Twitter profile picture via unavatar.io. */
-async function tryTwitterAvatar(handle: string): Promise<string | null> {
-  const url = `https://unavatar.io/twitter/${encodeURIComponent(handle)}`;
-  if (await verifyImageUrl(url)) return url;
-  return null;
-}
-
-/** Try all logo sources for a single domain. */
+/** Try all logo sources for a single domain. Never returns Twitter/unavatar. */
 async function fetchLogoForDomain(domain: string): Promise<FetchLogoResult | null> {
   const scraped = await scrapeWebsiteForLogo(domain);
   if (scraped) return { url: scraped, source: 'scraped', domain };
@@ -245,9 +243,8 @@ async function fetchLogoForDomain(domain: string): Promise<FetchLogoResult | nul
   const gstatic = await trygstatic(domain);
   if (gstatic) return { url: gstatic, source: 'gstatic', domain };
 
-  const iconHorse = await tryIconHorse(domain);
-  if (iconHorse) return { url: iconHorse, source: 'iconhorse', domain };
-
+  // Do NOT use icon.horse here — it recycles the same placeholder PNG across
+  // many unrelated Kenyan domains (looked "real" at 256×256 but wrong brand).
   return null;
 }
 
@@ -279,6 +276,12 @@ export async function fetchCompanyLogoUrl(
   domain: string | null | undefined,
   companyName?: string | null
 ): Promise<FetchLogoResult | null> {
+  // 0. Curated official logos (Equity, UN agencies, etc.)
+  const official = lookupOfficialLogo(companyName);
+  if (official && (await verifyImageUrl(official))) {
+    return { url: official, source: 'official', domain: extractDomain(official) || undefined };
+  }
+
   const brand = companyName ? lookupBrand(companyName) : null;
   const candidates = uniqueDomains(brand?.domain, domain);
 
@@ -287,18 +290,7 @@ export async function fetchCompanyLogoUrl(
     if (found) return found;
   }
 
-  // Twitter profile picture (only for known brands with verified handles)
-  const twitterHandle = companyName ? getKnownBrandTwitterHandle(companyName) : null;
-  if (twitterHandle) {
-    const twitter = await tryTwitterAvatar(twitterHandle);
-    if (twitter) {
-      return {
-        url: twitter,
-        source: 'twitter',
-        domain: brand?.domain || candidates[0],
-      };
-    }
-  }
-
+  // Do NOT fall back to Twitter/unavatar — those caused wrong logos (e.g. Equity).
+  // Callers should leave companies.logo null → UI shows initials.
   return null;
 }

@@ -27,6 +27,11 @@ import {
   lookupBrand,
 } from './companyLogo';
 import { fetchCompanyLogoUrl, verifyImageUrl } from './companyLogoFetch';
+import {
+  isMismatchedJobBoardLogo,
+  isUntrustedLogoUrl,
+  lookupOfficialLogo,
+} from './officialCompanyLogos';
 import { resolveCompanyDomainSmart } from './companyDomainLookup';
 import { normalizeCompanyIdentityKey } from './companyIdentity';
 import { inferCompanyIndustry } from './companyIndustryInference';
@@ -322,8 +327,20 @@ export async function ensureCompanyForJob(
     patch.website = null;
   }
 
-  // ── Fast path: logo already on the company — reuse for this and future jobs ─
-  if (isUsableLogoUrl(company.logo)) {
+  const storedLogoTrusted =
+    isUsableLogoUrl(company.logo) &&
+    !isUntrustedLogoUrl(company.logo) &&
+    !isMismatchedJobBoardLogo(company.name, company.logo);
+
+  const official = lookupOfficialLogo(company.name);
+  if (official && company.logo !== official) {
+    // Prefer curated official mark over wrong Twitter / job-board logos
+    if (await verifyImageUrl(official)) {
+      patch.logo = official;
+      fetchedLogo = true;
+    }
+  } else if (storedLogoTrusted) {
+    // Fast path: trusted logo already on the company — reuse for future jobs
     if (Object.keys(patch).length > 0) {
       await supabase.from('companies').update(patch).eq('id', company.id);
     }
@@ -337,23 +354,35 @@ export async function ensureCompanyForJob(
   }
 
   // Prefer explicit manual / parsed / portal logo after image verification
-  const portalLogo = await verifiedPortalLogo(input.logo);
-  if (portalLogo) {
-    patch.logo = portalLogo;
-  } else {
-    const domain =
-      smart.domain ||
-      extractDomain(patch.website || company.website || input.website || null) ||
-      lookupBrand(company.name)?.domain ||
-      null;
+  if (!patch.logo) {
+    const portalLogo = await verifiedPortalLogo(input.logo);
+    if (
+      portalLogo &&
+      !isUntrustedLogoUrl(portalLogo) &&
+      !isMismatchedJobBoardLogo(company.name, portalLogo)
+    ) {
+      patch.logo = portalLogo;
+    } else {
+      const domain =
+        smart.domain ||
+        extractDomain(patch.website || company.website || input.website || null) ||
+        lookupBrand(company.name)?.domain ||
+        null;
 
-    const result = await fetchCompanyLogoUrl(domain, company.name);
-    if (result) {
-      patch.logo = result.url;
-      fetchedLogo = true;
-      // If we discovered a working logo domain and still have no website, persist it
-      if (!company.website && patch.website === undefined && result.domain) {
-        patch.website = `https://${result.domain}`;
+      const result = await fetchCompanyLogoUrl(domain, company.name);
+      if (result) {
+        patch.logo = result.url;
+        fetchedLogo = true;
+        if (!company.website && patch.website === undefined && result.domain) {
+          patch.website = `https://${result.domain}`;
+        }
+      } else if (
+        company.logo &&
+        (isUntrustedLogoUrl(company.logo) ||
+          isMismatchedJobBoardLogo(company.name, company.logo))
+      ) {
+        // Clear bad logo so UI shows initials instead of a wrong mark
+        patch.logo = null;
       }
     }
   }
