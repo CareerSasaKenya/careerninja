@@ -65,6 +65,7 @@ type CompanyJob = {
   employment_type: string | null;
   job_location_city: string | null;
   job_location_county: string | null;
+  job_location_country: string | null;
   salary_min: number | null;
   salary_max: number | null;
   salary_currency: string | null;
@@ -139,7 +140,7 @@ async function getCompanyJobs(
     const jobSelect = `
       id, title, company, location, description, salary, company_id,
       industry, job_location_type, employment_type,
-      job_location_city, job_location_county,
+      job_location_city, job_location_county, job_location_country,
       salary_min, salary_max, salary_currency, salary_period,
       experience_level, date_posted, valid_through,
       application_url, apply_email, apply_link, job_function, job_slug,
@@ -560,6 +561,7 @@ export default async function CompanyProfilePage({
                       applyLink={job.apply_link}
                       department={job.job_function}
                       jobSlug={job.job_slug}
+                      locationCountry={job.job_location_country}
                       isFeatured={job.is_featured}
                       isPromoted={job.is_promoted}
                       promotionTier={job.promotion_tier}

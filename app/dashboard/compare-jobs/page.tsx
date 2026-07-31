@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { getSavedJobs } from "@/lib/savedJobs";
+import { resolveJobSalaryDisplay } from "@/lib/kenyanSalaryEstimate";
 
 // ComparisonRow component defined outside of render
 const ComparisonRow = ({ 
@@ -198,12 +199,19 @@ export default function CompareJobsPage() {
                   />
                   <ComparisonRow
                     label="Salary Range"
-                    getValue={(job) => {
-                      if (job.salary_min && job.salary_max) {
-                        return `${job.salary_currency} ${job.salary_min.toLocaleString()} - ${job.salary_max.toLocaleString()}`;
-                      }
-                      return job.salary || "Negotiable";
-                    }}
+                    getValue={(job) =>
+                      resolveJobSalaryDisplay({
+                        salaryMin: job.salary_min,
+                        salaryMax: job.salary_max,
+                        salary: job.salary,
+                        salaryCurrency: job.salary_currency,
+                        salaryPeriod: job.salary_period,
+                        salaryIsEstimated: job.salary_is_estimated,
+                        title: job.title,
+                        experienceLevel: job.experience_level,
+                        locationCountry: job.job_location_country || "Kenya",
+                      }).display
+                    }
                     selectedJobs={selectedJobs}
                   />
                   <ComparisonRow

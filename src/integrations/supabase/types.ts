@@ -2701,6 +2701,7 @@ export type Database = {
           responsibilities: string | null
           salary: string | null
           salary_currency: string | null
+          salary_is_estimated: boolean
           salary_max: number | null
           salary_min: number | null
           salary_period: Database["public"]["Enums"]["salary_period"] | null
@@ -2796,6 +2797,7 @@ export type Database = {
           responsibilities?: string | null
           salary?: string | null
           salary_currency?: string | null
+          salary_is_estimated?: boolean
           salary_max?: number | null
           salary_min?: number | null
           salary_period?: Database["public"]["Enums"]["salary_period"] | null
@@ -2891,6 +2893,7 @@ export type Database = {
           responsibilities?: string | null
           salary?: string | null
           salary_currency?: string | null
+          salary_is_estimated?: boolean
           salary_max?: number | null
           salary_min?: number | null
           salary_period?: Database["public"]["Enums"]["salary_period"] | null

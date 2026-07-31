@@ -140,6 +140,7 @@ export default function SavedJobsPage() {
                       salaryMax={job.salary_max}
                       salaryCurrency={job.salary_currency}
                       salaryPeriod={job.salary_period}
+                      salaryIsEstimated={job.salary_is_estimated}
                       experienceLevel={job.experience_level}
                       datePosted={job.date_posted}
                       validThrough={job.valid_through}
@@ -150,6 +151,7 @@ export default function SavedJobsPage() {
                       department={job.job_function}
                       jobSlug={job.job_slug}
                       educationLevel=""
+                      locationCountry={job.job_location_country}
                     />
                   </div>
 

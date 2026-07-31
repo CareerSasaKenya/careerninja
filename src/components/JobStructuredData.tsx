@@ -43,16 +43,19 @@ export default function JobStructuredData({ job }: JobStructuredDataProps) {
         "addressCountry": job.job_location_country || "KE"
       }
     },
-    "baseSalary": (job.salary_min || job.salary_max) ? {
-      "@type": "MonetaryAmount",
-      "currency": job.salary_currency || "KES",
-      "value": {
-        "@type": "QuantitativeValue",
-        "minValue": job.salary_min || undefined,
-        "maxValue": job.salary_max || undefined,
-        "unitText": job.salary_period || "YEAR"
-      }
-    } : undefined,
+    "baseSalary":
+      (job.salary_min || job.salary_max) && !(job as { salary_is_estimated?: boolean | null }).salary_is_estimated
+        ? {
+            "@type": "MonetaryAmount",
+            "currency": job.salary_currency || "KES",
+            "value": {
+              "@type": "QuantitativeValue",
+              "minValue": job.salary_min || undefined,
+              "maxValue": job.salary_max || undefined,
+              "unitText": job.salary_period || "YEAR"
+            }
+          }
+        : undefined,
     "skills": undefined,
     "experienceRequirements": job.minimum_experience ? `${job.minimum_experience} years` : job.experience_level || undefined,
     "educationRequirements": job.education_requirements || undefined,

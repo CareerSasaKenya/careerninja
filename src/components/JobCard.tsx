@@ -22,6 +22,7 @@ import {
 import { SaveJobButton } from "@/components/SaveJobButton";
 import { AdminEditJobButton } from "@/components/AdminEditJobButton";
 import { CompanyLogo } from "@/components/CompanyLogo";
+import { resolveJobSalaryDisplay } from "@/lib/kenyanSalaryEstimate";
 
 interface JobCardProps {
   id: string;
@@ -42,6 +43,7 @@ interface JobCardProps {
   salaryMax?: number | null;
   salaryCurrency?: string | null; // e.g., KES
   salaryPeriod?: string | null; // e.g., MONTH
+  salaryIsEstimated?: boolean | null;
   experienceLevel?: string | null; // e.g., MID, SENIOR
   datePosted?: string | null; // ISO string
   validThrough?: string | null; // ISO string (deadline)
@@ -54,20 +56,12 @@ interface JobCardProps {
   educationLevel?: string | null; // Education level name
   locationCity?: string | null;
   locationCounty?: string | null;
+  locationCountry?: string | null;
   // Featured/Promoted status
   isFeatured?: boolean | null;
   isPromoted?: boolean | null;
   promotionTier?: string | null;
 }
-
-const formatCurrency = (amount?: number | null, currency?: string | null) => {
-  if (amount == null || currency == null || currency === "") return null;
-  try {
-    return `${currency} ${amount.toLocaleString()}`;
-  } catch {
-    return `${currency} ${amount}`;
-  }
-};
 
 const toTitleCase = (text?: string | null) => {
   if (!text) return null;
@@ -106,10 +100,12 @@ const JobCard = ({
   employmentType,
   locationCity,
   locationCounty,
+  locationCountry,
   salaryMin,
   salaryMax,
   salaryCurrency,
   salaryPeriod,
+  salaryIsEstimated,
   experienceLevel,
   datePosted,
   validThrough,
@@ -133,20 +129,17 @@ const JobCard = ({
     isRemote,
   });
 
-  const salaryMinFmt = formatCurrency(salaryMin, salaryCurrency);
-  const salaryMaxFmt = formatCurrency(salaryMax, salaryCurrency);
-  const salaryPeriodFmt = salaryPeriod ? salaryPeriod.toLowerCase() : null;
-
-  let salaryDisplay: string | null = null;
-  if (salaryMinFmt && salaryMaxFmt) {
-    salaryDisplay = `${salaryMinFmt} – ${salaryMaxFmt}${salaryPeriodFmt ? ` / ${salaryPeriodFmt}` : ""}`;
-  } else if (salaryMinFmt || salaryMaxFmt) {
-    salaryDisplay = `${salaryMinFmt || salaryMaxFmt}${salaryPeriodFmt ? ` / ${salaryPeriodFmt}` : ""}`;
-  } else if (salary) {
-    salaryDisplay = salary;
-  } else {
-    salaryDisplay = "Negotiable";
-  }
+  const { display: salaryDisplay } = resolveJobSalaryDisplay({
+    salaryMin,
+    salaryMax,
+    salary,
+    salaryCurrency,
+    salaryPeriod,
+    salaryIsEstimated,
+    title,
+    experienceLevel,
+    locationCountry: locationCountry || "Kenya",
+  });
 
   const experienceDisplay = experienceLevel
     ? toTitleCase(experienceLevel)?.replace("Mid", "Mid-level")?.replace("Entry", "Entry-level")
