@@ -28,6 +28,19 @@ export default tseslint.config(
       "react-hooks/purity": "off",
       "react-hooks/immutability": "off",
       "no-empty": "off",
+      "no-restricted-syntax": [
+        "error",
+        {
+          "selector": "MemberExpression[object.object.name='process'][object.property.name='env'][property.name='NEXT_PUBLIC_SUPABASE_URL'][optional=false]",
+          "message": "Use getSupabaseUrl() from @/lib/supabaseEnv instead of process.env.NEXT_PUBLIC_SUPABASE_URL (except in supabaseEnv.ts)."
+        }
+      ],
+    },
+  },
+  {
+    files: ["src/lib/supabaseEnv.ts", "src/lib/supabaseEnv.test.ts", "scripts/check-supabase-clients.mts"],
+    rules: {
+      "no-restricted-syntax": "off",
     },
   },
 );

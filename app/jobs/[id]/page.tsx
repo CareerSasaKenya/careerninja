@@ -28,6 +28,7 @@ import { getLookupOptions } from "@/lib/jobParsingOptimized";
 import { sanitizeScrapedJobHtmlForDisplay } from "@/lib/jobBoardApply";
 import { sanitizeStockTipsCopy } from "@/lib/sanitizeStockTipsCopy";
 import { resolveJobSalaryDisplay } from "@/lib/kenyanSalaryEstimate";
+import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabaseEnv";
 
 function getDisplayLabels(values: string[] | null | undefined, fallback?: string | null): string[] {
   return dedupeStrings(values?.length ? values : fallback ? [fallback] : []);
@@ -47,21 +48,8 @@ function getDisplayTags(tags: string | string[] | null | undefined): string[] {
   return parseTagsInput(tags).slice(0, MAX_JOB_TAGS);
 }
 
-// Create Supabase client for server-side data fetching.
-// Fallbacks match metadata.ts / integrations client so job pages keep working
-// if Vercel build/runtime is missing NEXT_PUBLIC_* vars (otherwise getJobData
-// returns null and every job card 404s).
-const supabaseUrl =
-  process.env.NEXT_PUBLIC_SUPABASE_URL ||
-  process.env.VITE_SUPABASE_URL ||
-  'https://qxuvqrfqkdpfjfwkqatf.supabase.co';
-const supabaseKey =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-  process.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4dXZxcmZxa2RwZmpmd2txYXRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk0MjcxNTIsImV4cCI6MjA3NTAwMzE1Mn0.mAiL1p6YqlSaSFOIDW_G-3e_Mqck0cFqLl74_jyNpk8';
-
-const supabase = createClient(supabaseUrl, supabaseKey);
+// Server-side Supabase client (shared URL/anon fallbacks).
+const supabase = createClient(getSupabaseUrl(), getSupabaseAnonKey());
 
 // Server-side data fetching
 async function getJobData(id: string) {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServiceRoleClient } from '@/lib/supabaseServiceClient';
 import { extractDomain, isUsableLogoUrl, lookupBrand } from '@/lib/companyLogo';
 import { fetchCompanyLogoUrl } from '@/lib/companyLogoFetch';
 import { resolveCompanyDomainSmart } from '@/lib/companyDomainLookup';
@@ -34,11 +34,7 @@ export async function GET(request: NextRequest) {
     const allowAI = searchParams.get('allow_ai') !== '0';
     const fixDead = searchParams.get('fix_dead') === '1';
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { auth: { autoRefreshToken: false, persistSession: false } }
-    );
+    const supabase = createServiceRoleClient();
 
     let companies: Array<{ id: string; name: string; logo: string | null; website: string | null }> = [];
 

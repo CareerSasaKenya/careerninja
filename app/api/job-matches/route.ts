@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { callAI, hasAIConfigured } from '@/lib/aiProviders';
+import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabaseEnv';
+import { createServiceRoleClient } from '@/lib/supabaseServiceClient';
 
 export const runtime = 'nodejs';
 
@@ -19,14 +21,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Auth: get user from session cookie
-    const authHeader = request.headers.get('authorization');
     const cookie = request.headers.get('cookie') || '';
 
-    const supabaseUser = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      { global: { headers: { cookie } } }
-    );
+    const supabaseUser = createClient(getSupabaseUrl(), getSupabaseAnonKey(), {
+      global: { headers: { cookie } },
+    });
 
     const { data: { user } } = await supabaseUser.auth.getUser();
     if (!user) {
@@ -34,11 +33,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Admin client for writes (bypasses RLS)
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { auth: { autoRefreshToken: false, persistSession: false } }
-    );
+    const supabaseAdmin = createServiceRoleClient();
 
     // 1. Read candidate profile
     const { data: profile } = await supabaseAdmin

@@ -2,18 +2,9 @@ import { createClient } from "@supabase/supabase-js";
 import type { CompanyCardData } from "@/components/CompanyCard";
 import { inferCompanyIndustry } from "@/lib/companyIndustryInference";
 import { resolveIndustryLabel } from "@/lib/jobParseNormalization";
+import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabaseEnv";
 
-const supabaseUrl =
-  process.env.NEXT_PUBLIC_SUPABASE_URL ||
-  process.env.VITE_SUPABASE_URL ||
-  "https://qxuvqrfqkdpfjfwkqatf.supabase.co";
-const supabaseKey =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-  process.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4dXZxcmZxa2RwZmpmd2txYXRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk0MjcxNTIsImV4cCI6MjA3NTAwMzE1Mn0.mAiL1p6YqlSaSFOIDW_G-3e_Mqck0cFqLl74_jyNpk8";
-
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(getSupabaseUrl(), getSupabaseAnonKey());
 
 export const ALL_INDUSTRIES_SLUG = "all";
 

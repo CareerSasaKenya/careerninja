@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { ensureCompanyForJob } from '@/lib/ensureCompanyForJob';
+import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabaseEnv';
+import { createServiceRoleClient } from '@/lib/supabaseServiceClient';
 
 export const runtime = 'nodejs';
 
@@ -17,12 +19,7 @@ export const runtime = 'nodejs';
 export async function POST(request: NextRequest) {
   try {
     const accessToken = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const anonKey =
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-    const userClient = createClient(supabaseUrl, anonKey, {
+    const userClient = createClient(getSupabaseUrl(), getSupabaseAnonKey(), {
       global: {
         headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
       },
@@ -46,9 +43,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'name or companyId required' }, { status: 400 });
     }
 
-    const admin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
+    const admin = createServiceRoleClient();
 
     const result = await ensureCompanyForJob(admin, {
       name: name || 'Unknown',
