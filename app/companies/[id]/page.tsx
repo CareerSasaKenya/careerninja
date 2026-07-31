@@ -93,6 +93,14 @@ type CompanyJob = {
   } | null;
 };
 
+function normalizeCompanyJob(row: any): CompanyJob {
+  const companiesRel = row?.companies;
+  const companyRow = Array.isArray(companiesRel)
+    ? companiesRel[0] ?? null
+    : companiesRel ?? null;
+  return { ...row, companies: companyRow } as CompanyJob;
+}
+
 async function getCompany(id: string): Promise<CompanyRow | null> {
   try {
     const { data, error } = await supabase
@@ -113,7 +121,7 @@ const COMPANY_JOBS_PAGE_SIZE = 1000;
 
 async function fetchAllCompanyJobs(
   buildQuery: (from: number, to: number) => PromiseLike<{
-    data: CompanyJob[] | null;
+    data: unknown;
     error: { message: string } | null;
   }>
 ): Promise<CompanyJob[]> {
@@ -124,7 +132,7 @@ async function fetchAllCompanyJobs(
     const to = from + COMPANY_JOBS_PAGE_SIZE - 1;
     const { data, error } = await buildQuery(from, to);
     if (error) throw error;
-    const page = (data || []) as CompanyJob[];
+    const page = ((data || []) as any[]).map(normalizeCompanyJob);
     rows.push(...page);
     if (page.length < COMPANY_JOBS_PAGE_SIZE) break;
     from += COMPANY_JOBS_PAGE_SIZE;
@@ -151,7 +159,7 @@ async function getCompanyJobs(
 
     const [byId, byName] = await Promise.all([
       fetchAllCompanyJobs((from, to) =>
-        supabase!
+        supabase
           .from("jobs")
           .select(jobSelect)
           .eq("company_id", companyId)
@@ -163,7 +171,7 @@ async function getCompanyJobs(
       ),
       // Catch active listings that still only have a company name match
       fetchAllCompanyJobs((from, to) =>
-        supabase!
+        supabase
           .from("jobs")
           .select(jobSelect)
           .is("company_id", null)
