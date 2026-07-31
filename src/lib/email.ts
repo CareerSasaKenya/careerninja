@@ -158,17 +158,8 @@ interface LogEmailParams {
 
 async function logEmail(params: LogEmailParams): Promise<void> {
   try {
-    // Use service role key for server-side logging (bypasses RLS)
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://qxuvqrfqkdpfjfwkqatf.supabase.co';
-
-    if (!serviceKey) {
-      console.warn('[Email] No service role key, skipping email log');
-      return;
-    }
-
-    const { createClient } = await import('@supabase/supabase-js');
-    const adminClient = createClient(supabaseUrl, serviceKey);
+    const { createServiceRoleClient } = await import('@/lib/supabaseServiceClient');
+    const adminClient = createServiceRoleClient();
 
     await adminClient.from('email_logs').insert({
       recipient_email: params.recipient_email,

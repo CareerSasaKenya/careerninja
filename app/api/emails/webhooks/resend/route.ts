@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServiceRoleClient } from '@/lib/supabaseServiceClient';
 
 /**
  * POST /api/emails/webhooks/resend
@@ -23,11 +23,7 @@ import { createClient } from '@supabase/supabase-js';
  */
 
 function getAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
-  );
+  return createServiceRoleClient();
 }
 
 export async function POST(request: NextRequest) {

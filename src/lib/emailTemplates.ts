@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createServiceRoleClient } from "@/lib/supabaseServiceClient";
 
 export const POPUP_NEWSLETTER_WELCOME_SLUG = "popup_newsletter_welcome";
 export const EMAIL_TEMPLATES_PAGE_SLUG = "email_templates";
@@ -43,11 +43,7 @@ type PageContentRow = {
 };
 
 function adminDb() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false, autoRefreshToken: false } },
-  );
+  return createServiceRoleClient();
 }
 
 /** Default HTML matches the popup subscription welcome currently sent in production. */

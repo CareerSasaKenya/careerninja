@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServiceRoleClient } from '@/lib/supabaseServiceClient';
 
 export const runtime = 'nodejs';
 
@@ -15,11 +15,7 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    const adminClient = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { auth: { autoRefreshToken: false, persistSession: false } },
-    );
+    const adminClient = createServiceRoleClient();
 
     const { error } = await adminClient
       .from('email_subscribers')

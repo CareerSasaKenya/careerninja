@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test:supabase-env": "npx tsx src/lib/supabaseEnv.test.ts && npx tsx scripts/check-supabase-clients.mts",
     "test:slug": "npx tsx src/lib/testSlug.ts",
     "test:company-identity": "npx tsx src/lib/companyIdentity.test.ts",
     "test:company-industry": "npx tsx src/lib/companyIndustryInference.test.ts",

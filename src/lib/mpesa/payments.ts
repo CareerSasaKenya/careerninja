@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient, type User } from '@supabase/supabase-js';
 import { NextRequest } from 'next/server';
 import { getAdminServiceClient } from '@/lib/adminAuth';
+import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabaseEnv';
 import { initiateStkPush } from './client';
 import { normalizeKenyanPhone } from './phone';
 import { generateTransactionReference } from './utils';
@@ -18,12 +19,7 @@ export async function requireAuthenticatedUser(
     return { ok: false, status: 401, message: 'Unauthorized' };
   }
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const supabaseAnonKey =
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-  const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+  const userClient = createClient(getSupabaseUrl(), getSupabaseAnonKey(), {
     global: { headers: { Authorization: `Bearer ${accessToken}` } },
   });
 

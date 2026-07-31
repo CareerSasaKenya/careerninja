@@ -1,11 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '@/integrations/supabase/types';
+import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabaseEnv';
 
-// Create a Supabase client for server-side operations
-const supabase = createClient<Database>(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || ''
-);
+const supabase = createClient<Database>(getSupabaseUrl(), getSupabaseAnonKey());
 
 export interface JobMetadata {
   id: string;

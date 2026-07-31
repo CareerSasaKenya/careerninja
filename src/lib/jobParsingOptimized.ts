@@ -7,18 +7,25 @@ import {
   normalizeParsedJobFields,
 } from '@/lib/jobParseNormalization';
 import { sanitizeStockTipsCopy } from '@/lib/sanitizeStockTipsCopy';
+import {
+  getSupabaseAnonKey,
+  getSupabaseServiceRoleKey,
+  getSupabaseUrl,
+} from '@/lib/supabaseEnv';
 
-// Create a Supabase client for server-side operations
-// Check if required environment variables are present
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-// Only create the Supabase client if we have the required variables
-let supabase: ReturnType<typeof createClient<Database>> | null = null;
-
-if (supabaseUrl && supabaseKey) {
-  supabase = createClient<Database>(supabaseUrl, supabaseKey);
+function buildJobParseClient() {
+  try {
+    return createClient<Database>(getSupabaseUrl(), getSupabaseServiceRoleKey(), {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+  } catch {
+    return createClient<Database>(getSupabaseUrl(), getSupabaseAnonKey(), {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+  }
 }
+
+const supabase = buildJobParseClient();
 
 export interface ParsedJobData {
   title: string;
