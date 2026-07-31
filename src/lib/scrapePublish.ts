@@ -23,6 +23,7 @@ import { inferCompanyIndustry } from './companyIndustryInference'
 import { companyProfileToEnsureInput, type JobBoardCompanyProfile } from './jobBoardCompany'
 import { sanitizeAdditionalInfoApplyCopy } from './applyInstructionsCopy'
 import { isMissingOrLabelOnlyQualifications } from './experienceLevelLabel'
+import { applyKenyanSalaryEstimateIfMissing, isMissingSalaryEstimatedColumnError, withoutSalaryEstimatedFlag } from './kenyanSalaryEstimate'
 
 export interface PublishScrapedJobParams {
   supabase: SupabaseClient
@@ -320,11 +321,25 @@ export async function publishScrapedJob(
       salary_period: normalized.salary_period || parsed.salary_period || 'MONTH',
     }
 
-    const { data: insertedJob, error: jobError } = await supabase
+    const jobPayloadWithSalary = applyKenyanSalaryEstimateIfMissing(jobPayload, {
+      title: jobPayload.title,
+      experienceLevel: jobPayload.experience_level,
+      locationCountry: jobPayload.job_location_country,
+    })
+
+    let { data: insertedJob, error: jobError } = await supabase
       .from('jobs')
-      .insert(jobPayload)
+      .insert(jobPayloadWithSalary)
       .select('id')
       .single()
+
+    if (jobError && isMissingSalaryEstimatedColumnError(jobError)) {
+      ;({ data: insertedJob, error: jobError } = await supabase
+        .from('jobs')
+        .insert(withoutSalaryEstimatedFlag(jobPayloadWithSalary))
+        .select('id')
+        .single())
+    }
 
     if (jobError) throw jobError
 

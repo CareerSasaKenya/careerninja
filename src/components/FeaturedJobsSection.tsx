@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { getFeaturedJobs } from '@/lib/jobManagement';
 import { Star, MapPin, Briefcase, DollarSign } from 'lucide-react';
 import Link from 'next/link';
+import { resolveJobSalaryDisplay } from '@/lib/kenyanSalaryEstimate';
 
 export function FeaturedJobsSection({ limit = 6 }: { limit?: number }) {
   const [jobs, setJobs] = useState<any[]>([]);
@@ -84,18 +85,25 @@ export function FeaturedJobsSection({ limit = 6 }: { limit?: number }) {
                     <Briefcase className="h-4 w-4" />
                     <span>{job.job_type || 'Full-time'}</span>
                   </div>
-                  {(job.salary_min || job.salary_max) && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <DollarSign className="h-4 w-4" />
-                      <span>
-                        {job.salary_min && job.salary_max
-                          ? `${job.salary_currency || '$'}${job.salary_min.toLocaleString()} - ${job.salary_currency || '$'}${job.salary_max.toLocaleString()}`
-                          : job.salary_min
-                          ? `From ${job.salary_currency || '$'}${job.salary_min.toLocaleString()}`
-                          : `Up to ${job.salary_currency || '$'}${job.salary_max.toLocaleString()}`}
-                      </span>
-                    </div>
-                  )}
+                  {(() => {
+                    const salary = resolveJobSalaryDisplay({
+                      salaryMin: job.salary_min,
+                      salaryMax: job.salary_max,
+                      salaryCurrency: job.salary_currency,
+                      salaryPeriod: job.salary_period,
+                      salaryIsEstimated: job.salary_is_estimated,
+                      title: job.title,
+                      experienceLevel: job.experience_level,
+                      locationCountry: job.job_location_country || 'Kenya',
+                    });
+                    if (salary.display === 'Negotiable') return null;
+                    return (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <DollarSign className="h-4 w-4" />
+                        <span>{salary.display}</span>
+                      </div>
+                    );
+                  })()}
                   {job.tags && job.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">
                       {job.tags.slice(0, 3).map((tag: string, index: number) => (

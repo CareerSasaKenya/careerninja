@@ -27,6 +27,7 @@ import {
 import { getLookupOptions } from "@/lib/jobParsingOptimized";
 import { sanitizeScrapedJobHtmlForDisplay } from "@/lib/jobBoardApply";
 import { sanitizeStockTipsCopy } from "@/lib/sanitizeStockTipsCopy";
+import { resolveJobSalaryDisplay } from "@/lib/kenyanSalaryEstimate";
 
 function getDisplayLabels(values: string[] | null | undefined, fallback?: string | null): string[] {
   return dedupeStrings(values?.length ? values : fallback ? [fallback] : []);
@@ -521,6 +522,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                     salaryMax={relatedJob.salary_max}
                     salaryCurrency={relatedJob.salary_currency}
                     salaryPeriod={relatedJob.salary_period}
+                    salaryIsEstimated={relatedJob.salary_is_estimated}
                     experienceLevel={relatedJob.experience_level}
                     datePosted={relatedJob.date_posted}
                     validThrough={relatedJob.valid_through}
@@ -531,6 +533,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                     department={relatedJob.job_function}
                     jobSlug={relatedJob.job_slug}
                     educationLevel=""
+                    locationCountry={relatedJob.job_location_country}
                   />
                 ))}
               </div>
@@ -556,14 +559,30 @@ const RoleDetails = ({
   job: any;
   primaryJobFunction?: string | null;
 }) => {
+  const salaryResolved = resolveJobSalaryDisplay({
+    salaryMin: job.salary_min,
+    salaryMax: job.salary_max,
+    salary: job.salary,
+    salaryCurrency: job.salary_currency,
+    salaryPeriod: job.salary_period,
+    salaryIsEstimated: job.salary_is_estimated,
+    title: job.title,
+    experienceLevel: job.experience_level,
+    locationCountry: job.job_location_country || "Kenya",
+  });
+
   // Group job details into categories for better organization
   const salaryDetails = [
-    job.salary_min || job.salary_max ? {
-      icon: <DollarSign className="h-5 w-5 text-secondary mt-0.5" />,
-      label: "Salary Range",
-      value: `${job.salary_currency} ${job.salary_min?.toLocaleString()} - ${job.salary_max?.toLocaleString()}`,
-      subtext: job.salary_period ? `/ ${job.salary_period.toLowerCase()}` : ""
-    } : null,
+    salaryResolved.display !== "Negotiable"
+      ? {
+          icon: <DollarSign className="h-5 w-5 text-secondary mt-0.5" />,
+          label: salaryResolved.isEstimated ? "Estimated Salary Range" : "Salary Range",
+          value: salaryResolved.display.replace(/^Est\.\s*/, ""),
+          subtext: salaryResolved.isEstimated
+            ? "Based on Kenyan market rates for similar roles"
+            : "",
+        }
+      : null,
     job.salary_type ? {
       icon: <DollarSign className="h-5 w-5 text-secondary mt-0.5" />,
       label: "Salary Type",

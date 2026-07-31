@@ -1,10 +1,52 @@
 import Script from 'next/script';
 import { Database } from '@/integrations/supabase/types';
 import { resolveCompanyLogoUrl, resolveCompanyWebsite } from '@/lib/companyLogo';
+import { estimateKenyanSalary } from '@/lib/kenyanSalaryEstimate';
 
 interface JobStructuredDataProps {
   job: Database['public']['Tables']['jobs']['Row'] & {
     companies?: Database['public']['Tables']['companies']['Row'] | null;
+    salary_is_estimated?: boolean | null;
+  };
+}
+
+function resolveBaseSalary(job: JobStructuredDataProps['job']) {
+  const hasMin = job.salary_min != null && Number.isFinite(job.salary_min);
+  const hasMax = job.salary_max != null && Number.isFinite(job.salary_max);
+
+  if (hasMin || hasMax) {
+    return {
+      "@type": "MonetaryAmount" as const,
+      currency: job.salary_currency || "KES",
+      value: {
+        "@type": "QuantitativeValue" as const,
+        minValue: hasMin ? job.salary_min! : undefined,
+        maxValue: hasMax ? job.salary_max! : undefined,
+        // Scraped/local Kenyan jobs default to monthly; YEAR was a stale fallback.
+        unitText: job.salary_period || "MONTH",
+      },
+    };
+  }
+
+  // Google prefers baseSalary on JobPosting — fill a Kenyan market estimate when
+  // the source listing omitted pay (same bands used in the UI).
+  const estimate = estimateKenyanSalary({
+    title: job.title,
+    experienceLevel: job.experience_level,
+    locationCountry: job.job_location_country || "Kenya",
+  });
+
+  if (!estimate) return undefined;
+
+  return {
+    "@type": "MonetaryAmount" as const,
+    currency: estimate.salary_currency,
+    value: {
+      "@type": "QuantitativeValue" as const,
+      minValue: estimate.salary_min,
+      maxValue: estimate.salary_max,
+      unitText: estimate.salary_period,
+    },
   };
 }
 
@@ -43,16 +85,7 @@ export default function JobStructuredData({ job }: JobStructuredDataProps) {
         "addressCountry": job.job_location_country || "KE"
       }
     },
-    "baseSalary": (job.salary_min || job.salary_max) ? {
-      "@type": "MonetaryAmount",
-      "currency": job.salary_currency || "KES",
-      "value": {
-        "@type": "QuantitativeValue",
-        "minValue": job.salary_min || undefined,
-        "maxValue": job.salary_max || undefined,
-        "unitText": job.salary_period || "YEAR"
-      }
-    } : undefined,
+    "baseSalary": resolveBaseSalary(job),
     "skills": undefined,
     "experienceRequirements": job.minimum_experience ? `${job.minimum_experience} years` : job.experience_level || undefined,
     "educationRequirements": job.education_requirements || undefined,

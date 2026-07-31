@@ -82,6 +82,7 @@ import { inferCompanyIndustry } from '@/lib/companyIndustryInference'
 import { isJobBoardSource, rewriteJobBoardDescriptionLinks } from '@/lib/jobBoardApply'
 import { sanitizeAdditionalInfoApplyCopy } from '@/lib/applyInstructionsCopy'
 import { isMissingOrLabelOnlyQualifications } from '@/lib/experienceLevelLabel'
+import { applyKenyanSalaryEstimateIfMissing, isMissingSalaryEstimatedColumnError, withoutSalaryEstimatedFlag } from '@/lib/kenyanSalaryEstimate'
 import type { WorkableJobDetail } from '@/lib/workable-adapter'
 
 export type ScrapeProcessResult = Record<string, unknown>
@@ -776,11 +777,25 @@ export async function runScrapeProcessOne(
       salary_period: normalized.salary_period || parsed.salary_period || 'MONTH',
     }
 
-    const { data: insertedJob, error: jobError } = await supabase
+    const jobPayloadWithSalary = applyKenyanSalaryEstimateIfMissing(jobPayload, {
+      title: jobPayload.title,
+      experienceLevel: jobPayload.experience_level,
+      locationCountry: jobPayload.job_location_country,
+    })
+
+    let { data: insertedJob, error: jobError } = await supabase
       .from('jobs')
-      .insert(jobPayload)
+      .insert(jobPayloadWithSalary)
       .select('id')
       .single()
+
+    if (jobError && isMissingSalaryEstimatedColumnError(jobError)) {
+      ;({ data: insertedJob, error: jobError } = await supabase
+        .from('jobs')
+        .insert(withoutSalaryEstimatedFlag(jobPayloadWithSalary))
+        .select('id')
+        .single())
+    }
 
     if (jobError) throw jobError
 

@@ -755,6 +755,7 @@ const Jobs = () => {
                           salaryMax={job.salary_max}
                           salaryCurrency={job.salary_currency}
                           salaryPeriod={job.salary_period}
+                          salaryIsEstimated={job.salary_is_estimated}
                           experienceLevel={job.experience_level}
                           datePosted={job.date_posted}
                           validThrough={job.valid_through}
@@ -765,6 +766,7 @@ const Jobs = () => {
                           department={job.job_function}
                           jobSlug={job.job_slug}
                           educationLevel=""
+                          locationCountry={job.job_location_country}
                           isFeatured={job.is_featured}
                           isPromoted={job.is_promoted}
                           promotionTier={job.promotion_tier}
