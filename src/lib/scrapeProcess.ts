@@ -111,7 +111,21 @@ export async function runScrapeProcessOne(
     .eq('id', queueItem.id)
 
   const source = queueItem.scraper_sources
-  const adapterType = (source.selectors as { type?: string }).type || 'html'
+  if (!source || typeof source !== 'object') {
+    const message = `Scraper source not found for queue item ${queueItem.id} (source_id=${queueItem.source_id})`
+    console.error('[process]', message)
+    await supabase
+      .from('scrape_queue')
+      .update({
+        status: 'failed',
+        processed_at: new Date().toISOString(),
+        error_message: message.slice(0, 500),
+      })
+      .eq('id', queueItem.id)
+    return { success: false, processed: 1, error: message, job_url: queueItem.job_url }
+  }
+
+  const adapterType = (source.selectors as { type?: string })?.type || 'html'
   const hiringCompany = resolveHiringCompany(source.name, adapterType, queueItem.partial_data)
   let boardCompanyProfile: JobBoardCompanyProfile | null = null
 

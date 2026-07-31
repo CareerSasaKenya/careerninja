@@ -1,14 +1,10 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { runScrapeDiscover } from '@/lib/scrapeDiscover'
 import { runScrapeProcessBatch, runScrapeProcessOne } from '@/lib/scrapeProcess'
+import { createServiceRoleClient } from '@/lib/supabaseServiceClient'
 
 function getServiceClient(): SupabaseClient {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !key) {
-    throw new Error('Supabase service credentials are not configured')
-  }
-  return createClient(url, key)
+  return createServiceRoleClient()
 }
 
 /**

@@ -1,17 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { runScrapeDiscover } from '@/lib/scrapeDiscover'
+import { createServiceRoleClient } from '@/lib/supabaseServiceClient'
 
 export const maxDuration = 300
-
-function getServiceClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !key) {
-    throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY')
-  }
-  return createClient(url, key)
-}
 
 export async function POST(request: NextRequest) {
   const secret = request.headers.get('x-scraper-secret')
@@ -20,7 +11,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const result = await runScrapeDiscover(getServiceClient())
+    const result = await runScrapeDiscover(createServiceRoleClient())
     return NextResponse.json(result)
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err)

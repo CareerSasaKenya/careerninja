@@ -1,16 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { runScrapeDiscover } from '@/lib/scrapeDiscover'
+import { createServiceRoleClient } from '@/lib/supabaseServiceClient'
 
 /** Pro plan: discover across all active Kenyan sources. */
 export const maxDuration = 300
-
-function getServiceClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-}
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,7 +14,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const result = await runScrapeDiscover(getServiceClient(), { budgetMs: 240_000 })
+    const result = await runScrapeDiscover(createServiceRoleClient(), {
+      budgetMs: 240_000,
+    })
 
     return NextResponse.json({
       success: true,

@@ -1,16 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { runScrapeProcessBatch } from '@/lib/scrapeProcess'
+import { createServiceRoleClient } from '@/lib/supabaseServiceClient'
 
 /** Pro plan: up to 300s for heavy PDF/AI scrape processing. */
 export const maxDuration = 300
-
-function getServiceClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-}
 
 export async function GET(request: NextRequest) {
   try {
@@ -25,7 +18,7 @@ export async function GET(request: NextRequest) {
     // faster (e.g. MyJobMag Mon/Tue spikes). Soft budget still stops before the
     // Vercel 300s hard kill.
     const maxJobs = parseInt(request.nextUrl.searchParams.get('max') || '20', 10)
-    const supabase = getServiceClient()
+    const supabase = createServiceRoleClient()
     const { processed, results, stopped_early } = await runScrapeProcessBatch(supabase, {
       maxJobs: Math.min(Math.max(1, maxJobs), 25),
       budgetMs: 270_000,
