@@ -3,15 +3,17 @@ import type { CompanyCardData } from "@/components/CompanyCard";
 import { inferCompanyIndustry } from "@/lib/companyIndustryInference";
 import { resolveIndustryLabel } from "@/lib/jobParseNormalization";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseUrl =
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  process.env.VITE_SUPABASE_URL ||
+  "https://qxuvqrfqkdpfjfwkqatf.supabase.co";
 const supabaseKey =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  process.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4dXZxcmZxa2RwZmpmd2txYXRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk0MjcxNTIsImV4cCI6MjA3NTAwMzE1Mn0.mAiL1p6YqlSaSFOIDW_G-3e_Mqck0cFqLl74_jyNpk8";
 
-let supabase: ReturnType<typeof createClient> | null = null;
-if (supabaseUrl && supabaseKey) {
-  supabase = createClient(supabaseUrl, supabaseKey);
-}
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export const ALL_INDUSTRIES_SLUG = "all";
 
@@ -183,21 +185,17 @@ function buildOpenJobsAndModalIndustry(
 }
 
 export async function getCompanyDirectoryData(): Promise<CompanyDirectoryData> {
-  if (!supabase) {
-    return { companies: [], industries: [], industryCards: [] };
-  }
-
   try {
     const [companyRows, jobRows, industryRows] = await Promise.all([
       fetchAllRows<CompanyRow>((from, to) =>
-        supabase!
+        supabase
           .from("companies")
           .select("id, name, logo, website, industry, location, description")
           .order("name")
           .range(from, to)
       ),
       fetchAllRows<JobRow>((from, to) =>
-        supabase!
+        supabase
           .from("jobs")
           .select("id, company_id, industry, industries")
           .eq("status", "active")
@@ -206,7 +204,7 @@ export async function getCompanyDirectoryData(): Promise<CompanyDirectoryData> {
           .range(from, to)
       ),
       fetchAllRows<IndustryRow>((from, to) =>
-        supabase!.from("industries").select("id, name").order("name").range(from, to)
+        supabase.from("industries").select("id, name").order("name").range(from, to)
       ),
     ]);
 
@@ -266,10 +264,6 @@ export async function getCompanyDirectoryData(): Promise<CompanyDirectoryData> {
 
 /** Live counts for homepage counters. */
 export async function getHomepageStats(): Promise<HomepageStats> {
-  if (!supabase) {
-    return { activeJobs: 0, companies: 0 };
-  }
-
   try {
     const [
       { count: activeJobs, error: jobsError },
