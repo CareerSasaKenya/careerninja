@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getAdminServiceClient, userHasAdminRole } from '@/lib/adminAuth'
 import { enrichJobById } from '@/lib/enrichJobById'
+import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabaseEnv'
 
 export const runtime = 'nodejs'
 export const maxDuration = 300
@@ -21,12 +22,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-  const supabaseAnonKey =
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-
-  const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+  const userClient = createClient(getSupabaseUrl(), getSupabaseAnonKey(), {
     global: { headers: { Authorization: `Bearer ${accessToken}` } },
   })
   const {

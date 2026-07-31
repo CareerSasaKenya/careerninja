@@ -1,17 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { enrichJobsNeedingEnrichment } from '@/lib/enrichJobById'
+import { createServiceRoleClient } from '@/lib/supabaseServiceClient'
 
 /** Pro plan: AI-enrich sparse active jobs from ANY intake path. */
 export const maxDuration = 300
 export const runtime = 'nodejs'
-
-function getServiceClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-}
 
 function authorize(request: NextRequest): boolean {
   const cronSecret = process.env.CRON_SECRET
@@ -38,7 +31,7 @@ async function handle(request: NextRequest) {
     )
     const dryRun = body.dryRun === true || url.searchParams.get('dryRun') === '1'
 
-    const batch = await enrichJobsNeedingEnrichment(getServiceClient(), {
+    const batch = await enrichJobsNeedingEnrichment(createServiceRoleClient(), {
       limit,
       apply: !dryRun,
     })
