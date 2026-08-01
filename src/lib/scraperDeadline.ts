@@ -196,11 +196,18 @@ export function expiresAtFromValidThrough(validThrough: string): string {
   return `${day}T23:59:59.999Z`
 }
 
-/** Canonical form for scrape URL dedupe. */
+/**
+ * Canonical form for scrape URL dedupe.
+ * Strips tracking params and trailing slashes. Preserves identity fragments
+ * used by PSC adapters (`#advert-…` / `#psc-job-…`) so multi-role listings
+ * do not collapse to a single URL.
+ */
 export function normalizeJobUrl(url: string): string {
   try {
     const u = new URL(url.trim())
-    u.hash = ''
+    const hash = u.hash || ''
+    const keepHash = /^#advert-/i.test(hash) || /^#psc-job-/i.test(hash)
+    if (!keepHash) u.hash = ''
     u.hostname = u.hostname.toLowerCase()
     u.pathname = u.pathname.replace(/\/+$/, '') || '/'
     ;['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'fbclid', 'gclid'].forEach(
