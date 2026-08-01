@@ -13,6 +13,11 @@
  */
 
 import { generateContentHash, NormalizedJob } from './scraper'
+import {
+  DISCOVER_FETCH_TIMEOUT_MS,
+  DETAIL_FETCH_TIMEOUT_MS,
+  abortAfter,
+} from './scraperHttp'
 
 const LIST_API = (slug: string) =>
   `https://boards-api.greenhouse.io/v1/boards/${slug}/jobs?content=true`
@@ -48,7 +53,7 @@ interface GreenhouseListResponse {
 }
 
 function withTimeout(ms: number): AbortSignal {
-  return AbortSignal.timeout(ms)
+  return abortAfter(ms)
 }
 
 function matchesCountry(job: GreenhouseJob, filterCountry?: string): boolean {
@@ -77,7 +82,7 @@ export async function discoverGreenhouseJobs(
       Accept: 'application/json',
       'User-Agent': 'Mozilla/5.0 (compatible; careersasa-scraper/1.0)',
     },
-    signal: withTimeout(15000),
+    signal: withTimeout(DISCOVER_FETCH_TIMEOUT_MS),
   })
 
   if (!response.ok) {
@@ -129,7 +134,7 @@ export async function fetchGreenhouseJobDetails(
       Accept: 'application/json',
       'User-Agent': 'Mozilla/5.0 (compatible; careersasa-scraper/1.0)',
     },
-    signal: withTimeout(15000),
+    signal: withTimeout(DETAIL_FETCH_TIMEOUT_MS),
   })
 
   if (!response.ok) {

@@ -28,6 +28,11 @@ import {
   preferFullFuzuLogo,
   sanitizeEmployerWebsite,
 } from './jobBoardCompany'
+import {
+  DISCOVER_FETCH_TIMEOUT_MS,
+  DETAIL_FETCH_TIMEOUT_MS,
+  abortAfter,
+} from './scraperHttp'
 
 const DEFAULT_BASE = 'https://www.fuzu.com'
 const LISTING_PATH = '/kenya/job'
@@ -73,7 +78,7 @@ export interface FuzuJobDetail {
 }
 
 function withTimeout(ms: number): AbortSignal {
-  return AbortSignal.timeout(ms)
+  return abortAfter(ms)
 }
 
 function originFromBaseUrl(baseUrl?: string, baseHost?: string): string {
@@ -97,7 +102,7 @@ async function fetchPageHtml(url: string): Promise<string> {
       'User-Agent': 'Mozilla/5.0 (compatible; careersasa-scraper/1.0)',
       'Accept-Language': 'en-KE,en;q=0.9',
     },
-    signal: withTimeout(20000),
+    signal: withTimeout(DISCOVER_FETCH_TIMEOUT_MS),
   })
 
   if (!response.ok) {
@@ -156,7 +161,7 @@ export async function fetchFuzuRecruiterEmail(
         'User-Agent': 'Mozilla/5.0 (compatible; careersasa-scraper/1.0)',
         'Accept-Language': 'en-KE,en;q=0.9',
       },
-      signal: withTimeout(15000),
+      signal: withTimeout(DETAIL_FETCH_TIMEOUT_MS),
     })
     if (!response.ok) return null
     const data = (await response.json()) as { recruiter_email?: unknown }
@@ -218,7 +223,7 @@ export async function fetchFuzuCompanyProfile(
         'User-Agent': 'Mozilla/5.0 (compatible; careersasa-scraper/1.0)',
         'Accept-Language': 'en-KE,en;q=0.9',
       },
-      signal: withTimeout(15000),
+      signal: withTimeout(DETAIL_FETCH_TIMEOUT_MS),
     })
     if (!response.ok) return null
     const payload = (await response.json()) as {

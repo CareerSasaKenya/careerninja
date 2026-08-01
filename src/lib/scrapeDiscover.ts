@@ -29,10 +29,20 @@ export interface DiscoverSourceResult {
 }
 
 export interface DiscoverRunResult {
+  /**
+   * False when every attempted source failed, or when failures left zero jobs
+   * queued/found. Partial runs (some OK, some failed) remain success:true with
+   * sources_failed > 0 so callers can still surface errors.
+   */
   success: boolean
   sources_processed: number
+  sources_ok: number
+  sources_failed: number
   total_queued: number
+  total_found: number
   results: DiscoverSourceResult[]
+  /** Short human-readable summary of per-source errors (null when none). */
+  error_summary: string | null
   stopped_early?: string
 }
 
@@ -43,7 +53,19 @@ export interface DiscoverRunOptions {
    * Prevents Vercel hard timeouts that return HTML error pages instead of JSON.
    */
   budgetMs?: number
+  /**
+   * Abort the whole discover run after this many consecutive source failures
+   * with nothing queued yet. Cuts CPU spikes during external outages.
+   * Default: 5. Set 0 to disable.
+   */
+  failFastAfterConsecutiveErrors?: number
 }
+
+/** Leave headroom so the response can serialize before Vercel kills the isolate. */
+export const DISCOVER_BUDGET_RESERVE_MS = 20_000
+
+/** Default consecutive-failure abort threshold for multi-source runs. */
+export const DISCOVER_FAIL_FAST_CONSECUTIVE = 5
 
 const SUPPORTED_TYPES = new Set([
   'workable',
@@ -59,6 +81,59 @@ const SUPPORTED_TYPES = new Set([
   'myjobmag',
   'html',
 ])
+
+export function summarizeDiscoverResults(
+  results: DiscoverSourceResult[],
+  stoppedEarly?: string
+): Pick<
+  DiscoverRunResult,
+  | 'success'
+  | 'sources_processed'
+  | 'sources_ok'
+  | 'sources_failed'
+  | 'total_queued'
+  | 'total_found'
+  | 'error_summary'
+> {
+  const sources_ok = results.filter(r => !r.error).length
+  const sources_failed = results.filter(r => !!r.error).length
+  const total_queued = results.reduce((sum, r) => sum + r.queued, 0)
+  const total_found = results.reduce((sum, r) => sum + r.found, 0)
+  const errors = results.filter(r => r.error).map(r => `${r.source_id}: ${r.error}`)
+  const error_summary =
+    errors.length === 0
+      ? null
+      : errors.length <= 3
+        ? errors.join('; ')
+        : `${errors.slice(0, 3).join('; ')}; +${errors.length - 3} more`
+
+  // Empty run (no sources) is OK. All attempted sources failed → not OK.
+  // Also treat "failures and zero yield" as failure so cron/monitoring notice.
+  const attempted = results.length > 0
+  const allFailed = attempted && sources_failed === results.length
+  const failedWithNoYield =
+    attempted && sources_failed > 0 && total_queued === 0 && total_found === 0 && !stoppedEarly
+
+  return {
+    success: !allFailed && !failedWithNoYield,
+    sources_processed: results.length,
+    sources_ok,
+    sources_failed,
+    total_queued,
+    total_found,
+    error_summary,
+  }
+}
+
+export function shouldAbortAfterConsecutiveFailures(
+  consecutiveFailures: number,
+  threshold: number,
+  totalQueuedSoFar: number
+): boolean {
+  if (threshold <= 0) return false
+  if (totalQueuedSoFar > 0) return false
+  return consecutiveFailures >= threshold
+}
 
 async function lookupKnownJobUrls(
   supabase: SupabaseClient,
@@ -98,20 +173,28 @@ export async function runScrapeDiscover(
     return {
       success: true,
       sources_processed: 0,
+      sources_ok: 0,
+      sources_failed: 0,
       total_queued: 0,
+      total_found: 0,
       results: [],
+      error_summary: null,
     }
   }
 
   const budgetMs = options?.budgetMs ?? 240_000
+  const failFastAfter =
+    options?.failFastAfterConsecutiveErrors ??
+    (options?.sourceId ? 0 : DISCOVER_FAIL_FAST_CONSECUTIVE)
   const startedAt = Date.now()
   const results: DiscoverSourceResult[] = []
   let stoppedEarly: string | undefined
+  let consecutiveFailures = 0
 
   for (let i = 0; i < sources.length; i++) {
     const source = sources[i]
     const elapsed = Date.now() - startedAt
-    if (i > 0 && elapsed >= budgetMs) {
+    if (elapsed >= budgetMs - DISCOVER_BUDGET_RESERVE_MS) {
       stoppedEarly = `Stopped after ${results.length} source(s) to stay within Vercel time limits (${Math.round(elapsed / 1000)}s elapsed). Run Discover again or per-source.`
       break
     }
@@ -202,6 +285,7 @@ export async function runScrapeDiscover(
 
       if (discovered.length === 0) {
         results.push(sourceResult)
+        consecutiveFailures = 0
         continue
       }
 
@@ -224,6 +308,7 @@ export async function runScrapeDiscover(
 
       if (newJobs.length === 0) {
         results.push(sourceResult)
+        consecutiveFailures = 0
         await supabase
           .from('scraper_sources')
           .update({ last_discovered_at: new Date().toISOString() })
@@ -243,6 +328,7 @@ export async function runScrapeDiscover(
       if (insertError) throw insertError
 
       sourceResult.queued = newJobs.length
+      consecutiveFailures = 0
 
       await supabase
         .from('scraper_sources')
@@ -250,18 +336,36 @@ export async function runScrapeDiscover(
         .eq('source_id', source.source_id)
     } catch (err: unknown) {
       sourceResult.error = err instanceof Error ? err.message : String(err)
+      consecutiveFailures += 1
       console.error(`[discover] Error on source ${source.source_id}:`, sourceResult.error)
     }
 
     results.push(sourceResult)
+
+    const queuedSoFar = results.reduce((sum, r) => sum + r.queued, 0)
+    if (shouldAbortAfterConsecutiveFailures(consecutiveFailures, failFastAfter, queuedSoFar)) {
+      stoppedEarly = `Stopped after ${consecutiveFailures} consecutive source failures with nothing queued (likely external API outage). ${results.filter(r => r.error).length} source(s) failed.`
+      console.error(`[discover] ${stoppedEarly}`)
+      break
+    }
   }
 
-  const totalQueued = results.reduce((sum, r) => sum + r.queued, 0)
+  const summary = summarizeDiscoverResults(results, stoppedEarly)
+
+  if (!summary.success) {
+    console.error(
+      `[discover] Run failed: ${summary.sources_failed}/${summary.sources_processed} sources errored.` +
+        (summary.error_summary ? ` ${summary.error_summary}` : '')
+    )
+  } else if (summary.sources_failed > 0) {
+    console.warn(
+      `[discover] Partial success: ${summary.sources_ok} ok, ${summary.sources_failed} failed, ${summary.total_queued} queued.` +
+        (summary.error_summary ? ` ${summary.error_summary}` : '')
+    )
+  }
 
   return {
-    success: true,
-    sources_processed: results.length,
-    total_queued: totalQueued,
+    ...summary,
     results,
     ...(stoppedEarly ? { stopped_early: stoppedEarly } : {}),
   }

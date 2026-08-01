@@ -61,7 +61,7 @@ interface TaleoSearchResponse {
 }
 
 const UA = 'Mozilla/5.0 (compatible; careersasa-scraper/1.0)'
-const MAX_PAGES = 20
+const MAX_PAGES = 10
 
 function withTimeout(ms: number): AbortSignal {
   return AbortSignal.timeout(ms)
@@ -288,7 +288,7 @@ async function fetchTaleoHtml(
       ...(referer ? { Referer: referer } : {}),
       ...(cookie ? { Cookie: cookie } : {}),
     },
-    signal: withTimeout(20000),
+    signal: withTimeout(12_000),
   })
 
   if (!response.ok) {
@@ -446,7 +446,7 @@ async function searchTaleoPage(
       ...(cookie ? { Cookie: cookie } : {}),
     },
     body: JSON.stringify(searchPayload(pageNo)),
-    signal: withTimeout(20000),
+    signal: withTimeout(12_000),
   })
 
   if (!response.ok) {
