@@ -71,6 +71,22 @@ assert.equal(
   'https://apply.workable.com/tatucity/j/ABC123'
 )
 
+// PSC multi-role listings must stay unique (hash or query param)
+assert.equal(
+  normalizeJobUrl('https://www.psckjobs.go.ke/ActiveJobsAdverts.aspx#advert-158-2025'),
+  'https://www.psckjobs.go.ke/ActiveJobsAdverts.aspx#advert-158-2025'
+)
+assert.equal(
+  normalizeJobUrl(
+    'https://www.psckjobs.go.ke/ActiveJobsAdverts.aspx?psc_advert=158-2025&utm_source=x'
+  ),
+  'https://www.psckjobs.go.ke/ActiveJobsAdverts.aspx?psc_advert=158-2025'
+)
+assert.notEqual(
+  normalizeJobUrl('https://www.psckjobs.go.ke/ActiveJobsAdverts.aspx?psc_advert=158-2025'),
+  normalizeJobUrl('https://www.psckjobs.go.ke/ActiveJobsAdverts.aspx?psc_advert=159-2025')
+)
+
 assert.equal(isGenericApplicationUrl('https://www.psckjobs.go.ke/'), true)
 assert.equal(isGenericApplicationUrl('https://www.psckjobs.go.ke'), true)
 assert.equal(isGenericApplicationUrl('https://www.psckjobs.go.ke/loginPage.aspx'), true)

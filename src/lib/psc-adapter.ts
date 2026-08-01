@@ -11,7 +11,10 @@
 import * as cheerio from 'cheerio'
 import { fetchHtml, NormalizedJob } from './scraper'
 
+/** @deprecated Prefer PSC_ADVERT_PARAM — hash fragments used to be stripped by normalizeJobUrl */
 export const PSC_ADVERT_FRAGMENT = '#advert-'
+/** Query param that keeps each PSC listing role uniquely dedupable */
+export const PSC_ADVERT_PARAM = 'psc_advert'
 
 export interface PscSourceConfig {
   type: 'psc'
@@ -32,10 +35,25 @@ export interface PscJobRow {
 
 export function buildPscJobUrl(baseUrl: string, advertNumber: string): string {
   const normalized = advertNumber.replace(/\//g, '-')
-  return `${baseUrl.replace(/\/$/, '')}${PSC_ADVERT_FRAGMENT}${normalized}`
+  try {
+    const url = new URL(baseUrl)
+    url.hash = ''
+    url.searchParams.set(PSC_ADVERT_PARAM, normalized)
+    return url.toString()
+  } catch {
+    const base = baseUrl.replace(/\/$/, '').split('#')[0]
+    const join = base.includes('?') ? '&' : '?'
+    return `${base}${join}${PSC_ADVERT_PARAM}=${encodeURIComponent(normalized)}`
+  }
 }
 
 export function extractPscAdvertNumber(jobUrl: string): string | null {
+  try {
+    const fromQuery = new URL(jobUrl).searchParams.get(PSC_ADVERT_PARAM)
+    if (fromQuery) return fromQuery.replace(/-/g, '/')
+  } catch {
+    /* fall through */
+  }
   const match = jobUrl.match(/#advert-(.+)$/)
   if (!match) return null
   return match[1].replace(/-/g, '/')
