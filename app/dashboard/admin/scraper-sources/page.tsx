@@ -264,13 +264,15 @@ export default function AdminScraperSourcesPage() {
           : `${queued} new queued`
 
       if (queued > 0) {
-        toast.success(`Discover complete: ${detail} (${label})`);
+        toast.success(
+          `Discover queued ${queued} job(s) for Process — ${alreadyKnown} already known, ${found} scanned (${label})`
+        );
       } else if (found > 0) {
         toast.info(
-          `Discover complete: no new jobs — ${alreadyKnown} already known of ${found} scanned (${label})`
+          `Discover scanned ${found} listing(s); 0 new to Process (${alreadyKnown} already in queue/published) (${label})`
         );
       } else {
-        toast.info(`Discover complete: no new jobs found (${label})`);
+        toast.info(`Discover complete: no listings found (${label})`);
       }
 
       if (failedCount > 0) {
@@ -426,8 +428,18 @@ export default function AdminScraperSourcesPage() {
           <Button
             variant="secondary"
             onClick={() => runProcess(10)}
-            disabled={busy || (data?.totals.pending ?? 0) === 0}
-            title="Process up to 10 pending queue items with DeepSeek parse/enrich"
+            disabled={
+              busy ||
+              ((data?.totals.pending ?? 0) === 0 &&
+                (data?.totals.processing ?? 0) === 0)
+            }
+            title={
+              (data?.totals.pending ?? 0) > 0
+                ? `Process up to 10 of ${data?.totals.pending} pending queue items`
+                : (data?.totals.processing ?? 0) > 0
+                  ? `${data?.totals.processing} item(s) stuck in processing — click to reclaim & process`
+                  : "Queue is empty — run Discover first (scanned ≠ queued)"
+            }
           >
             {processingQueue ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -435,6 +447,11 @@ export default function AdminScraperSourcesPage() {
               <Send className="h-4 w-4 mr-2" />
             )}
             Process queue (10)
+            {(data?.totals.pending ?? 0) > 0
+              ? ` · ${data?.totals.pending}`
+              : (data?.totals.processing ?? 0) > 0
+                ? ` · ${data?.totals.processing} stuck`
+                : ""}
           </Button>
           <Button
             variant="default"
@@ -469,9 +486,10 @@ export default function AdminScraperSourcesPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <StatCard label="Active sources" value={data?.active_count ?? 0} />
         <StatCard label="Queue pending" value={data?.totals.pending ?? 0} />
+        <StatCard label="Processing" value={data?.totals.processing ?? 0} />
         <StatCard label="Published (done)" value={data?.totals.done ?? 0} />
         <StatCard label="Failed" value={data?.totals.failed ?? 0} />
       </div>
@@ -637,7 +655,7 @@ export default function AdminScraperSourcesPage() {
           <p><strong>Employers:</strong> Inkomoko (Workable), SALIX Data Africa, Digital Divide Data (SmartRecruiters, Kenya filter)</p>
           <p><strong>Batch A (verified):</strong> PowerGen Renewable Energy, iHub (SmartRecruiters). Workable pipeline (paused): Tala, Branch, KCB, Komaza, Sanergy, Copia, Apollo</p>
           <p><strong>Job boards:</strong> BrighterMonday Kenya, Fuzu Kenya, and MyJobMag Kenya (JSON-LD / HTML). Employer apply link/email from the posting is preferred; the board listing URL is only used as a last resort. Fuzu and MyJobMag also copy hiring-company logo, about, website, size, and location from the portal company tab into CareerSasa company pages when those fields are empty.</p>
-          <p><strong>Discover tip:</strong> The toast counts <em>new</em> queue rows only. Jobs already processed (or queued by the nightly discover cron) are skipped as &quot;already known&quot; — so a quiet Discover after draining a big backlog is expected, not a scraper failure.</p>
+          <p><strong>Discover tip:</strong> Toast &quot;scanned&quot; is listings seen on the board; only <em>queued</em> rows enable Process. Already-known URLs (in queue or published) are skipped — expected after a backlog drain. If Process stays disabled after a successful queue toast, click Refresh (stats now page past the 1000-row Supabase cap).</p>
         </CardContent>
       </Card>
     </div>
