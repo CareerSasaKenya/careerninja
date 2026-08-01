@@ -517,7 +517,7 @@ export default function HomePage({
                 {latestJobs.map((job) => {
                   const company = Array.isArray(job.companies) ? job.companies[0] : job.companies;
                   const companyName = homeJobCompanyName(job);
-                  const postedLabel = jobPostedLabel(job.created_at || job.date_posted);
+                  const postedLabel = jobPostedLabel(job.date_posted || job.created_at);
                   return (
                     <Card
                       key={job.id}

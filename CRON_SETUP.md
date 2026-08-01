@@ -28,7 +28,7 @@ The job management system requires periodic tasks to:
 - **Auto-Renew Jobs**: Daily at 3:00 AM UTC (`0 3 * * *`)
 - **Expire Promotions**: Daily at 4:00 AM UTC (`0 4 * * *`)
 - **Enrich Company Logos**: Daily at 4:30 AM UTC (`30 4 * * *`)
-- **Scrape Discover**: Daily at 5:00 AM UTC (`0 5 * * *`) — queues new jobs from active sources
+- **Scrape Discover**: Every 4 hours (`0 */4 * * *`) — queues new jobs from active sources (needed for same-day MyJobMag / board volume)
 - **Scrape Process**: Every 15 minutes (`*/15 * * * *`) — publishes pending queue items (default 20/run, Pro)
 - **Email Automations**: Daily at 8:00 AM UTC (`0 8 * * *`)
 
