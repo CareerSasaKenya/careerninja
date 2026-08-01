@@ -19,7 +19,7 @@
  * }
  */
 
-import { generateContentHash, NormalizedJob } from './scraper'
+import { coerceDatePosted, generateContentHash, NormalizedJob } from './scraper'
 import { resolveJobBoardApplication } from './jobBoardApply'
 import { extractApplicationDeadline } from './scraperDeadline'
 import {
@@ -686,6 +686,7 @@ export function normalizeFuzuJob(detail: FuzuJobDetail): NormalizedJob {
     application_url: detail.applicationUrl || '',
     apply_email: detail.applyEmail,
     valid_through: detail.applicationDeadline,
+    date_posted: coerceDatePosted(detail.datePosted),
     salary_min: detail.salaryMin,
     salary_max: detail.salaryMax,
     salary_currency: detail.salaryCurrency || 'KES',

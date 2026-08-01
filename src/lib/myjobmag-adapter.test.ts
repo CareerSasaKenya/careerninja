@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict'
 import {
+  dateFeedPageUrls,
   extractMyJobMagApplyNow,
   extractMyJobMagMethodOfApplicationHtml,
   isMyJobMagJobNotFound,
+  listingPageUrls,
   nextKnownPageStreak,
   normalizeMyJobMagJob,
   parseMyJobMagCompanyHtml,
@@ -136,6 +138,7 @@ assert.equal(normalized.required_qualifications, '')
 assert.equal(normalized.job_location_county, 'Nairobi')
 assert.equal(normalized.job_location_city, 'Nairobi')
 assert.equal(normalized.valid_through, '2026-08-05')
+assert.equal(normalized.date_posted, new Date('2026-07-22T10:45:32+01:00').toISOString())
 assert.ok(normalized.tags.includes('MyJobMag'))
 assert.equal(normalized.salary_visibility, 'Show')
 assert.equal(detail.applyEmail, null)
@@ -390,6 +393,20 @@ assert.throws(
   )
   assert.equal(sReset.consecutiveKnownPages, 0)
   assert.equal(sReset.shouldStop, false)
+}
+
+// Pagination helpers: main listing uses /page/N; date feeds use /N
+{
+  assert.deepEqual(listingPageUrls('https://www.myjobmag.co.ke', '/jobs', 3), [
+    'https://www.myjobmag.co.ke/jobs',
+    'https://www.myjobmag.co.ke/jobs/page/2',
+    'https://www.myjobmag.co.ke/jobs/page/3',
+  ])
+  assert.deepEqual(dateFeedPageUrls('https://www.myjobmag.co.ke', '/jobs-by-date/today', 3), [
+    'https://www.myjobmag.co.ke/jobs-by-date/today',
+    'https://www.myjobmag.co.ke/jobs-by-date/today/2',
+    'https://www.myjobmag.co.ke/jobs-by-date/today/3',
+  ])
 }
 
 console.log('myjobmag-adapter.test.ts: ok')

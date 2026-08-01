@@ -753,6 +753,8 @@ export async function runScrapeProcessOne(
         : parsed.apply_link || normalized.apply_link || null,
       valid_through: deadline.validThrough,
       expires_at: expiresAtFromValidThrough(deadline.validThrough),
+      // Board publish time when the adapter provides it; else DB default now().
+      ...(normalized.date_posted ? { date_posted: normalized.date_posted } : {}),
       education_level_id: educationLevelId,
       area_of_study: parsed.area_of_study || null,
       field_of_study: parsed.field_of_study || null,

@@ -12,7 +12,7 @@
  * }
  */
 
-import { generateContentHash, NormalizedJob } from './scraper'
+import { coerceDatePosted, generateContentHash, NormalizedJob } from './scraper'
 import { resolveJobBoardApplication } from './jobBoardApply'
 import { extractApplicationDeadline } from './scraperDeadline'
 import { DISCOVER_FETCH_TIMEOUT_MS, abortAfter } from './scraperHttp'
@@ -453,6 +453,7 @@ export function normalizeBrighterMondayJob(detail: BrighterMondayJobDetail): Nor
     apply_email: detail.applyEmail,
     // Employer application deadline only — never BM's ~90-day listing validThrough
     valid_through: detail.applicationDeadline,
+    date_posted: coerceDatePosted(detail.datePosted),
     salary_min: detail.salaryMin,
     salary_max: detail.salaryMax,
     salary_currency: detail.salaryCurrency || 'KES',

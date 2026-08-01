@@ -14,14 +14,13 @@
  *   "maxPages": 15
  * }
  *
- * Listings are newest-first across /jobs/page/N. Discover walks pages until
- * maxPages, or (when a known-URL checker is provided) until several consecutive
- * pages contain only URLs we already queued/published — so incremental runs
- * catch a large new-job wave without re-scraping the whole board.
+ * Discover prefers /jobs-by-date/today (+ yesterday) so same-day posts are
+ * caught even when the main /jobs feed mixes older bumps, then walks
+ * /jobs/page/N until maxPages or consecutive already-known pages.
  */
 
 import * as cheerio from 'cheerio'
-import { generateContentHash, NormalizedJob } from './scraper'
+import { coerceDatePosted, generateContentHash, NormalizedJob } from './scraper'
 import {
   resolveJobBoardApplication,
   rewriteJobBoardDescriptionLinks,
@@ -42,6 +41,8 @@ import {
 
 const DEFAULT_BASE = 'https://www.myjobmag.co.ke'
 const LISTING_PATH = '/jobs'
+/** Date feeds use `/jobs-by-date/today/2` (not `/page/2`). */
+const DATE_FEED_PATHS = ['/jobs-by-date/today', '/jobs-by-date/yesterday'] as const
 const JOB_PATH_RE = /\/job\/[a-z0-9-]+/gi
 const BOARD_HOSTS = ['myjobmag.co.ke']
 
@@ -49,11 +50,15 @@ export interface MyJobMagSourceConfig {
   type: 'myjobmag'
   category?: string
   maxPages?: number
+  /** Max pages per /jobs-by-date/{today,yesterday} feed. Default 12. */
+  dateFeedMaxPages?: number
   baseHost?: string
 }
 
 /** Absolute ceiling so a bad config cannot fan out forever on Vercel. */
 export const MYJOBMAG_MAX_PAGES_CAP = 30
+/** Default pages for today/yesterday feeds (~20 jobs/page on MyJobMag). */
+export const MYJOBMAG_DATE_FEED_DEFAULT_PAGES = 12
 
 export interface DiscoverMyJobMagOptions {
   /**
@@ -151,12 +156,27 @@ async function fetchPageHtml(url: string): Promise<string> {
 }
 
 /** MyJobMag pagination uses `/jobs/page/2`, `/jobs/page/3`, … */
-function listingPageUrls(origin: string, listingPath: string, maxPages: number): string[] {
+export function listingPageUrls(origin: string, listingPath: string, maxPages: number): string[] {
   const pages = Math.max(1, Math.min(maxPages, MYJOBMAG_MAX_PAGES_CAP))
   const base = `${origin}${listingPath}`
   const urls: string[] = [base]
   for (let page = 2; page <= pages; page++) {
     urls.push(`${base}/page/${page}`)
+  }
+  return urls
+}
+
+/**
+ * Date-filtered feeds paginate as `/jobs-by-date/today/2` (no `/page/` segment).
+ * Page 1 is the bare feed path.
+ */
+export function dateFeedPageUrls(origin: string, feedPath: string, maxPages: number): string[] {
+  const pages = Math.max(1, Math.min(maxPages, MYJOBMAG_MAX_PAGES_CAP))
+  const path = feedPath.startsWith('/') ? feedPath.replace(/\/+$/, '') : `/${feedPath}`
+  const base = `${origin.replace(/\/$/, '')}${path}`
+  const urls: string[] = [base]
+  for (let page = 2; page <= pages; page++) {
+    urls.push(`${base}/${page}`)
   }
   return urls
 }
@@ -185,28 +205,59 @@ function extractListingUrls(html: string, origin: string): string[] {
   return [...found]
 }
 
-export async function discoverMyJobMagJobs(
-  config: MyJobMagSourceConfig,
-  baseUrl?: string,
-  options?: DiscoverMyJobMagOptions
-): Promise<Array<{ job_url: string; partial_data: { title?: string; location?: string } }>> {
-  const origin = originFromBaseUrl(baseUrl, config.baseHost)
-  const listingPath = listingPathFromBaseUrl(baseUrl)
-  const maxPages = typeof config.maxPages === 'number' ? config.maxPages : 15
-  const pageUrls = listingPageUrls(origin, listingPath, maxPages)
-  const seen = new Set<string>()
+interface WalkListingOptions extends DiscoverMyJobMagOptions {
+  /**
+   * When true, stop after `stopAfterKnownPages` consecutive pages that add
+   * no URLs new to this run (date-feed tails repeat/empty). Do not use on the
+   * main /jobs crawl — those pages often overlap the date feeds but still
+   * hold older not-yet-scraped roles further down.
+   */
+  stopOnNoNewInRun?: boolean
+}
+
+async function walkListingPages(
+  pageUrls: string[],
+  origin: string,
+  seen: Set<string>,
+  options?: WalkListingOptions
+): Promise<void> {
   const findKnownUrls = options?.findKnownUrls
   const stopAfterKnownPages = Math.max(1, options?.stopAfterKnownPages ?? 2)
+  const stopOnNoNewInRun = options?.stopOnNoNewInRun === true
   let consecutiveKnownPages = 0
+  let consecutiveNoNewInRun = 0
 
   for (const pageUrl of pageUrls) {
-    const html = await fetchPageHtml(pageUrl)
+    let html: string
+    try {
+      html = await fetchPageHtml(pageUrl)
+    } catch (err) {
+      // Date-feed tails 404 once exhausted — stop this feed, keep others.
+      const message = err instanceof Error ? err.message : String(err)
+      if (/HTTP 404/.test(message)) break
+      throw err
+    }
+
     const pageJobUrls = extractListingUrls(html, origin)
+    const newOnPage = pageJobUrls.filter(url => !seen.has(url))
     for (const jobUrl of pageJobUrls) {
       seen.add(jobUrl)
     }
 
-    if (!findKnownUrls || pageJobUrls.length === 0) {
+    if (stopOnNoNewInRun) {
+      if (pageJobUrls.length === 0 || newOnPage.length === 0) {
+        consecutiveNoNewInRun += 1
+        if (consecutiveNoNewInRun >= stopAfterKnownPages) break
+        continue
+      }
+      consecutiveNoNewInRun = 0
+    } else if (pageJobUrls.length === 0) {
+      // Keep walking the main listing; transient empty shells happen.
+      consecutiveKnownPages = 0
+      continue
+    }
+
+    if (!findKnownUrls) {
       consecutiveKnownPages = 0
       continue
     }
@@ -221,6 +272,38 @@ export async function discoverMyJobMagJobs(
     consecutiveKnownPages = streak.consecutiveKnownPages
     if (streak.shouldStop) break
   }
+}
+
+export async function discoverMyJobMagJobs(
+  config: MyJobMagSourceConfig,
+  baseUrl?: string,
+  options?: DiscoverMyJobMagOptions
+): Promise<Array<{ job_url: string; partial_data: { title?: string; location?: string } }>> {
+  const origin = originFromBaseUrl(baseUrl, config.baseHost)
+  const listingPath = listingPathFromBaseUrl(baseUrl)
+  const maxPages = typeof config.maxPages === 'number' ? config.maxPages : 15
+  const dateFeedMaxPages =
+    typeof config.dateFeedMaxPages === 'number'
+      ? config.dateFeedMaxPages
+      : MYJOBMAG_DATE_FEED_DEFAULT_PAGES
+  const seen = new Set<string>()
+
+  // Same-day posts first — MyJobMag's main /jobs feed mixes bumped older roles.
+  for (const feedPath of DATE_FEED_PATHS) {
+    await walkListingPages(
+      dateFeedPageUrls(origin, feedPath, dateFeedMaxPages),
+      origin,
+      seen,
+      { ...options, stopOnNoNewInRun: true }
+    )
+  }
+
+  await walkListingPages(
+    listingPageUrls(origin, listingPath, maxPages),
+    origin,
+    seen,
+    options
+  )
 
   return [...seen].map(job_url => ({
     job_url,
@@ -1039,6 +1122,8 @@ export function normalizeMyJobMagJob(detail: MyJobMagJobDetail): NormalizedJob {
     application_url: detail.applicationUrl || '',
     apply_email: detail.applyEmail,
     valid_through: detail.applicationDeadline,
+    // Prefer MyJobMag's publish time so day buckets match the board UI.
+    date_posted: coerceDatePosted(detail.datePosted),
     salary_min: detail.salaryMin,
     salary_max: detail.salaryMax,
     salary_currency: detail.salaryCurrency || 'KES',
