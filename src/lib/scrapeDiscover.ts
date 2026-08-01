@@ -18,6 +18,7 @@ import {
 import { discoverFuzuJobs, FuzuSourceConfig } from './fuzu-adapter'
 import { discoverMyJobMagJobs, MyJobMagSourceConfig } from './myjobmag-adapter'
 import { normalizeJobUrl } from './scraperDeadline'
+import { reclaimStuckScrapeQueueItems } from './scrapeQueueStats'
 
 export interface DiscoverSourceResult {
   source_id: string
@@ -135,25 +136,37 @@ export function shouldAbortAfterConsecutiveFailures(
   return consecutiveFailures >= threshold
 }
 
+interface UrlDedupeSets {
+  /** pending / processing / done in scrape_queue, or any scraped_job_sources row */
+  knownUrls: Set<string>
+  /** failed scrape_queue rows — safe to reset to pending on rediscover */
+  failedUrls: Set<string>
+}
+
 async function lookupKnownJobUrls(
   supabase: SupabaseClient,
   urls: string[]
-): Promise<Set<string>> {
+): Promise<UrlDedupeSets> {
   const knownUrls = new Set<string>()
-  if (urls.length === 0) return knownUrls
+  const failedUrls = new Set<string>()
+  if (urls.length === 0) return { knownUrls, failedUrls }
 
   const normalized = [...new Set(urls.map(u => normalizeJobUrl(u)))]
   const chunkSize = 100
   for (let c = 0; c < normalized.length; c += chunkSize) {
     const chunk = normalized.slice(c, c + chunkSize)
     const [{ data: alreadyQueued }, { data: alreadyPublished }] = await Promise.all([
-      supabase.from('scrape_queue').select('job_url').in('job_url', chunk),
+      supabase.from('scrape_queue').select('job_url, status').in('job_url', chunk),
       supabase.from('scraped_job_sources').select('job_url').in('job_url', chunk),
     ])
-    for (const r of alreadyQueued || []) knownUrls.add(normalizeJobUrl(r.job_url))
+    for (const r of alreadyQueued || []) {
+      const url = normalizeJobUrl(r.job_url)
+      if (r.status === 'failed') failedUrls.add(url)
+      else knownUrls.add(url)
+    }
     for (const r of alreadyPublished || []) knownUrls.add(normalizeJobUrl(r.job_url))
   }
-  return knownUrls
+  return { knownUrls, failedUrls }
 }
 
 export async function runScrapeDiscover(
@@ -180,6 +193,13 @@ export async function runScrapeDiscover(
       results: [],
       error_summary: null,
     }
+  }
+
+  // Kill zombie "processing" rows left by timed-out Vercel invokes so Discover
+  // can treat them as pending again and the admin Process button re-enables.
+  const reclaimed = await reclaimStuckScrapeQueueItems(supabase, 10 * 60 * 1000)
+  if (reclaimed > 0) {
+    console.warn(`[discover] Reclaimed ${reclaimed} stuck processing queue item(s)`)
   }
 
   const budgetMs = options?.budgetMs ?? 240_000
@@ -264,10 +284,12 @@ export async function runScrapeDiscover(
           source.base_url,
           {
             findKnownUrls: async urls => {
-              const knownNormalized = await lookupKnownJobUrls(supabase, urls)
+              const { knownUrls, failedUrls } = await lookupKnownJobUrls(supabase, urls)
               const knownAsPassed = new Set<string>()
               for (const url of urls) {
-                if (knownNormalized.has(normalizeJobUrl(url))) {
+                const normalized = normalizeJobUrl(url)
+                // Failed rows are retryable — do not stop pagination early for them.
+                if (knownUrls.has(normalized) && !failedUrls.has(normalized)) {
                   knownAsPassed.add(url)
                 }
               }
@@ -295,18 +317,53 @@ export async function runScrapeDiscover(
         job_url: normalizeJobUrl(j.job_url),
       }))
       const urls = [...new Set(discoveredNormalized.map(j => j.job_url))]
-      const knownUrls = await lookupKnownJobUrls(supabase, urls)
+      const { knownUrls, failedUrls } = await lookupKnownJobUrls(supabase, urls)
       sourceResult.already_known = urls.filter(u => knownUrls.has(u)).length
 
       const newJobsByUrl = new Map<string, (typeof discoveredNormalized)[number]>()
+      const retryFailedUrls: string[] = []
       for (const j of discoveredNormalized) {
-        if (!knownUrls.has(j.job_url) && !newJobsByUrl.has(j.job_url)) {
+        if (knownUrls.has(j.job_url)) continue
+        if (failedUrls.has(j.job_url)) {
+          if (!retryFailedUrls.includes(j.job_url)) retryFailedUrls.push(j.job_url)
+          continue
+        }
+        if (!newJobsByUrl.has(j.job_url)) {
           newJobsByUrl.set(j.job_url, j)
         }
       }
       const newJobs = [...newJobsByUrl.values()]
 
-      if (newJobs.length === 0) {
+      let requeuedFailed = 0
+      if (retryFailedUrls.length > 0) {
+        const { data: resetRows, error: resetError } = await supabase
+          .from('scrape_queue')
+          .update({
+            status: 'pending',
+            error_message: 'Requeued by Discover after prior failure',
+            attempts: 0,
+            processed_at: null,
+          })
+          .in('job_url', retryFailedUrls)
+          .eq('status', 'failed')
+          .select('job_url')
+
+        if (resetError) throw resetError
+        requeuedFailed = resetRows?.length || 0
+
+        // Refresh listing partial_data per URL when available
+        for (const url of retryFailedUrls) {
+          const partial = discoveredNormalized.find(j => j.job_url === url)?.partial_data
+          if (!partial) continue
+          await supabase
+            .from('scrape_queue')
+            .update({ partial_data: partial })
+            .eq('job_url', url)
+            .eq('status', 'pending')
+        }
+      }
+
+      if (newJobs.length === 0 && requeuedFailed === 0) {
         results.push(sourceResult)
         consecutiveFailures = 0
         await supabase
@@ -316,18 +373,20 @@ export async function runScrapeDiscover(
         continue
       }
 
-      const { error: insertError } = await supabase.from('scrape_queue').insert(
-        newJobs.map(j => ({
-          source_id: source.source_id,
-          job_url: j.job_url,
-          status: 'pending',
-          partial_data: j.partial_data,
-        }))
-      )
+      if (newJobs.length > 0) {
+        const { error: insertError } = await supabase.from('scrape_queue').insert(
+          newJobs.map(j => ({
+            source_id: source.source_id,
+            job_url: j.job_url,
+            status: 'pending',
+            partial_data: j.partial_data,
+          }))
+        )
 
-      if (insertError) throw insertError
+        if (insertError) throw insertError
+      }
 
-      sourceResult.queued = newJobs.length
+      sourceResult.queued = newJobs.length + requeuedFailed
       consecutiveFailures = 0
 
       await supabase
