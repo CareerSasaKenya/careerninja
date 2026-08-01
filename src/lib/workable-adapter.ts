@@ -14,9 +14,13 @@
  */
 
 import { generateContentHash, NormalizedJob } from './scraper'
+import { DISCOVER_FETCH_TIMEOUT_MS, DETAIL_FETCH_TIMEOUT_MS, abortAfter } from './scraperHttp'
 
 const WORKABLE_LIST_API = (slug: string) =>
   `https://apply.workable.com/api/v3/accounts/${slug}/jobs`
+
+/** Hard cap so a runaway nextPage token cannot burn the whole Vercel budget. */
+const WORKABLE_MAX_PAGES = 10
 
 const WORKABLE_DETAIL_API = (slug: string, shortcode: string) =>
   `https://apply.workable.com/api/v2/accounts/${slug}/jobs/${shortcode}`
@@ -65,9 +69,11 @@ export async function discoverWorkableJobs(
 ): Promise<Array<{ job_url: string; partial_data: { title: string; location: string } }>> {
   const allJobs: WorkableJobListing[] = []
   let nextPageToken: string | null = null
+  let pages = 0
 
-  // Paginate through all results
+  // Paginate through results (hard-capped)
   do {
+    pages += 1
     const payload: Record<string, unknown> = {
       query: '',
       token: nextPageToken,
@@ -87,7 +93,7 @@ export async function discoverWorkableJobs(
         'User-Agent': 'Mozilla/5.0 (compatible; careersasa-scraper/1.0)',
       },
       body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(15000),
+      signal: abortAfter(DISCOVER_FETCH_TIMEOUT_MS),
     })
 
     if (!response.ok) {
@@ -98,7 +104,7 @@ export async function discoverWorkableJobs(
     allJobs.push(...(data.results || []))
     nextPageToken = data.nextPage || null
 
-  } while (nextPageToken)
+  } while (nextPageToken && pages < WORKABLE_MAX_PAGES)
 
   // Filter to jobs that have a Kenya (or specified country) location
   const filtered = config.filterCountry
@@ -144,7 +150,7 @@ export async function fetchWorkableJobDetails(
       'Referer': `https://apply.workable.com/${slug}/j/${shortcode}/`,
       'User-Agent': 'Mozilla/5.0 (compatible; careersasa-scraper/1.0)',
     },
-    signal: AbortSignal.timeout(15000),
+    signal: abortAfter(DETAIL_FETCH_TIMEOUT_MS),
   })
 
   if (!response.ok) {

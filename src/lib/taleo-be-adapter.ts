@@ -48,7 +48,7 @@ export interface TaleoBeJobDetail extends TaleoBeJobListing {
 }
 
 const UA = 'Mozilla/5.0 (compatible; careersasa-scraper/1.0)'
-const MAX_PAGES = 25
+const MAX_PAGES = 10
 
 function withTimeout(ms: number): AbortSignal {
   return AbortSignal.timeout(ms)
@@ -267,7 +267,7 @@ async function fetchText(
       'User-Agent': UA,
       ...(init?.headers || {}),
     },
-    signal: withTimeout(25000),
+    signal: withTimeout(12_000),
   })
   if (!response.ok) {
     throw new Error(`Taleo BE HTTP ${response.status} for ${url}`)

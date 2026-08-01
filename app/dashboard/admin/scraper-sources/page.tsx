@@ -218,7 +218,6 @@ export default function AdminScraperSourcesPage() {
       });
 
       const body = await parseJsonResponse(response);
-      if (!response.ok) throw new Error(body.error || "Discover failed");
 
       const results = (body.results || []) as Array<{
         source_id?: string
@@ -230,14 +229,35 @@ export default function AdminScraperSourcesPage() {
       const result = sourceId
         ? results.find(r => r.source_id === sourceId) || results[0]
         : results[0]
+      const failedResults = results.filter(r => r.error)
+      const errorSummary =
+        typeof body.error_summary === "string" && body.error_summary
+          ? body.error_summary
+          : failedResults.length > 0
+            ? failedResults
+                .slice(0, 3)
+                .map(r => `${r.source_id}: ${r.error}`)
+                .join("; ") +
+              (failedResults.length > 3 ? `; +${failedResults.length - 3} more` : "")
+            : body.error || "Discover failed"
+
+      // Full failure (HTTP 502 / success:false) — don't pretend it completed.
+      if (!response.ok || body.success === false) {
+        throw new Error(errorSummary)
+      }
+
       const label = sourceId
         ? result?.source_id || sourceId
         : `${body.sources_processed} source(s)`;
-      const found = results.reduce((sum, r) => sum + (r.found || 0), 0)
+      const found = typeof body.total_found === "number"
+        ? body.total_found
+        : results.reduce((sum, r) => sum + (r.found || 0), 0)
       const alreadyKnown = results.reduce((sum, r) => sum + (r.already_known || 0), 0)
       const queued = typeof body.total_queued === "number"
         ? body.total_queued
         : results.reduce((sum, r) => sum + (r.queued || 0), 0)
+      const failedCount =
+        typeof body.sources_failed === "number" ? body.sources_failed : failedResults.length
       const detail =
         found > 0
           ? `${queued} new queued, ${alreadyKnown} already known, ${found} scanned`
@@ -245,14 +265,18 @@ export default function AdminScraperSourcesPage() {
 
       if (queued > 0) {
         toast.success(`Discover complete: ${detail} (${label})`);
-      } else if (result?.error) {
-        toast.error(`Discover failed for ${label}: ${result.error}`);
       } else if (found > 0) {
         toast.info(
           `Discover complete: no new jobs — ${alreadyKnown} already known of ${found} scanned (${label})`
         );
       } else {
         toast.info(`Discover complete: no new jobs found (${label})`);
+      }
+
+      if (failedCount > 0) {
+        toast.error(
+          `Discover: ${failedCount} source(s) failed — ${errorSummary}`
+        );
       }
 
       if (typeof body.stopped_early === "string" && body.stopped_early) {

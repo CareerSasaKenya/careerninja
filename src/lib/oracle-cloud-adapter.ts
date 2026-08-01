@@ -76,7 +76,7 @@ interface OracleCloudDetailItem extends OracleCloudListItem {
 
 const UA = 'Mozilla/5.0 (compatible; careersasa-scraper/1.0)'
 const PAGE_SIZE = 100
-const MAX_PAGES = 20
+const MAX_PAGES = 10
 
 function withTimeout(ms: number): AbortSignal {
   return AbortSignal.timeout(ms)
@@ -206,7 +206,7 @@ async function fetchJson<T>(url: string): Promise<T> {
       Accept: 'application/json',
       'User-Agent': UA,
     },
-    signal: withTimeout(20000),
+    signal: withTimeout(12_000),
   })
   if (!response.ok) {
     throw new Error(`Oracle Cloud API error ${response.status} for ${url}`)

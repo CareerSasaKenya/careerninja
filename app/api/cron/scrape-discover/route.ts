@@ -18,15 +18,20 @@ export async function GET(request: NextRequest) {
       budgetMs: 240_000,
     })
 
-    return NextResponse.json({
-      success: true,
-      ...result,
-      timestamp: new Date().toISOString(),
-    })
+    // Do not force success:true — surface external API outages to Vercel/cron monitors.
+    const status = result.success ? 200 : 502
+
+    return NextResponse.json(
+      {
+        ...result,
+        timestamp: new Date().toISOString(),
+      },
+      { status }
+    )
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error)
     console.error('[cron/scrape-discover] Error:', message)
-    return NextResponse.json({ error: message }, { status: 500 })
+    return NextResponse.json({ error: message, success: false }, { status: 500 })
   }
 }
 

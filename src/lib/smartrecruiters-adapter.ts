@@ -13,6 +13,7 @@
  */
 
 import { generateContentHash, NormalizedJob } from './scraper'
+import { DETAIL_FETCH_TIMEOUT_MS, abortAfter } from './scraperHttp'
 
 const LIST_API = (slug: string) =>
   `https://api.smartrecruiters.com/v1/companies/${slug}/postings`
@@ -73,7 +74,7 @@ export async function discoverSmartRecruitersJobs(
   const all: SmartRecruitersPosting[] = []
   let offset = 0
   const limit = 100
-  const maxPages = 20
+  const maxPages = 10
 
   for (let page = 0; page < maxPages; page++) {
     const params = new URLSearchParams({ limit: String(limit), offset: String(offset) })
@@ -84,7 +85,7 @@ export async function discoverSmartRecruitersJobs(
         Accept: 'application/json',
         'User-Agent': 'Mozilla/5.0 (compatible; careersasa-scraper/1.0)',
       },
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(12_000),
     })
 
     if (!response.ok) {
@@ -120,7 +121,7 @@ export async function fetchSmartRecruitersJobDetails(
       Accept: 'application/json',
       'User-Agent': 'Mozilla/5.0 (compatible; careersasa-scraper/1.0)',
     },
-    signal: AbortSignal.timeout(15000),
+    signal: abortAfter(DETAIL_FETCH_TIMEOUT_MS),
   })
 
   if (!response.ok) {

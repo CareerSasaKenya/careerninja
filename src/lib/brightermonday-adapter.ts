@@ -15,6 +15,7 @@
 import { generateContentHash, NormalizedJob } from './scraper'
 import { resolveJobBoardApplication } from './jobBoardApply'
 import { extractApplicationDeadline } from './scraperDeadline'
+import { DISCOVER_FETCH_TIMEOUT_MS, abortAfter } from './scraperHttp'
 
 const DEFAULT_BASE = 'https://www.brightermonday.co.ke'
 const LISTING_PATH = '/jobs'
@@ -58,8 +59,8 @@ export interface BrighterMondayJobDetail {
   applicationUrl: string | null
 }
 
-function withTimeout(ms: number): AbortSignal {
-  return AbortSignal.timeout(ms)
+function withTimeout(ms: number = DISCOVER_FETCH_TIMEOUT_MS): AbortSignal {
+  return abortAfter(ms)
 }
 
 function originFromBaseUrl(baseUrl?: string, baseHost?: string): string {
@@ -83,7 +84,7 @@ async function fetchPageHtml(url: string): Promise<string> {
       'User-Agent': 'Mozilla/5.0 (compatible; careersasa-scraper/1.0)',
       'Accept-Language': 'en-KE,en;q=0.9',
     },
-    signal: withTimeout(20000),
+    signal: withTimeout(),
   })
 
   if (!response.ok) {

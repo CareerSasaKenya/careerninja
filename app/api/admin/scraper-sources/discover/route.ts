@@ -23,10 +23,13 @@ export async function POST(request: NextRequest) {
     // Soft budget under maxDuration so Vercel never returns an HTML timeout page
     const result = await runScrapeDiscover(auth.adminClient, {
       sourceId,
-      budgetMs: sourceId ? 240_000 : 240_000,
+      budgetMs: 240_000,
     })
 
-    return NextResponse.json(result)
+    // 502 when every source failed / zero yield with errors — admin UI treats !ok as failure.
+    // Partial success (some sources OK) still returns 200 with sources_failed > 0.
+    const status = result.success ? 200 : 502
+    return NextResponse.json(result, { status })
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err)
     console.error('[admin/scraper-sources/discover] Error:', message)
