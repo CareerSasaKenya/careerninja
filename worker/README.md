@@ -23,84 +23,58 @@ Vercel (storefront)                  Cloud VM (worker)
 
 - Node.js 20+ (Ubuntu on the server: `sudo apt install nodejs npm`, or use NodeSource LTS)
 
-## Setup on a cloud VM (Hetzner / Oracle Cloud / any Ubuntu VPS)
+## Setup on a cloud VM (Hetzner / any Ubuntu VPS)
 
 The worker lives inside the same repo as the Vercel app and shares its `node_modules`, so a single install is enough.
 
-```bash
-# 1. Clone the repo on the server
-git clone <your-repo-url> careerninja
-cd careerninja
+## Hetzner Cloud setup (step by step)
 
-# 2. Install everything (app + worker deps)
-npm install
-
-# 3. Configure worker env
-cp worker/.env.example worker/.env
-nano worker/.env   # add SUPABASE_URL, SERVICE_ROLE_KEY, DEEPSEEK_API_KEY
-```
-
-> Note: `npm install` is run from the repo root, not from `worker/`.
-
-## Oracle Cloud Always Free setup (step by step)
-
-A genuinely free-forever VPS: **2 OCPU / 12 GB RAM / 200 GB storage** (ARM Ampere A1). This is the only major free tier that never expires.
+Hetzner is the reliable paid option used for CareerSasa: a **CX22** (2 vCPU / 4 GB RAM) at ~€4.15/month handles the full scraping + processing + AI workload easily.
 
 ### 1. Create the account
 
-1. Go to **oracle.com/cloud/free** → **Start for free**.
-2. Fill in your details (name, email, country). You'll need a **credit/debit card** — a small temporary hold appears then is removed. As long as you stay inside Always Free limits, **you are never charged**.
-3. Verify your email and phone.
-4. Sign in to the OCI console.
+1. Go to **hetzner.com/cloud** → **Sign up**.
+2. Choose an **individual** account. Fill in your details.
+3. Payment: **credit card (Visa/Mastercard)** or **PayPal** (the common fallback for users outside Europe). Card is a normal friendly checkout — no aggressive fraud screening like Oracle.
+4. Verify your email.
+5. Hetzner may ask for **identity verification** (photo ID + selfie) for some regions/countries. Have your national ID or passport handy. It's usually approved within minutes to a few hours.
 
-> If signup asks you to "upgrade to Pay As You Go": you can, and it still doesn't charge while you stay inside Always Free limits — it just fixes provisioning capacity issues. Set a **budget alert** (Billing → Budgets, e.g. $1) so you'd be warned if anything ever tried to bill.
+### 2. Create the server
 
-### 2. Create the VM instance
+In the **Hetzner Cloud Console** (console.hetzner.cloud):
 
-1. In the console: menu → **Compute → Instances → Create instance**.
-2. Name it `careersasa-worker`.
-3. **Placement / Image and shape**: keep defaults.
-   - **Image**: select **Canonical Ubuntu 22.04 (or 24.04)** (Minimal or Full both fine).
-   - **Shape**: choose **Ampere (ARM) — VM.Standard.A1.Flex**. Set:
-     - OCPUs: **2**
-     - Memory: **12 GB** (within the Always Free limit).
-   - > If you get an "out of host capacity" error, try a different **Availability Domain** (the dropdown above), or wait a few minutes, or upgrade to PAYG as noted above.
-4. **Networking**: keep the defaults (a new VCN + subnet will be created). Make sure the security list allows **SSH (port 22)** — it does by default.
-5. **Add SSH keys**:
-   - On your computer, generate a key pair if you don't have one:
-     - **Windows PowerShell:**
-       ```powershell
-       ssh-keygen -t ed25519 -C "careersasa-worker" -f $HOME\.ssh\careersasa
-       ```
-     - **macOS / Linux:**
-       ```bash
-       ssh-keygen -t ed25519 -C "careersasa-worker" -f ~/.ssh/careersasa
-       ```
-   - Choose **Paste public keys**, and paste the contents of `careersasa.pub` into the box.
-6. Click **Create**. Wait ~1–2 minutes for it to reach "Running".
-7. Copy the **Public IP address** from the instance page.
+1. **Add Server**.
+2. **Location**: any — for Kenya, `fsn1` Frankfurt or `nbg1` Nuremberg (closest, cheapest).
+3. **Image**: **Ubuntu 24.04** (or 22.04).
+4. **Type**: **CX22** (2 vCPU / 4 GB RAM, ~€4.15/mo).
+5. **SSH Key**: **Add SSH key** → name it `careersasa-worker` → paste your public key (see below).
+6. **Name**: `careersasa-worker`.
+7. Leave the rest default, click **Create & Buy**. Boot takes ~30 seconds.
 
 ### 3. First login (SSH)
 
-```bash
-# From your computer (adjust path/username to what you chose)
-ssh -i ~/.ssh/careersasa ubuntu@<PUBLIC_IP>
-```
-
-You'll land at a shell on the new VM. Run these once to be up to date:
+From your computer:
 
 ```bash
-sudo apt update && sudo apt upgrade -y
+# Windows PowerShell
+ssh -i $HOME\.ssh\careersasa root@<SERVER_IP>
+
+# macOS / Linux
+ssh -i ~/.ssh/careersasa root@<SERVER_IP>
 ```
 
-> **Keep this VM busy.** Oracle reclaims Always Free instances that sit near-zero CPU/RAM for ~7 days. Your scheduler runs every 15 minutes, which keeps it alive. If it ever stops, just start it again from the console.
+You'll land at a shell. Update packages once:
+
+```bash
+apt update && apt upgrade -y
+```
 
 ### 4. Install Node.js 20+
 
 ```bash
 # NodeSource installer for Node 20 LTS
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt install -y nodejs git
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+apt install -y nodejs git
 node --version   # should print v20.x
 ```
 
@@ -138,12 +112,12 @@ cp worker/.env.example worker/.env
 nano worker/.env    # paste the same Supabase + AI keys as your Vercel project
 ```
 
-> `npm install` pulls the full app dependency tree (Next.js, React, etc.) — heavy but harmless on 12 GB RAM. The worker only *executes* code under `worker/` + `src/lib/`.
+> `npm install` pulls the full app dependency tree (Next.js, React, etc.) — heavy but harmless on 4 GB RAM. The worker only *executes* code under `worker/` + `src/lib/`.
 
 ### 6. Run as a service (systemd)
 
 ```bash
-sudo nano /etc/systemd/system/careersasa-worker.service
+nano /etc/systemd/system/careersasa-worker.service
 ```
 
 Paste:
@@ -168,10 +142,10 @@ WantedBy=multi-user.target
 Enable + start:
 
 ```bash
-sudo systemctl daemon-reload
-sudo systemctl enable --now careersasa-worker
-sudo systemctl status careersasa-worker     # should say "active (running)"
-journalctl -u careersasa-worker -f          # live logs
+systemctl daemon-reload
+systemctl enable --now careersasa-worker
+systemctl status careersasa-worker     # should say "active (running)"
+journalctl -u careersasa-worker -f      # live logs
 ```
 
 ### 7. First verification
@@ -183,6 +157,12 @@ npm run worker:process         # processes a few queued items
 ```
 
 Then check the Admin → Scraper Sources page on Vercel — pending/done counts should move.
+
+## Alternative: Oracle Cloud Always Free
+
+A genuinely free-forever VPS: **2 OCPU / 12 GB RAM / 200 GB storage** (ARM Ampere A1). Only attempt this if you have a **physical Visa/Mastercard** — Oracle's card verification rejects PIN-based debit, virtual, prepaid, and mobile-money cards. See [oracle.com/cloud/free](https://www.oracle.com/cloud/free/) → sign up → **Compute → Instances → Create instance** → choose the **Ampere A1** shape, paste your public key, and log in as `ubuntu@<PUBLIC_IP>`.
+
+> **Keep the VM busy.** Oracle reclaims Always Free instances idle near-zero CPU/RAM for ~7 days. Your 15-minute scheduler keeps it alive.
 
 ## Run modes
 
