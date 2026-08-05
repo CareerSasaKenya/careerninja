@@ -22,6 +22,11 @@
     "enrich:companies": "npx tsx scripts/enrich-company-profiles.mts",
     "enrich:companies:apply": "npx tsx scripts/enrich-company-profiles.mts --apply",
     "update:blog-images": "npx tsx scripts/update-blog-images.mts",
+    "worker:discover": "tsx worker/src/index.ts discover",
+    "worker:process": "tsx worker/src/index.ts process",
+    "worker:process:n": "tsx worker/src/index.ts process 5",
+    "worker:start": "tsx worker/src/index.ts schedule",
+    "worker:server": "tsx worker/src/index.ts server",
     "postbuild": "next-sitemap"
   },
   "dependencies": {
@@ -74,6 +79,7 @@
     "next": "15.5.7",
     "next-sitemap": "^4.2.3",
     "next-themes": "^0.3.0",
+    "node-cron": "^3.0.3",
     "pdf-parse": "^2.4.5",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",
