@@ -1,17 +1,17 @@
 # CareerSasa Background Worker
 
-Runs the heavy background work (scraping, processing, AI enrichment, and — later — social posting) on a long-lived server instead of Vercel serverless functions.
+Runs the heavy background work (scraping, processing, AI enrichment, and — later — social posting) outside of Vercel serverless functions.
 
 It imports the **same code** the Vercel routes use (`src/lib/scrapeDiscover.ts`, `src/lib/scrapeProcess.ts`, `src/lib/supabaseServiceClient.ts`), so behaviour is identical wherever the job runs.
 
 ## Architecture
 
 ```text
-Vercel (storefront)                  Cloud VM (worker)
-  website / API                     Oracle Cloud / Hetzner / any VPS:
-  admin dashboard                      node-cron:
-  discover/process buttons ──HTTP──►     discover   → scraper_sources → scrape_queue
-                          (optional)     process    → scrape_queue → jobs + scraped_job_sources
+Vercel (storefront)                    Railway (worker)
+  website / API                       built-in cron:
+  admin dashboard                       discover   → scraper_sources → scrape_queue
+  discover/process buttons ──HTTP──►     process    → scrape_queue → jobs + scraped_job_sources
+                          (optional)
                       └─────────── Supabase (single source of truth) ──────────┘
 ```
 
@@ -19,148 +19,133 @@ Vercel (storefront)                  Cloud VM (worker)
 - Discover and process are separate cron jobs so they can run at different cadences.
 - An optional HTTP server (`WORKER_HTTP_PORT`) lets the Vercel admin dashboard proxy its Discover/Process buttons to the worker later.
 
-## Requirements
+## Recommended: Railway (no server to manage)
 
-- Node.js 20+ (Ubuntu on the server: `sudo apt install nodejs npm`, or use NodeSource LTS)
+Railway is a platform-as-a-service — you connect your GitHub repo, and it builds and runs the worker for you. No SSH, no systemd, no OS upkeep. Its built-in cron runs your jobs on schedule and only charges for the time the worker actually runs.
 
-## Setup on a cloud VM (Hetzner / any Ubuntu VPS)
-
-The worker lives inside the same repo as the Vercel app and shares its `node_modules`, so a single install is enough.
-
-## Hetzner Cloud setup (step by step)
-
-Hetzner is the reliable paid option used for CareerSasa: a **CX22** (2 vCPU / 4 GB RAM) at ~€4.15/month handles the full scraping + processing + AI workload easily.
+**Cost for CareerSasa:** roughly $4–6/month (Hobby plan, $5/mo including $5 of usage). The worker is idle most of the time, so usage is low.
 
 ### 1. Create the account
 
-1. Go to **hetzner.com/cloud** → **Sign up**.
-2. Choose an **individual** account. Fill in your details.
-3. Payment: **credit card (Visa/Mastercard)** or **PayPal** (the common fallback for users outside Europe). Card is a normal friendly checkout — no aggressive fraud screening like Oracle.
-4. Verify your email.
-5. Hetzner may ask for **identity verification** (photo ID + selfie) for some regions/countries. Have your national ID or passport handy. It's usually approved within minutes to a few hours.
+1. Go to **railway.com** → **Sign up** (login with GitHub is easiest).
+2. Choose the **Hobby** plan when asked ($5/mo). The free trial ($5 credit, no card) also works to start.
+3. No ID verification — just a GitHub account and, later, a card for the paid plan.
 
-### 2. Create the server
+### 2. Add the repo
 
-In the **Hetzner Cloud Console** (console.hetzner.cloud):
+1. In Railway, click **New Project** → **Deploy from GitHub repo**.
+2. Authorize Railway to access your GitHub, then pick **`careerninja`**.
+3. Railway will detect the repo. Since we ship a **`Dockerfile`** at the repo root, Railway builds the worker image from it automatically. (Vercel ignores the Dockerfile and keeps building the Next.js site.)
 
-1. **Add Server**.
-2. **Location**: any — for Kenya, `fsn1` Frankfurt or `nbg1` Nuremberg (closest, cheapest).
-3. **Image**: **Ubuntu 24.04** (or 22.04).
-4. **Type**: **CX22** (2 vCPU / 4 GB RAM, ~€4.15/mo).
-5. **SSH Key**: **Add SSH key** → name it `careersasa-worker` → paste your public key (see below).
-6. **Name**: `careersasa-worker`.
-7. Leave the rest default, click **Create & Buy**. Boot takes ~30 seconds.
+### 3. Create the two cron services
 
-### 3. First login (SSH)
+The worker supports one-shot modes that run, publish, and exit — exactly what Railway cron needs. Create **two services** from the same repo:
 
-From your computer:
+| Service | Start command | Cron schedule (UTC) | What it does |
+|---------|---------------|---------------------|--------------|
+| `discover` | `npm run worker:discover` | `0 5 * * *` | Daily 05:00 — find new job links and queue them |
+| `process` | `npm run worker:process` | `*/15 * * * *` | Every 15 min — fetch details, AI-enrich, publish |
 
-```bash
-# Windows PowerShell
-ssh -i $HOME\.ssh\careersasa root@<SERVER_IP>
+In Railway, for each service:
 
-# macOS / Linux
-ssh -i ~/.ssh/careersasa root@<SERVER_IP>
+1. **New Project → Deploy from GitHub repo → `careerninja`** (or create a second service in an existing project).
+2. Open the service → **Settings → Deploy** → set **Start Command** to the command above (overrides the Dockerfile's default `npm run worker:start`).
+3. **Settings → Cron Schedule** → enter the cron expression. Railway schedules are UTC.
+4. Remove the **TCP/HTTP port** binding if Railway auto-detects one — the worker doesn't serve web traffic in cron mode.
+
+> Railway cron caveats: minimum interval is **5 minutes**, schedules run in **UTC**, and only one run of a service may be active at a time (a run that hangs blocks the next one). Our worker exits cleanly after each run, so that's fine.
+
+### 4. Set environment variables
+
+In each service → **Variables**, add the same values your Vercel project uses:
+
+| Variable | Where to get it |
+|----------|-----------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API (service_role, **secret** — never expose it) |
+| `SCRAPER_USER_ID` | The user ID that owns scraped jobs (from your Vercel env or Supabase `auth.users`) |
+| `DEEPSEEK_API_KEY` | DeepSeek platform |
+| `DEEPSEEK_MODEL` | Optional, defaults to `deepseek-v4-flash` |
+| `GEMINI_API_KEY` / `_2` / `_3` | Optional backup keys (Gemini is the fallback provider) |
+| `WORKER_PROCESS_BATCH` | Optional, default `10` — queue items per process run |
+
+> Put the variables in **both** services (Railway does not share variables across services automatically). A project-level variable template can be set in **Project → Variables**.
+
+### 5. Verify
+
+1. Open the `discover` service → **Deployments** → the cron will trigger at 05:00 UTC, or click **Redeploy** to run it now.
+2. Open **Logs** — you should see discover output and, in `process`, published jobs.
+3. Check the Admin → Scraper Sources page on Vercel — pending/done counts should move.
+
+### 6. Migrate off the Vercel crons
+
+Once the Railway worker is stable, remove these entries from `vercel.json` to avoid double-running:
+
+```json
+{ "path": "/api/cron/scrape-discover", "schedule": "0 5 * * *" },
+{ "path": "/api/cron/scrape-process", "schedule": "0 6 * * *" }
 ```
 
-You'll land at a shell. Update packages once:
+Double-running is safe anyway — `job_url` and `content_hash` dedup — but you don't want two sources of truth.
 
-```bash
-apt update && apt upgrade -y
-```
+## Alternative: VPS (Hetzner / InterServer / Oracle)
 
-### 4. Install Node.js 20+
+If you'd rather run on your own Linux VM:
 
-```bash
-# NodeSource installer for Node 20 LTS
-curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-apt install -y nodejs git
-node --version   # should print v20.x
-```
+### Hetzner
 
-### 5. Deploy the worker
+A **CX22** (2 vCPU / 4 GB RAM) at ~€4.15/month handles the workload easily.
 
-**Private repo?** You can't `git clone` it without credentials. Pick one:
+1. **Sign up** at hetzner.com/cloud (may ask for photo ID verification for some regions).
+2. **Add Server**: location `fsn1` Frankfurt or `nbg1`; image **Ubuntu 24.04**; type **CX22**; add an SSH key; name it `careersasa-worker`; Create & Buy.
+3. **Login**:
+   ```bash
+   ssh -i ~/.ssh/careersasa root@<SERVER_IP>
+   apt update && apt upgrade -y
+   ```
+4. **Install Node 20**:
+   ```bash
+   curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+   apt install -y nodejs git
+   ```
+5. **Deploy** (private repo — use a GitHub deploy key or PAT):
+   ```bash
+   git clone git@github.com:CareerSasaKenya/careerninja.git /opt/careerninja
+   cd /opt/careerninja
+   npm install
+   cp worker/.env.example worker/.env
+   nano worker/.env
+   ```
+6. **Run as a service** — `/etc/systemd/system/careersasa-worker.service`:
+   ```ini
+   [Unit]
+   Description=CareerSasa Background Worker
+   After=network.target
 
-- **Option A — GitHub deploy key (recommended, secure):**
-  ```bash
-  # On the server, generate a key pair for cloning
-  ssh-keygen -t ed25519 -C "careersasa-worker" -f ~/.ssh/github_deploy
-  cat ~/.ssh/github_deploy.pub   # copy this output
-  ```
-  Then on GitHub: repo → **Settings → Deploy keys → Add deploy key** → paste, tick "Allow write access" **off** (read-only is enough), save.
-  ```bash
-  # Back on the server, clone using the deploy key
-  eval "$(ssh-agent -s)"
-  ssh-add ~/.ssh/github_deploy
-  git clone git@github.com:CareerSasaKenya/careerninja.git /opt/careerninja
-  ```
-- **Option B — Personal access token (PAT):**
-  GitHub → profile → **Settings → Developer settings → Personal access tokens → Tokens (classic)** → Generate → scope **repo** → copy token.
-  ```bash
-  git clone https://<YOUR_GITHUB_USERNAME>:<TOKEN>@github.com/CareerSasaKenya/careerninja.git /opt/careerninja
-  ```
+   [Service]
+   Type=simple
+   WorkingDirectory=/opt/careerninja
+   ExecStart=/usr/bin/npm run worker:start
+   Restart=always
+   RestartSec=10
+   Environment=NODE_ENV=production
 
-Then, whichever option:
+   [Install]
+   WantedBy=multi-user.target
+   ```
+   ```bash
+   systemctl daemon-reload
+   systemctl enable --now careersasa-worker
+   systemctl status careersasa-worker
+   ```
 
-```bash
-cd /opt/careerninja
-npm install
+### InterServer
 
-# Env config
-cp worker/.env.example worker/.env
-nano worker/.env    # paste the same Supabase + AI keys as your Vercel project
-```
+US host, card/PayPal signup (no ID verification). **Cloud VPS** starts at ~$6/mo (price-locked). Shared hosting is *not* suitable — you need a VPS for a Node worker. Setup steps are identical to Hetzner above once you have root SSH access.
 
-> `npm install` pulls the full app dependency tree (Next.js, React, etc.) — heavy but harmless on 4 GB RAM. The worker only *executes* code under `worker/` + `src/lib/`.
+### Oracle Cloud Always Free
 
-### 6. Run as a service (systemd)
-
-```bash
-nano /etc/systemd/system/careersasa-worker.service
-```
-
-Paste:
-
-```ini
-[Unit]
-Description=CareerSasa Background Worker
-After=network.target
-
-[Service]
-Type=simple
-WorkingDirectory=/opt/careerninja
-ExecStart=/usr/bin/npm run worker:start
-Restart=always
-RestartSec=10
-Environment=NODE_ENV=production
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Enable + start:
-
-```bash
-systemctl daemon-reload
-systemctl enable --now careersasa-worker
-systemctl status careersasa-worker     # should say "active (running)"
-journalctl -u careersasa-worker -f      # live logs
-```
-
-### 7. First verification
-
-```bash
-cd /opt/careerninja
-npm run worker:discover        # should queue new jobs into Supabase
-npm run worker:process         # processes a few queued items
-```
-
-Then check the Admin → Scraper Sources page on Vercel — pending/done counts should move.
-
-## Alternative: Oracle Cloud Always Free
-
-A genuinely free-forever VPS: **2 OCPU / 12 GB RAM / 200 GB storage** (ARM Ampere A1). Only attempt this if you have a **physical Visa/Mastercard** — Oracle's card verification rejects PIN-based debit, virtual, prepaid, and mobile-money cards. See [oracle.com/cloud/free](https://www.oracle.com/cloud/free/) → sign up → **Compute → Instances → Create instance** → choose the **Ampere A1** shape, paste your public key, and log in as `ubuntu@<PUBLIC_IP>`.
+Free-forever ARM VM (2 OCPU / 12 GB RAM). Only works if you have a **physical Visa/Mastercard** — Oracle's card verification rejects PIN-based debit, virtual, prepaid, and mobile-money cards. Sign up at oracle.com/cloud/free, create an **Ampere A1** instance, and log in as `ubuntu@<PUBLIC_IP>`.
 
 > **Keep the VM busy.** Oracle reclaims Always Free instances idle near-zero CPU/RAM for ~7 days. Your 15-minute scheduler keeps it alive.
 
@@ -209,18 +194,7 @@ Endpoints (all `POST`):
 
 Header: `x-worker-secret: <WORKER_SECRET>`.
 
-The Vercel admin buttons can point here instead of running work inside Vercel API routes. If you do this, update `app/api/admin/scraper-sources/discover/route.ts` and `.../process/route.ts` to proxy to `http://<worker-ip>:8787`.
-
-## Migrating off Vercel crons
-
-Once the worker is stable, remove these entries from `vercel.json` to avoid double-running:
-
-```json
-{ "path": "/api/cron/scrape-discover", "schedule": "0 5 * * *" },
-{ "path": "/api/cron/scrape-process", "schedule": "0 6 * * *" }
-```
-
-Double-running is safe anyway — `job_url` and `content_hash` dedup — but you don't want two sources of truth.
+The Vercel admin buttons can point here instead of running work inside Vercel API routes. If you do this, update `app/api/admin/scraper-sources/discover/route.ts` and `.../process/route.ts` to proxy to `http://<worker-host>:8787`.
 
 ## Notes
 
