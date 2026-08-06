@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { normalizeKenyanPhone, isValidKenyanPhone } from './phone';
 import { generateTransactionReference, parseStkCallback } from './utils';
+import { getPaidJobActionPricing } from './pricing';
 import type { StkCallbackPayload } from './types';
 
 function testPhoneNormalization() {
@@ -68,11 +69,27 @@ function testParseCallbackCancelled() {
   console.log('✓ parse cancelled callback');
 }
 
+function testPaidJobActionPricing() {
+  const promote = getPaidJobActionPricing('promote', 'basic');
+  assert.ok(promote, 'basic promote pricing exists');
+  assert.equal(promote.amount, 1000);
+  assert.equal(promote.durationDays, 7);
+
+  const feature = getPaidJobActionPricing('feature');
+  assert.ok(feature, 'feature pricing exists');
+  assert.equal(feature.amount, 2000);
+
+  assert.equal(getPaidJobActionPricing('feature', 'basic'), undefined);
+  assert.equal(getPaidJobActionPricing('promote', 'enterprise'), undefined);
+  console.log('✓ paid job action pricing');
+}
+
 function main() {
   testPhoneNormalization();
   testTransactionReference();
   testParseCallbackSuccess();
   testParseCallbackCancelled();
+  testPaidJobActionPricing();
   console.log('All M-Pesa unit tests passed');
 }
 

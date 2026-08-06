@@ -15,5 +15,6 @@ export {
 export {
   createPendingPaymentAndStkPush,
   requireAuthenticatedUser,
+  applyPaidJobBenefit,
 } from './payments';
 export type * from './types';

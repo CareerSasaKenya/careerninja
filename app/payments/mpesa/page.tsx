@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import MobileNav from "@/components/MobileNav";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2, Smartphone } from "lucide-react";
+import { getPaidJobActionPricing } from "@/lib/mpesa/pricing";
 
 type PaymentStatus = "PENDING" | "SUCCESS" | "FAILED" | "CANCELLED";
 
@@ -33,9 +35,24 @@ interface StatusData {
 
 export default function MpesaPaymentPage() {
   const { user, session, loading: authLoading } = useAuth();
+  const searchParams = useSearchParams();
+  const presetAction = searchParams.get("action");
+  const presetJobId = searchParams.get("jobId");
+  const presetTier = searchParams.get("tier") || undefined;
+  const presetPricing =
+    presetAction === "promote" || presetAction === "feature"
+      ? getPaidJobActionPricing(presetAction, presetTier)
+      : undefined;
+
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [amount, setAmount] = useState("1");
-  const [description, setDescription] = useState("CareerSasa sandbox payment");
+  const [amount, setAmount] = useState(
+    presetPricing ? String(presetPricing.amount) : "1"
+  );
+  const [description, setDescription] = useState(
+    presetPricing
+      ? `CareerSasa ${presetPricing.label}`
+      : "CareerSasa sandbox payment"
+  );
   const [submitting, setSubmitting] = useState(false);
   const [stkData, setStkData] = useState<StkPushData | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<StatusData | null>(null);
@@ -109,6 +126,13 @@ export default function MpesaPaymentPage() {
           phoneNumber,
           amount: Number(amount),
           description,
+          ...(presetAction && presetJobId
+            ? {
+                action: presetAction,
+                jobId: presetJobId,
+                tier: presetTier,
+              }
+            : {}),
         }),
       });
 
@@ -156,7 +180,9 @@ export default function MpesaPaymentPage() {
             </div>
             <h1 className="text-3xl font-bold text-foreground">M-Pesa Payment</h1>
             <p className="text-muted-foreground">
-              Sandbox STK Push test — enter a phone number and amount, then confirm on your phone.
+              {presetPricing
+                ? `${presetPricing.label} — complete the M-Pesa prompt on your phone to confirm.`
+                : "Sandbox STK Push test — enter a phone number and amount, then confirm on your phone."}
             </p>
           </div>
 
@@ -203,6 +229,7 @@ export default function MpesaPaymentPage() {
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   required
+                  readOnly={!!presetPricing}
                 />
               </div>
 

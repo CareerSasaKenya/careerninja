@@ -65,50 +65,6 @@ export function BulkJobActions({ selectedJobIds, onComplete, open, onOpenChange 
 
   function renderParameterInputs() {
     switch (actionType) {
-      case 'promote':
-        return (
-          <>
-            <div>
-              <Label>Promotion Tier</Label>
-              <Select
-                value={parameters.tier || 'basic'}
-                onValueChange={(value) => setParameters({ ...parameters, tier: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="basic">Basic</SelectItem>
-                  <SelectItem value="premium">Premium</SelectItem>
-                  <SelectItem value="enterprise">Enterprise</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Duration (days)</Label>
-              <Input
-                type="number"
-                value={parameters.duration_days || 7}
-                onChange={(e) => setParameters({ ...parameters, duration_days: parseInt(e.target.value) })}
-                min={1}
-                max={90}
-              />
-            </div>
-          </>
-        );
-      case 'feature':
-        return (
-          <div>
-            <Label>Duration (days)</Label>
-            <Input
-              type="number"
-              value={parameters.duration_days || 7}
-              onChange={(e) => setParameters({ ...parameters, duration_days: parseInt(e.target.value) })}
-              min={1}
-              max={90}
-            />
-          </div>
-        );
       case 'update_status':
         return (
           <div>
@@ -154,9 +110,7 @@ export function BulkJobActions({ selectedJobIds, onComplete, open, onOpenChange 
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="update_status">Update Status</SelectItem>
-                <SelectItem value="promote">Promote Jobs</SelectItem>
                 <SelectItem value="unpromote">Remove Promotion</SelectItem>
-                <SelectItem value="feature">Feature Jobs</SelectItem>
                 <SelectItem value="unfeature">Remove Featured</SelectItem>
                 <SelectItem value="renew">Renew Jobs</SelectItem>
                 <SelectItem value="expire">Expire Jobs</SelectItem>

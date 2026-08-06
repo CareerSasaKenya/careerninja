@@ -11,6 +11,104 @@ export type UserAuthResult =
   | { ok: true; user: User; adminClient: SupabaseClient }
   | { ok: false; status: number; message: string };
 
+export interface PaidJobBenefitInput {
+  metadata: Record<string, unknown> | null;
+  userId: string | null;
+}
+
+export interface PaidJobBenefitResult {
+  applied: boolean;
+  action?: string;
+  jobId?: string;
+}
+
+/**
+ * Apply a paid job benefit (promote / feature) after a successful M-Pesa payment.
+ *
+ * Called from the Daraja callback (service role), so it updates jobs directly
+ * rather than via the promote_job / feature_job RPCs, which scope to auth.uid().
+ * The job is verified to belong to the paying user to prevent cross-user benefits.
+ */
+export async function applyPaidJobBenefit(
+  adminClient: SupabaseClient,
+  payment: PaidJobBenefitInput
+): Promise<PaidJobBenefitResult> {
+  const action = typeof payment.metadata?.action === 'string' ? payment.metadata.action : undefined;
+  const jobId = typeof payment.metadata?.jobId === 'string' ? payment.metadata.jobId : undefined;
+
+  if (!action || !jobId) {
+    return { applied: false };
+  }
+
+  const tier = typeof payment.metadata.tier === 'string' ? payment.metadata.tier : 'basic';
+  const durationDays = Math.max(1, Number(payment.metadata.durationDays) || 7);
+  const now = new Date();
+  const endDate = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000).toISOString();
+
+  const { data: job, error: jobError } = await adminClient
+    .from('jobs')
+    .select('id, user_id')
+    .eq('id', jobId)
+    .maybeSingle();
+
+  if (jobError || !job) {
+    console.warn('[M-Pesa] Benefit job not found', { jobId, error: jobError });
+    return { applied: false };
+  }
+
+  if (payment.userId && job.user_id && job.user_id !== payment.userId) {
+    console.warn('[M-Pesa] Benefit ownership mismatch, skipping', {
+      jobId,
+      payer: payment.userId,
+      owner: job.user_id,
+    });
+    return { applied: false };
+  }
+
+  let error: { message?: string } | null = null;
+
+  if (action === 'promote') {
+    const result = await adminClient
+      .from('jobs')
+      .update({
+        is_promoted: true,
+        promotion_tier: tier,
+        promotion_start_date: now.toISOString(),
+        promotion_end_date: endDate,
+        updated_at: now.toISOString(),
+      })
+      .eq('id', jobId);
+    error = result.error;
+  } else if (action === 'feature') {
+    const result = await adminClient
+      .from('jobs')
+      .update({
+        is_featured: true,
+        featured_until: endDate,
+        updated_at: now.toISOString(),
+      })
+      .eq('id', jobId);
+    error = result.error;
+  } else {
+    console.warn('[M-Pesa] Unknown benefit action, skipping', { action });
+    return { applied: false };
+  }
+
+  if (error) {
+    console.error('[M-Pesa] Failed to apply paid job benefit', { jobId, action, error });
+    return { applied: false };
+  }
+
+  console.info('[M-Pesa] Paid job benefit applied', {
+    jobId,
+    action,
+    tier,
+    durationDays,
+    paymentUser: payment.userId,
+  });
+  return { applied: true, action, jobId };
+}
+
 export async function requireAuthenticatedUser(
   request: NextRequest
 ): Promise<UserAuthResult> {

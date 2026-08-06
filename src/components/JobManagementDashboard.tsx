@@ -10,8 +10,6 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import {
   duplicateJob,
-  promoteJob,
-  featureJob,
   renewJob,
   setAutoRenew,
   setJobExpiration,
@@ -21,6 +19,8 @@ import {
 } from '@/lib/jobManagement';
 import { JobTemplatesManager } from './JobTemplatesManager';
 import { BulkJobActions } from './BulkJobActions';
+import { MpesaCheckoutDialog } from './payments/MpesaCheckoutDialog';
+import { getPaidJobActionPricing } from '@/lib/mpesa/pricing';
 import {
   Copy,
   Star,
@@ -39,6 +39,15 @@ export function JobManagementDashboard() {
   const [loading, setLoading] = useState(true);
   const [bulkActionsOpen, setBulkActionsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
+  const [checkout, setCheckout] = useState<{
+    jobId: string;
+    jobTitle: string;
+    action: 'promote' | 'feature';
+    tier?: string;
+    amount: number;
+    label: string;
+    description: string;
+  } | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -113,32 +122,45 @@ export function JobManagementDashboard() {
     }
   }
 
-  async function handlePromote(jobId: string) {
-    try {
-      await promoteJob(jobId, 'basic', 7);
-      toast({ title: 'Job promoted successfully' });
-      loadJobs();
-    } catch (error: any) {
+  function openPromoteCheckout(job: any) {
+    const pricing = getPaidJobActionPricing('promote', 'basic');
+    if (!pricing) {
       toast({
-        title: 'Error',
-        description: error.message,
+        title: 'Promote unavailable',
+        description: 'No pricing is configured for promoting jobs.',
         variant: 'destructive'
       });
+      return;
     }
+    setCheckout({
+      jobId: job.id,
+      jobTitle: job.title,
+      action: 'promote',
+      tier: pricing.tier,
+      amount: pricing.amount,
+      label: pricing.label,
+      description: pricing.description
+    });
   }
 
-  async function handleFeature(jobId: string) {
-    try {
-      await featureJob(jobId, 7);
-      toast({ title: 'Job featured successfully' });
-      loadJobs();
-    } catch (error: any) {
+  function openFeatureCheckout(job: any) {
+    const pricing = getPaidJobActionPricing('feature');
+    if (!pricing) {
       toast({
-        title: 'Error',
-        description: error.message,
+        title: 'Feature unavailable',
+        description: 'No pricing is configured for featuring jobs.',
         variant: 'destructive'
       });
+      return;
     }
+    setCheckout({
+      jobId: job.id,
+      jobTitle: job.title,
+      action: 'feature',
+      amount: pricing.amount,
+      label: pricing.label,
+      description: pricing.description
+    });
   }
 
   async function handleRenew(jobId: string) {
@@ -234,13 +256,13 @@ export function JobManagementDashboard() {
                 Duplicate
               </Button>
               {!job.is_promoted && (
-                <Button size="sm" variant="outline" onClick={() => handlePromote(job.id)}>
+                <Button size="sm" variant="outline" onClick={() => openPromoteCheckout(job)}>
                   <TrendingUp className="h-4 w-4 mr-1" />
                   Promote
                 </Button>
               )}
               {!job.is_featured && (
-                <Button size="sm" variant="outline" onClick={() => handleFeature(job.id)}>
+                <Button size="sm" variant="outline" onClick={() => openFeatureCheckout(job)}>
                   <Star className="h-4 w-4 mr-1" />
                   Feature
                 </Button>
@@ -388,6 +410,25 @@ export function JobManagementDashboard() {
         open={bulkActionsOpen}
         onOpenChange={setBulkActionsOpen}
       />
+
+      {checkout && (
+        <MpesaCheckoutDialog
+          open={!!checkout}
+          onOpenChange={(open) => {
+            if (!open) setCheckout(null);
+          }}
+          title={`${checkout.label}${checkout.jobTitle ? ` — ${checkout.jobTitle}` : ''}`}
+          description={checkout.description}
+          amount={checkout.amount}
+          jobId={checkout.jobId}
+          action={checkout.action}
+          tier={checkout.tier}
+          onSuccess={() => {
+            setCheckout(null);
+            loadJobs();
+          }}
+        />
+      )}
     </div>
   );
 }

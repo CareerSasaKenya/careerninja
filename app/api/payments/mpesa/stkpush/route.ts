@@ -5,10 +5,15 @@ import {
   isValidKenyanPhone,
   requireAuthenticatedUser,
 } from '@/lib/mpesa';
+import { getPaidJobActionPricing } from '@/lib/mpesa/pricing';
 
 /**
  * POST /api/payments/mpesa/stkpush
- * Body: { amount: number, phoneNumber: string, description?: string, jobId?: string }
+ * Body: { amount: number, phoneNumber: string, description?: string, jobId?: string,
+ *         action?: 'promote' | 'feature', tier?: 'basic' | 'premium' | 'enterprise' }
+ *
+ * When `action` is provided, the amount is validated against the configured
+ * pricing for that action/tier so clients cannot underpay.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -31,6 +36,8 @@ export async function POST(request: NextRequest) {
     const description =
       typeof body.description === 'string' ? body.description.trim() : undefined;
     const jobId = typeof body.jobId === 'string' ? body.jobId : undefined;
+    const action = body.action;
+    const tier = typeof body.tier === 'string' ? body.tier : undefined;
 
     if (!Number.isFinite(amount) || amount < 1) {
       return NextResponse.json(
@@ -46,12 +53,49 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    let metadata: Record<string, unknown> | undefined;
+
+    if (action) {
+      if (action !== 'promote' && action !== 'feature') {
+        return NextResponse.json(
+          { error: 'action must be "promote" or "feature"' },
+          { status: 400 }
+        );
+      }
+      const pricing = getPaidJobActionPricing(action, tier);
+      if (!pricing) {
+        return NextResponse.json(
+          { error: `No pricing configured for action "${action}"${tier ? ` and tier "${tier}"` : ''}` },
+          { status: 400 }
+        );
+      }
+      if (amount !== pricing.amount) {
+        return NextResponse.json(
+          { error: `Amount must be exactly KES ${pricing.amount} for ${pricing.label}` },
+          { status: 400 }
+        );
+      }
+      if (!jobId) {
+        return NextResponse.json(
+          { error: 'jobId is required for a paid job action' },
+          { status: 400 }
+        );
+      }
+      metadata = {
+        action,
+        tier: pricing.tier || null,
+        durationDays: pricing.durationDays,
+        jobId,
+      };
+    }
+
     const result = await createPendingPaymentAndStkPush(auth.adminClient, {
       amount,
       phoneNumber,
       description,
       userId: auth.user.id,
       jobId,
+      metadata,
     });
 
     return NextResponse.json({
