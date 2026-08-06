@@ -35,6 +35,28 @@ export default function ProfilePage() {
             .from('candidate_profiles')
             .update(updates)
             .eq('id', profile.id);
+
+          // Keep user_profiles in sync so the admin dashboard shows the same
+          // name/phone details. Best-effort: never fail CV parsing over this.
+          const profileSync: any = {};
+          if (updates.full_name) {
+            const parts = String(updates.full_name).trim().split(/\s+/);
+            profileSync.first_name = parts[0] || null;
+            profileSync.last_name = parts.slice(1).join(' ') || null;
+            profileSync.full_name = updates.full_name;
+          }
+          if (updates.phone) profileSync.phone = updates.phone;
+
+          if (Object.keys(profileSync).length > 0) {
+            try {
+              await supabase.from('user_profiles').upsert(
+                { id: profile.user_id, ...profileSync },
+                { onConflict: 'id' }
+              );
+            } catch (syncError) {
+              console.error('Error syncing user_profiles after CV parse:', syncError);
+            }
+          }
         }
       }
 

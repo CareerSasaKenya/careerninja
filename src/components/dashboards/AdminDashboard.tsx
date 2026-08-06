@@ -35,10 +35,15 @@ interface Job {
 
 interface AdminUser {
   id: string;
+  email: string | null;
   full_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  phone: string | null;
   avatar_url: string | null;
   role: string | null;
   created_at: string;
+  last_sign_in_at: string | null;
   // Joined from candidate_profiles (may be null for non-candidates)
   candidate_profiles: {
     id: string;
@@ -145,22 +150,26 @@ const AdminDashboard = () => {
       const jobsResult = await jobQuery.range(from, to);
       const jobsCountResult = await countQuery;
 
-      const [usersResult, blogPostsResult, commentsResult] = await Promise.all([
-        supabase.from("user_profiles").select(`
-          id,
-          full_name,
-          avatar_url,
-          role,
-          created_at,
-          candidate_profiles (
-            id,
-            current_title,
-            location,
-            phone,
-            profile_completeness_score,
-            profile_visibility
-          )
-        `).order("created_at", { ascending: false }),
+      // Fetch users from the admin API so we get real signup dates from
+      // auth.users.created_at (user_profiles.created_at was backfilled).
+      let usersData: AdminUser[] = [];
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const res = await fetch("/api/admin/users", {
+          headers: { Authorization: `Bearer ${session?.access_token}` },
+        });
+        if (res.ok) {
+          const json = await res.json();
+          usersData = (json.users || []) as AdminUser[];
+        } else {
+          console.error("Users API error:", res.status);
+        }
+      } catch (err) {
+        console.error("Failed to fetch users:", err);
+      }
+      setUsers(usersData);
+
+      const [blogPostsResult, commentsResult] = await Promise.all([
         supabase.from("blog_posts").select("id, title, slug, category, created_at, author_id, status, reading_time").order("created_at", { ascending: false }),
         supabase.from("blog_comments").select("id, post_id, author_name, author_email, content, approved, created_at, blog_posts(title, slug)").order("created_at", { ascending: false }).limit(50),
       ]);
@@ -174,13 +183,6 @@ const AdminDashboard = () => {
 
       if (jobsCountResult.count !== null) {
         setTotalJobs(jobsCountResult.count);
-      }
-
-      if (usersResult.error) {
-        toast.error("Failed to load users");
-        console.error("Users fetch error:", usersResult.error);
-      } else {
-        setUsers((usersResult.data || []) as unknown as AdminUser[]);
       }
 
       if (blogPostsResult.error) {
@@ -757,6 +759,9 @@ const AdminDashboard = () => {
                     <TableHeader>
                       <TableRow>
                         <TableHead>User</TableHead>
+                        <TableHead>First Name</TableHead>
+                        <TableHead>Last Name</TableHead>
+                        <TableHead>Phone</TableHead>
                         <TableHead>Role</TableHead>
                         <TableHead>Current Title</TableHead>
                         <TableHead>Location</TableHead>
@@ -767,6 +772,9 @@ const AdminDashboard = () => {
                     <TableBody>
                       {users.map((user) => {
                         const cp = user.candidate_profiles?.[0] ?? null;
+                        const displayName =
+                          [user.first_name, user.last_name].filter(Boolean).join(" ").trim() ||
+                          user.full_name;
                         return (
                           <TableRow key={user.id}>
                             <TableCell>
@@ -774,7 +782,7 @@ const AdminDashboard = () => {
                                 {user.avatar_url ? (
                                   <img
                                     src={user.avatar_url}
-                                    alt={user.full_name || 'User'}
+                                    alt={displayName || 'User'}
                                     className="h-9 w-9 rounded-full object-cover ring-1 ring-border"
                                   />
                                 ) : (
@@ -782,13 +790,22 @@ const AdminDashboard = () => {
                                 )}
                                 <div className="flex flex-col">
                                   <span className="font-medium text-sm leading-tight">
-                                    {user.full_name || <span className="text-muted-foreground italic">No name</span>}
+                                    {displayName || <span className="text-muted-foreground italic">No name</span>}
                                   </span>
-                                  <span className="text-xs text-muted-foreground font-mono truncate max-w-[140px]">
-                                    {user.id}
+                                  <span className="text-xs text-muted-foreground truncate max-w-[180px]">
+                                    {user.email || user.id}
                                   </span>
                                 </div>
                               </div>
+                            </TableCell>
+                            <TableCell className="text-sm">
+                              {user.first_name || <span className="text-muted-foreground">—</span>}
+                            </TableCell>
+                            <TableCell className="text-sm">
+                              {user.last_name || <span className="text-muted-foreground">—</span>}
+                            </TableCell>
+                            <TableCell className="text-sm">
+                              {user.phone || cp?.phone || <span className="text-muted-foreground">—</span>}
                             </TableCell>
                             <TableCell>
                               <Badge variant={user.role === 'admin' ? 'default' : user.role === 'employer' ? 'outline' : 'secondary'}>

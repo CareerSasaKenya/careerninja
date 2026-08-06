@@ -19,6 +19,12 @@ const authSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters").max(72, "Password too long"),
 });
 
+const signupSchema = authSchema.extend({
+  firstName: z.string().trim().min(1, "First name is required").max(100, "First name too long"),
+  lastName: z.string().trim().min(1, "Last name is required").max(100, "Last name too long"),
+  phone: z.string().trim().max(50, "Phone number too long").optional().or(z.literal("")),
+});
+
 export default function AuthPage() {
   const router = useRouter();
   const { user } = useAuth();
@@ -27,6 +33,9 @@ export default function AuthPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState<"employer" | "candidate" | "admin">("candidate");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
 
   useEffect(() => {
     if (user) {
@@ -37,7 +46,7 @@ export default function AuthPage() {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const validation = authSchema.safeParse({ email, password });
+    const validation = signupSchema.safeParse({ email, password, firstName, lastName, phone });
     if (!validation.success) {
       toast.error(validation.error.errors[0].message);
       return;
@@ -52,6 +61,10 @@ export default function AuthPage() {
         emailRedirectTo: `${window.location.origin}/`,
         data: {
           role: role,
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          phone: phone.trim() || null,
+          full_name: `${firstName.trim()} ${lastName.trim()}`.trim(),
         },
       },
     });
@@ -65,6 +78,24 @@ export default function AuthPage() {
         toast.error(error.message);
       }
       return;
+    }
+
+    // Persist the signup details into user_profiles so they appear in the
+    // admin dashboard's user list. Best-effort: never fail signup over this.
+    // Note: role is deliberately NOT written here — the DB signup trigger owns
+    // user_profiles.role (a trigger rejects non-admin role updates).
+    if (data.user) {
+      try {
+        await supabase.from("user_profiles").upsert({
+          id: data.user.id,
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          phone: phone.trim() || null,
+          full_name: `${firstName.trim()} ${lastName.trim()}`.trim(),
+        }, { onConflict: "id" });
+      } catch (profileErr) {
+        console.error("Failed to persist signup details to user_profiles:", profileErr);
+      }
     }
 
     toast.success("Account created successfully! You can now sign in.");
@@ -183,6 +214,43 @@ export default function AuthPage() {
               
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-first-name">First Name</Label>
+                      <Input
+                        id="signup-first-name"
+                        type="text"
+                        placeholder="Jane"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        required
+                        autoComplete="given-name"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-last-name">Last Name</Label>
+                      <Input
+                        id="signup-last-name"
+                        type="text"
+                        placeholder="Doe"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        required
+                        autoComplete="family-name"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-phone">Phone (optional)</Label>
+                    <Input
+                      id="signup-phone"
+                      type="tel"
+                      placeholder="+254 700 000 000"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      autoComplete="tel"
+                    />
+                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-email">Email</Label>
                     <Input

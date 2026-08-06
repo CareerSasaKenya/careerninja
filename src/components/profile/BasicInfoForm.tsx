@@ -21,8 +21,12 @@ interface BasicInfoFormProps {
 export default function BasicInfoForm({ profile, onUpdate }: BasicInfoFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Split the stored full name into first/last for the separate inputs.
+  const nameParts = (profile?.full_name || '').trim().split(/\s+/);
   const [formData, setFormData] = useState({
-    full_name: profile?.full_name || '',
+    first_name: nameParts[0] || '',
+    last_name: nameParts.slice(1).join(' ') || '',
     phone: profile?.phone || '',
     location: profile?.location || '',
     bio: profile?.bio || '',
@@ -58,7 +62,7 @@ export default function BasicInfoForm({ profile, onUpdate }: BasicInfoFormProps)
 
       const profileData = {
         user_id: user.id,
-        full_name: formData.full_name,
+        full_name: `${formData.first_name} ${formData.last_name}`.trim(),
         phone: formData.phone || null,
         location: formData.location || null,
         bio: formData.bio || null,
@@ -101,6 +105,25 @@ export default function BasicInfoForm({ profile, onUpdate }: BasicInfoFormProps)
         if (error) throw error;
       }
 
+      // Keep user_profiles in sync so the admin dashboard shows the same
+      // name/phone details. Best-effort: don't fail the save if this fails.
+      try {
+        await (supabase as any)
+          .from('user_profiles')
+          .upsert(
+            {
+              id: user.id,
+              first_name: formData.first_name,
+              last_name: formData.last_name,
+              full_name: `${formData.first_name} ${formData.last_name}`.trim(),
+              phone: formData.phone || null,
+            },
+            { onConflict: 'id' }
+          );
+      } catch (syncError) {
+        console.error('Error syncing user_profiles:', syncError);
+      }
+
       toast({
         title: 'Profile updated',
         description: 'Your profile has been saved successfully',
@@ -128,24 +151,34 @@ export default function BasicInfoForm({ profile, onUpdate }: BasicInfoFormProps)
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="full_name">Full Name *</Label>
+              <Label htmlFor="first_name">First Name *</Label>
               <Input
-                id="full_name"
-                value={formData.full_name}
-                onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                id="first_name"
+                value={formData.first_name}
+                onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
+              <Label htmlFor="last_name">Last Name *</Label>
               <Input
-                id="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                id="last_name"
+                value={formData.last_name}
+                onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                required
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="phone">Phone Number</Label>
+            <Input
+              id="phone"
+              type="tel"
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            />
           </div>
 
           <div className="space-y-2">
