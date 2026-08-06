@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { FormEvent, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
@@ -34,6 +34,14 @@ interface StatusData {
 }
 
 export default function MpesaPaymentPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center py-24"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>}>
+      <MpesaPaymentContent />
+    </Suspense>
+  );
+}
+
+function MpesaPaymentContent() {
   const { user, session, loading: authLoading } = useAuth();
   const searchParams = useSearchParams();
   const presetAction = searchParams.get("action");
