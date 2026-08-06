@@ -7,86 +7,68 @@ It imports the **same code** the Vercel routes use (`src/lib/scrapeDiscover.ts`,
 ## Architecture
 
 ```text
-Vercel (storefront)                    Railway (worker)
-  website / API                       built-in cron:
-  admin dashboard                       discover   → scraper_sources → scrape_queue
-  discover/process buttons ──HTTP──►     process    → scrape_queue → jobs + scraped_job_sources
+Vercel (storefront)                    GitHub Actions (worker)
+  website / API                         scheduled workflows:
+  admin dashboard                         discover   → scraper_sources → scrape_queue
+  discover/process buttons ──HTTP──►       process    → scrape_queue → jobs + scraped_job_sources
                           (optional)
                       └─────────── Supabase (single source of truth) ──────────┘
 ```
 
 - Worker reads/writes Supabase **directly** with the service-role key (same as Vercel routes).
-- Discover and process are separate cron jobs so they can run at different cadences.
+- Discover and process are separate scheduled workflows so they can run at different cadences.
 - An optional HTTP server (`WORKER_HTTP_PORT`) lets the Vercel admin dashboard proxy its Discover/Process buttons to the worker later.
 
-## Recommended: Railway (no server to manage)
+## Recommended: GitHub Actions (free, no servers)
 
-Railway is a platform-as-a-service — you connect your GitHub repo, and it builds and runs the worker for you. No SSH, no systemd, no OS upkeep. Its built-in cron runs your jobs on schedule and only charges for the time the worker actually runs.
+GitHub Actions runs the worker on scheduled workflows. Because `careerninja` is a **public** repository, Actions minutes are **unlimited** — the heavy scraping runs at zero cost, and Vercel only serves the website.
 
-**Cost for CareerSasa:** roughly $4–6/month (Hobby plan, $5/mo including $5 of usage). The worker is idle most of the time, so usage is low.
+Two workflows are committed in `.github/workflows/`:
 
-### 1. Create the account
+| Workflow | Cron (UTC) | What it does |
+|----------|------------|--------------|
+| `discover.yml` | `0 */3 * * *` (every 3h) | Sweep all active sources, queue new job links (10-min budget) |
+| `process.yml` | `*/15 * * * *` (every 15 min) | Drain the queue — fetch details, AI-enrich, publish (batch up to 25) |
 
-1. Go to **railway.com** → **Sign up** (login with GitHub is easiest).
-2. Choose the **Hobby** plan when asked ($5/mo). The free trial ($5 credit, no card) also works to start.
-3. No ID verification — just a GitHub account and, later, a card for the paid plan.
+This matches the Vercel cron cadence, so published-job freshness is unchanged.
 
-### 2. Add the repo
+### 1. Add the secrets (one time)
 
-1. In Railway, click **New Project** → **Deploy from GitHub repo**.
-2. Authorize Railway to access your GitHub, then pick **`careerninja`**.
-3. Railway will detect the repo. Since we ship a **`Dockerfile`** at the repo root, Railway builds the worker image from it automatically. (Vercel ignores the Dockerfile and keeps building the Next.js site.)
+Repo → **Settings → Secrets and variables → Actions** → **New repository secret**. Add the same values your Vercel project uses:
 
-### 3. Create the two cron services
-
-The worker supports one-shot modes that run, publish, and exit — exactly what Railway cron needs. Create **two services** from the same repo:
-
-| Service | Start command | Cron schedule (UTC) | What it does |
-|---------|---------------|---------------------|--------------|
-| `discover` | `npm run worker:discover` | `0 5 * * *` | Daily 05:00 — find new job links and queue them |
-| `process` | `npm run worker:process` | `*/15 * * * *` | Every 15 min — fetch details, AI-enrich, publish |
-
-In Railway, for each service:
-
-1. **New Project → Deploy from GitHub repo → `careerninja`** (or create a second service in an existing project).
-2. Open the service → **Settings → Deploy** → set **Start Command** to the command above (overrides the Dockerfile's default `npm run worker:start`).
-3. **Settings → Cron Schedule** → enter the cron expression. Railway schedules are UTC.
-4. Remove the **TCP/HTTP port** binding if Railway auto-detects one — the worker doesn't serve web traffic in cron mode.
-
-> Railway cron caveats: minimum interval is **5 minutes**, schedules run in **UTC**, and only one run of a service may be active at a time (a run that hangs blocks the next one). Our worker exits cleanly after each run, so that's fine.
-
-### 4. Set environment variables
-
-In each service → **Variables**, add the same values your Vercel project uses:
-
-| Variable | Where to get it |
-|----------|-----------------|
+| Secret | Where to get it |
+|--------|-----------------|
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API (service_role, **secret** — never expose it) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API (service_role — **secret**, never expose it) |
 | `SCRAPER_USER_ID` | The user ID that owns scraped jobs (from your Vercel env or Supabase `auth.users`) |
 | `DEEPSEEK_API_KEY` | DeepSeek platform |
-| `DEEPSEEK_MODEL` | Optional, defaults to `deepseek-v4-flash` |
-| `GEMINI_API_KEY` / `_2` / `_3` | Optional backup keys (Gemini is the fallback provider) |
-| `WORKER_PROCESS_BATCH` | Optional, default `10` — queue items per process run |
+| `DEEPSEEK_MODEL` | Optional — defaults to `deepseek-v4-flash` |
+| `GEMINI_API_KEY` / `_2` / `_3` | Optional — Gemini is the fallback provider |
 
-> Put the variables in **both** services (Railway does not share variables across services automatically). A project-level variable template can be set in **Project → Variables**.
+### 2. Run it manually once
 
-### 5. Verify
+Repo → **Actions** → pick **Scrape Discover** → **Run workflow** (leave inputs blank). Watch the run finish green. Then run **Scrape Process** the same way.
 
-1. Open the `discover` service → **Deployments** → the cron will trigger at 05:00 UTC, or click **Redeploy** to run it now.
-2. Open **Logs** — you should see discover output and, in `process`, published jobs.
-3. Check the Admin → Scraper Sources page on Vercel — pending/done counts should move.
+> The workflows also fire on their cron automatically — discover every 3h, process every 15 min.
 
-### 6. Migrate off the Vercel crons
+### 3. Verify quality/output is unchanged
 
-Once the Railway worker is stable, remove these entries from `vercel.json` to avoid double-running:
+- Check the Admin → Scraper Sources page — pending/done counts move after a process run.
+- Confirm jobs appear on the site with the same fields as before (identical code paths in `src/lib/`).
+- Check the Actions run logs for discover queued counts and process published counts.
+
+### 4. Turn off the Vercel scrape crons (once stable)
+
+Once the Actions worker has run successfully a few times, remove the scrape entries from `vercel.json` to stop burning Vercel credits:
 
 ```json
-{ "path": "/api/cron/scrape-discover", "schedule": "0 5 * * *" },
-{ "path": "/api/cron/scrape-process", "schedule": "0 6 * * *" }
+{ "path": "/api/cron/scrape-discover", "schedule": "0 */4 * * *" },
+{ "path": "/api/cron/scrape-process", "schedule": "*/15 * * * *" }
 ```
 
-Double-running is safe anyway — `job_url` and `content_hash` dedup — but you don't want two sources of truth.
+Keep the other crons (`expire-jobs`, `auto-renew-jobs`, etc.) on Vercel — they're lightweight.
+
+> During the transition, running both Vercel and Actions is safe — `job_url` and `content_hash` dedup prevent duplicates.
 
 ## Alternative: VPS (Hetzner / InterServer / Oracle)
 

@@ -19,6 +19,8 @@ export const env = {
   processBatch: parseInt(optional('WORKER_PROCESS_BATCH', '10'), 10) || 10,
   /** Soft time budget per process run (ms). Defaults to 240s — safe under most hosts. */
   processBudgetMs: parseInt(optional('WORKER_PROCESS_BUDGET_MS', '240000'), 10) || 240000,
+  /** Soft time budget per discover run (ms). GitHub Actions has no hard Vercel cap. */
+  discoverBudgetMs: parseInt(optional('WORKER_DISCOVER_BUDGET_MS', '600000'), 10) || 600000,
 
   httpPort: process.env.WORKER_HTTP_PORT ? parseInt(process.env.WORKER_HTTP_PORT, 10) : 0,
   workerSecret: optional('WORKER_SECRET', ''),

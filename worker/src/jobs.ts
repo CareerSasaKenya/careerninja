@@ -10,7 +10,12 @@ import { env } from './env'
  */
 export async function runDiscover(sourceId?: string) {
   const supabase = createServiceRoleClient()
-  const result = await runScrapeDiscover(supabase, { sourceId })
+  const result = await runScrapeDiscover(supabase, {
+    sourceId,
+    // GitHub Actions has no 300s Vercel limit — use a generous sweep budget
+    // so one discover run can cover all sources (default 10 min).
+    budgetMs: env.discoverBudgetMs,
+  })
   return result
 }
 
