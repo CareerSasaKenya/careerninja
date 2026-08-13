@@ -25,6 +25,7 @@
     "worker:discover": "tsx worker/src/index.ts discover",
     "worker:process": "tsx worker/src/index.ts process",
     "worker:process:n": "tsx worker/src/index.ts process 5",
+    "worker:enrich": "tsx worker/src/index.ts enrich",
     "worker:start": "tsx worker/src/index.ts schedule",
     "worker:server": "tsx worker/src/index.ts server",
     "postbuild": "next-sitemap"

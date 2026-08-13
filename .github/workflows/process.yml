@@ -2,8 +2,10 @@ name: Scrape Process
 
 on:
   schedule:
-    # Every 15 minutes. Drain the scrape queue (fetch details → AI enrich → publish).
-    # Matches the Vercel cron cadence so published-job freshness is unchanged.
+    # 15-minute tick. Each tick has a ~85% chance of running, so the gap between
+    # actual process runs is randomized (mean ≈ 17.6 min, range ~0–30 min) plus a
+    # 0–12 min jitter so runs never fire on a fixed clock. Manual dispatch
+    # (UI / API) always runs.
     - cron: '*/15 * * * *'
   workflow_dispatch:
     inputs:
@@ -20,8 +22,39 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  decide:
+    name: Decide whether to run
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.decide.outputs.run }}
+      jitter: ${{ steps.decide.outputs.jitter }}
+    steps:
+      - name: Randomize scheduled tick
+        id: decide
+        shell: bash
+        run: |
+          # Manual dispatch always runs immediately (no skip, no jitter).
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "run=1" >> "$GITHUB_OUTPUT"
+            echo "jitter=0" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # ~85% of 15-min ticks → mean interval ≈ 17.6 min (natural variance).
+          if [ $(( RANDOM % 100 )) -lt 85 ]; then
+            echo "run=1" >> "$GITHUB_OUTPUT"
+            echo "jitter=$(( RANDOM % 720 ))" >> "$GITHUB_OUTPUT" # 0–12 min
+          else
+            echo "run=0" >> "$GITHUB_OUTPUT"
+            echo "jitter=0" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Note skipped tick
+        if: steps.decide.outputs.run != '1'
+        run: echo "Skipped this scheduled tick — next process run time is randomized."
+
   process:
     name: Process queue
+    needs: decide
+    if: needs.decide.outputs.run == '1'
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
@@ -30,6 +63,7 @@ jobs:
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       SCRAPER_USER_ID: ${{ secrets.SCRAPER_USER_ID }}
       DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+      DEEPSEEK_API_KEY_2: ${{ secrets.DEEPSEEK_API_KEY_2 }}
       DEEPSEEK_MODEL: ${{ secrets.DEEPSEEK_MODEL }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
@@ -38,6 +72,10 @@ jobs:
       WORKER_PROCESS_BUDGET_MS: '240000'
 
     steps:
+      - name: Wait randomized jitter
+        shell: bash
+        run: sleep "${{ needs.decide.outputs.jitter }}"
+
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4

@@ -1,5 +1,7 @@
 import { runScrapeDiscover } from '../../src/lib/scrapeDiscover'
 import { runScrapeProcessBatch } from '../../src/lib/scrapeProcess'
+import { enrichJobsNeedingEnrichment } from '../../src/lib/enrichJobById'
+import { runReenrichScrapedJobs } from '../../src/lib/reenrichScrapedJobs'
 import { createServiceRoleClient } from '../../src/lib/supabaseServiceClient'
 import { env } from './env'
 
@@ -30,4 +32,28 @@ export async function runProcess(batch = 10) {
     budgetMs: env.processBudgetMs,
   })
   return result
+}
+
+/**
+ * Enrich jobs with AI normalize.
+ * - mode 'sparse': active jobs missing fields from ANY intake path (the old
+ *   Vercel enrich-jobs cron behavior).
+ * - mode 'scraped': re-normalize published scraped jobs from stored raw_data,
+ *   optionally limited to one source (the admin "Enrich scraped" behavior).
+ */
+export async function runEnrich(
+  options: { mode?: 'scraped' | 'sparse'; limit?: number; sourceId?: string } = {}
+) {
+  const { mode = 'scraped', limit = 10, sourceId } = options
+  const supabase = createServiceRoleClient()
+
+  if (mode === 'sparse') {
+    return enrichJobsNeedingEnrichment(supabase, { limit, apply: true })
+  }
+
+  return runReenrichScrapedJobs(supabase, {
+    limit,
+    sourceFilter: sourceId || null,
+    apply: true,
+  })
 }

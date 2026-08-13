@@ -16,21 +16,22 @@ Vercel (storefront)                    GitHub Actions (worker)
 ```
 
 - Worker reads/writes Supabase **directly** with the service-role key (same as Vercel routes).
-- Discover and process are separate scheduled workflows so they can run at different cadences.
-- An optional HTTP server (`WORKER_HTTP_PORT`) lets the Vercel admin dashboard proxy its Discover/Process buttons to the worker later.
+- Discover, process, and enrich are separate scheduled workflows so they can run at different cadences.
+- The admin Scraper Sources page dispatches Discover/Process/Enrich to these workflows (via `GITHUB_ACTIONS_TOKEN`), so you can still trigger a run from the UI.
 
 ## Recommended: GitHub Actions (free, no servers)
 
 GitHub Actions runs the worker on scheduled workflows. Because `careerninja` is a **public** repository, Actions minutes are **unlimited** — the heavy scraping runs at zero cost, and Vercel only serves the website.
 
-Two workflows are committed in `.github/workflows/`:
+Three workflows are committed in `.github/workflows/`:
 
-| Workflow | Cron (UTC) | What it does |
-|----------|------------|--------------|
-| `discover.yml` | `0 */3 * * *` (every 3h) | Sweep all active sources, queue new job links (10-min budget) |
-| `process.yml` | `*/15 * * * *` (every 15 min) | Drain the queue — fetch details, AI-enrich, publish (batch up to 25) |
+| Workflow | Schedule (UTC) | Effective cadence | What it does |
+|----------|----------------|-------------------|--------------|
+| `discover.yml` | hourly tick, ~40% run chance | mean ≈ 2.5h (range ~1–5h) | Sweep all active sources, queue new job links (10-min budget) |
+| `process.yml` | 15-min tick, ~85% run chance | mean ≈ 17.6 min | Drain the queue — fetch details, AI-enrich, publish (batch up to 25) |
+| `enrich.yml` | every 4h + 0–90 min jitter | ~4h | AI-enrich sparse active jobs (scheduled); also supports re-enriching published scraped jobs |
 
-This matches the Vercel cron cadence, so published-job freshness is unchanged.
+The intervals are **randomized** (probability-skip + jitter per tick) so scraping looks natural instead of firing on a fixed clock. Manual dispatch via the admin UI or API always runs immediately.
 
 ### 1. Add the secrets (one time)
 
@@ -41,15 +42,17 @@ Repo → **Settings → Secrets and variables → Actions** → **New repository
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API (service_role — **secret**, never expose it) |
 | `SCRAPER_USER_ID` | The user ID that owns scraped jobs (from your Vercel env or Supabase `auth.users`) |
-| `DEEPSEEK_API_KEY` | DeepSeek platform |
+| `DEEPSEEK_API_KEY` / `_2` | DeepSeek platform |
 | `DEEPSEEK_MODEL` | Optional — defaults to `deepseek-v4-flash` |
 | `GEMINI_API_KEY` / `_2` / `_3` | Optional — Gemini is the fallback provider |
 
+To trigger runs **from the admin UI**, also add a GitHub Personal Access Token with the `workflow` scope as the Vercel env var `GITHUB_ACTIONS_TOKEN` (Settings → Developer settings → Personal access tokens → Fine-grained, repo `careerninja`, **Actions: write**). The UI buttons call `POST /api/admin/gh-actions/trigger`.
+
 ### 2. Run it manually once
 
-Repo → **Actions** → pick **Scrape Discover** → **Run workflow** (leave inputs blank). Watch the run finish green. Then run **Scrape Process** the same way.
+Repo → **Actions** → pick **Scrape Discover** → **Run workflow** (leave inputs blank). Watch the run finish green. Then run **Scrape Process** the same way. Or use Admin → Scraper Sources → the Discover / Process / Enrich buttons, which dispatch the same workflows.
 
-> The workflows also fire on their cron automatically — discover every 3h, process every 15 min.
+> The workflows also fire on their randomized schedules automatically.
 
 ### 3. Verify quality/output is unchanged
 
@@ -59,16 +62,7 @@ Repo → **Actions** → pick **Scrape Discover** → **Run workflow** (leave in
 
 ### 4. Turn off the Vercel scrape crons (once stable)
 
-Once the Actions worker has run successfully a few times, remove the scrape entries from `vercel.json` to stop burning Vercel credits:
-
-```json
-{ "path": "/api/cron/scrape-discover", "schedule": "0 */4 * * *" },
-{ "path": "/api/cron/scrape-process", "schedule": "*/15 * * * *" }
-```
-
-Keep the other crons (`expire-jobs`, `auto-renew-jobs`, etc.) on Vercel — they're lightweight.
-
-> During the transition, running both Vercel and Actions is safe — `job_url` and `content_hash` dedup prevent duplicates.
+The Vercel scrape crons (`scrape-discover`, `scrape-process`, `enrich-jobs`) have been removed from `vercel.json` in this change — scraping now runs entirely on GitHub Actions. Keep the other crons (`expire-jobs`, `auto-renew-jobs`, `expire-promotions`, `email-automations`, `enrich-company-logos`) on Vercel — they're lightweight.
 
 ## Alternative: VPS (Hetzner / InterServer / Oracle)
 
@@ -143,6 +137,12 @@ npm run worker:process
 # One-shot: process N items
 npm run worker:process:n          # or: npm run worker:process -- 10
 
+# One-shot: AI-enrich active jobs missing fields (sparse mode)
+npm run worker:enrich -- sparse 10
+
+# One-shot: re-normalize published scraped jobs (scraped mode, optional source)
+npm run worker:enrich -- scraped 10 myjobmag-kenya
+
 # Long-running: scheduler + HTTP trigger
 npm run worker:start
 
@@ -176,7 +176,7 @@ Endpoints (all `POST`):
 
 Header: `x-worker-secret: <WORKER_SECRET>`.
 
-The Vercel admin buttons can point here instead of running work inside Vercel API routes. If you do this, update `app/api/admin/scraper-sources/discover/route.ts` and `.../process/route.ts` to proxy to `http://<worker-host>:8787`.
+The Vercel admin buttons now dispatch GitHub Actions workflows instead (see above), so the HTTP trigger is only needed for self-hosted VPS setups.
 
 ## Notes
 

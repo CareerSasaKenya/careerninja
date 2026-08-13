@@ -64,8 +64,9 @@ export interface NormalizedJob {
   apply_email?: string | null
   valid_through: string | null
   /**
-   * Source board publish time (ISO). When set, scrapeProcess writes jobs.date_posted
-   * so "posted today / yesterday" matches the board instead of scrape time.
+   * Source board publish time (ISO). Retained on the normalized payload for
+   * reference/diagnostics only — it is NOT written to jobs.date_posted, which
+   * stays at the CareerSasa add/publish time (DB default now()).
    */
   date_posted?: string | null
   salary_min: number | null

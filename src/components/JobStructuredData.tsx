@@ -1,7 +1,6 @@
 import Script from 'next/script';
 import { Database } from '@/integrations/supabase/types';
 import { resolveCompanyLogoUrl, resolveCompanyWebsite } from '@/lib/companyLogo';
-import { estimateKenyanSalary } from '@/lib/kenyanSalaryEstimate';
 
 interface JobStructuredDataProps {
   job: Database['public']['Tables']['jobs']['Row'] & {
@@ -11,41 +10,26 @@ interface JobStructuredDataProps {
 }
 
 function resolveBaseSalary(job: JobStructuredDataProps['job']) {
+  // Google requires baseSalary to be the ACTUAL salary provided by the employer
+  // (not an estimate). Estimated Kenyan market figures stay on the visible page
+  // only — emitting them here as employer-provided pay violates the JobPosting
+  // guidelines and gets listings removed from Google Jobs.
+  if (job.salary_is_estimated) return undefined;
+
   const hasMin = job.salary_min != null && Number.isFinite(job.salary_min);
   const hasMax = job.salary_max != null && Number.isFinite(job.salary_max);
 
-  if (hasMin || hasMax) {
-    return {
-      "@type": "MonetaryAmount" as const,
-      currency: job.salary_currency || "KES",
-      value: {
-        "@type": "QuantitativeValue" as const,
-        minValue: hasMin ? job.salary_min! : undefined,
-        maxValue: hasMax ? job.salary_max! : undefined,
-        // Scraped/local Kenyan jobs default to monthly; YEAR was a stale fallback.
-        unitText: job.salary_period || "MONTH",
-      },
-    };
-  }
-
-  // Google prefers baseSalary on JobPosting — fill a Kenyan market estimate when
-  // the source listing omitted pay (same bands used in the UI).
-  const estimate = estimateKenyanSalary({
-    title: job.title,
-    experienceLevel: job.experience_level,
-    locationCountry: job.job_location_country || "Kenya",
-  });
-
-  if (!estimate) return undefined;
+  if (!hasMin && !hasMax) return undefined;
 
   return {
     "@type": "MonetaryAmount" as const,
-    currency: estimate.salary_currency,
+    currency: job.salary_currency || "KES",
     value: {
       "@type": "QuantitativeValue" as const,
-      minValue: estimate.salary_min,
-      maxValue: estimate.salary_max,
-      unitText: estimate.salary_period,
+      minValue: hasMin ? job.salary_min! : undefined,
+      maxValue: hasMax ? job.salary_max! : undefined,
+      // Scraped/local Kenyan jobs default to monthly; YEAR was a stale fallback.
+      unitText: job.salary_period || "MONTH",
     },
   };
 }
@@ -95,7 +79,7 @@ export default function JobStructuredData({ job }: JobStructuredDataProps) {
     "responsibilities": job.responsibilities || undefined,
     "qualifications": job.required_qualifications || undefined,
     "benefits": job.additional_info || undefined,
-    "directApply": true
+    "directApply": job.direct_apply === true
   };
 
   // Remove undefined properties

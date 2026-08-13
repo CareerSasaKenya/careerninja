@@ -1,5 +1,5 @@
 import { env } from './env'
-import { runDiscover, runProcess } from './jobs'
+import { runDiscover, runEnrich, runProcess } from './jobs'
 import { startScheduler } from './scheduler'
 import { startServer } from './server'
 
@@ -19,6 +19,17 @@ async function main() {
       break
     }
 
+    case 'enrich': {
+      // tsx worker/src/index.ts enrich [scraped|sparse] [limit] [source_id]
+      const enrichMode = extra === 'sparse' ? 'sparse' : 'scraped'
+      const limit = parseInt(process.argv[4], 10) || 10
+      const sourceId = process.argv[5]
+      console.log(
+        JSON.stringify(await runEnrich({ mode: enrichMode, limit, sourceId }), null, 2)
+      )
+      break
+    }
+
     case 'schedule':
       startScheduler()
       startServer()
@@ -32,7 +43,9 @@ async function main() {
       break
 
     default:
-      console.error('Usage: tsx src/index.ts <discover|process [batch]|schedule|server>')
+      console.error(
+        'Usage: tsx src/index.ts <discover|process [batch]|enrich [scraped|sparse] [limit] [source_id]|schedule|server>'
+      )
       process.exit(1)
   }
 }
