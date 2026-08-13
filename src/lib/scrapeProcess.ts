@@ -104,7 +104,13 @@ export async function runScrapeProcessOne(
     .limit(1)
     .single()
 
-  if (pickError || !queueItem) {
+  if (pickError) {
+    // Surface DB errors instead of pretending the queue is empty — a false
+    // "No pending jobs" here masks broken Supabase connectivity on the runner.
+    throw new Error(`Failed to pick queue item: ${pickError.message}`)
+  }
+
+  if (!queueItem) {
     return { message: 'No pending jobs in queue', processed: 0 }
   }
 

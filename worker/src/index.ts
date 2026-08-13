@@ -8,14 +8,26 @@ const extra = process.argv[3]
 
 async function main() {
   switch (mode) {
-    case 'discover':
-      console.log(JSON.stringify(await runDiscover(extra || undefined), null, 2))
+    case 'discover': {
+      const result = await runDiscover(extra || undefined)
+      console.log(JSON.stringify(result, null, 2))
+      // Exit non-zero so GitHub Actions marks a fully-failed run red instead
+      // of green — success:false means every source errored or nothing queued.
+      if (result.success === false) process.exit(1)
       break
+    }
 
     case 'process': {
       const batch = extra ? parseInt(extra, 10) || 1 : env.processBatch
       console.log(`[worker] processing batch of ${batch}`)
-      console.log(JSON.stringify(await runProcess(batch), null, 2))
+      const result = await runProcess(batch)
+      console.log(JSON.stringify(result, null, 2))
+      // Fail loudly when the batch produced nothing (all items errored with no
+      // publishes/duplicates), so outages show as red X instead of green no-ops.
+      const madeProgress =
+        (result.results || []).some(r => r.success || r.published || r.duplicates) ||
+        (result.results || []).some(r => r.message === 'No pending jobs in queue')
+      if (!madeProgress && (result.results || []).length > 0) process.exit(1)
       break
     }
 
@@ -24,9 +36,26 @@ async function main() {
       const enrichMode = extra === 'sparse' ? 'sparse' : 'scraped'
       const limit = parseInt(process.argv[4], 10) || 10
       const sourceId = process.argv[5]
-      console.log(
-        JSON.stringify(await runEnrich({ mode: enrichMode, limit, sourceId }), null, 2)
-      )
+      const result = await runEnrich({ mode: enrichMode, limit, sourceId })
+      console.log(JSON.stringify(result, null, 2))
+      // Fail when every examined job errored with nothing updated/skipped.
+      // Sparse mode returns results[] with per-job status; scraped mode
+      // returns top-level counters — handle both shapes.
+      const asCounters = result as {
+        examined?: number
+        updated?: number
+        failed?: number
+        skipped?: number
+      }
+      const asResults = result as { results?: Array<{ status?: string }> }
+      const statuses = asResults.results ?? []
+      const examined = asCounters.examined ?? statuses.length
+      const updated = asCounters.updated ?? statuses.filter(s => s.status === 'updated').length
+      const failed = asCounters.failed ?? statuses.filter(s => s.status === 'failed').length
+      const skipped = asCounters.skipped ?? statuses.filter(s => s.status === 'skipped').length
+      if (examined > 0 && updated === 0 && skipped === 0 && failed === examined) {
+        process.exit(1)
+      }
       break
     }
 
