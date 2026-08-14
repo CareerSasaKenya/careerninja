@@ -150,65 +150,144 @@ export default function AdminScraperSourcesPage() {
     }
   };
 
-  /**
-   * Dispatch a scraper workflow on GitHub Actions so heavy work runs off-Vercel.
-   * Returns the parsed response body; throws on HTTP/non-JSON errors.
-   */
-  const dispatchWorkflow = async (payload: Record<string, unknown>) => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) throw new Error("Not authenticated");
-
-    const response = await fetch("/api/admin/gh-actions/trigger", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${session.access_token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    const body = await parseJsonResponse(response);
-    if (!response.ok) throw new Error(body.error || "Dispatch failed");
-    return body;
-  };
-
   const runProcess = async (max = 10) => {
     try {
       setProcessingQueue(true);
 
-      await dispatchWorkflow({ action: "process", max });
-      toast.success(
-        `Dispatched Process (max ${max}) to GitHub Actions. The queue drains within a few minutes — watch queue stats.`
-      );
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+
+      const response = await fetch("/api/admin/scraper-sources/process", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ max }),
+      });
+
+      const body = await parseJsonResponse(response);
+      if (!response.ok) throw new Error(body.error || "Process failed");
+
+      if (body.processed === 0) {
+        toast.info("Process complete: no pending jobs in queue");
+      } else if (typeof body.published === "number" && body.published > 0) {
+        toast.success(
+          `Published ${body.published} job(s) from ${body.processed} queue item(s)` +
+            (typeof body.skipped === "number" && body.skipped > 0
+              ? ` (${body.skipped} duplicate(s) skipped)`
+              : "")
+        );
+      } else if (typeof body.errors === "number" && body.errors > 0) {
+        toast.error(`Process failed for ${body.errors} item(s) — check queue stats`);
+      } else {
+        toast.info(`Processed ${body.processed} item(s); nothing new published`);
+      }
+
+      if (typeof body.stopped_early === "string" && body.stopped_early) {
+        toast.message(body.stopped_early);
+      }
 
       await fetchSources();
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Process dispatch failed";
+      const message = error instanceof Error ? error.message : "Process failed";
       toast.error(message);
     } finally {
       setProcessingQueue(false);
     }
   };
 
+  // Note: Enrich with AI uses /api/admin/scraper-sources/reenrich so Gemini keys
+  // stay on the Vercel server and never ship to the browser.
+
   const runDiscover = async (sourceId?: string) => {
     try {
       if (sourceId) setDiscoveringId(sourceId);
       else setDiscoveringAll(true);
 
-      await dispatchWorkflow({
-        action: "discover",
-        ...(sourceId ? { source_id: sourceId } : {}),
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+
+      const response = await fetch("/api/admin/scraper-sources/discover", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(sourceId ? { source_id: sourceId } : {}),
       });
 
-      toast.success(
-        sourceId
-          ? `Dispatched Discover (${sourceId}) to GitHub Actions. Results appear in the Actions run log.`
-          : "Dispatched Discover (all active sources) to GitHub Actions. Results appear in the Actions run log."
-      );
+      const body = await parseJsonResponse(response);
+
+      const results = (body.results || []) as Array<{
+        source_id?: string
+        found?: number
+        queued?: number
+        already_known?: number
+        error?: string | null
+      }>
+      const result = sourceId
+        ? results.find(r => r.source_id === sourceId) || results[0]
+        : results[0]
+      const failedResults = results.filter(r => r.error)
+      const errorSummary =
+        typeof body.error_summary === "string" && body.error_summary
+          ? body.error_summary
+          : failedResults.length > 0
+            ? failedResults
+                .slice(0, 3)
+                .map(r => `${r.source_id}: ${r.error}`)
+                .join("; ") +
+              (failedResults.length > 3 ? `; +${failedResults.length - 3} more` : "")
+            : body.error || "Discover failed"
+
+      // Full failure (HTTP 502 / success:false) — don't pretend it completed.
+      if (!response.ok || body.success === false) {
+        throw new Error(errorSummary)
+      }
+
+      const label = sourceId
+        ? result?.source_id || sourceId
+        : `${body.sources_processed} source(s)`;
+      const found = typeof body.total_found === "number"
+        ? body.total_found
+        : results.reduce((sum, r) => sum + (r.found || 0), 0)
+      const alreadyKnown = results.reduce((sum, r) => sum + (r.already_known || 0), 0)
+      const queued = typeof body.total_queued === "number"
+        ? body.total_queued
+        : results.reduce((sum, r) => sum + (r.queued || 0), 0)
+      const failedCount =
+        typeof body.sources_failed === "number" ? body.sources_failed : failedResults.length
+      const detail =
+        found > 0
+          ? `${queued} new queued, ${alreadyKnown} already known, ${found} scanned`
+          : `${queued} new queued`
+
+      if (queued > 0) {
+        toast.success(
+          `Discover queued ${queued} job(s) for Process — ${alreadyKnown} already known, ${found} scanned (${label})`
+        );
+      } else if (found > 0) {
+        toast.info(
+          `Discover scanned ${found} listing(s); 0 new to Process (${alreadyKnown} already in queue/published) (${label})`
+        );
+      } else {
+        toast.info(`Discover complete: no listings found (${label})`);
+      }
+
+      if (failedCount > 0) {
+        toast.error(
+          `Discover: ${failedCount} source(s) failed — ${errorSummary}`
+        );
+      }
+
+      if (typeof body.stopped_early === "string" && body.stopped_early) {
+        toast.message(body.stopped_early);
+      }
 
       await fetchSources();
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Discover dispatch failed";
+      const message = error instanceof Error ? error.message : "Discover failed";
       toast.error(message);
     } finally {
       setDiscoveringAll(false);
@@ -216,26 +295,57 @@ export default function AdminScraperSourcesPage() {
     }
   };
 
-  /** Re-normalize + AI-enrich published scraped jobs (runs on GitHub Actions). */
+  /** Normalize + AI-enrich published scraped jobs using production Gemini keys. */
   const runEnrich = async (sourceId?: string) => {
     try {
       if (sourceId) setEnrichingId(sourceId);
       else setEnrichingAll(true);
 
-      await dispatchWorkflow({
-        action: "enrich",
-        mode: "scraped",
-        limit: 10,
-        ...(sourceId ? { source_id: sourceId } : {}),
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+
+      const response = await fetch("/api/admin/scraper-sources/reenrich", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(
+          sourceId ? { source_id: sourceId, limit: 10 } : { limit: 5 }
+        ),
       });
 
-      toast.success(
-        sourceId
-          ? `Dispatched Enrich (scraped) for ${sourceId} to GitHub Actions.`
-          : "Dispatched Enrich (scraped) to GitHub Actions."
-      );
+      const body = await parseJsonResponse(response);
+      if (!response.ok) throw new Error(body.error || "Enrich failed");
+
+      const label = sourceId || "recent published scraped jobs";
+      const updated = typeof body.updated === "number" ? body.updated : 0;
+      const failed = typeof body.failed === "number" ? body.failed : 0;
+      const examined = typeof body.examined === "number" ? body.examined : 0;
+
+      if (body.ai_keys_configured === false) {
+        toast.warning(
+          "AI keys missing on server — ran rule-based normalize only. Check Vercel DEEPSEEK_API_KEY / GEMINI_API_KEY."
+        );
+      }
+
+      if (examined === 0) {
+        toast.info(`Enrich complete: no published scraped jobs found (${label})`);
+      } else if (updated > 0 && failed === 0) {
+        toast.success(
+          `Enriched ${updated} job(s) with AI normalize for ${label}`
+        );
+      } else if (updated > 0) {
+        toast.message(
+          `Enriched ${updated} job(s); ${failed} failed (${label})`
+        );
+      } else if (failed > 0) {
+        toast.error(`Enrich failed for ${failed} job(s) (${label})`);
+      } else {
+        toast.info(`Enrich complete: examined ${examined}, nothing updated (${label})`);
+      }
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Enrich dispatch failed";
+      const message = error instanceof Error ? error.message : "Enrich failed";
       toast.error(message);
     } finally {
       setEnrichingAll(false);
@@ -247,14 +357,37 @@ export default function AdminScraperSourcesPage() {
   const runEnrichSparseAll = async () => {
     try {
       setEnrichingAll(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
 
-      await dispatchWorkflow({ action: "enrich", mode: "sparse", limit: 10 });
+      const response = await fetch("/api/admin/jobs/enrich", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ missing_only: true, limit: 10 }),
+      });
 
-      toast.success(
-        "Dispatched Enrich (sparse active jobs from any intake) to GitHub Actions."
-      );
+      const body = await parseJsonResponse(response);
+      if (!response.ok) throw new Error(body.error || "Enrich failed");
+
+      const updated = typeof body.updated === "number" ? body.updated : 0;
+      const failed = typeof body.failed === "number" ? body.failed : 0;
+      const examined = typeof body.examined === "number" ? body.examined : 0;
+
+      if (examined === 0) {
+        toast.info("No sparse active jobs needed enrichment");
+      } else if (updated > 0) {
+        toast.success(
+          `Enriched ${updated}/${examined} sparse job(s) from any source` +
+            (failed ? ` (${failed} failed)` : "")
+        );
+      } else {
+        toast.info(`Examined ${examined} sparse job(s); nothing updated`);
+      }
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Enrich dispatch failed");
+      toast.error(error instanceof Error ? error.message : "Enrich failed");
     } finally {
       setEnrichingAll(false);
     }
@@ -374,9 +507,8 @@ export default function AdminScraperSourcesPage() {
             <CardHeader>
               <CardTitle>Configured sources</CardTitle>
               <CardDescription>
-                Active sources are discovered on a randomized schedule (mean ~every 2.5h)
-                and the queue is processed (mean ~every 17 min) via GitHub Actions. The
-                buttons above dispatch a run immediately. Flow: discover → queue → process → publish.
+                Active sources are discovered on a Vercel cron (every 6 hours) and the
+                queue is processed every 30 minutes. Flow: discover → queue → process → publish.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -523,7 +655,7 @@ export default function AdminScraperSourcesPage() {
           <p><strong>Employers:</strong> Inkomoko (Workable), SALIX Data Africa, Digital Divide Data (SmartRecruiters, Kenya filter)</p>
           <p><strong>Batch A (verified):</strong> PowerGen Renewable Energy, iHub (SmartRecruiters). Workable pipeline (paused): Tala, Branch, KCB, Komaza, Sanergy, Copia, Apollo</p>
           <p><strong>Job boards:</strong> BrighterMonday Kenya, Fuzu Kenya, and MyJobMag Kenya (JSON-LD / HTML). Employer apply link/email from the posting is preferred; the board listing URL is only used as a last resort. Fuzu and MyJobMag also copy hiring-company logo, about, website, size, and location from the portal company tab into CareerSasa company pages when those fields are empty. MyJobMag discover also walks <code className="text-xs">/jobs-by-date/today</code> and <code className="text-xs">/yesterday</code> so same-day posts are not missed between main-listing bumps.</p>
-          <p><strong>Discover tip:</strong> Toast &quot;scanned&quot; is listings seen on the board; only <em>queued</em> rows enable Process. Already-known URLs (in queue or published) are skipped — expected after a backlog drain. If Process stays disabled after a successful queue toast, click Refresh (stats now page past the 1000-row Supabase cap). For a large MyJobMag wave, run Discover on <code className="text-xs">myjobmag-kenya</code> manually, then Process / drain the queue — the manual buttons dispatch a GitHub Actions run.</p>
+          <p><strong>Discover tip:</strong> Toast &quot;scanned&quot; is listings seen on the board; only <em>queued</em> rows enable Process. Already-known URLs (in queue or published) are skipped — expected after a backlog drain. If Process stays disabled after a successful queue toast, click Refresh (stats now page past the 1000-row Supabase cap). Cron discover runs every 6 hours — for a large MyJobMag wave, run Discover on <code className="text-xs">myjobmag-kenya</code> manually, then Process / drain the queue.</p>
         </CardContent>
       </Card>
     </div>
