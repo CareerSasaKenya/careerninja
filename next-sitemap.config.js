@@ -39,50 +39,63 @@ export default {
     
     // Create Supabase client
     const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Supabase caps REST responses at 1000 rows by default; loop with offsets so
+    // the sitemap never silently drops jobs/companies again.
+    async function fetchAllPaginated(select, table, order, filter) {
+      const rows = [];
+      let from = 0;
+      const pageSize = 1000;
+      for (;;) {
+        let query = supabase
+          .from(table)
+          .select(select)
+          .order(order, { ascending: false })
+          .range(from, from + pageSize - 1);
+        if (filter) query = query.eq(filter[0], filter[1]);
+        const { data, error } = await query;
+        if (error) throw error;
+        if (!data || data.length === 0) break;
+        rows.push(...data);
+        if (data.length < pageSize) break;
+        from += pageSize;
+      }
+      return rows;
+    }
     
     try {
-      // Fetch all active jobs
-      const { data: jobs, error } = await supabase
-        .from('jobs')
-        .select('id, job_slug, updated_at')
-        .eq('status', 'active');
+      // Fetch all active jobs (paginated — a bare query silently caps at 1000)
+      const jobs = await fetchAllPaginated(
+        'id, job_slug, updated_at',
+        'jobs',
+        'updated_at',
+        ['status', 'active']
+      );
       
-      if (error) {
-        console.error('Error fetching jobs for sitemap:', error);
-      } else {
-        // Add job URLs to sitemap
-        jobs.forEach(job => {
-          result.push({
-            loc: `/jobs/${job.job_slug || job.id}`,
-            lastmod: job.updated_at,
-            changefreq: 'daily',
-            priority: 0.8,
-          });
+      // Add job URLs to sitemap
+      jobs.forEach(job => {
+        result.push({
+          loc: `/jobs/${job.job_slug || job.id}`,
+          lastmod: job.updated_at,
+          changefreq: 'daily',
+          priority: 0.8,
         });
-      }
+      });
     } catch (error) {
       console.error('Error generating job URLs for sitemap:', error);
     }
 
     try {
-      // Public company profile pages
-      const { data: companies, error: companiesError } = await supabase
-        .from('companies')
-        .select('id, updated_at')
-        .order('updated_at', { ascending: false });
-
-      if (companiesError) {
-        console.error('Error fetching companies for sitemap:', companiesError);
-      } else {
-        companies.forEach(company => {
-          result.push({
-            loc: `/companies/${company.id}`,
-            lastmod: company.updated_at,
-            changefreq: 'weekly',
-            priority: 0.7,
-          });
+      // Public company profile pages (paginated)
+      const companies = await fetchAllPaginated('id, updated_at', 'companies', 'updated_at');
+      companies.forEach(company => {
+        result.push({
+          loc: `/companies/${company.id}`,
+          lastmod: company.updated_at,
+          changefreq: 'weekly',
+          priority: 0.7,
         });
-      }
+      });
     } catch (error) {
       console.error('Error generating company URLs for sitemap:', error);
     }

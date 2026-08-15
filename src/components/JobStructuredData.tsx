@@ -1,6 +1,15 @@
-import Script from 'next/script';
 import { Database } from '@/integrations/supabase/types';
 import { resolveCompanyLogoUrl, resolveCompanyWebsite } from '@/lib/companyLogo';
+import {
+  resolveApplicantLocationRequirements,
+  resolveDatePosted,
+  resolveEducationRequirements,
+  resolveExperienceRequirements,
+  resolveJobAddress,
+  resolveJobLocationType,
+  resolveValidThrough,
+  isSchemaLogoPlaceholder,
+} from '@/lib/jobStructuredDataMapping';
 
 interface JobStructuredDataProps {
   job: Database['public']['Tables']['jobs']['Row'] & {
@@ -8,6 +17,17 @@ interface JobStructuredDataProps {
     salary_is_estimated?: boolean | null;
   };
 }
+
+const GOOGLE_EMPLOYMENT_TYPES = new Set([
+  'FULL_TIME',
+  'PART_TIME',
+  'CONTRACTOR',
+  'TEMPORARY',
+  'INTERN',
+  'VOLUNTEER',
+  'PER_DIEM',
+  'OTHER',
+]);
 
 function resolveBaseSalary(job: JobStructuredDataProps['job']) {
   // Google requires baseSalary to be the ACTUAL salary provided by the employer
@@ -28,7 +48,6 @@ function resolveBaseSalary(job: JobStructuredDataProps['job']) {
       "@type": "QuantitativeValue" as const,
       minValue: hasMin ? job.salary_min! : undefined,
       maxValue: hasMax ? job.salary_max! : undefined,
-      // Scraped/local Kenyan jobs default to monthly; YEAR was a stale fallback.
       unitText: job.salary_period || "MONTH",
     },
   };
@@ -36,45 +55,53 @@ function resolveBaseSalary(job: JobStructuredDataProps['job']) {
 
 export default function JobStructuredData({ job }: JobStructuredDataProps) {
   const orgName = job.companies?.name || job.company;
-  const orgWebsite = resolveCompanyWebsite(orgName, job.companies?.website || job.hiring_organization_url);
-  const orgLogo = resolveCompanyLogoUrl({
+  const orgWebsite = resolveCompanyWebsite(
+    orgName,
+    job.companies?.website || job.hiring_organization_url
+  );
+
+  // Never emit favicon-CDN placeholders as the org logo (fails Google logo rules).
+  const resolvedLogo = resolveCompanyLogoUrl({
     logo: job.companies?.logo,
     website: job.companies?.website || job.hiring_organization_url,
     companyName: orgName,
     hiringOrganizationLogo: job.hiring_organization_logo,
   });
+  const orgLogo = isSchemaLogoPlaceholder(resolvedLogo) ? undefined : resolvedLogo;
 
-  // Format the job data for JSON-LD
+  const employmentType =
+    job.employment_type && GOOGLE_EMPLOYMENT_TYPES.has(job.employment_type)
+      ? job.employment_type
+      : undefined;
+
+  // Fail-safe: never fabricate dates/types that are unknown. Google's guidance is
+  // to omit a property when the information is missing rather than invent it.
   const jobData = {
     "@context": "https://schema.org/",
     "@type": "JobPosting",
     "title": job.title,
-    "description": job.description || `Join ${orgName} as a ${job.title}. Find out more about this exciting opportunity.`,
-    "datePosted": job.date_posted ? new Date(job.date_posted).toISOString() : new Date().toISOString(),
-    "validThrough": job.valid_through ? new Date(job.valid_through).toISOString() : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Default to 30 days from now
-    "employmentType": job.employment_type || "FULL_TIME",
+    "description": job.description || undefined,
+    "identifier": {
+      "@type": "PropertyValue",
+      "name": orgName,
+      "value": job.id,
+    },
+    "datePosted": resolveDatePosted(job),
+    "validThrough": resolveValidThrough(job),
+    "employmentType": employmentType,
     "hiringOrganization": {
       "@type": "Organization",
       "name": orgName,
       "sameAs": orgWebsite || undefined,
-      "logo": orgLogo || undefined
+      "logo": orgLogo || undefined,
     },
-    "jobLocation": {
-      "@type": "Place",
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": job.location,
-        "addressLocality": job.job_location_city || job.location,
-        "addressRegion": job.job_location_county || job.location,
-        "addressCountry": job.job_location_country || "KE"
-      }
-    },
+    "jobLocationType": resolveJobLocationType(job),
+    "applicantLocationRequirements": resolveApplicantLocationRequirements(job),
+    "jobLocation": resolveJobAddress(job),
     "baseSalary": resolveBaseSalary(job),
-    "skills": undefined,
-    "experienceRequirements": job.minimum_experience ? `${job.minimum_experience} years` : job.experience_level || undefined,
-    "educationRequirements": job.education_requirements || undefined,
+    "experienceRequirements": resolveExperienceRequirements(job),
+    "educationRequirements": resolveEducationRequirements(job.education_requirements),
     "industry": job.industry || undefined,
-    "jobLocationType": job.job_location_type || undefined,
     "workHours": job.work_schedule || undefined,
     "responsibilities": job.responsibilities || undefined,
     "qualifications": job.required_qualifications || undefined,
@@ -87,13 +114,15 @@ export default function JobStructuredData({ job }: JobStructuredDataProps) {
     Object.entries(jobData).filter(([_, value]) => value !== undefined)
   );
 
+  if (Object.keys(cleanJobData).length <= 2) return null;
+
+  // Escape "<" so "</script>" inside job content can never break out of the tag.
+  const jsonLd = JSON.stringify(cleanJobData).replace(/</g, "\\u003c");
+
   return (
-    <Script
-      id={`job-posting-${job.id}`}
+    <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{
-        __html: JSON.stringify(cleanJobData)
-      }}
+      dangerouslySetInnerHTML={{ __html: jsonLd }}
     />
   );
 }
