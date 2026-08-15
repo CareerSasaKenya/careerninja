@@ -44,6 +44,7 @@ interface JobCardProps {
   salaryCurrency?: string | null; // e.g., KES
   salaryPeriod?: string | null; // e.g., MONTH
   salaryIsEstimated?: boolean | null;
+  salaryVisibility?: string | null; // 'Show' | 'Hide' — employer opt-out
   experienceLevel?: string | null; // e.g., MID, SENIOR
   datePosted?: string | null; // ISO string
   validThrough?: string | null; // ISO string (deadline)
@@ -106,6 +107,7 @@ const JobCard = ({
   salaryCurrency,
   salaryPeriod,
   salaryIsEstimated,
+  salaryVisibility,
   experienceLevel,
   datePosted,
   validThrough,
@@ -136,6 +138,7 @@ const JobCard = ({
     salaryCurrency,
     salaryPeriod,
     salaryIsEstimated,
+    salaryVisibility,
     title,
     experienceLevel,
     locationCountry: locationCountry || "Kenya",

@@ -504,10 +504,19 @@ export function resolveJobSalaryDisplay(params: {
   salaryCurrency?: string | null
   salaryPeriod?: string | null
   salaryIsEstimated?: boolean | null
+  salaryVisibility?: string | null
   title?: string | null
   experienceLevel?: string | null
   locationCountry?: string | null
 }): { display: string; isEstimated: boolean } {
+  // Employers can opt out of showing any salary figure (salary_visibility = 'Hide').
+  // Respect it everywhere this resolver is used so the page never shows a salary
+  // the employer chose to hide (and Google never sees page content that contradicts
+  // the absence of baseSalary in the markup).
+  if (params.salaryVisibility === 'Hide') {
+    return { display: 'Negotiable', isEstimated: false }
+  }
+
   const currency = params.salaryCurrency || 'KES'
   const period = params.salaryPeriod ? ` / ${params.salaryPeriod.toLowerCase()}` : ''
 

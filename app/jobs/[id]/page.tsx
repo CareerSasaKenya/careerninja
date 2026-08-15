@@ -503,6 +503,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                     salaryCurrency={relatedJob.salary_currency}
                     salaryPeriod={relatedJob.salary_period}
                     salaryIsEstimated={relatedJob.salary_is_estimated}
+                    salaryVisibility={relatedJob.salary_visibility}
                     experienceLevel={relatedJob.experience_level}
                     datePosted={relatedJob.date_posted}
                     validThrough={relatedJob.valid_through}
@@ -546,6 +547,7 @@ const RoleDetails = ({
     salaryCurrency: job.salary_currency,
     salaryPeriod: job.salary_period,
     salaryIsEstimated: job.salary_is_estimated,
+    salaryVisibility: job.salary_visibility,
     title: job.title,
     experienceLevel: job.experience_level,
     locationCountry: job.job_location_country || "Kenya",

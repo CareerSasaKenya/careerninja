@@ -34,7 +34,10 @@ function resolveBaseSalary(job: JobStructuredDataProps['job']) {
   // (not an estimate). Estimated Kenyan market figures stay on the visible page
   // only — emitting them here as employer-provided pay violates the JobPosting
   // guidelines and gets listings removed from Google Jobs.
+  // Employers who set salary_visibility = 'Hide' get no salary in the markup
+  // either — Google requires markup to match what's visible on the page.
   if (job.salary_is_estimated) return undefined;
+  if (job.salary_visibility === 'Hide') return undefined;
 
   const hasMin = job.salary_min != null && Number.isFinite(job.salary_min);
   const hasMax = job.salary_max != null && Number.isFinite(job.salary_max);

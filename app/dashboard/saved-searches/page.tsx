@@ -289,6 +289,7 @@ export default function SavedSearchesPage() {
                   salaryCurrency={job.salary_currency}
                   salaryPeriod={job.salary_period}
                   salaryIsEstimated={job.salary_is_estimated}
+                  salaryVisibility={job.salary_visibility}
                   experienceLevel={job.experience_level}
                   datePosted={job.date_posted}
                   validThrough={job.valid_through}

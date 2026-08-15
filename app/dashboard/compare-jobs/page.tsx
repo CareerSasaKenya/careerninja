@@ -207,6 +207,7 @@ export default function CompareJobsPage() {
                         salaryCurrency: job.salary_currency,
                         salaryPeriod: job.salary_period,
                         salaryIsEstimated: job.salary_is_estimated,
+                        salaryVisibility: job.salary_visibility,
                         title: job.title,
                         experienceLevel: job.experience_level,
                         locationCountry: job.job_location_country || "Kenya",
