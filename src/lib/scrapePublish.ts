@@ -257,13 +257,14 @@ export async function publishScrapedJob(
         ? parsed.job_location_types
         : [sanitizeJobLocationType(normalized.job_location_type)]
 
-    // date_posted intentionally stays off the insert: jobs.date_posted defaults to
-    // the DB clock (= when CareerSasa added/published the job), NOT the source
-    // board's publication date.
-    const { date_posted: _boardPosted, ...normalizedForInsert } = normalized
-
+    // date_posted: keep the source board's original publication date when the
+    // adapter parsed one (Google requires the original employer posting date).
+    // When the board date is missing, fall back to the DB default (created_at).
     const jobPayload = {
-      ...normalizedForInsert,
+      ...normalized,
+      ...(normalized.date_posted
+        ? { date_posted: normalized.date_posted }
+        : {}),
       description: parsed.description || normalized.description,
       responsibilities: parsed.responsibilities || normalized.responsibilities || null,
       required_qualifications: (() => {

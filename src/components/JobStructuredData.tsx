@@ -79,16 +79,15 @@ export default function JobStructuredData({ job }: JobStructuredDataProps) {
 
   // Fail-safe: never fabricate dates/types that are unknown. Google's guidance is
   // to omit a property when the information is missing rather than invent it.
+  // No `identifier`: the only ID CareerSasa holds is its internal UUID, which is
+  // not the employer's identifier for the job. Google defines identifier as the
+  // hiring organization's unique ID, so emitting our UUID would misrepresent it
+  // as employer-provided — omit it entirely.
   const jobData = {
     "@context": "https://schema.org/",
     "@type": "JobPosting",
     "title": job.title,
     "description": job.description || undefined,
-    "identifier": {
-      "@type": "PropertyValue",
-      "name": orgName,
-      "value": job.id,
-    },
     "datePosted": resolveDatePosted(job),
     "validThrough": resolveValidThrough(job),
     "employmentType": employmentType,

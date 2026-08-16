@@ -244,3 +244,33 @@ Google requires a `Place` whose `address` is a `PostalAddress`. Affected **all 1
 - SSR render test against 20 production records across all location patterns → 20/20 pass; `tsc --noEmit` clean.
 
 **Remaining:** wait for Google to recrawl and reprocess; request Validate Fix in Search Console after the crawl has had time to pick up corrected pages.
+
+---
+
+## M. FOLLOW-UP AUDIT — 2026-08-16: cross-check against Google's current docs
+
+A ChatGPT discussion summarizing Google's current JobPosting documentation was reviewed against the actual Google docs (fetched live) and production data. Summary of the check:
+
+**Confirmed compliant:**
+- 5 required properties (`datePosted`, `description`, `hiringOrganization`, `jobLocation`, `title`) present on all 1,765 active jobs.
+- Descriptions complete + HTML (`<p>`/`\n`), never equal to title, never ultra-short.
+- Remote jobs emit `TELECOMMUTE` + `applicantLocationRequirements` and omit `jobLocation` (Google: *"jobLocation isn't required if applicantLocationRequirements is present"*).
+- Hybrid jobs correctly **do not** get `TELECOMMUTE` (Google requires it only for 100% remote; ChatGPT's hybrid suggestion was less strict than Google — we follow Google).
+- `baseSalary` only for employer-provided, non-estimated, visible salaries; `unitText` always a valid Google value (`MONTH`).
+- `directApply` only when the DB flag is true (15 jobs).
+- `employmentType` restricted to Google's 8 case-sensitive values.
+- `validThrough` emitted only when a real deadline exists (88 jobs without one correctly omit it).
+- Expired jobs: 0 active with past `validThrough`; expired pages serve 200 with `validThrough` in the past — one of Google's three accepted "remove a posting" options.
+- `JobPosting` only on single-job pages; every job has a way to apply (portal form).
+- Sitemap `lastmod` = `updated_at` (accurate last-content-change).
+
+**Fixes applied in this round (per user decisions):**
+
+1. **`identifier` omitted** (`JobStructuredData.tsx`). CareerSasa only holds its internal UUID; Google defines `identifier` as the *hiring organization's* unique job ID. Emitting our UUID with the employer's name misrepresented it as employer-provided. Now omitted entirely.
+
+2. **`experienceRequirements` only from real numbers** (`jobStructuredDataMapping.ts`). The `experience_level` → months fallback (Mid→24, Senior→48, Managerial→60) manufactured a requirement number. Now emitted only when `minimum_experience` is a genuine parsed value; 462 label-only jobs omit the property instead of guessing.
+
+3. **`datePosted` = source board's original date** for scraped jobs (`scrapePublish.ts`, `scrapeProcess.ts`, new migration `20260816_restore_scraped_jobs_board_date_posted.sql`). Google requires the original employer posting date. The 2026-08-13 reset had set scraped jobs to `created_at`; the publish path now preserves the adapter's `date_posted` when present, and the migration backfills existing rows from `scraped_job_sources.raw_data->>'datePosted'` where recoverable.
+
+**Verified:** `tsc --noEmit` clean; mapper/component render tests confirm `identifier` absent, `experienceRequirements` omitted for label-only jobs, and `jobLocation` structure intact.
+

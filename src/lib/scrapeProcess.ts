@@ -722,14 +722,14 @@ export async function runScrapeProcessOne(
       normalized.title || null
     )
 
-    // date_posted intentionally stays off the insert: jobs.date_posted defaults to
-    // the DB clock (= when CareerSasa added/published the job), NOT the source
-    // board's publication date. Google uses datePosted for freshness and the
-    // schema must match what the page shows.
-    const { date_posted: _boardPosted, ...normalizedForInsert } = normalized
-
+    // date_posted: keep the source board's original publication date when the
+    // adapter parsed one (Google requires the original employer posting date).
+    // When the board date is missing, fall back to the DB default (created_at).
     const jobPayload = {
-      ...normalizedForInsert,
+      ...normalized,
+      ...(normalized.date_posted
+        ? { date_posted: normalized.date_posted }
+        : {}),
       description: rewriteBoardHtml(rawDescription) || rawDescription,
       responsibilities: rewriteBoardHtml(
         parsed.responsibilities || normalized.responsibilities || null

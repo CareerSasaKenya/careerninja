@@ -175,27 +175,15 @@ export function resolveJobAddress(
 
 /** Map DB experience data to Google's expected structured form. */
 export function resolveExperienceRequirements(job: JobForSchema) {
+  // Only emit when we have a genuine numeric experience requirement parsed from
+  // the job. Inferring a number from an experience_level label (Mid→24, Senior→48)
+  // manufactures a requirement Google says not to guess at — omit instead.
   const minYears = job.minimum_experience
   if (minYears != null && Number.isFinite(minYears) && minYears > 0) {
     const months = Math.round(Math.min(minYears, 50) * 12)
     return {
       '@type': 'OccupationalExperienceRequirements',
       monthsOfExperience: months,
-    }
-  }
-  // Fallback: experience_level labels map to a representative minimum.
-  const LEVEL_MONTHS: Record<string, number> = {
-    Mid: 24,
-    Senior: 48,
-    Managerial: 60,
-  }
-  if (job.experience_level) {
-    const months = LEVEL_MONTHS[job.experience_level]
-    if (months) {
-      return {
-        '@type': 'OccupationalExperienceRequirements',
-        monthsOfExperience: months,
-      }
     }
   }
   return undefined
