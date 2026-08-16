@@ -210,3 +210,37 @@ Status: fixes requested, approved, and implemented. Re-run this audit against pr
 4. Optional (recommended by Google): integrate the Indexing API for job URLs to prompt faster recrawls.
 
 **Regression guard:** the mappings in `src/lib/jobStructuredDataMapping.ts` fail safe — any future data path change that produces missing/estimated/invalid values results in property omission, never fabrication.
+
+---
+
+## L. FOLLOW-UP FIX — 2026-08-16: "Missing field `address` (in `jobLocation`)"
+
+**Symptom (Search Console):** 68 invalid JobPosting items (rising) with `Missing field "address" (in "jobLocation")`.
+
+**Root cause:** structural, not data. In the 2026-08-15 refactor, `resolveJobAddress` (in `src/lib/jobStructuredDataMapping.ts`) returned the *PostalAddress contents* as a flat object, and `JobStructuredData.tsx` emitted that object **directly as `jobLocation`** — so the markup had no `address` property at all:
+
+```json
+// Before (live, broken)
+"jobLocation": { "addressCountry": "KE", "addressLocality": "Nairobi", "addressRegion": "Nairobi" }
+```
+
+Google requires a `Place` whose `address` is a `PostalAddress`. Affected **all 1,765 active jobs**; the 68 were just the pages Google had processed first.
+
+**Fix (committed `8f5e258`, deployed):** `resolveJobAddress` now returns the full `Place → PostalAddress` structure; pure `REMOTE` jobs omit `jobLocation` entirely (`jobLocationType: TELECOMMUTE` + `applicantLocationRequirements` already represent them); text-remote-but-typed-other jobs keep a country-level address so the posting retains a location signal. No invented streets, postal codes, or cities — city/county are emitted only when genuinely known, `addressCountry` is an ISO code (default `KE`, the site's operating country).
+
+```json
+// After (live, corrected)
+"jobLocation": {
+  "@type": "Place",
+  "address": { "@type": "PostalAddress", "addressCountry": "KE", "addressLocality": "Nairobi", "addressRegion": "Nairobi" }
+}
+```
+
+**Verified live (2026-08-16) after deploy:**
+- `/jobs/senior-relationship-manager-energy` → `Place → PostalAddress` ✓
+- `/jobs/terminal-manager` → `Place → PostalAddress`, `baseSalary` correctly absent (estimated) ✓
+- `/jobs/wellness-lead` → `Place → PostalAddress` (no county, locality only) ✓
+- `/jobs/senior-associate-education-and-mel` (REMOTE) → `jobLocation` omitted, `jobLocationType: TELECOMMUTE`, `applicantLocationRequirements: { "@type": "Country", name }` ✓
+- SSR render test against 20 production records across all location patterns → 20/20 pass; `tsc --noEmit` clean.
+
+**Remaining:** wait for Google to recrawl and reprocess; request Validate Fix in Search Console after the crawl has had time to pick up corrected pages.
