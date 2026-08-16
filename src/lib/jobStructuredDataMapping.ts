@@ -104,31 +104,44 @@ function isRemoteLocation(value: string): boolean {
 }
 
 /**
- * Build the jobLocation.address object.
+ * Build the jobLocation object as Place → PostalAddress, per Google's rule that
+ * jobLocation.address must exist.
  * - addressCountry is always an ISO code (defaults to KE for this Kenyan site).
  * - streetAddress only when the location text actually looks like a street.
  * - locality/region only when we have a real city/county (never "Kenya" everywhere).
- * - Remote-only roles have no physical location → returns undefined so jobLocation
- *   is omitted entirely (Google allows this when applicantLocationRequirements is set).
+ * - 100% remote roles have no physical office → returns undefined so jobLocation
+ *   is omitted entirely; Google allows this when applicantLocationRequirements is set.
  */
 export function resolveJobAddress(
   job: JobForSchema
 ): {
-  streetAddress?: string
-  addressLocality?: string
-  addressRegion?: string
-  addressCountry: string
+  '@type': 'Place'
+  address: {
+    '@type': 'PostalAddress'
+    streetAddress?: string
+    addressLocality?: string
+    addressRegion?: string
+    addressCountry: string
+  }
 } | undefined {
   const rawLocation = (job.location || '').trim()
   const country = isoCountryCode(job.job_location_country) || 'KE'
 
-  // 100% remote roles: no physical address (applicantLocationRequirements is emitted instead).
+  // 100% remote roles: no physical office. jobLocation is omitted and the role is
+  // represented by jobLocationType: TELECOMMUTE + applicantLocationRequirements,
+  // which avoids any contradictory jobLocation/remote data.
   if (job.job_location_type === 'REMOTE') {
-    return { addressCountry: country }
+    return undefined
   }
 
+  // Location text alone says "remote" (e.g. "Remote, Kenya") but the DB type is
+  // not REMOTE: keep a country-level address so the posting still has a location
+  // signal, without inventing a city.
   if (rawLocation && isRemoteLocation(rawLocation)) {
-    return { addressCountry: country }
+    return {
+      '@type': 'Place',
+      address: { '@type': 'PostalAddress', addressCountry: country },
+    }
   }
 
   const parts = splitLocationParts(rawLocation).filter((p) => !isRemoteLocation(p))
@@ -146,19 +159,18 @@ export function resolveJobAddress(
   const streetAddress = looksLikeStreet(rawLocation) ? rawLocation : undefined
 
   const address: {
+    '@type': 'PostalAddress'
     streetAddress?: string
     addressLocality?: string
     addressRegion?: string
     addressCountry: string
-  } = {
-    addressCountry: country,
-  }
+  } = { '@type': 'PostalAddress', addressCountry: country }
 
   if (streetAddress) address.streetAddress = streetAddress
   if (city || derivedCity) address.addressLocality = city || derivedCity
   if (county) address.addressRegion = county
 
-  return address
+  return { '@type': 'Place', address }
 }
 
 /** Map DB experience data to Google's expected structured form. */
