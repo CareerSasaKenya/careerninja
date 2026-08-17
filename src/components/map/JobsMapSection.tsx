@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, ChevronDown, MapPin } from "lucide-react";
+import { ArrowRight, MapPin } from "lucide-react";
 import { KenyaJobsMap } from "@/components/map/KenyaJobsMap";
 import type { CountyJobCount } from "@/lib/jobsByCounty";
 import { KENYA_COUNTIES } from "@/lib/counties";
@@ -14,15 +14,13 @@ type JobsMapSectionProps = {
   counts: CountyJobCount[];
 };
 
-const MOBILE_INITIAL = 10;
-const ROW_HEIGHT = 40;
-const ASIDE_CHROME = 132;
+type SortMode = "count" | "alpha";
 
 /**
  * "Live Jobs Across Kenya" homepage section — an interactive 47-county map
- * with a full county list ranked by live job count. Data is aggregated
- * server-side and passed in as props; the map itself is lazy-loaded from the
- * homepage.
+ * with a scrollable list of all counties (default ranked by live job count,
+ * optionally alphabetical). Data is aggregated server-side and passed in as
+ * props; the map itself is lazy-loaded from the homepage.
  */
 export function JobsMapSection({ counts }: JobsMapSectionProps) {
   const total = useMemo(() => counts.reduce((sum, c) => sum + c.count, 0), [counts]);
@@ -34,15 +32,15 @@ export function JobsMapSection({ counts }: JobsMapSectionProps) {
     return map;
   }, [counts]);
 
-  // Every Kenyan county (including zero-job ones, ranked below).
+  // Every Kenyan county, including zero-job ones.
   const allCounties = useMemo(() => {
     return KENYA_COUNTIES.map((c) => ({
       name: c.name,
       count: countByCanonical.get(c.name) ?? 0,
-    })).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+    }));
   }, [countByCanonical]);
 
-  const [showAll, setShowAll] = useState(false);
+  const [sortMode, setSortMode] = useState<SortMode>("count");
   const [isDesktop, setIsDesktop] = useState(false);
   const [mapHeight, setMapHeight] = useState(0);
   const mapRef = useRef<HTMLDivElement>(null);
@@ -65,21 +63,33 @@ export function JobsMapSection({ counts }: JobsMapSectionProps) {
     return () => ro.disconnect();
   }, []);
 
-  // Desktop: show as many rows as fit inside the map's frame (plus a little
-  // breathing room for the heading + footer). Mobile: a tidy top-10.
-  const desktopFit = Math.max(MOBILE_INITIAL, Math.floor((mapHeight - ASIDE_CHROME) / ROW_HEIGHT));
-  const visibleCount = showAll
-    ? allCounties.length
-    : isDesktop
-      ? desktopFit
-      : MOBILE_INITIAL;
-  const visible = allCounties.slice(0, visibleCount);
-  const hasMore = visibleCount < allCounties.length;
+  const sortedCounties = useMemo(() => {
+    const sorted = [...allCounties];
+    if (sortMode === "alpha") {
+      sorted.sort((a, b) => a.name.localeCompare(b.name, "en"));
+    } else {
+      sorted.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "en"));
+    }
+    return sorted;
+  }, [allCounties, sortMode]);
 
-  // When expanded on desktop, scroll the list inside the map frame instead of
-  // growing the page past the map's bottom edge.
-  const listMaxHeight =
-    isDesktop && showAll ? Math.max(240, mapHeight - ASIDE_CHROME) : undefined;
+  const sortButton = (mode: SortMode, label: string) => {
+    const active = sortMode === mode;
+    return (
+      <button
+        type="button"
+        onClick={() => setSortMode(mode)}
+        aria-pressed={active}
+        className={`rounded-full px-2.5 py-1 transition-colors ${
+          active
+            ? "bg-primary text-primary-foreground"
+            : "text-muted-foreground hover:text-foreground"
+        }`}
+      >
+        {label}
+      </button>
+    );
+  };
 
   return (
     <section className="py-6 md:py-8 px-4" aria-labelledby="live-jobs-map-heading">
@@ -97,9 +107,15 @@ export function JobsMapSection({ counts }: JobsMapSectionProps) {
           <h2 id="live-jobs-map-heading" className={SECTION_HEADING_CLASS}>
             Live Jobs Across Kenya
           </h2>
-          <p className={SECTION_SUBCOPY_CLASS}>
-            {total.toLocaleString()} active opportunities across {activeCounties} counties —
-            tap a county to explore
+          <p className={`${SECTION_SUBCOPY_CLASS} flex flex-wrap items-center justify-center gap-x-2 gap-y-1`}>
+            <span className="inline-flex items-center gap-1.5 font-semibold text-green-700 dark:text-green-400">
+              <span className="relative flex h-2 w-2" aria-hidden="true">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-60" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
+              </span>
+              {total.toLocaleString()} live jobs · {activeCounties} counties
+            </span>
+            <span className="text-muted-foreground">— tap a county to explore</span>
           </p>
         </div>
 
@@ -111,18 +127,25 @@ export function JobsMapSection({ counts }: JobsMapSectionProps) {
           <aside
             className="flex flex-col rounded-2xl border border-border/50 bg-card/70 p-4 md:p-5 lg:sticky lg:top-6"
             style={isDesktop && mapHeight > 0 ? { height: `${mapHeight}px` } : undefined}
-            aria-label="All counties ranked by live job count"
+            aria-label="All counties by live job count"
           >
-            <h3 className="mb-3 flex items-center gap-2 text-lg font-bold text-foreground">
-              <MapPin className="h-4 w-4 text-primary" aria-hidden="true" />
-              Top Counties by Job Count
-            </h3>
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <h3 className="flex items-center gap-2 text-lg font-bold text-foreground">
+                <MapPin className="h-4 w-4 text-primary" aria-hidden="true" />
+                All Counties
+              </h3>
+              <div
+                className="flex shrink-0 items-center rounded-full border border-border bg-background/60 p-0.5 text-xs font-semibold"
+                role="group"
+                aria-label="Sort counties"
+              >
+                {sortButton("count", "Most jobs")}
+                {sortButton("alpha", "A–Z")}
+              </div>
+            </div>
 
-            <ol
-              className={isDesktop ? "space-y-0.5 overflow-y-auto pr-1 lg:flex-1" : "space-y-0.5"}
-              style={listMaxHeight ? { maxHeight: `${listMaxHeight}px` } : undefined}
-            >
-              {visible.map((county, index) => (
+            <ol className="min-h-0 max-h-[26rem] space-y-0.5 overflow-y-auto pr-1 lg:max-h-none lg:flex-1">
+              {sortedCounties.map((county, index) => (
                 <li key={county.name}>
                   <Link
                     href={`/jobs?location=${encodeURIComponent(county.name)}`}
@@ -149,21 +172,7 @@ export function JobsMapSection({ counts }: JobsMapSectionProps) {
               ))}
             </ol>
 
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-border/60 pt-3">
-              {hasMore && (
-                <button
-                  type="button"
-                  onClick={() => setShowAll((s) => !s)}
-                  className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
-                  aria-expanded={showAll}
-                >
-                  {showAll ? "Show fewer locations" : "See all locations"}
-                  <ChevronDown
-                    className={`h-4 w-4 transition-transform ${showAll ? "rotate-180" : ""}`}
-                    aria-hidden="true"
-                  />
-                </button>
-              )}
+            <div className="mt-3 border-t border-border/60 pt-3">
               <Link
                 href="/jobs"
                 prefetch={false}

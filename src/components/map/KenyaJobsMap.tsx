@@ -720,18 +720,6 @@ export function KenyaJobsMap({ counts }: JobsMapProps) {
         </Button>
       </div>
 
-      {/* Live summary chip — bottom-centre on mobile so it never covers the
-          zoom controls, top-left on larger screens. */}
-      <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-card/90 px-3 py-1.5 text-xs font-semibold shadow-md backdrop-blur sm:bottom-auto sm:left-3 sm:translate-x-0 sm:top-3">
-        <span className="relative flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-60" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
-        </span>
-        <span className="ml-1.5 text-green-700 dark:text-green-400">
-          {totalActive.toLocaleString()} live jobs · {markers.length} counties
-        </span>
-      </div>
-
       {/* Hover tooltip */}
       {tooltipStyle && hoveredInfo && (
         <div
