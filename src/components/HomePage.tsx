@@ -375,14 +375,6 @@ export default function HomePage({
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <CarouselPrevious
-                className="md:hidden"
-                style={{ backgroundColor: "#f97316", color: "white", border: "none" }}
-              />
-              <CarouselNext
-                className="md:hidden"
-                style={{ backgroundColor: "#f97316", color: "white", border: "none" }}
-              />
               <CarouselPrevious className="hidden md:flex" />
               <CarouselNext className="hidden md:flex" />
             </Carousel>

@@ -533,3 +533,15 @@ All colors MUST be HSL.
     transform: translateY(-20px);
   }
 }
+
+/* ============================================================
+   Mobile spacing: halve the container's default 2rem side
+   padding below the md breakpoint. Components that already add
+   their own px-4 then total 24px per side instead of 48px.
+   ============================================================ */
+@media (max-width: 767px) {
+  .container {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+}
