@@ -299,7 +299,7 @@ export default function HomePage({
 
       {/* Top industries by open roles */}
       {topIndustries.length > 0 && (
-        <section className="py-6 md:py-8 px-4">
+        <section className="py-3 md:py-8 px-4">
           <div className="container mx-auto">
             <div className={SECTION_HEADER_WRAP_CLASS}>
               <h2 className={SECTION_HEADING_CLASS}>
@@ -343,7 +343,7 @@ export default function HomePage({
 
       {/* Top companies by open roles */}
       {topCompanies.length > 0 && (
-        <section className="py-6 md:py-8 px-4 bg-gradient-subtle">
+        <section className="py-3 md:py-8 px-4 bg-gradient-subtle">
           <div className="container mx-auto">
             <div className={SECTION_HEADER_WRAP_CLASS}>
               <h2 className={SECTION_HEADING_CLASS}>
@@ -399,7 +399,7 @@ export default function HomePage({
       )}
 
       {/* Why Choose Us */}
-      <section className="py-6 md:py-8 px-4">
+      <section className="py-3 md:py-8 px-4">
         <div className="container mx-auto">
           <div className={SECTION_HEADER_WRAP_CLASS}>
             <h2 className={SECTION_HEADING_CLASS}>
@@ -456,7 +456,7 @@ export default function HomePage({
       </section>
 
       {/* Testimonials */}
-      <section className="py-6 md:py-8 px-4 bg-gradient-subtle">
+      <section className="py-3 md:py-8 px-4 bg-gradient-subtle">
         <div className="container mx-auto">
           <div className={SECTION_HEADER_WRAP_CLASS}>
             <h2 className={SECTION_HEADING_CLASS}>
@@ -525,7 +525,7 @@ export default function HomePage({
       </section>
 
       {/* Latest Jobs */}
-      <section className="py-6 md:py-8 px-4">
+      <section className="py-3 md:py-8 px-4">
         <div className="container mx-auto">
           <div className={SECTION_HEADER_WRAP_CLASS}>
             <h2 className={SECTION_HEADING_CLASS}>Latest Job Openings</h2>
@@ -618,7 +618,7 @@ export default function HomePage({
       </section>
 
       {/* Success Stories */}
-      <section className="py-6 md:py-8 px-4 bg-gradient-subtle">
+      <section className="py-3 md:py-8 px-4 bg-gradient-subtle">
         <div className="container mx-auto">
           <div className={SECTION_HEADER_WRAP_CLASS}>
             <h2 className={SECTION_HEADING_CLASS}>
@@ -695,7 +695,7 @@ export default function HomePage({
 
       {/* Blog */}
       {blogPosts.length > 0 && (
-        <section className="py-6 md:py-8 px-4">
+        <section className="py-3 md:py-8 px-4">
           <div className="container mx-auto">
             <div className={SECTION_HEADER_WRAP_CLASS}>
               <h2 className={SECTION_HEADING_CLASS}>

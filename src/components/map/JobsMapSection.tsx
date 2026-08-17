@@ -92,7 +92,7 @@ export function JobsMapSection({ counts }: JobsMapSectionProps) {
   };
 
   return (
-    <section className="py-6 md:py-8 px-4" aria-labelledby="live-jobs-map-heading">
+    <section className="py-3 md:py-8 px-4" aria-labelledby="live-jobs-map-heading">
       <div className="container mx-auto">
         <div className="mb-4 md:mb-6 text-center">
           <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 dark:bg-green-950/40">
