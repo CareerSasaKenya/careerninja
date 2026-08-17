@@ -30,6 +30,11 @@ type Marker = {
   r: number;
 };
 
+type Rect = { x0: number; y0: number; x1: number; y1: number };
+
+const intersects = (a: Rect, b: Rect) =>
+  a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0;
+
 function clampViewport(v: Viewport, w: number, h: number): Viewport {
   let { scale, x, y } = v;
   scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale));
@@ -75,47 +80,54 @@ const MARKER_NUDGE: Record<string, [number, number]> = {
 
 /**
  * Decide where each marker's count pill can go. Pills sit to the right of the
- * marker by default; if that collides with another county's marker circle the
- * pill flips to the left, and if both sides collide the count moves inside the
- * circle instead. This keeps every count readable without markers piling up.
+ * marker by default; if that would collide with another county's marker circle
+ * or an already-placed pill, the pill flips to the left, and if both sides are
+ * taken the count moves inside the circle instead. Placing higher-count
+ * counties first keeps the biggest numbers front and centre.
  */
 function computePillPlacement(
   markers: Marker[]
 ): Map<string, { flip: boolean; showPill: boolean }> {
-  const rects = markers.map((m) => ({
+  const circleRects = markers.map((m) => ({
     x0: m.x - m.r,
     y0: m.y - m.r,
     x1: m.x + m.r,
     y1: m.y + m.r,
   }));
+  const placedPills: Rect[] = [];
   const result = new Map<string, { flip: boolean; showPill: boolean }>();
   for (let i = 0; i < markers.length; i++) {
     const m = markers[i];
     const pW = pillWidth(m.count);
-    const rightRect = {
+    const right: Rect = {
       x0: m.x + m.r,
       y0: m.y - 11,
       x1: m.x + m.r + 8 + pW,
       y1: m.y + 11,
     };
-    const leftRect = {
+    const left: Rect = {
       x0: m.x - m.r - 8 - pW,
       y0: m.y - 11,
       x1: m.x - m.r,
       y1: m.y + 11,
     };
-    const collides = (r: typeof rightRect) =>
-      rects.some((o, j) => j !== i && r.x0 < o.x1 && r.x1 > o.x0 && r.y0 < o.y1 && r.y1 > o.y0);
-    const right = collides(rightRect);
-    const left = collides(leftRect);
-    if (right && !left) result.set(m.name, { flip: true, showPill: true });
-    else if (right && left) result.set(m.name, { flip: false, showPill: false });
-    else result.set(m.name, { flip: false, showPill: true });
+    const collides = (r: Rect) =>
+      circleRects.some((o, j) => j !== i && intersects(r, o)) ||
+      placedPills.some((p) => intersects(r, p));
+    if (!collides(right)) {
+      result.set(m.name, { flip: false, showPill: true });
+      placedPills.push(right);
+    } else if (!collides(left)) {
+      result.set(m.name, { flip: true, showPill: true });
+      placedPills.push(left);
+    } else {
+      result.set(m.name, { flip: false, showPill: false });
+    }
   }
   return result;
 }
 
-type LabelRect = { x0: number; y0: number; x1: number; y1: number };
+type LabelRect = Rect;
 
 /**
  * Pick which county labels fit without overlapping, resolving higher-count
@@ -136,9 +148,7 @@ function computeVisibleLabels(markers: Marker[], scale: number): Set<string> {
       x1: cx + w / scale / 2 + m.r,
       y1: m.y + m.r + h / 2,
     };
-    const collides = placed.some(
-      (p) => rect.x0 < p.x1 && rect.x1 > p.x0 && rect.y0 < p.y1 && rect.y1 > p.y0
-    );
+    const collides = placed.some((p) => intersects(rect, p));
     if (!collides) {
       placed.push(rect);
       visible.add(m.name);
@@ -153,7 +163,10 @@ type JobsMapProps = {
 
 export function KenyaJobsMap({ counts }: JobsMapProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const groupRef = useRef<SVGGElement>(null);
   const [viewport, setViewport] = useState<Viewport>(DEFAULT_VIEWPORT);
+  const viewportRef = useRef<Viewport>(DEFAULT_VIEWPORT);
+  const commitRafRef = useRef<number | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [containerSize, setContainerSize] = useState<{ w: number; h: number }>({
@@ -207,10 +220,7 @@ export function KenyaJobsMap({ counts }: JobsMapProps) {
       .sort((a, b) => b.count - a.count || b.size - a.size);
   }, [countyByShape]);
 
-  const pillPlacement = useMemo(
-    () => computePillPlacement(markers),
-    [markers]
-  );
+  const pillPlacement = useMemo(() => computePillPlacement(markers), [markers]);
 
   const visibleLabels = useMemo(
     () => computeVisibleLabels(markers, viewport.scale),
@@ -220,6 +230,46 @@ export function KenyaJobsMap({ counts }: JobsMapProps) {
   const totalActive = useMemo(
     () => markers.reduce((sum, m) => sum + m.count, 0),
     [markers]
+  );
+
+  // ---- Imperative viewport transform -------------------------------------
+  // Pan/zoom is applied directly to the SVG <g> via requestAnimationFrame so
+  // dragging never re-renders React per pointer event — keeps panning smooth
+  // on low-end phones and laptops. State is synced afterwards for the
+  // zoom-dependent label layout, tooltips and popups.
+  const applyTransform = useCallback((v: Viewport) => {
+    groupRef.current?.setAttribute(
+      "transform",
+      `translate(${v.x} ${v.y}) scale(${v.scale})`
+    );
+  }, []);
+
+  const scheduleCommit = useCallback(() => {
+    if (commitRafRef.current !== null) return;
+    commitRafRef.current = requestAnimationFrame(() => {
+      commitRafRef.current = null;
+      setViewport(viewportRef.current);
+    });
+  }, []);
+
+  const setView = useCallback(
+    (v: Viewport) => {
+      viewportRef.current = v;
+      applyTransform(v);
+      scheduleCommit();
+    },
+    [applyTransform, scheduleCommit]
+  );
+
+  useEffect(() => {
+    applyTransform(viewportRef.current);
+  }, [applyTransform]);
+
+  useEffect(
+    () => () => {
+      if (commitRafRef.current !== null) cancelAnimationFrame(commitRafRef.current);
+    },
+    []
   );
 
   // Container size + device-type detection
@@ -240,8 +290,8 @@ export function KenyaJobsMap({ counts }: JobsMapProps) {
 
   // Clamp viewport when the container resizes
   useEffect(() => {
-    setViewport((v) => clampViewport(v, containerSize.w, containerSize.h));
-  }, [containerSize]);
+    setView(clampViewport(viewportRef.current, containerSize.w, containerSize.h));
+  }, [containerSize, setView]);
 
   // Native wheel listener so we can preventDefault (React wheels are passive)
   useEffect(() => {
@@ -253,26 +303,35 @@ export function KenyaJobsMap({ counts }: JobsMapProps) {
       const px = e.clientX - rect.left;
       const py = e.clientY - rect.top;
       const factor = Math.exp(-e.deltaY * 0.0016);
-      setViewport((v) => clampViewport(zoomAt(v, px, py, factor), rect.width, rect.height));
+      setView(
+        clampViewport(zoomAt(viewportRef.current, px, py, factor), rect.width, rect.height)
+      );
     };
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
-  }, []);
+  }, [setView]);
 
   const resetView = useCallback(() => {
-    setViewport(DEFAULT_VIEWPORT);
+    setView(DEFAULT_VIEWPORT);
     setHovered(null);
-  }, []);
+  }, [setView]);
 
-  const zoomStep = useCallback((direction: 1 | -1) => {
-    const el = wrapperRef.current;
-    const rect = el?.getBoundingClientRect();
-    const px = rect ? rect.width / 2 : 0;
-    const py = rect ? rect.height / 2 : 0;
-    setViewport((v) =>
-      clampViewport(zoomAt(v, px, py, direction > 0 ? 1.6 : 1 / 1.6), rect?.width ?? 600, rect?.height ?? 740)
-    );
-  }, []);
+  const zoomStep = useCallback(
+    (direction: 1 | -1) => {
+      const el = wrapperRef.current;
+      const rect = el?.getBoundingClientRect();
+      const px = rect ? rect.width / 2 : 0;
+      const py = rect ? rect.height / 2 : 0;
+      setView(
+        clampViewport(
+          zoomAt(viewportRef.current, px, py, direction > 0 ? 1.6 : 1 / 1.6),
+          rect?.width ?? 600,
+          rect?.height ?? 740
+        )
+      );
+    },
+    [setView]
+  );
 
   const markerFor = useCallback(
     (name: string) => markers.find((m) => m.name === name),
@@ -285,31 +344,28 @@ export function KenyaJobsMap({ counts }: JobsMapProps) {
   }, []);
 
   // ---- Pointer handlers (drag + pinch + tap) ----
-  const onPointerDown = useCallback(
-    (e: React.PointerEvent) => {
-      if (e.button !== 0 && e.pointerType === "mouse") return;
-      const el = wrapperRef.current;
-      if (el) el.setPointerCapture?.(e.pointerId);
-      pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
+    if (e.button !== 0 && e.pointerType === "mouse") return;
+    const el = wrapperRef.current;
+    if (el) el.setPointerCapture?.(e.pointerId);
+    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
-      if (pointersRef.current.size === 1) {
-        if (viewport.scale > MIN_SCALE + 0.001) {
-          dragRef.current = {
-            startX: e.clientX,
-            startY: e.clientY,
-            origX: viewport.x,
-            origY: viewport.y,
-            moved: false,
-          };
-        }
-      } else if (pointersRef.current.size === 2) {
-        dragRef.current = null;
-        const [a, b] = [...pointersRef.current.values()];
-        lastPinchRef.current = Math.hypot(a.x - b.x, a.y - b.y);
+    if (pointersRef.current.size === 1) {
+      if (viewportRef.current.scale > MIN_SCALE + 0.001) {
+        dragRef.current = {
+          startX: e.clientX,
+          startY: e.clientY,
+          origX: viewportRef.current.x,
+          origY: viewportRef.current.y,
+          moved: false,
+        };
       }
-    },
-    [viewport]
-  );
+    } else if (pointersRef.current.size === 2) {
+      dragRef.current = null;
+      const [a, b] = [...pointersRef.current.values()];
+      lastPinchRef.current = Math.hypot(a.x - b.x, a.y - b.y);
+    }
+  }, []);
 
   const onPointerMove = useCallback(
     (e: React.PointerEvent) => {
@@ -330,13 +386,14 @@ export function KenyaJobsMap({ counts }: JobsMapProps) {
           suppressClickRef.current = true;
         }
         if (drag.moved) {
-          setViewport((v) =>
-            clampViewport(
-              { ...v, x: drag.origX + dx, y: drag.origY + dy },
-              rect?.width ?? 600,
-              rect?.height ?? 740
-            )
+          // Update the transform directly — no React re-render while panning.
+          const v = clampViewport(
+            { ...viewportRef.current, x: drag.origX + dx, y: drag.origY + dy },
+            rect?.width ?? 600,
+            rect?.height ?? 740
           );
+          viewportRef.current = v;
+          applyTransform(v);
         }
         return;
       }
@@ -346,52 +403,57 @@ export function KenyaJobsMap({ counts }: JobsMapProps) {
         const dist = Math.hypot(a.x - b.x, a.y - b.y);
         const midX = (a.x + b.x) / 2;
         const midY = (a.y + b.y) / 2;
-        const rect = el?.getBoundingClientRect();
         const px = midX - (rect?.left ?? 0);
         const py = midY - (rect?.top ?? 0);
         const factor = dist / lastPinchRef.current;
-        setViewport((v) =>
-          clampViewport(zoomAt(v, px, py, factor), rect?.width ?? 600, rect?.height ?? 740)
+        setView(
+          clampViewport(zoomAt(viewportRef.current, px, py, factor), rect?.width ?? 600, rect?.height ?? 740)
         );
         lastPinchRef.current = dist;
       }
     },
-    []
+    [applyTransform, setView]
   );
 
-  const onPointerUp = useCallback((e: React.PointerEvent) => {
-    const wasPinching = pointersRef.current.size === 2;
-    pointersRef.current.delete(e.pointerId);
-    dragRef.current = null;
-    lastPinchRef.current = null;
+  const onPointerUp = useCallback(
+    (e: React.PointerEvent) => {
+      const wasPinching = pointersRef.current.size === 2;
+      pointersRef.current.delete(e.pointerId);
+      dragRef.current = null;
+      lastPinchRef.current = null;
 
-    if (!wasPinching && pointersRef.current.size === 0) {
-      // Double-tap to zoom (mobile/desktop)
-      const now = Date.now();
-      const moved = suppressClickRef.current;
-      suppressClickRef.current = false;
-      if (!moved && tapPosRef.current && now - lastTapRef.current < 350) {
-        const dx = e.clientX - tapPosRef.current.x;
-        const dy = e.clientY - tapPosRef.current.y;
-        if (Math.hypot(dx, dy) < 24) {
-          const el = wrapperRef.current;
-          const rect = el?.getBoundingClientRect();
-          setViewport((v) =>
-            clampViewport(
-              zoomAt(v, e.clientX - (rect?.left ?? 0), e.clientY - (rect?.top ?? 0), 1.7),
-              rect?.width ?? 600,
-              rect?.height ?? 740
-            )
-          );
-          lastTapRef.current = 0;
-          tapPosRef.current = null;
-          return;
+      // Commit the panned position so zoom-dependent UI stays in sync.
+      setViewport(viewportRef.current);
+
+      if (!wasPinching && pointersRef.current.size === 0) {
+        // Double-tap to zoom (mobile/desktop)
+        const now = Date.now();
+        const moved = suppressClickRef.current;
+        suppressClickRef.current = false;
+        if (!moved && tapPosRef.current && now - lastTapRef.current < 350) {
+          const dx = e.clientX - tapPosRef.current.x;
+          const dy = e.clientY - tapPosRef.current.y;
+          if (Math.hypot(dx, dy) < 24) {
+            const el = wrapperRef.current;
+            const rect = el?.getBoundingClientRect();
+            setView(
+              clampViewport(
+                zoomAt(viewportRef.current, e.clientX - (rect?.left ?? 0), e.clientY - (rect?.top ?? 0), 1.7),
+                rect?.width ?? 600,
+                rect?.height ?? 740
+              )
+            );
+            lastTapRef.current = 0;
+            tapPosRef.current = null;
+            return;
+          }
         }
+        lastTapRef.current = now;
+        tapPosRef.current = { x: e.clientX, y: e.clientY };
       }
-      lastTapRef.current = now;
-      tapPosRef.current = { x: e.clientX, y: e.clientY };
-    }
-  }, []);
+    },
+    [setView]
+  );
 
   const onPointerCancel = useCallback((e: React.PointerEvent) => {
     pointersRef.current.delete(e.pointerId);
@@ -482,9 +544,9 @@ export function KenyaJobsMap({ counts }: JobsMapProps) {
       onDoubleClick={(e) => {
         e.preventDefault();
         const rect = wrapperRef.current?.getBoundingClientRect();
-        setViewport((v) =>
+        setView(
           clampViewport(
-            zoomAt(v, e.clientX - (rect?.left ?? 0), e.clientY - (rect?.top ?? 0), 1.7),
+            zoomAt(viewportRef.current, e.clientX - (rect?.left ?? 0), e.clientY - (rect?.top ?? 0), 1.7),
             rect?.width ?? 600,
             rect?.height ?? 740
           )
@@ -506,11 +568,12 @@ export function KenyaJobsMap({ counts }: JobsMapProps) {
       </span>
       <svg
         viewBox={`0 0 ${VB_W} ${VB_H}`}
+        role="img"
+        aria-label={`Map of Kenya showing live job counts. ${totalActive.toLocaleString()} active jobs across ${markers.length} counties.`}
         className="block h-auto w-full select-none"
       >
-        <title>{`Live jobs across Kenya — ${totalActive.toLocaleString()} active jobs in ${markers.length} counties`}</title>
         {/* County shapes */}
-        <g transform={`translate(${viewport.x} ${viewport.y}) scale(${viewport.scale})`}>
+        <g ref={groupRef}>
           {countyByShape.map(({ shape, name, count }) => (
             <g key={shape.id}>
               {shape.paths.map((d, i) => (
@@ -657,13 +720,14 @@ export function KenyaJobsMap({ counts }: JobsMapProps) {
         </Button>
       </div>
 
-      {/* Live summary chip */}
-      <div className="pointer-events-none absolute left-3 top-3 flex items-center gap-2 rounded-full bg-card/90 px-3 py-1.5 text-xs font-semibold shadow-md backdrop-blur">
+      {/* Live summary chip — bottom-centre on mobile so it never covers the
+          zoom controls, top-left on larger screens. */}
+      <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-card/90 px-3 py-1.5 text-xs font-semibold shadow-md backdrop-blur sm:bottom-auto sm:left-3 sm:translate-x-0 sm:top-3">
         <span className="relative flex h-2 w-2">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-60" />
           <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
         </span>
-        <span className="text-green-700 dark:text-green-400">
+        <span className="ml-1.5 text-green-700 dark:text-green-400">
           {totalActive.toLocaleString()} live jobs · {markers.length} counties
         </span>
       </div>

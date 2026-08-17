@@ -1,10 +1,14 @@
 /**
  * Verify the marker pill-placement algorithm (same logic as KenyaJobsMap)
- * against real DB counts — confirms no marker/pill collisions remain.
+ * against real DB counts — confirms no marker-vs-marker or pill-vs-pill
+ * overlaps remain (e.g. Busia/Kakamega, Siaya/Kisumu).
  */
 import { createClient } from "@supabase/supabase-js";
 import { resolveCountyName } from "../src/lib/counties";
-import { KENYA_COUNTY_SHAPES } from "../src/data/kenyaCountyShapes";
+import {
+  KENYA_COUNTY_SHAPES,
+  KENYA_SHAPE_TO_CANONICAL,
+} from "../src/data/kenyaCountyShapes";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL ||
@@ -21,6 +25,41 @@ function markerRadius(count: number) {
 }
 function pillWidth(count: number) {
   return count.toLocaleString().length * 8.2 + 18;
+}
+
+type M = { name: string; x: number; y: number; r: number; count: number };
+type Rect = { x0: number; y0: number; x1: number; y1: number };
+const intersects = (a: Rect, b: Rect) =>
+  a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0;
+
+function placements(markers: M[]) {
+  const circleRects = markers.map((m) => ({
+    x0: m.x - m.r,
+    y0: m.y - m.r,
+    x1: m.x + m.r,
+    y1: m.y + m.r,
+  }));
+  const placedPills: Rect[] = [];
+  const result = new Map<string, { flip: boolean; showPill: boolean }>();
+  for (let i = 0; i < markers.length; i++) {
+    const m = markers[i];
+    const pW = pillWidth(m.count);
+    const right: Rect = { x0: m.x + m.r, y0: m.y - 11, x1: m.x + m.r + 8 + pW, y1: m.y + 11 };
+    const left: Rect = { x0: m.x - m.r - 8 - pW, y0: m.y - 11, x1: m.x - m.r, y1: m.y + 11 };
+    const collides = (r: Rect) =>
+      circleRects.some((o, j) => j !== i && intersects(r, o)) ||
+      placedPills.some((p) => intersects(r, p));
+    if (!collides(right)) {
+      result.set(m.name, { flip: false, showPill: true });
+      placedPills.push(right);
+    } else if (!collides(left)) {
+      result.set(m.name, { flip: true, showPill: true });
+      placedPills.push(left);
+    } else {
+      result.set(m.name, { flip: false, showPill: false });
+    }
+  }
+  return result;
 }
 
 async function main() {
@@ -41,49 +80,69 @@ async function main() {
     if (data.length < 1000) break;
   }
 
-  type M = { name: string; x: number; y: number; r: number; count: number };
-  const markers: M[] = KENYA_COUNTY_SHAPES.filter((c) => (counts.get(c.name) ?? 0) > 0)
+  const markers: M[] = KENYA_COUNTY_SHAPES.filter(
+    (c) => (counts.get(KENYA_SHAPE_TO_CANONICAL[c.name] ?? c.name) ?? 0) > 0
+  )
     .map((c) => {
-      const n = MARKER_NUDGE[c.name];
+      const canonical = KENYA_SHAPE_TO_CANONICAL[c.name] ?? c.name;
+      const n = MARKER_NUDGE[canonical];
       return {
-        name: c.name,
+        name: canonical,
         x: c.x + (n?.[0] ?? 0),
         y: c.y + (n?.[1] ?? 0),
-        r: markerRadius(counts.get(c.name)!),
-        count: counts.get(c.name)!,
+        r: markerRadius(counts.get(canonical)!),
+        count: counts.get(canonical)!,
       };
     })
     .sort((a, b) => b.count - a.count);
 
-  // Circles as rects
-  const rects = markers.map((m) => ({ x0: m.x - m.r, y0: m.y - m.r, x1: m.x + m.r, y1: m.y + m.r }));
-
+  const place = placements(markers);
   const report: string[] = [];
-  for (let i = 0; i < markers.length; i++) {
-    const m = markers[i];
-    const pW = pillWidth(m.count);
-    const right = { x0: m.x + m.r, y0: m.y - 11, x1: m.x + m.r + 8 + pW, y1: m.y + 11 };
-    const left = { x0: m.x - m.r - 8 - pW, y0: m.y - 11, x1: m.x - m.r, y1: m.y + 11 };
-    const collides = (r: typeof right) => rects.some((o, j) => j !== i && r.x0 < o.x1 && r.x1 > o.x0 && r.y0 < o.y1 && r.y1 > o.y0);
-    const rC = collides(right);
-    const lC = collides(left);
-    const placement = rC && !lC ? "flip-left" : rC && lC ? "count-inside" : "right";
+  for (const m of markers) {
+    const p = place.get(m.name)!;
+    const placement = !p.showPill ? "count-inside" : p.flip ? "flip-left" : "right";
     report.push(`${m.name.padEnd(16)} n=${String(m.count).padStart(4)} r=${m.r.toFixed(1).padStart(5)}  pill=${placement}`);
   }
   console.log(report.join("\n"));
 
-  // Any remaining circle-circle overlaps after nudge?
-  console.log("\nCircle-circle pairs within 4 units of touching (r_a+r_b+4):");
+  // Assert no circle-vs-circle or pill-vs-pill overlaps.
+  let failures = 0;
   for (let i = 0; i < markers.length; i++) {
     for (let j = i + 1; j < markers.length; j++) {
       const a = markers[i];
       const b = markers[j];
       const d = Math.hypot(a.x - b.x, a.y - b.y);
-      if (d < a.r + b.r + 4) {
-        console.log(`  ${a.name}(${a.r.toFixed(1)}) <-> ${b.name}(${b.r.toFixed(1)}) dist=${d.toFixed(1)}`);
+      if (d < a.r + b.r - 0.5) {
+        console.log(`CIRCLE OVERLAP: ${a.name} <-> ${b.name} dist=${d.toFixed(1)} (r sum ${(a.r + b.r).toFixed(1)})`);
+        failures++;
       }
     }
   }
+
+  const pillRects: { name: string; rect: Rect }[] = [];
+  for (const m of markers) {
+    const p = place.get(m.name)!;
+    if (!p.showPill) continue;
+    const pW = pillWidth(m.count);
+    pillRects.push({
+      name: m.name,
+      rect: p.flip
+        ? { x0: m.x - m.r - 8 - pW, y0: m.y - 11, x1: m.x - m.r, y1: m.y + 11 }
+        : { x0: m.x + m.r, y0: m.y - 11, x1: m.x + m.r + 8 + pW, y1: m.y + 11 },
+    });
+  }
+  for (let i = 0; i < pillRects.length; i++) {
+    for (let j = i + 1; j < pillRects.length; j++) {
+      if (intersects(pillRects[i].rect, pillRects[j].rect)) {
+        console.log(`PILL OVERLAP: ${pillRects[i].name} <-> ${pillRects[j].name}`);
+        failures++;
+      }
+    }
+  }
+
+  console.log(`\nCounties with jobs: ${markers.length}`);
+  console.log(failures === 0 ? "No overlaps. " : `${failures} overlap(s) found. `);
+  process.exitCode = failures === 0 ? 0 : 1;
 }
 
 main().catch((e) => {
