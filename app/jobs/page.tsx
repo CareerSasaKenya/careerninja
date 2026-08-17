@@ -5,11 +5,12 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import JobCard from "@/components/JobCard";
 import { Loader2, ChevronLeft, ChevronRight, Search, RotateCcw, ChevronDown, ChevronUp, FileText, AlertTriangle } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Database } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { testSupabaseConnection } from "@/lib/testSupabase";
 import { SaveSearchButton } from "@/components/SaveSearchButton";
+import { KENYA_COUNTIES, countySearchValues } from "@/lib/counties";
 
 interface SearchFilters {
   searchTerm: string;
@@ -125,20 +126,7 @@ const INDUSTRIES = [
   { name: "Non-classified / Miscellaneous" }
 ];
 
-const COUNTIES = [
-  { name: "Baringo" }, { name: "Bomet" }, { name: "Bungoma" }, { name: "Busia" },
-  { name: "Elgeyo-Marakwet" }, { name: "Embu" }, { name: "Garissa" }, { name: "Homa Bay" },
-  { name: "Isiolo" }, { name: "Kajiado" }, { name: "Kakamega" }, { name: "Kericho" },
-  { name: "Kiambu" }, { name: "Kilifi" }, { name: "Kirinyaga" }, { name: "Kisii" },
-  { name: "Kisumu" }, { name: "Kitui" }, { name: "Kwale" }, { name: "Laikipia" },
-  { name: "Lamu" }, { name: "Machakos" }, { name: "Makueni" }, { name: "Mandera" },
-  { name: "Marsabit" }, { name: "Meru" }, { name: "Migori" }, { name: "Mombasa" },
-  { name: "Murang'a" }, { name: "Nairobi" }, { name: "Nakuru" }, { name: "Nandi" },
-  { name: "Narok" }, { name: "Nyamira" }, { name: "Nyandarua" }, { name: "Nyeri" },
-  { name: "Samburu" }, { name: "Siaya" }, { name: "Taita–Taveta" }, { name: "Tana River" },
-  { name: "Tharaka–Nithi" }, { name: "Trans Nzoia" }, { name: "Turkana" }, { name: "Uasin Gishu" },
-  { name: "Vihiga" }, { name: "Wajir" }, { name: "West Pokot" }
-];
+const COUNTIES = KENYA_COUNTIES;
 
 const JOBS_PER_PAGE = 12;
 
@@ -188,7 +176,10 @@ const Jobs = () => {
         }
 
         if (filters.location) {
-          countQuery = countQuery.eq("job_location_county", filters.location);
+          const countyValues = countySearchValues(filters.location);
+          countQuery = countyValues.length > 1
+            ? countQuery.in("job_location_county", countyValues)
+            : countQuery.eq("job_location_county", filters.location);
         }
 
         if (filters.employmentType) {
@@ -243,7 +234,10 @@ const Jobs = () => {
         }
 
         if (filters.location) {
-          query = query.eq("job_location_county", filters.location);
+          const countyValues = countySearchValues(filters.location);
+          query = countyValues.length > 1
+            ? query.in("job_location_county", countyValues)
+            : query.eq("job_location_county", filters.location);
         }
 
         if (filters.employmentType) {
@@ -366,6 +360,61 @@ const Jobs = () => {
     
     testConnection();
   }, []);
+
+  // Initialize filters from the URL (e.g. /jobs?location=Nairobi from the
+  // homepage search or the jobs map). Re-applies on back/forward navigation.
+  const applyUrlParams = useCallback(() => {
+    const params = new URLSearchParams(window.location.search);
+
+    const next = { ...filters };
+    const location = params.get("location") || "";
+    if (location && KENYA_COUNTIES.some((c) => c.name === location)) {
+      next.location = location;
+    }
+    if (params.get("search")) next.searchTerm = params.get("search") || "";
+    if (params.get("jobType") && JOB_FUNCTIONS.some((f) => f.name === params.get("jobType"))) {
+      next.jobType = params.get("jobType") || "";
+    }
+    if (params.get("industry") && INDUSTRIES.some((i) => i.name === params.get("industry"))) {
+      next.industry = params.get("industry") || "";
+    }
+    const employmentType = params.get("employmentType") || "";
+    if (
+      employmentType &&
+      ["FULL_TIME", "PART_TIME", "CONTRACTOR", "INTERN", "TEMPORARY", "VOLUNTEER", "PER_DIEM"].includes(employmentType)
+    ) {
+      next.employmentType = employmentType;
+    }
+    const experienceLevel = params.get("experienceLevel") || "";
+    if (
+      experienceLevel &&
+      ["Entry", "Mid", "Senior", "Managerial", "Internship"].includes(experienceLevel)
+    ) {
+      next.experienceLevel = experienceLevel;
+    }
+    const sortBy = params.get("sortBy") || "";
+    if (["newest", "oldest", "salary_high", "salary_low"].includes(sortBy)) {
+      next.sortBy = sortBy;
+    }
+    setFilters(next);
+  }, [filters]);
+
+  const urlParamsInitializedRef = useRef(false);
+  useEffect(() => {
+    if (urlParamsInitializedRef.current) return;
+    urlParamsInitializedRef.current = true;
+    applyUrlParams();
+  }, [applyUrlParams]);
+
+  useEffect(() => {
+    const onPopState = () => {
+      urlParamsInitializedRef.current = true;
+      applyUrlParams();
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [applyUrlParams]);
+
 
   const totalPages = Math.ceil(totalJobs / JOBS_PER_PAGE);
 

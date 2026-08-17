@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Search, Briefcase, ArrowRight, MapPin, CheckCircle2, Star } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -20,6 +21,23 @@ import { usePageContent, getContentValue } from "@/hooks/usePageContent";
 import { formatJobSeoTitle, jobPostedLabel } from "@/lib/textUtils";
 import type { IndustryCardData } from "@/lib/companyDirectory";
 import { getIndustryCardImage } from "@/lib/industryCardImages";
+import type { CountyJobCount } from "@/lib/jobsByCounty";
+import { JobsMapSectionSkeleton } from "@/components/map/JobsMapSectionSkeleton";
+
+const JobsMapSection = dynamic(
+  () =>
+    import("@/components/map/JobsMapSection").then(
+      (mod) => mod.JobsMapSection
+    ),
+  {
+    ssr: false,
+    loading: () => {
+      // Lazy chunk is still loading — reserve the section's space to avoid a
+      // jarring layout shift when the map mounts.
+      return <JobsMapSectionSkeleton />;
+    },
+  }
+);
 
 type HomeJobCompany = {
   id?: string | null;
@@ -52,6 +70,7 @@ type HomePageProps = {
   topCompanies: CompanyCardData[];
   activeJobsCount: number;
   companiesCount: number;
+  jobsByCounty: CountyJobCount[];
 };
 
 export default function HomePage({
@@ -59,6 +78,7 @@ export default function HomePage({
   topCompanies,
   activeJobsCount,
   companiesCount,
+  jobsByCounty,
 }: HomePageProps) {
   const router = useRouter();
   const [searchKeyword, setSearchKeyword] = useState("");
@@ -314,6 +334,11 @@ export default function HomePage({
             </div>
           </div>
         </section>
+      )}
+
+      {/* Live Jobs Across Kenya — interactive county map */}
+      {jobsByCounty.length > 0 && (
+        <JobsMapSection counts={jobsByCounty} />
       )}
 
       {/* Top companies by open roles */}

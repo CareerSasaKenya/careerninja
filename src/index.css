@@ -378,6 +378,120 @@ All colors MUST be HSL.
   }
 }
 
+/* ============================================================
+   Interactive Kenya jobs map ("Live Jobs Across Kenya")
+   County shapes use the neutral brand tint; green (hsl 142) is
+   reserved exclusively for live-job markers/indicators.
+   ============================================================ */
+@layer components {
+  .kenya-county-shape {
+    fill: hsl(220 20% 97%);
+    stroke: hsl(220 13% 88%);
+    stroke-width: 1.5;
+    transition: fill 150ms ease, stroke 150ms ease;
+    cursor: pointer;
+  }
+  .kenya-county-shape:hover {
+    fill: hsl(210 70% 88%);
+  }
+  .kenya-county-shape:focus-visible {
+    outline: 2px solid hsl(210 89% 40%);
+    outline-offset: -2px;
+  }
+  .kenya-county-active {
+    fill: hsl(210 55% 93%);
+  }
+  .kenya-county-hover {
+    fill: hsl(210 75% 86%);
+    stroke: hsl(210 89% 40%);
+    stroke-width: 2.2;
+  }
+  .kenya-county-selected {
+    fill: hsl(210 85% 80%);
+    stroke: hsl(210 89% 40%);
+    stroke-width: 2.2;
+  }
+  .kenya-marker-pill {
+    fill: hsl(0 0% 100%);
+    stroke: hsl(142 76% 36%);
+    stroke-width: 1.5;
+  }
+  .kenya-marker-count {
+    fill: hsl(142 72% 26%);
+    font-size: 13px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .kenya-marker-label {
+    fill: hsl(222 47% 22%);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    paint-order: stroke;
+    stroke: hsl(0 0% 100%);
+    stroke-width: 3px;
+  }
+
+  .kenya-map-popover {
+    position: absolute;
+    z-index: 20;
+  }
+
+  .kenya-marker-ring {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: kenya-pulse 2.8s ease-out infinite;
+  }
+
+  .dark .kenya-county-shape {
+    fill: hsl(222 47% 12%);
+    stroke: hsl(217 33% 26%);
+  }
+  .dark .kenya-county-shape:hover {
+    fill: hsl(210 45% 22%);
+  }
+  .dark .kenya-county-active {
+    fill: hsl(210 40% 18%);
+  }
+  .dark .kenya-county-hover {
+    fill: hsl(210 45% 26%);
+    stroke: hsl(210 89% 50%);
+  }
+  .dark .kenya-county-selected {
+    fill: hsl(210 50% 32%);
+    stroke: hsl(210 89% 50%);
+  }
+  .dark .kenya-county-shape:focus-visible {
+    outline-color: hsl(210 89% 50%);
+  }
+  .dark .kenya-marker-pill {
+    fill: hsl(222 47% 14%);
+    stroke: hsl(142 76% 40%);
+  }
+  .dark .kenya-marker-count {
+    fill: hsl(142 80% 66%);
+  }
+  .dark .kenya-marker-label {
+    fill: hsl(210 40% 92%);
+    stroke: hsl(222 47% 10%);
+  }
+}
+
+@keyframes kenya-pulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.55;
+  }
+  70% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
 @keyframes fade-in {
   from {
     opacity: 0;

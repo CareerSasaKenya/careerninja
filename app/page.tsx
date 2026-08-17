@@ -3,14 +3,16 @@ import {
   getCompanyDirectoryData,
   getHomepageStats,
 } from "@/lib/companyDirectory";
+import { getActiveJobsByCounty } from "@/lib/jobsByCounty";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function Page() {
-  const [{ industryCards, companies }, stats] = await Promise.all([
+  const [{ industryCards, companies }, stats, jobsByCounty] = await Promise.all([
     getCompanyDirectoryData(),
     getHomepageStats(),
+    getActiveJobsByCounty(),
   ]);
 
   const topIndustries = [...industryCards]
@@ -31,6 +33,7 @@ export default async function Page() {
       topCompanies={topCompanies}
       activeJobsCount={stats.activeJobs}
       companiesCount={stats.companies}
+      jobsByCounty={jobsByCounty}
     />
   );
 }
