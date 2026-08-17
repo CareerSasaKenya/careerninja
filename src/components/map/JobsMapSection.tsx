@@ -108,8 +108,7 @@ export function JobsMapSection({ counts }: JobsMapSectionProps) {
             Live Jobs Across Kenya
           </h2>
           <p className={`${SECTION_SUBCOPY_CLASS} flex flex-wrap items-center justify-center gap-x-2 gap-y-1`}>
-            <span className="inline-flex items-center gap-1.5 font-semibold text-green-700 dark:text-green-400">
-              <span className="h-2 w-2 rounded-full bg-green-500" aria-hidden="true" />
+            <span className="inline-flex items-center font-semibold text-green-700 dark:text-green-400">
               {total.toLocaleString()} live jobs · {activeCounties} counties
             </span>
             <span className="text-muted-foreground">— tap a county to explore</span>
