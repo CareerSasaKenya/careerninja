@@ -109,10 +109,7 @@ export function JobsMapSection({ counts }: JobsMapSectionProps) {
           </h2>
           <p className={`${SECTION_SUBCOPY_CLASS} flex flex-wrap items-center justify-center gap-x-2 gap-y-1`}>
             <span className="inline-flex items-center gap-1.5 font-semibold text-green-700 dark:text-green-400">
-              <span className="relative flex h-2 w-2" aria-hidden="true">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-60" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
-              </span>
+              <span className="h-2 w-2 rounded-full bg-green-500" aria-hidden="true" />
               {total.toLocaleString()} live jobs · {activeCounties} counties
             </span>
             <span className="text-muted-foreground">— tap a county to explore</span>
@@ -144,7 +141,7 @@ export function JobsMapSection({ counts }: JobsMapSectionProps) {
               </div>
             </div>
 
-            <ol className="min-h-0 max-h-[26rem] space-y-0.5 overflow-y-auto pr-1 lg:max-h-none lg:flex-1">
+            <ol className="min-h-0 max-h-[26rem] space-y-0.5 overflow-y-scroll pr-2 lg:max-h-none lg:flex-1 [scrollbar-color:auto] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-background/50">
               {sortedCounties.map((county, index) => (
                 <li key={county.name}>
                   <Link
