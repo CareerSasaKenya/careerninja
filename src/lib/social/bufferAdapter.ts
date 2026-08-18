@@ -171,7 +171,7 @@ export async function bufferListChannels(
 ): Promise<BufferChannel[]> {
   const data = await bufferGraphQl<{ channels: BufferChannel[] | null }>(
     apiKey,
-    `query Channels($orgId: String!) {
+    `query Channels($orgId: OrganizationId!) {
       channels(input: { organizationId: $orgId }) {
         id
         name
