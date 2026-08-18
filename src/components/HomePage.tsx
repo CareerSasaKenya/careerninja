@@ -22,7 +22,9 @@ import { formatJobSeoTitle, jobPostedLabel } from "@/lib/textUtils";
 import type { IndustryCardData } from "@/lib/companyDirectory";
 import { getIndustryCardImage } from "@/lib/industryCardImages";
 import type { CountyJobCount } from "@/lib/jobsByCounty";
+import type { FunctionJobCount } from "@/lib/jobsByFunction";
 import { JobsMapSectionSkeleton } from "@/components/map/JobsMapSectionSkeleton";
+import { ExploreJobsByFunction } from "@/components/ExploreJobsByFunction";
 
 const JobsMapSection = dynamic(
   () =>
@@ -71,6 +73,7 @@ type HomePageProps = {
   activeJobsCount: number;
   companiesCount: number;
   jobsByCounty: CountyJobCount[];
+  jobsByFunction: FunctionJobCount[];
 };
 
 export default function HomePage({
@@ -79,6 +82,7 @@ export default function HomePage({
   activeJobsCount,
   companiesCount,
   jobsByCounty,
+  jobsByFunction,
 }: HomePageProps) {
   const router = useRouter();
   const [searchKeyword, setSearchKeyword] = useState("");
@@ -339,6 +343,11 @@ export default function HomePage({
       {/* Live Jobs Across Kenya — interactive county map */}
       {jobsByCounty.length > 0 && (
         <JobsMapSection counts={jobsByCounty} />
+      )}
+
+      {/* Explore Jobs by Function — live job-market dashboard */}
+      {jobsByFunction.length > 0 && (
+        <ExploreJobsByFunction functions={jobsByFunction} />
       )}
 
       {/* Top companies by open roles */}
