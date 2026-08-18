@@ -211,7 +211,6 @@ export function BufferSettings({ open, onOpenChange, status, onStatusChange }: P
                     <Card key={c.id}>
                       <CardContent className="flex items-center gap-2 p-3">
                         {c.avatar ? (
-                          // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={c.avatar}
                             alt=""
