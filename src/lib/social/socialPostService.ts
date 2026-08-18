@@ -543,13 +543,16 @@ export async function getBufferStatus(adminClient: SupabaseClient): Promise<Buff
   const resolved = await resolveBufferApiKey(adminClient)
   const { data } = await adminClient
     .from('buffer_config')
-    .select('account_name, account_email, organization_id, channels_json')
+    .select('api_key, account_name, account_email, organization_id, channels_json, connected_at')
     .eq('id', 1)
     .maybeSingle()
 
-  const channels = Array.isArray(data?.channels_json)
+  let channels = Array.isArray(data?.channels_json)
     ? (data.channels_json as BufferChannel[])
     : []
+  let accountName = (data?.account_name as string | null) ?? null
+  let accountEmail = (data?.account_email as string | null) ?? null
+  let organizationId = (data?.organization_id as string | null) ?? null
 
   if (!resolved) {
     return {
@@ -561,13 +564,43 @@ export async function getBufferStatus(adminClient: SupabaseClient): Promise<Buff
     }
   }
 
+  // When the key is configured via BUFFER_API_KEY the channels are never
+  // cached (connectBuffer is not called), so the send dialog would show an
+  // empty channel list. Bootstrap account + channels from Buffer on demand
+  // and cache them; once cached, later status calls read the cache.
+  if (!organizationId || channels.length === 0) {
+    try {
+      const account = await bufferGetAccount(resolved.apiKey)
+      const organization = account.organizations?.[0]
+      if (organization) {
+        organizationId = organization.id
+        channels = await bufferListChannels(resolved.apiKey, organization.id)
+        accountName = account.name ?? accountName
+        accountEmail = account.email ?? accountEmail
+        await adminClient.from('buffer_config').upsert({
+          id: 1,
+          // Only persist a DB-stored key; an env key stays out of the database.
+          api_key: resolved.source === 'db' ? resolved.apiKey : (data?.api_key ?? null),
+          account_name: account.name,
+          account_email: account.email,
+          organization_id: organization.id,
+          channels_json: channels,
+          connected_at: data?.connected_at ?? new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+      }
+    } catch (err: unknown) {
+      console.error('[socialPostService] getBufferStatus bootstrap failed:', err)
+    }
+  }
+
   return {
     connected: true,
     key_source: resolved.source,
     account: {
-      name: data?.account_name ?? null,
-      email: data?.account_email ?? null,
-      organization_id: data?.organization_id ?? null,
+      name: accountName,
+      email: accountEmail,
+      organization_id: organizationId,
       organization_name: null,
     },
     channels,
@@ -655,9 +688,23 @@ export async function refreshBufferChannels(
     .select('organization_id')
     .eq('id', 1)
     .maybeSingle()
-  if (!data?.organization_id) throw new Error('Buffer organization not set — reconnect Buffer.')
 
-  const channels = await bufferListChannels(resolved.apiKey, data.organization_id)
+  // Env-key connections bootstrap account/channels on first status read; make
+  // sure the org id exists before calling Buffer.
+  if (!data?.organization_id) {
+    await getBufferStatus(adminClient)
+  }
+
+  const { data: refreshed } = await adminClient
+    .from('buffer_config')
+    .select('organization_id')
+    .eq('id', 1)
+    .maybeSingle()
+  if (!refreshed?.organization_id) {
+    throw new Error('Buffer organization not set — reconnect Buffer.')
+  }
+
+  const channels = await bufferListChannels(resolved.apiKey, refreshed.organization_id)
   await adminClient
     .from('buffer_config')
     .update({

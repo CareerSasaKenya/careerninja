@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -19,11 +19,11 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { AlertTriangle, Loader2, Send } from 'lucide-react'
+import { AlertTriangle, Loader2, RefreshCw, Send } from 'lucide-react'
 import { toast } from 'sonner'
 import { authedFetch } from './api'
 import { PLATFORM_LABELS, formatDateTime } from './format'
-import type { BufferStatusDTO, PublishMode, SocialPostDTO } from '@/lib/social/types'
+import type { BufferChannel, BufferStatusDTO, PublishMode, SocialPostDTO } from '@/lib/social/types'
 
 interface Props {
   post: SocialPostDTO
@@ -48,8 +48,45 @@ export function SendToBufferDialog({
   const [repost, setRepost] = useState(false)
   const [duplicate, setDuplicate] = useState<{ id: string; status: string; created_at: string } | null>(null)
   const [sending, setSending] = useState(false)
+  const [liveChannels, setLiveChannels] = useState<BufferChannel[] | null>(null)
+  const [refreshingChannels, setRefreshingChannels] = useState(false)
 
-  const channels = bufferStatus?.channels ?? []
+  const refreshChannels = useCallback(async () => {
+    setRefreshingChannels(true)
+    try {
+      const status = await authedFetch<BufferStatusDTO>('/api/admin/social/buffer')
+      setLiveChannels(status.channels ?? [])
+    } catch {
+      setLiveChannels([])
+    } finally {
+      setRefreshingChannels(false)
+    }
+  }, [])
+
+  // The parent may pass a cached status with no channels (e.g. when Buffer is
+  // connected through BUFFER_API_KEY). Pull a fresh list so the dropdown
+  // populates immediately.
+  useEffect(() => {
+    let cancelled = false
+    if (bufferStatus?.connected && (bufferStatus.channels?.length ?? 0) === 0) {
+      setRefreshingChannels(true)
+      authedFetch<BufferStatusDTO>('/api/admin/social/buffer')
+        .then((s) => {
+          if (!cancelled) setLiveChannels(s.channels ?? [])
+        })
+        .catch(() => {
+          if (!cancelled) setLiveChannels([])
+        })
+        .finally(() => {
+          if (!cancelled) setRefreshingChannels(false)
+        })
+    }
+    return () => {
+      cancelled = true
+    }
+  }, [bufferStatus])
+
+  const channels = liveChannels ?? bufferStatus?.channels ?? []
   const sortedChannels = [...channels].sort((a, b) => {
     const aMatch = a.service === post.platform ? 0 : 1
     const bMatch = b.service === post.platform ? 0 : 1
@@ -141,18 +178,40 @@ export function SendToBufferDialog({
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Channel</Label>
-              <Select value={channelId} onValueChange={setChannelId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose a connected channel" />
-                </SelectTrigger>
-                <SelectContent>
-                  {sortedChannels.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.name} ({c.service})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {refreshingChannels && sortedChannels.length === 0 ? (
+                <div className="flex items-center gap-2 rounded-md border p-3 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Loading channels…
+                </div>
+              ) : sortedChannels.length === 0 ? (
+                <div className="rounded-lg border border-amber-200/70 bg-amber-50/50 p-3 text-sm text-amber-800 dark:border-amber-700/30 dark:bg-amber-900/10 dark:text-amber-200">
+                  <p className="font-medium">No channels found</p>
+                  <p className="mt-1 text-xs">
+                    Connect your social accounts in Buffer first, then refresh. If you already
+                    connected them, hit Refresh.
+                  </p>
+                  <div className="mt-2 flex gap-2">
+                    <Button variant="outline" size="sm" onClick={refreshChannels} disabled={refreshingChannels}>
+                      <RefreshCw className="mr-1 h-3.5 w-3.5" /> Refresh
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={onOpenSettings}>
+                      Buffer settings
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <Select value={channelId} onValueChange={setChannelId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a connected channel" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sortedChannels.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name} ({c.service})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
               {channel && channel.service !== post.platform && (
                 <p className="text-xs text-muted-foreground">
                   Note: {channel.name} is a {channel.service} channel — this copy was written for{' '}
