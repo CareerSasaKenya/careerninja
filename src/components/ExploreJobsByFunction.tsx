@@ -448,6 +448,23 @@ export function ExploreJobsByFunction({
             </div>
           )}
 
+          {!isTeaser && (
+            <div className="flex w-full items-start gap-2.5 rounded-xl border border-border/60 bg-orange-50/70 px-3.5 py-2.5 dark:bg-orange-950/20">
+              <Zap
+                className="mt-0.5 h-4 w-4 shrink-0 text-secondary"
+                aria-hidden="true"
+              />
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-foreground">
+                  Tip: Click any function to explore jobs
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Get matched with the right opportunities for your skills.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div
             className={`flex flex-wrap items-baseline justify-center gap-x-2 gap-y-1 ${
               isTeaser ? "mb-5" : "mt-5 md:mt-6"
@@ -477,11 +494,84 @@ export function ExploreJobsByFunction({
 
           <div className={`flex min-w-0 flex-col gap-6 ${isTeaser ? "" : "mt-6 md:mt-8"}`}>
             {!isTeaser && (
+              <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <label className="relative min-w-0 flex-1 sm:max-w-sm">
+                  <span className="sr-only">Search functions</span>
+                  <Search
+                    className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                    aria-hidden="true"
+                  />
+                  <input
+                    type="search"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search all functions"
+                    className="w-full rounded-lg border border-border bg-background py-2 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </label>
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm text-muted-foreground">
+                    {displayFunctions.length.toLocaleString()} of{" "}
+                    {functions.length.toLocaleString()}
+                  </p>
+                  <div
+                    className="flex shrink-0 items-center rounded-full border border-border bg-background/60 p-0.5 text-xs font-semibold"
+                    role="group"
+                    aria-label="Sort functions"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setSortMode("count")}
+                      aria-pressed={sortMode === "count"}
+                      className={`rounded-full px-2.5 py-1 transition-colors ${
+                        sortMode === "count"
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      Most jobs
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSortMode("alpha")}
+                      aria-pressed={sortMode === "alpha"}
+                      className={`rounded-full px-2.5 py-1 transition-colors ${
+                        sortMode === "alpha"
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      A–Z
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="min-w-0">
+              {displayFunctions.length === 0 ? (
+                <p className="py-8 text-center text-sm text-muted-foreground">
+                  No functions match “{query.trim()}”.
+                </p>
+              ) : (
+                <FunctionBars
+                  functions={displayFunctions}
+                  total={total}
+                  maxCount={isTeaser ? displayMaxCount : maxCount}
+                  inView={inView}
+                  activeName={activeName}
+                  setActiveName={setActiveName}
+                  onNavigate={navigateToFunction}
+                />
+              )}
+            </div>
+
+            {!isTeaser && (
               <aside
-                className="flex min-w-0 flex-col overflow-hidden rounded-2xl border border-border/50 bg-card/70 p-3 sm:p-4 md:flex-row md:items-center md:gap-8 md:p-5"
+                className="flex min-w-0 flex-col overflow-hidden rounded-2xl border border-border/50 bg-card/70 p-3 sm:p-4 md:p-5"
                 aria-label="Jobs by function overview"
               >
-                <h3 className="flex flex-wrap items-center gap-x-2 gap-y-1 text-base font-bold text-foreground sm:text-lg md:sr-only">
+                <h3 className="flex flex-wrap items-center gap-x-2 gap-y-1 text-base font-bold text-foreground sm:text-lg">
                   <PieChart
                     className="h-4 w-4 shrink-0 text-[#0A66C2]"
                     aria-hidden="true"
@@ -492,7 +582,7 @@ export function ExploreJobsByFunction({
                   </span>
                 </h3>
 
-                <div className="mt-4 flex min-w-0 flex-1 flex-col items-center gap-5 md:mt-0 md:flex-row md:items-center md:gap-8">
+                <div className="mt-4 flex min-w-0 flex-1 flex-col items-center gap-5 md:flex-row md:items-center md:gap-8">
                   <div
                     className="relative aspect-square w-[min(11.5rem,70vw)] shrink-0 sm:w-52"
                     style={{
@@ -604,109 +694,17 @@ export function ExploreJobsByFunction({
                 </div>
               </aside>
             )}
-
-            {!isTeaser && (
-              <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <label className="relative min-w-0 flex-1 sm:max-w-sm">
-                  <span className="sr-only">Search functions</span>
-                  <Search
-                    className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-                    aria-hidden="true"
-                  />
-                  <input
-                    type="search"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search all functions"
-                    className="w-full rounded-lg border border-border bg-background py-2 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-primary"
-                  />
-                </label>
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm text-muted-foreground">
-                    {displayFunctions.length.toLocaleString()} of{" "}
-                    {functions.length.toLocaleString()}
-                  </p>
-                  <div
-                    className="flex shrink-0 items-center rounded-full border border-border bg-background/60 p-0.5 text-xs font-semibold"
-                    role="group"
-                    aria-label="Sort functions"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setSortMode("count")}
-                      aria-pressed={sortMode === "count"}
-                      className={`rounded-full px-2.5 py-1 transition-colors ${
-                        sortMode === "count"
-                          ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      Most jobs
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSortMode("alpha")}
-                      aria-pressed={sortMode === "alpha"}
-                      className={`rounded-full px-2.5 py-1 transition-colors ${
-                        sortMode === "alpha"
-                          ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      A–Z
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="min-w-0">
-              {displayFunctions.length === 0 ? (
-                <p className="py-8 text-center text-sm text-muted-foreground">
-                  No functions match “{query.trim()}”.
-                </p>
-              ) : (
-                <FunctionBars
-                  functions={displayFunctions}
-                  total={total}
-                  maxCount={isTeaser ? displayMaxCount : maxCount}
-                  inView={inView}
-                  activeName={activeName}
-                  setActiveName={setActiveName}
-                  onNavigate={navigateToFunction}
-                />
-              )}
-            </div>
           </div>
 
-          <div
-            className={`mt-6 flex ${
-              isTeaser ? "justify-center" : "justify-start md:justify-end"
-            }`}
-          >
-            {isTeaser ? (
+          {isTeaser && (
+            <div className="mt-6 flex justify-center">
               <Link href="/jobs/functions" prefetch={true}>
                 <Button variant="outline" className="whitespace-nowrap">
                   Explore all functions <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
-            ) : (
-              <div className="flex w-full max-w-md items-start gap-2.5 rounded-xl border border-border/60 bg-orange-50/70 px-3.5 py-2.5 dark:bg-orange-950/20 sm:w-auto">
-                <Zap
-                  className="mt-0.5 h-4 w-4 shrink-0 text-secondary"
-                  aria-hidden="true"
-                />
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-foreground">
-                    Tip: Click any function to explore jobs
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Get matched with the right opportunities for your skills.
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </section>
