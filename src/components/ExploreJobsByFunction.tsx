@@ -24,6 +24,7 @@ import {
   PieChart,
   Plane,
   Scale,
+  Search,
   ShieldCheck,
   ShoppingBag,
   Sprout,
@@ -216,9 +217,10 @@ function FunctionBars({
       {functions.map((fn, index) => {
         const Icon = functionIcon(fn.name);
         const isActive = activeName === fn.name;
-        const barWidth = inView
-          ? `${Math.max(2, (fn.count / maxCount) * 100)}%`
-          : "0%";
+        const barWidth =
+          !inView || fn.count <= 0
+            ? "0%"
+            : `${Math.max(2, (fn.count / maxCount) * 100)}%`;
         return (
           <li key={fn.name}>
             <button
@@ -229,7 +231,7 @@ function FunctionBars({
               aria-label={`${fn.name}: ${fn.count.toLocaleString()} active jobs (${percentOf(fn.count)}%), explore jobs`}
               className={`group grid w-full grid-cols-[minmax(0,1fr)_5.5rem] items-center gap-x-3 gap-y-1.5 rounded-xl px-2 py-2 text-left transition-colors md:grid-cols-[16rem_minmax(0,1fr)_5.5rem] lg:grid-cols-[18rem_minmax(0,1fr)_5.5rem] ${
                 isActive ? "bg-primary/5" : "hover:bg-primary/5"
-              }`}
+              } ${fn.count <= 0 ? "opacity-60" : ""}`}
             >
               <span className="col-span-2 flex min-w-0 items-start gap-2 md:col-span-1">
                 <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary/15">
@@ -279,8 +281,10 @@ export function ExploreJobsByFunction({
   const isTeaser = variant === "teaser";
 
   const sectionRef = useRef<HTMLElement>(null);
-  const [inView, setInView] = useState(false);
+  const [inView, setInView] = useState(!isTeaser);
   const [activeName, setActiveName] = useState<string | null>(null);
+  const [sortMode, setSortMode] = useState<"count" | "alpha">("count");
+  const [query, setQuery] = useState("");
 
   const total = useMemo(
     () => functions.reduce((sum, f) => sum + f.count, 0),
@@ -292,10 +296,28 @@ export function ExploreJobsByFunction({
     [functions]
   );
 
-  const displayFunctions = useMemo(
-    () => (isTeaser ? functions.slice(0, TEASER_ROWS) : functions),
-    [functions, isTeaser]
+  const hiringCount = useMemo(
+    () => functions.filter((f) => f.count > 0).length,
+    [functions]
   );
+
+  const displayFunctions = useMemo(() => {
+    if (isTeaser) return functions.slice(0, TEASER_ROWS);
+
+    const needle = query.trim().toLowerCase();
+    const filtered = needle
+      ? functions.filter((f) => f.name.toLowerCase().includes(needle))
+      : [...functions];
+
+    if (sortMode === "alpha") {
+      filtered.sort((a, b) => a.name.localeCompare(b.name, "en"));
+    } else {
+      filtered.sort(
+        (a, b) => b.count - a.count || a.name.localeCompare(b.name, "en")
+      );
+    }
+    return filtered;
+  }, [functions, isTeaser, query, sortMode]);
 
   const displayMaxCount = useMemo(
     () => Math.max(1, ...displayFunctions.map((f) => f.count)),
@@ -339,6 +361,7 @@ export function ExploreJobsByFunction({
   );
 
   useEffect(() => {
+    if (!isTeaser) return;
     const el = sectionRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
@@ -352,7 +375,7 @@ export function ExploreJobsByFunction({
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [isTeaser]);
 
   const navigateToFunction = (name: string) => {
     if (name === OTHERS_LABEL) {
@@ -378,7 +401,7 @@ export function ExploreJobsByFunction({
       aria-labelledby={isTeaser || showHeader ? headingId : undefined}
       aria-label={isTeaser || showHeader ? undefined : "Jobs by function"}
     >
-      <div className={`container mx-auto ${isTeaser ? "" : "max-w-6xl"}`}>
+      <div className="container mx-auto">
         {isTeaser ? (
           <div className="mb-4 md:mb-6 text-center">
             <h2 id={headingId} className={SECTION_HEADING_CLASS}>
@@ -439,34 +462,26 @@ export function ExploreJobsByFunction({
                 {functions.length.toLocaleString()}
               </span>{" "}
               functions
+              {!isTeaser && hiringCount < functions.length ? (
+                <>
+                  {" "}
+                  ·{" "}
+                  <span className="font-semibold text-foreground">
+                    {hiringCount.toLocaleString()}
+                  </span>{" "}
+                  hiring now
+                </>
+              ) : null}
             </span>
           </div>
 
-          <div
-            className={
-              isTeaser
-                ? "min-w-0"
-                : "mt-6 grid min-w-0 grid-cols-1 gap-6 md:mt-8 xl:grid-cols-[minmax(0,1fr)_minmax(16rem,20rem)] xl:items-start"
-            }
-          >
-            <div className="min-w-0">
-              <FunctionBars
-                functions={displayFunctions}
-                total={total}
-                maxCount={isTeaser ? displayMaxCount : maxCount}
-                inView={inView}
-                activeName={activeName}
-                setActiveName={setActiveName}
-                onNavigate={navigateToFunction}
-              />
-            </div>
-
+          <div className={`flex min-w-0 flex-col gap-6 ${isTeaser ? "" : "mt-6 md:mt-8"}`}>
             {!isTeaser && (
               <aside
-                className="flex min-w-0 flex-col overflow-hidden rounded-2xl border border-border/50 bg-card/70 p-3 sm:p-4 md:p-5"
+                className="flex min-w-0 flex-col overflow-hidden rounded-2xl border border-border/50 bg-card/70 p-3 sm:p-4 md:flex-row md:items-center md:gap-8 md:p-5"
                 aria-label="Jobs by function overview"
               >
-                <h3 className="flex flex-wrap items-center gap-x-2 gap-y-1 text-base font-bold text-foreground sm:text-lg">
+                <h3 className="flex flex-wrap items-center gap-x-2 gap-y-1 text-base font-bold text-foreground sm:text-lg md:sr-only">
                   <PieChart
                     className="h-4 w-4 shrink-0 text-[#0A66C2]"
                     aria-hidden="true"
@@ -477,7 +492,7 @@ export function ExploreJobsByFunction({
                   </span>
                 </h3>
 
-                <div className="mt-4 flex min-w-0 flex-col items-center gap-5">
+                <div className="mt-4 flex min-w-0 flex-1 flex-col items-center gap-5 md:mt-0 md:flex-row md:items-center md:gap-8">
                   <div
                     className="relative aspect-square w-[min(11.5rem,70vw)] shrink-0 sm:w-52"
                     style={{
@@ -556,7 +571,7 @@ export function ExploreJobsByFunction({
                     </div>
                   </div>
 
-                  <ul className="flex w-full min-w-0 flex-col gap-0.5" role="list">
+                  <ul className="flex w-full min-w-0 flex-1 flex-col gap-0.5" role="list">
                     {legendItems.map((item) => {
                       const isActive = activeName === item.name;
                       return (
@@ -589,6 +604,79 @@ export function ExploreJobsByFunction({
                 </div>
               </aside>
             )}
+
+            {!isTeaser && (
+              <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <label className="relative min-w-0 flex-1 sm:max-w-sm">
+                  <span className="sr-only">Search functions</span>
+                  <Search
+                    className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                    aria-hidden="true"
+                  />
+                  <input
+                    type="search"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search all functions"
+                    className="w-full rounded-lg border border-border bg-background py-2 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </label>
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm text-muted-foreground">
+                    {displayFunctions.length.toLocaleString()} of{" "}
+                    {functions.length.toLocaleString()}
+                  </p>
+                  <div
+                    className="flex shrink-0 items-center rounded-full border border-border bg-background/60 p-0.5 text-xs font-semibold"
+                    role="group"
+                    aria-label="Sort functions"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setSortMode("count")}
+                      aria-pressed={sortMode === "count"}
+                      className={`rounded-full px-2.5 py-1 transition-colors ${
+                        sortMode === "count"
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      Most jobs
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSortMode("alpha")}
+                      aria-pressed={sortMode === "alpha"}
+                      className={`rounded-full px-2.5 py-1 transition-colors ${
+                        sortMode === "alpha"
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      A–Z
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="min-w-0">
+              {displayFunctions.length === 0 ? (
+                <p className="py-8 text-center text-sm text-muted-foreground">
+                  No functions match “{query.trim()}”.
+                </p>
+              ) : (
+                <FunctionBars
+                  functions={displayFunctions}
+                  total={total}
+                  maxCount={isTeaser ? displayMaxCount : maxCount}
+                  inView={inView}
+                  activeName={activeName}
+                  setActiveName={setActiveName}
+                  onNavigate={navigateToFunction}
+                />
+              )}
+            </div>
           </div>
 
           <div

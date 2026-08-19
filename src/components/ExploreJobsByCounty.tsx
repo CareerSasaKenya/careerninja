@@ -19,22 +19,21 @@ const JobsMapSection = dynamic(
 const SECTION_HEADING_CLASS = "text-3xl md:text-4xl font-bold mb-2 text-[#0A66C2]";
 const SECTION_SUBCOPY_CLASS = "text-muted-foreground";
 
-const TEASER_ROWS = 8;
+const TEASER_ROWS = 10;
 
 type ExploreJobsByCountyTeaserProps = {
   counties: CountyJobCount[];
 };
 
 /**
- * Compact homepage teaser for jobs-by-county. The full interactive map lives
- * on `/jobs/counties` so it does not dominate the homepage on desktop.
+ * Compact homepage teaser for jobs-by-county. Ranked list only — the full
+ * interactive map lives on `/jobs/counties`.
  */
 export function ExploreJobsByCountyTeaser({
   counties,
 }: ExploreJobsByCountyTeaserProps) {
   const total = counties.reduce((sum, c) => sum + c.count, 0);
   const top = counties.slice(0, TEASER_ROWS);
-  const maxCount = Math.max(1, ...top.map((c) => c.count));
 
   return (
     <section
@@ -69,41 +68,35 @@ export function ExploreJobsByCountyTeaser({
           </p>
         </div>
 
-        <ol className="mx-auto max-w-3xl space-y-1" role="list">
-          {top.map((county, index) => {
-            const barWidth = `${Math.max(2, (county.count / maxCount) * 100)}%`;
-            return (
-              <li key={county.name}>
-                <Link
-                  href={`/jobs?location=${encodeURIComponent(county.name)}`}
-                  prefetch={false}
-                  className="group grid grid-cols-[minmax(0,1fr)_5.5rem] items-center gap-x-3 gap-y-1.5 rounded-xl px-2 py-2 transition-colors hover:bg-primary/5 md:grid-cols-[16rem_minmax(0,1fr)_5.5rem] lg:grid-cols-[18rem_minmax(0,1fr)_5.5rem]"
-                >
-                  <span className="col-span-2 flex min-w-0 items-center gap-2 md:col-span-1">
-                    <span className="w-6 shrink-0 text-right text-sm font-bold tabular-nums text-primary">
-                      {index + 1}.
-                    </span>
-                    <span className="min-w-0 text-sm font-medium leading-snug text-foreground group-hover:text-[#0A66C2]">
-                      {county.name}
-                    </span>
+        <ol
+          className="mx-auto grid max-w-3xl grid-cols-1 gap-x-8 sm:grid-cols-2"
+          role="list"
+        >
+          {top.map((county, index) => (
+            <li key={county.name}>
+              <Link
+                href={`/jobs?location=${encodeURIComponent(county.name)}`}
+                prefetch={false}
+                className="group flex items-center justify-between gap-3 rounded-lg px-2 py-2 text-foreground transition-colors hover:bg-primary/5"
+              >
+                <span className="flex min-w-0 items-center gap-2.5">
+                  <span className="w-6 shrink-0 text-right text-sm font-bold tabular-nums text-primary">
+                    {index + 1}.
                   </span>
-                  <span className="relative h-2.5 w-full min-w-0 overflow-hidden rounded-full bg-muted">
-                    <span
-                      className="absolute inset-y-0 left-0 rounded-full bg-[#0A66C2] origin-left group-hover:brightness-110 group-hover:scale-y-[1.35]"
-                      style={{ width: barWidth }}
-                    />
+                  <span className="min-w-0 text-sm font-medium leading-snug group-hover:text-[#0A66C2]">
+                    {county.name}
                   </span>
-                  <span className="flex shrink-0 items-center justify-end gap-1 text-sm font-semibold tabular-nums">
-                    {county.count.toLocaleString()}
-                    <ArrowRight
-                      className="h-3.5 w-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-[#0A66C2]"
-                      aria-hidden="true"
-                    />
-                  </span>
-                </Link>
-              </li>
-            );
-          })}
+                </span>
+                <span className="flex shrink-0 items-center gap-1 text-sm font-semibold tabular-nums">
+                  {county.count.toLocaleString()}
+                  <ArrowRight
+                    className="h-3.5 w-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-[#0A66C2]"
+                    aria-hidden="true"
+                  />
+                </span>
+              </Link>
+            </li>
+          ))}
         </ol>
 
         <div className="mt-4 flex justify-center">
