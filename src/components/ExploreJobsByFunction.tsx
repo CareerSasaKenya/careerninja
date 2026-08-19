@@ -87,9 +87,11 @@ function donutColor(name: string, index: number): string {
   return FUNCTION_COLORS[name] ?? DONUT_COLORS[index % DONUT_COLORS.length];
 }
 
-const DONUT_SIZE = 200;
+const DONUT_SIZE = 220;
 const DONUT_STROKE = 22;
-const DONUT_RADIUS = (DONUT_SIZE - DONUT_STROKE) / 2;
+const DONUT_ACTIVE_EXTRA = 6;
+/** Leave room so an active/hover stroke is not clipped by the viewBox. */
+const DONUT_RADIUS = (DONUT_SIZE - DONUT_STROKE - DONUT_ACTIVE_EXTRA * 2) / 2;
 const DONUT_CIRCUMFERENCE = 2 * Math.PI * DONUT_RADIUS;
 
 const OTHERS_LABEL = "Others";
@@ -297,21 +299,21 @@ export function ExploreJobsByFunction({
   return (
     <section
       ref={sectionRef}
-      className="py-3 md:py-8 px-4"
+      className="overflow-x-clip py-3 md:py-8 px-4"
       aria-labelledby="explore-jobs-by-function-heading"
     >
-      <div className="container mx-auto">
-        <div className="rounded-3xl border border-border/60 bg-white shadow-sm dark:bg-card p-5 md:p-7 lg:p-8">
+      <div className="container mx-auto max-w-6xl">
+        <div className="min-w-0 rounded-2xl border border-border/60 bg-white p-4 shadow-sm dark:bg-card sm:rounded-3xl sm:p-5 md:p-7 lg:p-8">
           {/* Header row */}
-          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-            <div className="flex items-start gap-3">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div className="flex min-w-0 items-start gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary sm:h-11 sm:w-11">
                 <Briefcase className="h-5 w-5" aria-hidden="true" />
               </span>
-              <div>
+              <div className="min-w-0">
                 <h2
                   id="explore-jobs-by-function-heading"
-                  className="text-2xl md:text-3xl font-bold text-[#0A66C2]"
+                  className="text-xl font-bold leading-tight text-[#0A66C2] sm:text-2xl md:text-3xl"
                 >
                   Explore Jobs by Function
                 </h2>
@@ -322,7 +324,7 @@ export function ExploreJobsByFunction({
             </div>
 
             <Link href="/jobs" prefetch={false} className="shrink-0 md:mt-1">
-              <Button variant="outline" className="w-full md:w-auto whitespace-nowrap">
+              <Button variant="outline" className="w-full whitespace-nowrap md:w-auto">
                 <ListFilter className="h-4 w-4" aria-hidden="true" />
                 View all functions
               </Button>
@@ -331,10 +333,10 @@ export function ExploreJobsByFunction({
 
           {/* Prominent live total */}
           <div className="mt-5 flex flex-wrap items-baseline justify-center gap-x-2 gap-y-1 md:mt-6">
-            <span className="text-4xl md:text-5xl font-extrabold tabular-nums text-[#0A66C2]">
+            <span className="text-3xl font-extrabold tabular-nums text-[#0A66C2] sm:text-4xl md:text-5xl">
               {total.toLocaleString()}
             </span>
-            <span className="text-sm text-muted-foreground md:text-base">
+            <span className="max-w-full text-center text-sm text-muted-foreground md:text-base">
               active jobs across{" "}
               <span className="font-semibold text-foreground">
                 {functions.length.toLocaleString()}
@@ -343,10 +345,11 @@ export function ExploreJobsByFunction({
             </span>
           </div>
 
-          {/* Bars (primary) + donut (secondary) */}
-          <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start md:mt-8">
+          {/* Bars (primary) + donut (secondary). Stack until xl so the 360px
+              donut column cannot shove labels/bars off smaller laptops. */}
+          <div className="mt-6 grid min-w-0 grid-cols-1 gap-6 md:mt-8 xl:grid-cols-[minmax(0,1fr)_minmax(16rem,20rem)] xl:items-start">
             {/* Left — interactive horizontal bars */}
-            <div>
+            <div className="min-w-0">
               <ul className="flex flex-col gap-1" role="list">
                 {displayFunctions.map((fn, index) => {
                   const Icon = functionIcon(fn.name);
@@ -364,16 +367,16 @@ export function ExploreJobsByFunction({
                         onMouseLeave={() => setActiveName(null)}
                         onClick={() => navigateToFunction(fn.name)}
                         aria-label={`${fn.name}: ${fn.count.toLocaleString()} active jobs (${percentOf(fn.count)}%), explore jobs`}
-                        className={`group relative flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left transition-colors md:gap-3 ${
+                        className={`group relative flex w-full min-w-0 flex-col gap-1.5 rounded-xl px-2 py-2 text-left transition-colors sm:flex-row sm:items-center sm:gap-3 sm:px-2.5 ${
                           isActive ? "bg-primary/5" : "hover:bg-primary/5"
                         }`}
                       >
-                        {/* Desktop tooltip */}
-                        <span className="pointer-events-none absolute -top-11 left-8 z-30 hidden items-center gap-2.5 rounded-lg border border-border bg-white px-3 py-2 text-left shadow-lg dark:bg-card md:flex md:opacity-0 md:transition-opacity md:duration-150 md:group-hover:opacity-100">
+                        {/* Desktop tooltip — below the row so it is not clipped */}
+                        <span className="pointer-events-none absolute left-8 top-full z-30 mt-1 hidden max-w-[min(20rem,calc(100vw-3rem))] items-center gap-2.5 rounded-lg border border-border bg-white px-3 py-2 text-left shadow-lg dark:bg-card xl:flex xl:opacity-0 xl:transition-opacity xl:duration-150 xl:group-hover:opacity-100">
                           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                             <Icon className="h-4 w-4" aria-hidden="true" />
                           </span>
-                          <span>
+                          <span className="min-w-0">
                             <span className="block text-sm font-semibold text-foreground">
                               {fn.name}
                             </span>
@@ -387,15 +390,26 @@ export function ExploreJobsByFunction({
                           </span>
                         </span>
 
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary/15">
-                          <Icon className="h-4 w-4" aria-hidden="true" />
+                        <span className="flex min-w-0 items-center gap-2 sm:contents">
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary/15">
+                            <Icon className="h-4 w-4" aria-hidden="true" />
+                          </span>
+
+                          <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground sm:max-w-[9rem] sm:flex-none lg:max-w-[11rem]">
+                            {fn.name}
+                          </span>
+
+                          <span className="ml-auto flex shrink-0 items-baseline gap-1.5 sm:hidden">
+                            <span className="text-sm font-semibold tabular-nums text-foreground">
+                              {fn.count.toLocaleString()}
+                            </span>
+                            <span className="text-[11px] text-muted-foreground">
+                              {percentText(fn.count)}%
+                            </span>
+                          </span>
                         </span>
 
-                        <span className="w-24 truncate text-sm font-medium text-foreground sm:w-36 lg:w-44">
-                          {fn.name}
-                        </span>
-
-                        <span className="relative h-2.5 min-w-0 flex-1 overflow-hidden rounded-full bg-muted">
+                        <span className="relative h-2.5 w-full min-w-0 flex-1 overflow-hidden rounded-full bg-muted sm:w-auto">
                           <span
                             className={`absolute inset-y-0 left-0 rounded-full bg-[#0A66C2] origin-left ${
                               isActive
@@ -409,11 +423,11 @@ export function ExploreJobsByFunction({
                           />
                         </span>
 
-                        <span className="flex shrink-0 flex-col items-end leading-tight sm:flex-row sm:items-baseline sm:gap-2">
+                        <span className="hidden shrink-0 items-baseline gap-2 sm:flex">
                           <span className="text-sm font-semibold tabular-nums text-foreground">
                             {fn.count.toLocaleString()}
                           </span>
-                          <span className="text-[11px] text-muted-foreground sm:text-xs">
+                          <span className="text-xs text-muted-foreground">
                             {percentText(fn.count)}%
                           </span>
                         </span>
@@ -424,23 +438,23 @@ export function ExploreJobsByFunction({
               </ul>
             </div>
 
-            {/* Right — donut overview */}
+            {/* Right — donut overview (always stacked so the legend is never squeezed) */}
             <aside
-              className="flex flex-col rounded-2xl border border-border/50 bg-card/70 p-4 md:p-5"
+              className="flex min-w-0 flex-col overflow-hidden rounded-2xl border border-border/50 bg-card/70 p-3 sm:p-4 md:p-5"
               aria-label="Jobs by function overview"
             >
-              <h3 className="flex items-center gap-2 text-lg font-bold text-foreground">
-                <PieChart className="h-4 w-4 text-[#0A66C2]" aria-hidden="true" />
-                Jobs by Function
-                <span className="text-base font-medium text-muted-foreground">
+              <h3 className="flex flex-wrap items-center gap-x-2 gap-y-1 text-base font-bold text-foreground sm:text-lg">
+                <PieChart className="h-4 w-4 shrink-0 text-[#0A66C2]" aria-hidden="true" />
+                <span>Jobs by Function</span>
+                <span className="text-sm font-medium text-muted-foreground sm:text-base">
                   (Overview)
                 </span>
               </h3>
 
-              <div className="mt-4 flex flex-col items-center gap-5 sm:flex-row sm:items-center">
+              <div className="mt-4 flex min-w-0 flex-col items-center gap-5">
                 {/* Donut */}
                 <div
-                  className="relative h-44 w-44 shrink-0 md:h-52 md:w-52"
+                  className="relative aspect-square w-[min(11.5rem,70vw)] shrink-0 sm:w-52"
                   style={{
                     opacity: inView ? 1 : 0,
                     transform: inView ? "scale(1)" : "scale(0.96)",
@@ -449,7 +463,7 @@ export function ExploreJobsByFunction({
                 >
                   <svg
                     viewBox={`0 0 ${DONUT_SIZE} ${DONUT_SIZE}`}
-                    className="h-full w-full"
+                    className="h-full w-full overflow-visible"
                     role="img"
                     aria-label="Distribution of active jobs by function"
                   >
@@ -457,7 +471,7 @@ export function ExploreJobsByFunction({
                       {(() => {
                         let cumulative = 0;
                         return donutSegments.map((seg) => {
-                          const fraction = seg.count / total;
+                          const fraction = total > 0 ? seg.count / total : 0;
                           const dash = fraction * DONUT_CIRCUMFERENCE;
                           const gap = DONUT_CIRCUMFERENCE - dash;
                           const offset = -cumulative * DONUT_CIRCUMFERENCE;
@@ -471,7 +485,7 @@ export function ExploreJobsByFunction({
                               r={DONUT_RADIUS}
                               fill="none"
                               stroke={seg.color}
-                              strokeWidth={isActive ? DONUT_STROKE + 6 : DONUT_STROKE}
+                              strokeWidth={isActive ? DONUT_STROKE + DONUT_ACTIVE_EXTRA : DONUT_STROKE}
                               strokeDasharray={`${dash} ${gap}`}
                               strokeDashoffset={offset}
                               strokeLinecap="butt"
@@ -500,30 +514,30 @@ export function ExploreJobsByFunction({
                       })()}
                     </g>
                   </svg>
-                  <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-3">
-                    <span className="max-w-full truncate text-3xl font-extrabold tabular-nums text-[#0A66C2] md:text-4xl">
+                  <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-4">
+                    <span className="max-w-full truncate text-2xl font-extrabold tabular-nums text-[#0A66C2] sm:text-3xl md:text-4xl">
                       {activeSegment
                         ? activeSegment.count.toLocaleString()
                         : total.toLocaleString()}
                     </span>
-                    <span className="max-w-full truncate text-xs text-muted-foreground">
+                    <span className="max-w-full truncate text-center text-xs text-muted-foreground">
                       {activeSegment ? activeSegment.name : "Total Jobs"}
                     </span>
                   </div>
                 </div>
 
                 {/* Legend */}
-                <ul className="flex w-full flex-1 flex-col gap-0.5" role="list">
+                <ul className="flex w-full min-w-0 flex-col gap-0.5" role="list">
                   {legendItems.map((item) => {
                     const isActive = activeName === item.name;
                     return (
-                      <li key={item.name}>
+                      <li key={item.name} className="min-w-0">
                         <button
                           type="button"
                           onMouseEnter={() => setActiveName(item.name)}
                           onMouseLeave={() => setActiveName(null)}
                           onClick={() => navigateToFunction(item.name)}
-                          className={`flex w-full items-center gap-2 rounded-lg px-2 py-1 text-left transition-colors ${
+                          className={`flex w-full min-w-0 items-center gap-2 rounded-lg px-2 py-1 text-left transition-colors ${
                             isActive ? "bg-primary/5" : "hover:bg-primary/5"
                           }`}
                         >
@@ -549,9 +563,9 @@ export function ExploreJobsByFunction({
 
           {/* Bottom-right tip callout */}
           <div className="mt-6 flex justify-start md:justify-end">
-            <div className="flex max-w-md items-start gap-2.5 rounded-xl border border-border/60 bg-orange-50/70 px-3.5 py-2.5 dark:bg-orange-950/20">
+            <div className="flex w-full max-w-md items-start gap-2.5 rounded-xl border border-border/60 bg-orange-50/70 px-3.5 py-2.5 dark:bg-orange-950/20 sm:w-auto">
               <Zap className="mt-0.5 h-4 w-4 shrink-0 text-secondary" aria-hidden="true" />
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm font-semibold text-foreground">
                   Tip: Click any function to explore jobs
                 </p>
