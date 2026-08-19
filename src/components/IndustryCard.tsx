@@ -13,10 +13,12 @@ import {
 interface IndustryCardProps {
   title: string;
   href: string;
-  companyCount: number;
+  companyCount?: number;
   openJobs: number;
   imageUrl: string;
   featured?: boolean;
+  compact?: boolean;
+  eyebrow?: string;
   className?: string;
   style?: CSSProperties;
 }
@@ -28,20 +30,25 @@ export function IndustryCard({
   openJobs,
   imageUrl,
   featured = false,
+  compact = false,
+  eyebrow,
   className,
   style,
 }: IndustryCardProps) {
+  const showCompanies = typeof companyCount === "number";
   return (
     <Link
       href={href}
       prefetch={true}
       className={cn(
         "group relative block overflow-hidden rounded-2xl border border-border/40",
-        "min-h-[200px] md:min-h-[220px]",
+        compact
+          ? "min-h-[148px] md:min-h-[160px]"
+          : "min-h-[200px] md:min-h-[220px]",
         "shadow-md transition-all duration-500",
         "hover:shadow-xl hover:-translate-y-1 hover:border-primary/40",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-        featured && "sm:col-span-2 xl:col-span-1 md:min-h-[240px]",
+        featured && !compact && "sm:col-span-2 xl:col-span-1 md:min-h-[240px]",
         className
       )}
       style={style}
@@ -66,31 +73,44 @@ export function IndustryCard({
       <div className="relative z-10 flex h-full min-h-[inherit] flex-col justify-between p-4 md:p-5 text-white">
         <div>
           <p className="text-[11px] uppercase tracking-[0.16em] text-white/75 mb-2">
-            {featured ? "Browse everything" : "Industry"}
+            {eyebrow ?? (featured ? "Browse everything" : "Industry")}
           </p>
           <h3
             className={cn(
               "font-semibold leading-snug text-white drop-shadow-sm",
-              featured ? "text-2xl md:text-3xl" : "text-xl md:text-[1.35rem]"
+              compact
+                ? "text-lg md:text-xl"
+                : featured
+                  ? "text-2xl md:text-3xl"
+                  : "text-xl md:text-[1.35rem]"
             )}
           >
             {title}
           </h3>
         </div>
 
-        <div className="mt-6 flex items-end justify-between gap-4 border-t border-white/20 pt-4">
-          <div>
-            <p className="text-2xl md:text-3xl font-semibold tabular-nums leading-none tracking-tight">
-              {companyCount}
-            </p>
-            <p className="mt-1 text-[11px] uppercase tracking-[0.12em] text-white/70">
-              {companyCount === 1 ? "company" : "companies"}
-            </p>
-          </div>
-          <div className="text-right">
+        <div
+          className={cn(
+            "flex items-end gap-4 border-t border-white/20",
+            compact ? "mt-4 justify-start pt-3" : "mt-6 justify-between pt-4"
+          )}
+        >
+          {showCompanies && (
+            <div>
+              <p className="text-2xl md:text-3xl font-semibold tabular-nums leading-none tracking-tight">
+                {companyCount}
+              </p>
+              <p className="mt-1 text-[11px] uppercase tracking-[0.12em] text-white/70">
+                {companyCount === 1 ? "company" : "companies"}
+              </p>
+            </div>
+          )}
+          <div className={showCompanies ? "text-right" : undefined}>
             <p
               className={cn(
-                "text-xl md:text-2xl font-semibold tabular-nums leading-none",
+                "font-semibold tabular-nums leading-none",
+                compact ? "text-xl md:text-2xl" : "text-xl md:text-2xl",
+                !showCompanies && "text-2xl md:text-3xl",
                 openJobs > 0 ? "text-white" : "text-white/40"
               )}
             >

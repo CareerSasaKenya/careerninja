@@ -12,6 +12,8 @@ const SECTION_SUBCOPY_CLASS = "text-muted-foreground";
 
 type JobsMapSectionProps = {
   counts: CountyJobCount[];
+  /** When false, the parent page supplies the heading (e.g. the counties hub). */
+  showHeading?: boolean;
 };
 
 type SortMode = "count" | "alpha";
@@ -22,7 +24,10 @@ type SortMode = "count" | "alpha";
  * optionally alphabetical). Data is aggregated server-side and passed in as
  * props; the map itself is lazy-loaded from the homepage.
  */
-export function JobsMapSection({ counts }: JobsMapSectionProps) {
+export function JobsMapSection({
+  counts,
+  showHeading = true,
+}: JobsMapSectionProps) {
   const total = useMemo(() => counts.reduce((sum, c) => sum + c.count, 0), [counts]);
   const activeCounties = counts.length;
 
@@ -92,28 +97,41 @@ export function JobsMapSection({ counts }: JobsMapSectionProps) {
   };
 
   return (
-    <section className="py-3 md:py-8 px-4" aria-labelledby="live-jobs-map-heading">
+    <section
+      className="py-3 md:py-8 px-4"
+      aria-labelledby={showHeading ? "live-jobs-map-heading" : undefined}
+      aria-label={showHeading ? undefined : "Live jobs across Kenya"}
+    >
       <div className="container mx-auto">
-        <div className="mb-4 md:mb-6 text-center">
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 dark:bg-green-950/40">
-            <span className="relative flex h-2.5 w-2.5" aria-hidden="true">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-60" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500" />
-            </span>
-            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-green-700 dark:text-green-400">
-              Live
-            </span>
+        {showHeading ? (
+          <div className="mb-4 md:mb-6 text-center">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 dark:bg-green-950/40">
+              <span className="relative flex h-2.5 w-2.5" aria-hidden="true">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-60" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500" />
+              </span>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-green-700 dark:text-green-400">
+                Live
+              </span>
+            </div>
+            <h2 id="live-jobs-map-heading" className={SECTION_HEADING_CLASS}>
+              Live Jobs Across Kenya
+            </h2>
+            <p className={`${SECTION_SUBCOPY_CLASS} flex flex-wrap items-center justify-center gap-x-2 gap-y-1`}>
+              <span className="inline-flex items-center font-semibold text-green-700 dark:text-green-400">
+                {total.toLocaleString()} live jobs · {activeCounties} counties
+              </span>
+              <span className="text-muted-foreground">— tap a county to explore</span>
+            </p>
           </div>
-          <h2 id="live-jobs-map-heading" className={SECTION_HEADING_CLASS}>
-            Live Jobs Across Kenya
-          </h2>
-          <p className={`${SECTION_SUBCOPY_CLASS} flex flex-wrap items-center justify-center gap-x-2 gap-y-1`}>
+        ) : (
+          <p className="mb-4 md:mb-6 text-center text-muted-foreground">
             <span className="inline-flex items-center font-semibold text-green-700 dark:text-green-400">
               {total.toLocaleString()} live jobs · {activeCounties} counties
             </span>
-            <span className="text-muted-foreground">— tap a county to explore</span>
+            <span> — tap a county to explore</span>
           </p>
-        </div>
+        )}
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
           <div ref={mapRef} className="relative">
@@ -152,7 +170,7 @@ export function JobsMapSection({ counts }: JobsMapSectionProps) {
                       <span className="w-5 flex-shrink-0 text-right text-sm font-bold text-primary">
                         {index + 1}.
                       </span>
-                      <span className="truncate text-sm font-medium group-hover:text-[#0A66C2]">
+                      <span className="min-w-0 text-sm font-medium leading-snug group-hover:text-[#0A66C2]">
                         {county.name}
                       </span>
                     </span>

@@ -25,7 +25,7 @@ function sortCounts(counts: Map<string, number>): FunctionJobCount[] {
 
 /**
  * Aggregate the current active/live job counts by function for the
- * "Explore Jobs by Function" homepage visualization.
+ * jobs-by-function hub and homepage teaser.
  *
  * Active/live follows the application's existing job-status logic: only
  * `status = 'active'` jobs are counted (drafts, pending and expired jobs are

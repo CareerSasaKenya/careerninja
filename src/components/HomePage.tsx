@@ -1,14 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Search, Briefcase, ArrowRight, MapPin, CheckCircle2, Star } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import CanonicalTag from "@/components/CanonicalTag";
 import { CompanyLogo } from "@/components/CompanyLogo";
 import { CompanyCard, type CompanyCardData } from "@/components/CompanyCard";
-import { IndustryCard } from "@/components/IndustryCard";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
@@ -19,27 +17,12 @@ import { useRouter } from "next/navigation";
 import Autoplay from "embla-carousel-autoplay";
 import { usePageContent, getContentValue } from "@/hooks/usePageContent";
 import { formatJobSeoTitle, jobPostedLabel } from "@/lib/textUtils";
-import type { IndustryCardData } from "@/lib/companyDirectory";
-import { getIndustryCardImage } from "@/lib/industryCardImages";
 import type { CountyJobCount } from "@/lib/jobsByCounty";
 import type { FunctionJobCount } from "@/lib/jobsByFunction";
-import { JobsMapSectionSkeleton } from "@/components/map/JobsMapSectionSkeleton";
+import type { IndustryJobCount } from "@/lib/jobsByIndustry";
 import { ExploreJobsByFunction } from "@/components/ExploreJobsByFunction";
-
-const JobsMapSection = dynamic(
-  () =>
-    import("@/components/map/JobsMapSection").then(
-      (mod) => mod.JobsMapSection
-    ),
-  {
-    ssr: false,
-    loading: () => {
-      // Lazy chunk is still loading — reserve the section's space to avoid a
-      // jarring layout shift when the map mounts.
-      return <JobsMapSectionSkeleton />;
-    },
-  }
-);
+import { ExploreJobsByIndustry } from "@/components/ExploreJobsByIndustry";
+import { ExploreJobsByCountyTeaser } from "@/components/ExploreJobsByCounty";
 
 type HomeJobCompany = {
   id?: string | null;
@@ -68,21 +51,21 @@ const SECTION_HEADER_WRAP_CLASS = "mb-4 md:mb-6 text-center";
 const CTA_HEADING_CLASS = "text-3xl md:text-4xl font-bold mb-2";
 
 type HomePageProps = {
-  topIndustries: IndustryCardData[];
   topCompanies: CompanyCardData[];
   activeJobsCount: number;
   companiesCount: number;
   jobsByCounty: CountyJobCount[];
   jobsByFunction: FunctionJobCount[];
+  jobsByIndustry: IndustryJobCount[];
 };
 
 export default function HomePage({
-  topIndustries,
   topCompanies,
   activeJobsCount,
   companiesCount,
   jobsByCounty,
   jobsByFunction,
+  jobsByIndustry,
 }: HomePageProps) {
   const router = useRouter();
   const [searchKeyword, setSearchKeyword] = useState("");
@@ -301,53 +284,17 @@ export default function HomePage({
         </div>
       </section>
 
-      {/* Top industries by open roles */}
-      {topIndustries.length > 0 && (
-        <section className="py-3 md:py-8 px-4">
-          <div className="container mx-auto">
-            <div className={SECTION_HEADER_WRAP_CLASS}>
-              <h2 className={SECTION_HEADING_CLASS}>
-                Top Industries Hiring Now
-              </h2>
-              <p className={SECTION_SUBCOPY_CLASS}>
-                The six sectors with the most open roles on CareerSasa right now
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5">
-              {topIndustries.map((industry, index) => (
-                <IndustryCard
-                  key={industry.slug}
-                  title={industry.name}
-                  href={`/companies/industry/${industry.slug}`}
-                  companyCount={industry.companyCount}
-                  openJobs={industry.openJobs}
-                  imageUrl={getIndustryCardImage(industry.name)}
-                  className="animate-fade-in"
-                  style={{ animationDelay: `${Math.min(index, 5) * 60}ms` }}
-                />
-              ))}
-            </div>
-
-            <div className="mt-4 flex justify-center">
-              <Link href="/companies" prefetch={true}>
-                <Button variant="outline" className="whitespace-nowrap">
-                  Browse all industries <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </section>
+      {/* Browse teasers — full map / charts live on dedicated hub pages */}
+      {jobsByIndustry.length > 0 && (
+        <ExploreJobsByIndustry industries={jobsByIndustry} variant="teaser" />
       )}
 
-      {/* Live Jobs Across Kenya — interactive county map */}
-      {jobsByCounty.length > 0 && (
-        <JobsMapSection counts={jobsByCounty} />
-      )}
-
-      {/* Explore Jobs by Function — live job-market dashboard */}
       {jobsByFunction.length > 0 && (
-        <ExploreJobsByFunction functions={jobsByFunction} />
+        <ExploreJobsByFunction functions={jobsByFunction} variant="teaser" />
+      )}
+
+      {jobsByCounty.length > 0 && (
+        <ExploreJobsByCountyTeaser counties={jobsByCounty} />
       )}
 
       {/* Top companies by open roles */}
