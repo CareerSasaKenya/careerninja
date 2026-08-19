@@ -51,6 +51,15 @@ function friendlyMessage(message: string, channelName?: string | null): string {
   if (m.includes('rate limit') || m.includes('429')) {
     return 'Buffer rate limit reached. Wait a few minutes before sending more posts.'
   }
+  if (
+    /\btext\b/.test(m) &&
+    (m.includes('required') || m.includes('expect') || m.includes('missing') || m.includes('empty'))
+  ) {
+    return `Buffer rejected the ${channelName ? `${channelName} ` : ''}post because the caption text was missing. Edit the post, add text, and send again.`
+  }
+  if (m.includes('parameter message')) {
+    return `Facebook needs a caption before this can be published${channelName ? ` to ${channelName}` : ''}. Add post text and try again.`
+  }
   return message
 }
 
@@ -123,12 +132,14 @@ async function bufferGraphQl<T>(
 
     const json = (await res.json()) as {
       data?: T
-      errors?: { message?: string }[]
+      errors?: { message?: string; extensions?: { code?: string } }[]
     }
 
     if (json.errors && json.errors.length > 0) {
-      const msg = json.errors.map((e) => e.message || 'Unknown error').join('; ')
-      throw new BufferApiError(msg)
+      const msg = json.errors
+        .map((e) => e.message || e.extensions?.code || 'Unknown error')
+        .join('; ')
+      throw new BufferApiError(friendlyMessage(msg))
     }
     if (json.data === undefined) {
       throw new BufferApiError('Buffer API returned an empty response')
@@ -191,6 +202,77 @@ export interface CreatePostInput {
   mode: 'now' | 'schedule' | 'queue'
   dueAt?: string | null
   channelName?: string | null
+  /** Buffer channel.service (facebook, linkedin, instagram, …). */
+  service?: string | null
+  /** Public HTTPS image URL, used as a Buffer image asset when present. */
+  mediaUrl?: string | null
+}
+
+const FIRST_URL_RE = /https?:\/\/[^\s)>\]]+/i
+
+export function extractFirstUrl(text: string): string | null {
+  const match = text.match(FIRST_URL_RE)
+  return match ? match[0] : null
+}
+
+function channelService(service?: string | null): string {
+  return (service ?? '').trim().toLowerCase()
+}
+
+/**
+ * Build the GraphQL CreatePostInput object.
+ * Facebook in particular rejects posts that arrive without a caption (`text`)
+ * or without an explicit post type — Buffer then surfaces "Text is required".
+ */
+export function buildCreatePostVariables(input: CreatePostInput): Record<string, unknown> {
+  const text = (input.text ?? '').trim()
+  if (!text) {
+    throw new BufferApiError(
+      'Post text is required. Add a caption before sending to Buffer.'
+    )
+  }
+
+  const mode =
+    input.mode === 'now'
+      ? 'shareNow'
+      : input.mode === 'schedule'
+        ? 'customScheduled'
+        : 'addToQueue'
+
+  const assets: Record<string, unknown>[] = []
+  const mediaUrl = input.mediaUrl?.trim()
+  if (mediaUrl) {
+    assets.push({ image: { url: mediaUrl } })
+  }
+
+  const payload: Record<string, unknown> = {
+    channelId: input.channelId,
+    text,
+    assets,
+    schedulingType: 'automatic',
+    mode,
+    needsApproval: false,
+  }
+
+  if (input.mode === 'schedule') {
+    if (!input.dueAt) {
+      throw new BufferApiError('A scheduled time is required when scheduling a post')
+    }
+    payload.dueAt = input.dueAt
+  }
+
+  const service = channelService(input.service)
+  if (service.includes('facebook')) {
+    const facebook: Record<string, unknown> = { type: 'post' }
+    const link = extractFirstUrl(text)
+    // Link cards are mutually exclusive with a non-empty assets array.
+    if (link && assets.length === 0) {
+      facebook.linkAttachment = { url: link }
+    }
+    payload.metadata = { facebook }
+  }
+
+  return payload
 }
 
 export interface CreatedBufferPost {
@@ -207,44 +289,30 @@ export async function bufferCreatePost(
   apiKey: string,
   input: CreatePostInput
 ): Promise<CreatedBufferPost> {
-  if (input.mode === 'schedule' && !input.dueAt) {
-    throw new BufferApiError('A scheduled time is required when scheduling a post')
-  }
-
-  const mode =
-    input.mode === 'now'
-      ? 'shareNow'
-      : input.mode === 'schedule'
-        ? 'customScheduled'
-        : 'addToQueue'
+  const variables = { input: buildCreatePostVariables(input) }
 
   const query = `mutation CreatePost($input: CreatePostInput!) {
     createPost(input: $input) {
       ... on PostActionSuccess {
         post { id text status dueAt }
       }
+      ... on InvalidInputError { message }
       ... on MutationError { message }
     }
   }`
 
   const data = await bufferGraphQl<{
     createPost: { post?: CreatedBufferPost; message?: string } | null
-  }>(apiKey, query, {
-    input: {
-      channelId: input.channelId,
-      text: input.text,
-      schedulingType: 'automatic',
-      mode,
-      ...(input.mode === 'schedule' ? { dueAt: input.dueAt } : {}),
-    },
-  })
+  }>(apiKey, query, variables)
 
   const result = data?.createPost
   if (!result) {
     throw new BufferApiError('Buffer returned no result for createPost')
   }
   if (result.message || !result.post) {
-    throw new BufferApiError(friendlyMessage(result.message || 'Buffer could not create the post', input.channelName))
+    throw new BufferApiError(
+      friendlyMessage(result.message || 'Buffer could not create the post', input.channelName)
+    )
   }
   return result.post
 }

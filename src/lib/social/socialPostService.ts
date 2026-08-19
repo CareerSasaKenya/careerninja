@@ -400,6 +400,15 @@ export async function publishToBuffer(
     }
   }
 
+  if (!post.post_text?.trim()) {
+    return {
+      ok: false,
+      post: null,
+      duplicate: null,
+      error: 'This post has no text. Add a caption before sending to Buffer.',
+    }
+  }
+
   // 3. Resolve the Buffer key server-side.
   const resolved = await resolveBufferApiKey(adminClient)
   if (!resolved) {
@@ -425,6 +434,8 @@ export async function publishToBuffer(
       mode: input.mode,
       dueAt: input.mode === 'schedule' ? input.dueAt : null,
       channelName,
+      service: channelService,
+      mediaUrl: post.media_url,
     })
 
     const isNow = input.mode === 'now'

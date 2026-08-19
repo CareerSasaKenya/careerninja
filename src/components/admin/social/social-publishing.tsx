@@ -53,6 +53,15 @@ export function SocialPublishing() {
     }
   }, [])
 
+  const loadCounts = useCallback(async () => {
+    try {
+      const result = await authedFetch<{ counts: Counts }>('/api/admin/social/posts?limit=1')
+      if (result.counts) setCounts(result.counts)
+    } catch {
+      // Non-fatal — tab loads surface their own errors.
+    }
+  }, [])
+
   const loadPosts = useCallback(async (tab: TabKey) => {
     if (tab === 'generate') {
       setPosts([])
@@ -75,7 +84,8 @@ export function SocialPublishing() {
 
   useEffect(() => {
     loadBufferStatus()
-  }, [loadBufferStatus])
+    loadCounts()
+  }, [loadBufferStatus, loadCounts])
 
   useEffect(() => {
     loadPosts(activeTab)
@@ -83,8 +93,9 @@ export function SocialPublishing() {
 
   const handleChanged = useCallback(() => {
     loadPosts(activeTab)
+    loadCounts()
     loadBufferStatus()
-  }, [activeTab, loadPosts, loadBufferStatus])
+  }, [activeTab, loadPosts, loadCounts, loadBufferStatus])
 
   const handleGenerate = (ids: string[]) => {
     setComposer({ mode: 'generate', jobIds: ids })
@@ -140,7 +151,7 @@ export function SocialPublishing() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <StatCard label="Drafts" value={draftsCount} tone="orange" />
+        <StatCard label="Drafts" value={counts.draft} tone="orange" />
         <StatCard label="Ready" value={counts.ready} tone="blue" />
         <StatCard label="Scheduled" value={counts.scheduled} tone="blue" />
         <StatCard label="Published" value={counts.published} tone="blue" />
