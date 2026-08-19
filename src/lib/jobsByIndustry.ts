@@ -1,57 +1,70 @@
 import { cache } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabaseEnv";
-import { resolveCountyName } from "@/lib/counties";
+import {
+  FALLBACK_INDUSTRIES,
+  resolveIndustryLabel,
+} from "@/lib/jobParseNormalization";
 
 const supabase = createClient(getSupabaseUrl(), getSupabaseAnonKey());
 
-export type CountyJobCount = {
-  /** Canonical Careersasa county name (see src/lib/counties.ts). */
+export type IndustryJobCount = {
+  /** Canonical Careersasa industry name (see src/lib/jobParseNormalization.ts). */
   name: string;
-  /** Number of currently active/live jobs attributed to the county. */
+  /** Number of currently active/live jobs attributed to the industry. */
   count: number;
 };
 
 /** Page size for the fallback column-scan aggregation. */
 const PAGE_SIZE = 1000;
 
-function sortCounts(counts: Map<string, number>): CountyJobCount[] {
+/** Fallback label for jobs with no industry value. */
+const UNCATEGORIZED = "Non-classified / Miscellaneous";
+
+const ALLOWED_INDUSTRIES = [...FALLBACK_INDUSTRIES];
+
+function sortCounts(counts: Map<string, number>): IndustryJobCount[] {
   return [...counts.entries()]
     .map(([name, count]) => ({ name, count }))
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 }
 
+function canonicalIndustry(raw: string | null | undefined): string {
+  const trimmed = String(raw ?? "").trim();
+  if (!trimmed) return UNCATEGORIZED;
+  return resolveIndustryLabel(trimmed, ALLOWED_INDUSTRIES) ?? UNCATEGORIZED;
+}
+
 /**
- * Aggregate the current active/live job counts by county for the Kenya map
- * on the jobs-by-county hub and the homepage teaser.
+ * Aggregate the current active/live job counts by industry.
  *
  * Active/live follows the application's existing job-status logic: only
  * `status = 'active'` jobs are counted (drafts, pending and expired jobs are
  * excluded — the same set `expire_old_jobs()` and the jobs listing use).
  *
- * This runs entirely server-side so the homepage never fetches individual job
- * records to compute county counts. It prefers the aggregated
- * `active_jobs_by_county` view (created by the
- * `20260817_create_active_jobs_by_county_view` migration); when the view has
- * not been applied yet it falls back to a paginated scan of just the county
- * column, which is a single cheap request for a handful of small strings.
+ * Names are mapped onto the jobs-page industry dropdown so hub links
+ * (`/jobs?industry=…`) match the listing filter.
  *
- * The result is memoized per request with React `cache()` so multiple server
- * components asking for the same data share one query.
+ * This runs entirely server-side. It prefers the aggregated
+ * `active_jobs_by_industry` view (created by the
+ * `20260819_create_active_jobs_by_industry_view` migration); when the view has
+ * not been applied yet it falls back to a paginated scan of the industry
+ * column.
+ *
+ * The result is memoized per request with React `cache()`.
  */
-export const getActiveJobsByCounty: () => Promise<CountyJobCount[]> = cache(
+export const getActiveJobsByIndustry: () => Promise<IndustryJobCount[]> = cache(
   async () => {
     const counts = new Map<string, number>();
 
     try {
       const { data: viewRows, error: viewError } = await supabase
-        .from("active_jobs_by_county")
-        .select("county, job_count");
+        .from("active_jobs_by_industry")
+        .select("industry_name, job_count");
 
       if (!viewError && Array.isArray(viewRows) && viewRows.length > 0) {
         for (const row of viewRows) {
-          const name = resolveCountyName(row.county as string | null);
-          if (!name) continue;
+          const name = canonicalIndustry(row.industry_name as string | null);
           counts.set(name, (counts.get(name) ?? 0) + Number(row.job_count ?? 0));
         }
         return sortCounts(counts);
@@ -64,7 +77,7 @@ export const getActiveJobsByCounty: () => Promise<CountyJobCount[]> = cache(
       for (let from = 0; ; from += PAGE_SIZE) {
         const { data, error } = await supabase
           .from("jobs")
-          .select("job_location_county")
+          .select("industry")
           .eq("status", "active")
           .range(from, from + PAGE_SIZE - 1);
 
@@ -72,8 +85,7 @@ export const getActiveJobsByCounty: () => Promise<CountyJobCount[]> = cache(
         if (!data || data.length === 0) break;
 
         for (const row of data) {
-          const name = resolveCountyName(row.job_location_county as string | null);
-          if (!name) continue;
+          const name = canonicalIndustry(row.industry as string | null);
           counts.set(name, (counts.get(name) ?? 0) + 1);
         }
 
@@ -82,9 +94,7 @@ export const getActiveJobsByCounty: () => Promise<CountyJobCount[]> = cache(
 
       return sortCounts(counts);
     } catch (error) {
-      // The map is a progressive enhancement — if Supabase is unreachable the
-      // homepage renders without the section rather than failing the page.
-      console.error("Failed to aggregate active jobs by county:", error);
+      console.error("Failed to aggregate active jobs by industry:", error);
       return [];
     }
   }

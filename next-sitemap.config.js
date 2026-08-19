@@ -28,6 +28,21 @@ export default {
         changefreq: 'daily',
         priority: 0.75,
       },
+      {
+        loc: '/jobs/industries',
+        changefreq: 'daily',
+        priority: 0.8,
+      },
+      {
+        loc: '/jobs/functions',
+        changefreq: 'daily',
+        priority: 0.8,
+      },
+      {
+        loc: '/jobs/counties',
+        changefreq: 'daily',
+        priority: 0.8,
+      },
     ];
     
     // Import Supabase client

@@ -13,7 +13,6 @@ import {
   Code2,
   Cog,
   Factory,
-  FlaskConical,
   GraduationCap,
   Headphones,
   HeartPulse,
@@ -39,47 +38,40 @@ import { Button } from "@/components/ui/button";
 import type { FunctionJobCount } from "@/lib/jobsByFunction";
 
 /**
- * "Explore Jobs by Function" — interactive job-market dashboard for the
- * homepage. Horizontal bars (primary interaction) + donut overview (secondary),
- * both rendered from the same server-side aggregation of active jobs.
+ * Jobs-by-function visualization.
  *
- * Every row/segment links into the existing jobs page via the
- * `/jobs?jobType=<function>` convention the jobs listing already understands —
- * no separate filtering system is introduced here.
+ * Bars live in a CSS grid with a fixed label column and a shared track, so
+ * every bar starts on the same vertical line and lengths are comparable.
+ * Function names are never truncated — they wrap inside the label column.
+ *
+ * Clicks go to `/jobs?jobType=<function>`, which the jobs listing already
+ * understands.
  */
 
-const BAR_ROWS_DESKTOP = 10;
-/** Rows 9–10 stay available but are hidden below `md` to keep mobile tidy. */
-const BAR_ROWS_MOBILE = 8;
+const TEASER_ROWS = 8;
 
-/**
- * Donut shows the top six functions only; everything else rolls into
- * "Others" so the chart stays readable.
- */
 const DONUT_ROWS = 6;
 
-/** Careersasa blue/orange/accent fallback palette for functions without a dedicated color. */
 const DONUT_COLORS = [
-  "hsl(210 89% 40%)", // primary blue
-  "hsl(199 89% 48%)", // accent cyan
-  "hsl(25 95% 53%)", //  secondary orange
-  "hsl(245 65% 55%)", // indigo
-  "hsl(174 72% 40%)", // turquoise
-  "hsl(142 76% 36%)", // green
-  "hsl(280 65% 52%)", // purple
-  "hsl(340 75% 50%)", // rose
-  "hsl(35 90% 52%)", //  amber
-  "hsl(200 45% 48%)", // slate blue
+  "hsl(210 89% 40%)",
+  "hsl(199 89% 48%)",
+  "hsl(25 95% 53%)",
+  "hsl(245 65% 55%)",
+  "hsl(174 72% 40%)",
+  "hsl(142 76% 36%)",
+  "hsl(280 65% 52%)",
+  "hsl(340 75% 50%)",
+  "hsl(35 90% 52%)",
+  "hsl(200 45% 48%)",
 ];
 
-/** Per-function donut colors so the leading segments stay visually distinct. */
 const FUNCTION_COLORS: Record<string, string> = {
-  "Sales": "hsl(210 89% 40%)", // primary blue (unchanged)
-  "Education & Training": "hsl(199 89% 48%)", // accent cyan (unchanged)
-  "Engineering & Technology": "hsl(25 95% 53%)", // secondary orange (unchanged)
-  "IT & Software": "hsl(245 65% 55%)", // indigo
-  "Accounting, Auditing & Finance": "hsl(174 72% 40%)", // turquoise
-  "Healthcare & Medical": "hsl(142 76% 36%)", // green
+  Sales: "hsl(210 89% 40%)",
+  "Education & Training": "hsl(199 89% 48%)",
+  "Engineering & Technology": "hsl(25 95% 53%)",
+  "IT & Software": "hsl(245 65% 55%)",
+  "Accounting, Auditing & Finance": "hsl(174 72% 40%)",
+  "Healthcare & Medical": "hsl(142 76% 36%)",
 };
 const OTHERS_COLOR = "hsl(220 14% 64%)";
 
@@ -90,20 +82,25 @@ function donutColor(name: string, index: number): string {
 const DONUT_SIZE = 220;
 const DONUT_STROKE = 22;
 const DONUT_ACTIVE_EXTRA = 6;
-/** Leave room so an active/hover stroke is not clipped by the viewBox. */
 const DONUT_RADIUS = (DONUT_SIZE - DONUT_STROKE - DONUT_ACTIVE_EXTRA * 2) / 2;
 const DONUT_CIRCUMFERENCE = 2 * Math.PI * DONUT_RADIUS;
 
 const OTHERS_LABEL = "Others";
 
+const SECTION_HEADING_CLASS = "text-3xl md:text-4xl font-bold mb-2 text-[#0A66C2]";
+const SECTION_SUBCOPY_CLASS = "text-muted-foreground";
+
 type ExploreJobsByFunctionProps = {
   functions: FunctionJobCount[];
+  /** `teaser` is the compact homepage block; `full` is the hub page. */
+  variant?: "teaser" | "full";
+  /** Hide the in-card title when the parent page already has an h1. */
+  showHeader?: boolean;
 };
 
 function functionIcon(name: string) {
   const key = name.toLowerCase();
-  if (key.includes("engineering") || key.includes("technology"))
-    return Cog;
+  if (key.includes("engineering") || key.includes("technology")) return Cog;
   if (key.includes("software") || key.includes("it &") || key.includes("telecom"))
     return Code2;
   if (
@@ -118,10 +115,8 @@ function functionIcon(name: string) {
   if (key.includes("sales")) return TrendingUp;
   if (key.includes("admin") || key.includes("office")) return ClipboardList;
   if (key.includes("health") || key.includes("medical")) return HeartPulse;
-  if (key.includes("management") || key.includes("executive"))
-    return Briefcase;
-  if (key.includes("quality") || key.includes("health & safety"))
-    return ShieldCheck;
+  if (key.includes("management") || key.includes("executive")) return Briefcase;
+  if (key.includes("quality") || key.includes("health & safety")) return ShieldCheck;
   if (
     key.includes("supply chain") ||
     key.includes("procurement") ||
@@ -152,13 +147,8 @@ function functionIcon(name: string) {
     return GraduationCap;
   if (key.includes("legal")) return Scale;
   if (key.includes("customer")) return Headphones;
-  if (key.includes("manufactur") || key.includes("warehouse"))
-    return Factory;
-  if (
-    key.includes("retail") ||
-    key.includes("fashion") ||
-    key.includes("fmcg")
-  )
+  if (key.includes("manufactur") || key.includes("warehouse")) return Factory;
+  if (key.includes("retail") || key.includes("fashion") || key.includes("fmcg"))
     return ShoppingBag;
   if (
     key.includes("building") ||
@@ -191,17 +181,102 @@ function functionIcon(name: string) {
     return Plane;
   if (key.includes("trades") || key.includes("maintenance") || key.includes("repair"))
     return Wrench;
-  if (key.includes("supply") || key.includes("procurement"))
-    return Package;
-  if (key.includes("insurance") || key.includes("financial"))
-    return Landmark;
+  if (key.includes("supply") || key.includes("procurement")) return Package;
+  if (key.includes("insurance") || key.includes("financial")) return Landmark;
   return Briefcase;
+}
+
+function FunctionBars({
+  functions,
+  total,
+  maxCount,
+  inView,
+  activeName,
+  setActiveName,
+  onNavigate,
+}: {
+  functions: FunctionJobCount[];
+  total: number;
+  maxCount: number;
+  inView: boolean;
+  activeName: string | null;
+  setActiveName: (name: string | null) => void;
+  onNavigate: (name: string) => void;
+}) {
+  const percentOf = (count: number) =>
+    total > 0 ? Math.round((count / total) * 100) : 0;
+
+  const percentText = (count: number) => {
+    const pct = percentOf(count);
+    return pct < 1 ? "<1" : String(pct);
+  };
+
+  return (
+    <ul className="flex flex-col gap-1" role="list">
+      {functions.map((fn, index) => {
+        const Icon = functionIcon(fn.name);
+        const isActive = activeName === fn.name;
+        const barWidth = inView
+          ? `${Math.max(2, (fn.count / maxCount) * 100)}%`
+          : "0%";
+        return (
+          <li key={fn.name}>
+            <button
+              type="button"
+              onMouseEnter={() => setActiveName(fn.name)}
+              onMouseLeave={() => setActiveName(null)}
+              onClick={() => onNavigate(fn.name)}
+              aria-label={`${fn.name}: ${fn.count.toLocaleString()} active jobs (${percentOf(fn.count)}%), explore jobs`}
+              className={`group grid w-full grid-cols-[minmax(0,1fr)_5.5rem] items-center gap-x-3 gap-y-1.5 rounded-xl px-2 py-2 text-left transition-colors md:grid-cols-[16rem_minmax(0,1fr)_5.5rem] lg:grid-cols-[18rem_minmax(0,1fr)_5.5rem] ${
+                isActive ? "bg-primary/5" : "hover:bg-primary/5"
+              }`}
+            >
+              <span className="col-span-2 flex min-w-0 items-start gap-2 md:col-span-1">
+                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary/15">
+                  <Icon className="h-4 w-4" aria-hidden="true" />
+                </span>
+                <span className="min-w-0 text-sm font-medium leading-snug text-foreground">
+                  {fn.name}
+                </span>
+              </span>
+
+              <span className="relative h-2.5 w-full min-w-0 self-center overflow-hidden rounded-full bg-muted">
+                <span
+                  className={`absolute inset-y-0 left-0 rounded-full bg-[#0A66C2] origin-left ${
+                    isActive
+                      ? "brightness-110 scale-y-[1.35]"
+                      : "group-hover:brightness-110 group-hover:scale-y-[1.35]"
+                  }`}
+                  style={{
+                    width: barWidth,
+                    transition: `width 700ms cubic-bezier(0.25,1,0.5,1) ${index * 40}ms, transform 200ms ease, filter 200ms ease`,
+                  }}
+                />
+              </span>
+
+              <span className="flex shrink-0 items-baseline justify-end gap-1.5 self-center">
+                <span className="text-sm font-semibold tabular-nums text-foreground">
+                  {fn.count.toLocaleString()}
+                </span>
+                <span className="w-8 text-right text-xs tabular-nums text-muted-foreground">
+                  {percentText(fn.count)}%
+                </span>
+              </span>
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  );
 }
 
 export function ExploreJobsByFunction({
   functions,
+  variant = "full",
+  showHeader = true,
 }: ExploreJobsByFunctionProps) {
   const router = useRouter();
+  const isTeaser = variant === "teaser";
 
   const sectionRef = useRef<HTMLElement>(null);
   const [inView, setInView] = useState(false);
@@ -218,17 +293,24 @@ export function ExploreJobsByFunction({
   );
 
   const displayFunctions = useMemo(
-    () => functions.slice(0, BAR_ROWS_DESKTOP),
-    [functions]
+    () => (isTeaser ? functions.slice(0, TEASER_ROWS) : functions),
+    [functions, isTeaser]
   );
 
-  /** Top functions that make it into the donut/legend (everything else → Others). */
+  const displayMaxCount = useMemo(
+    () => Math.max(1, ...displayFunctions.map((f) => f.count)),
+    [displayFunctions]
+  );
+
   const donutFunctions = useMemo(
     () => functions.slice(0, DONUT_ROWS),
     [functions]
   );
 
-  const othersCount = Math.max(0, total - donutFunctions.reduce((s, f) => s + f.count, 0));
+  const othersCount = Math.max(
+    0,
+    total - donutFunctions.reduce((s, f) => s + f.count, 0)
+  );
 
   const donutSegments = useMemo(() => {
     const segments = donutFunctions.map((f, i) => ({
@@ -237,25 +319,17 @@ export function ExploreJobsByFunction({
       color: donutColor(f.name, i),
     }));
     if (othersCount > 0) {
-      segments.push({ name: OTHERS_LABEL, count: othersCount, color: OTHERS_COLOR });
+      segments.push({
+        name: OTHERS_LABEL,
+        count: othersCount,
+        color: OTHERS_COLOR,
+      });
     }
     return segments;
   }, [donutFunctions, othersCount]);
 
-  /** Compact legend: the same six functions + Others as the donut. */
-  const legendItems = useMemo(() => {
-    const items = donutFunctions.map((f, i) => ({
-      name: f.name,
-      count: f.count,
-      color: donutColor(f.name, i),
-    }));
-    if (othersCount > 0) {
-      items.push({ name: OTHERS_LABEL, count: othersCount, color: OTHERS_COLOR });
-    }
-    return items;
-  }, [donutFunctions, othersCount]);
+  const legendItems = donutSegments;
 
-  /** Donut segment currently highlighted (via bar, legend, or segment hover). */
   const activeSegment = useMemo(
     () =>
       activeName
@@ -288,51 +362,74 @@ export function ExploreJobsByFunction({
     router.push(`/jobs?jobType=${encodeURIComponent(name)}`);
   };
 
-  const percentOf = (count: number) =>
-    total > 0 ? Math.round((count / total) * 100) : 0;
-
   const percentText = (count: number) => {
-    const pct = percentOf(count);
+    const pct = total > 0 ? Math.round((count / total) * 100) : 0;
     return pct < 1 ? "<1" : String(pct);
   };
+
+  const headingId = isTeaser
+    ? "explore-jobs-by-function-teaser-heading"
+    : "explore-jobs-by-function-heading";
 
   return (
     <section
       ref={sectionRef}
       className="overflow-x-clip py-3 md:py-8 px-4"
-      aria-labelledby="explore-jobs-by-function-heading"
+      aria-labelledby={isTeaser || showHeader ? headingId : undefined}
+      aria-label={isTeaser || showHeader ? undefined : "Jobs by function"}
     >
-      <div className="container mx-auto max-w-6xl">
-        <div className="min-w-0 rounded-2xl border border-border/60 bg-white p-4 shadow-sm dark:bg-card sm:rounded-3xl sm:p-5 md:p-7 lg:p-8">
-          {/* Header row */}
-          <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-start md:justify-between">
-            <div className="flex min-w-0 items-start gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary sm:h-11 sm:w-11">
-                <Briefcase className="h-5 w-5" aria-hidden="true" />
-              </span>
-              <div className="min-w-0">
-                <h2
-                  id="explore-jobs-by-function-heading"
-                  className="text-xl font-bold leading-tight text-[#0A66C2] sm:text-2xl md:text-3xl"
-                >
-                  Explore Jobs by Function
-                </h2>
-                <p className="text-sm text-muted-foreground md:text-base">
-                  Find opportunities based on what you do best.
-                </p>
-              </div>
-            </div>
-
-            <Link href="/jobs" prefetch={false} className="shrink-0 md:mt-1">
-              <Button variant="outline" className="w-full whitespace-nowrap md:w-auto">
-                <ListFilter className="h-4 w-4" aria-hidden="true" />
-                View all functions
-              </Button>
-            </Link>
+      <div className={`container mx-auto ${isTeaser ? "" : "max-w-6xl"}`}>
+        {isTeaser ? (
+          <div className="mb-4 md:mb-6 text-center">
+            <h2 id={headingId} className={SECTION_HEADING_CLASS}>
+              Jobs by Function
+            </h2>
+            <p className={SECTION_SUBCOPY_CLASS}>
+              Find opportunities based on what you do
+            </p>
           </div>
+        ) : null}
 
-          {/* Prominent live total */}
-          <div className="mt-5 flex flex-wrap items-baseline justify-center gap-x-2 gap-y-1 md:mt-6">
+        <div
+          className={
+            isTeaser
+              ? "min-w-0"
+              : "min-w-0 rounded-2xl border border-border/60 bg-white p-4 shadow-sm dark:bg-card sm:rounded-3xl sm:p-5 md:p-7 lg:p-8"
+          }
+        >
+          {!isTeaser && showHeader && (
+            <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-start md:justify-between">
+              <div className="flex min-w-0 items-start gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary sm:h-11 sm:w-11">
+                  <Briefcase className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <div className="min-w-0">
+                  <h2
+                    id={headingId}
+                    className="text-xl font-bold leading-tight text-[#0A66C2] sm:text-2xl md:text-3xl"
+                  >
+                    Explore Jobs by Function
+                  </h2>
+                  <p className="text-sm text-muted-foreground md:text-base">
+                    Find opportunities based on what you do best.
+                  </p>
+                </div>
+              </div>
+
+              <Link href="/jobs" prefetch={false} className="shrink-0 md:mt-1">
+                <Button variant="outline" className="w-full whitespace-nowrap md:w-auto">
+                  <ListFilter className="h-4 w-4" aria-hidden="true" />
+                  Browse all jobs
+                </Button>
+              </Link>
+            </div>
+          )}
+
+          <div
+            className={`flex flex-wrap items-baseline justify-center gap-x-2 gap-y-1 ${
+              isTeaser ? "mb-5" : "mt-5 md:mt-6"
+            }`}
+          >
             <span className="text-3xl font-extrabold tabular-nums text-[#0A66C2] sm:text-4xl md:text-5xl">
               {total.toLocaleString()}
             </span>
@@ -345,235 +442,182 @@ export function ExploreJobsByFunction({
             </span>
           </div>
 
-          {/* Bars (primary) + donut (secondary). Stack until xl so the 360px
-              donut column cannot shove labels/bars off smaller laptops. */}
-          <div className="mt-6 grid min-w-0 grid-cols-1 gap-6 md:mt-8 xl:grid-cols-[minmax(0,1fr)_minmax(16rem,20rem)] xl:items-start">
-            {/* Left — interactive horizontal bars */}
+          <div
+            className={
+              isTeaser
+                ? "min-w-0"
+                : "mt-6 grid min-w-0 grid-cols-1 gap-6 md:mt-8 xl:grid-cols-[minmax(0,1fr)_minmax(16rem,20rem)] xl:items-start"
+            }
+          >
             <div className="min-w-0">
-              <ul className="flex flex-col gap-1" role="list">
-                {displayFunctions.map((fn, index) => {
-                  const Icon = functionIcon(fn.name);
-                  const isActive = activeName === fn.name;
-                  const barWidth =
-                    inView ? `${Math.max(2, (fn.count / maxCount) * 100)}%` : "0%";
-                  return (
-                    <li
-                      key={fn.name}
-                      className={index >= BAR_ROWS_MOBILE ? "hidden md:block" : undefined}
-                    >
-                      <button
-                        type="button"
-                        onMouseEnter={() => setActiveName(fn.name)}
-                        onMouseLeave={() => setActiveName(null)}
-                        onClick={() => navigateToFunction(fn.name)}
-                        aria-label={`${fn.name}: ${fn.count.toLocaleString()} active jobs (${percentOf(fn.count)}%), explore jobs`}
-                        className={`group relative flex w-full min-w-0 flex-col gap-1.5 rounded-xl px-2 py-2 text-left transition-colors sm:flex-row sm:items-center sm:gap-3 sm:px-2.5 ${
-                          isActive ? "bg-primary/5" : "hover:bg-primary/5"
-                        }`}
-                      >
-                        {/* Desktop tooltip — below the row so it is not clipped */}
-                        <span className="pointer-events-none absolute left-8 top-full z-30 mt-1 hidden max-w-[min(20rem,calc(100vw-3rem))] items-center gap-2.5 rounded-lg border border-border bg-white px-3 py-2 text-left shadow-lg dark:bg-card xl:flex xl:opacity-0 xl:transition-opacity xl:duration-150 xl:group-hover:opacity-100">
-                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                            <Icon className="h-4 w-4" aria-hidden="true" />
-                          </span>
-                          <span className="min-w-0">
-                            <span className="block text-sm font-semibold text-foreground">
-                              {fn.name}
-                            </span>
-                            <span className="block text-xs text-muted-foreground">
-                              {fn.count.toLocaleString()} active jobs ·{" "}
-                              {percentText(fn.count)}%
-                            </span>
-                            <span className="mt-0.5 flex items-center gap-1 text-xs font-semibold text-[#0A66C2]">
-                              Explore jobs <ArrowRight className="h-3 w-3" aria-hidden="true" />
-                            </span>
-                          </span>
-                        </span>
-
-                        <span className="flex min-w-0 items-center gap-2 sm:contents">
-                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary/15">
-                            <Icon className="h-4 w-4" aria-hidden="true" />
-                          </span>
-
-                          <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground sm:max-w-[9rem] sm:flex-none lg:max-w-[11rem]">
-                            {fn.name}
-                          </span>
-
-                          <span className="ml-auto flex shrink-0 items-baseline gap-1.5 sm:hidden">
-                            <span className="text-sm font-semibold tabular-nums text-foreground">
-                              {fn.count.toLocaleString()}
-                            </span>
-                            <span className="text-[11px] text-muted-foreground">
-                              {percentText(fn.count)}%
-                            </span>
-                          </span>
-                        </span>
-
-                        <span className="relative h-2.5 w-full min-w-0 flex-1 overflow-hidden rounded-full bg-muted sm:w-auto">
-                          <span
-                            className={`absolute inset-y-0 left-0 rounded-full bg-[#0A66C2] origin-left ${
-                              isActive
-                                ? "brightness-110 scale-y-[1.35]"
-                                : "group-hover:brightness-110 group-hover:scale-y-[1.35]"
-                            }`}
-                            style={{
-                              width: barWidth,
-                              transition: `width 700ms cubic-bezier(0.25,1,0.5,1) ${index * 60}ms, transform 200ms ease, filter 200ms ease`,
-                            }}
-                          />
-                        </span>
-
-                        <span className="hidden shrink-0 items-baseline gap-2 sm:flex">
-                          <span className="text-sm font-semibold tabular-nums text-foreground">
-                            {fn.count.toLocaleString()}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {percentText(fn.count)}%
-                          </span>
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
+              <FunctionBars
+                functions={displayFunctions}
+                total={total}
+                maxCount={isTeaser ? displayMaxCount : maxCount}
+                inView={inView}
+                activeName={activeName}
+                setActiveName={setActiveName}
+                onNavigate={navigateToFunction}
+              />
             </div>
 
-            {/* Right — donut overview (always stacked so the legend is never squeezed) */}
-            <aside
-              className="flex min-w-0 flex-col overflow-hidden rounded-2xl border border-border/50 bg-card/70 p-3 sm:p-4 md:p-5"
-              aria-label="Jobs by function overview"
-            >
-              <h3 className="flex flex-wrap items-center gap-x-2 gap-y-1 text-base font-bold text-foreground sm:text-lg">
-                <PieChart className="h-4 w-4 shrink-0 text-[#0A66C2]" aria-hidden="true" />
-                <span>Jobs by Function</span>
-                <span className="text-sm font-medium text-muted-foreground sm:text-base">
-                  (Overview)
-                </span>
-              </h3>
+            {!isTeaser && (
+              <aside
+                className="flex min-w-0 flex-col overflow-hidden rounded-2xl border border-border/50 bg-card/70 p-3 sm:p-4 md:p-5"
+                aria-label="Jobs by function overview"
+              >
+                <h3 className="flex flex-wrap items-center gap-x-2 gap-y-1 text-base font-bold text-foreground sm:text-lg">
+                  <PieChart
+                    className="h-4 w-4 shrink-0 text-[#0A66C2]"
+                    aria-hidden="true"
+                  />
+                  <span>Jobs by Function</span>
+                  <span className="text-sm font-medium text-muted-foreground sm:text-base">
+                    (Overview)
+                  </span>
+                </h3>
 
-              <div className="mt-4 flex min-w-0 flex-col items-center gap-5">
-                {/* Donut */}
-                <div
-                  className="relative aspect-square w-[min(11.5rem,70vw)] shrink-0 sm:w-52"
-                  style={{
-                    opacity: inView ? 1 : 0,
-                    transform: inView ? "scale(1)" : "scale(0.96)",
-                    transition: "opacity 500ms ease, transform 500ms ease",
-                  }}
-                >
-                  <svg
-                    viewBox={`0 0 ${DONUT_SIZE} ${DONUT_SIZE}`}
-                    className="h-full w-full overflow-visible"
-                    role="img"
-                    aria-label="Distribution of active jobs by function"
+                <div className="mt-4 flex min-w-0 flex-col items-center gap-5">
+                  <div
+                    className="relative aspect-square w-[min(11.5rem,70vw)] shrink-0 sm:w-52"
+                    style={{
+                      opacity: inView ? 1 : 0,
+                      transform: inView ? "scale(1)" : "scale(0.96)",
+                      transition: "opacity 500ms ease, transform 500ms ease",
+                    }}
                   >
-                    <g transform={`rotate(-90 ${DONUT_SIZE / 2} ${DONUT_SIZE / 2})`}>
-                      {(() => {
-                        let cumulative = 0;
-                        return donutSegments.map((seg) => {
-                          const fraction = total > 0 ? seg.count / total : 0;
-                          const dash = fraction * DONUT_CIRCUMFERENCE;
-                          const gap = DONUT_CIRCUMFERENCE - dash;
-                          const offset = -cumulative * DONUT_CIRCUMFERENCE;
-                          cumulative += fraction;
-                          const isActive = activeName === seg.name;
-                          return (
-                            <circle
-                              key={seg.name}
-                              cx={DONUT_SIZE / 2}
-                              cy={DONUT_SIZE / 2}
-                              r={DONUT_RADIUS}
-                              fill="none"
-                              stroke={seg.color}
-                              strokeWidth={isActive ? DONUT_STROKE + DONUT_ACTIVE_EXTRA : DONUT_STROKE}
-                              strokeDasharray={`${dash} ${gap}`}
-                              strokeDashoffset={offset}
-                              strokeLinecap="butt"
-                              tabIndex={0}
-                              role="button"
-                              aria-label={`${seg.name}: ${seg.count.toLocaleString()} active jobs`}
-                              className="cursor-pointer transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                              style={{
-                                opacity:
-                                  activeSegment && !isActive ? 0.25 : 1,
-                              }}
-                              onMouseEnter={() => setActiveName(seg.name)}
-                              onMouseLeave={() => setActiveName(null)}
-                              onFocus={() => setActiveName(seg.name)}
-                              onBlur={() => setActiveName(null)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter" || e.key === " ") {
-                                  e.preventDefault();
-                                  navigateToFunction(seg.name);
+                    <svg
+                      viewBox={`0 0 ${DONUT_SIZE} ${DONUT_SIZE}`}
+                      className="h-full w-full overflow-visible"
+                      role="img"
+                      aria-label="Distribution of active jobs by function"
+                    >
+                      <g
+                        transform={`rotate(-90 ${DONUT_SIZE / 2} ${DONUT_SIZE / 2})`}
+                      >
+                        {(() => {
+                          let cumulative = 0;
+                          return donutSegments.map((seg) => {
+                            const fraction = total > 0 ? seg.count / total : 0;
+                            const dash = fraction * DONUT_CIRCUMFERENCE;
+                            const gap = DONUT_CIRCUMFERENCE - dash;
+                            const offset = -cumulative * DONUT_CIRCUMFERENCE;
+                            cumulative += fraction;
+                            const isActive = activeName === seg.name;
+                            return (
+                              <circle
+                                key={seg.name}
+                                cx={DONUT_SIZE / 2}
+                                cy={DONUT_SIZE / 2}
+                                r={DONUT_RADIUS}
+                                fill="none"
+                                stroke={seg.color}
+                                strokeWidth={
+                                  isActive
+                                    ? DONUT_STROKE + DONUT_ACTIVE_EXTRA
+                                    : DONUT_STROKE
                                 }
-                              }}
-                              onClick={() => navigateToFunction(seg.name)}
-                            />
-                          );
-                        });
-                      })()}
-                    </g>
-                  </svg>
-                  <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-4">
-                    <span className="max-w-full truncate text-2xl font-extrabold tabular-nums text-[#0A66C2] sm:text-3xl md:text-4xl">
-                      {activeSegment
-                        ? activeSegment.count.toLocaleString()
-                        : total.toLocaleString()}
-                    </span>
-                    <span className="max-w-full truncate text-center text-xs text-muted-foreground">
-                      {activeSegment ? activeSegment.name : "Total Jobs"}
-                    </span>
+                                strokeDasharray={`${dash} ${gap}`}
+                                strokeDashoffset={offset}
+                                strokeLinecap="butt"
+                                tabIndex={0}
+                                role="button"
+                                aria-label={`${seg.name}: ${seg.count.toLocaleString()} active jobs`}
+                                className="cursor-pointer transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                style={{
+                                  opacity: activeSegment && !isActive ? 0.25 : 1,
+                                }}
+                                onMouseEnter={() => setActiveName(seg.name)}
+                                onMouseLeave={() => setActiveName(null)}
+                                onFocus={() => setActiveName(seg.name)}
+                                onBlur={() => setActiveName(null)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault();
+                                    navigateToFunction(seg.name);
+                                  }
+                                }}
+                                onClick={() => navigateToFunction(seg.name)}
+                              />
+                            );
+                          });
+                        })()}
+                      </g>
+                    </svg>
+                    <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-4">
+                      <span className="max-w-full truncate text-2xl font-extrabold tabular-nums text-[#0A66C2] sm:text-3xl md:text-4xl">
+                        {activeSegment
+                          ? activeSegment.count.toLocaleString()
+                          : total.toLocaleString()}
+                      </span>
+                      <span className="max-w-full text-center text-xs leading-snug text-muted-foreground">
+                        {activeSegment ? activeSegment.name : "Total Jobs"}
+                      </span>
+                    </div>
                   </div>
-                </div>
 
-                {/* Legend */}
-                <ul className="flex w-full min-w-0 flex-col gap-0.5" role="list">
-                  {legendItems.map((item) => {
-                    const isActive = activeName === item.name;
-                    return (
-                      <li key={item.name} className="min-w-0">
-                        <button
-                          type="button"
-                          onMouseEnter={() => setActiveName(item.name)}
-                          onMouseLeave={() => setActiveName(null)}
-                          onClick={() => navigateToFunction(item.name)}
-                          className={`flex w-full min-w-0 items-center gap-2 rounded-lg px-2 py-1 text-left transition-colors ${
-                            isActive ? "bg-primary/5" : "hover:bg-primary/5"
-                          }`}
-                        >
-                          <span
-                            className="h-2.5 w-2.5 shrink-0 rounded-[3px]"
-                            style={{ backgroundColor: item.color }}
-                            aria-hidden="true"
-                          />
-                          <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
-                            {item.name}
-                          </span>
-                          <span className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
-                            {percentText(item.count)}%
-                          </span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            </aside>
+                  <ul className="flex w-full min-w-0 flex-col gap-0.5" role="list">
+                    {legendItems.map((item) => {
+                      const isActive = activeName === item.name;
+                      return (
+                        <li key={item.name} className="min-w-0">
+                          <button
+                            type="button"
+                            onMouseEnter={() => setActiveName(item.name)}
+                            onMouseLeave={() => setActiveName(null)}
+                            onClick={() => navigateToFunction(item.name)}
+                            className={`flex w-full min-w-0 items-start gap-2 rounded-lg px-2 py-1 text-left transition-colors ${
+                              isActive ? "bg-primary/5" : "hover:bg-primary/5"
+                            }`}
+                          >
+                            <span
+                              className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-[3px]"
+                              style={{ backgroundColor: item.color }}
+                              aria-hidden="true"
+                            />
+                            <span className="min-w-0 flex-1 text-sm font-medium leading-snug text-foreground">
+                              {item.name}
+                            </span>
+                            <span className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
+                              {percentText(item.count)}%
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              </aside>
+            )}
           </div>
 
-          {/* Bottom-right tip callout */}
-          <div className="mt-6 flex justify-start md:justify-end">
-            <div className="flex w-full max-w-md items-start gap-2.5 rounded-xl border border-border/60 bg-orange-50/70 px-3.5 py-2.5 dark:bg-orange-950/20 sm:w-auto">
-              <Zap className="mt-0.5 h-4 w-4 shrink-0 text-secondary" aria-hidden="true" />
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-foreground">
-                  Tip: Click any function to explore jobs
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Get matched with the right opportunities for your skills.
-                </p>
+          <div
+            className={`mt-6 flex ${
+              isTeaser ? "justify-center" : "justify-start md:justify-end"
+            }`}
+          >
+            {isTeaser ? (
+              <Link href="/jobs/functions" prefetch={true}>
+                <Button variant="outline" className="whitespace-nowrap">
+                  Explore all functions <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            ) : (
+              <div className="flex w-full max-w-md items-start gap-2.5 rounded-xl border border-border/60 bg-orange-50/70 px-3.5 py-2.5 dark:bg-orange-950/20 sm:w-auto">
+                <Zap
+                  className="mt-0.5 h-4 w-4 shrink-0 text-secondary"
+                  aria-hidden="true"
+                />
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-foreground">
+                    Tip: Click any function to explore jobs
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Get matched with the right opportunities for your skills.
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

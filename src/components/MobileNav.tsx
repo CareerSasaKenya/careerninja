@@ -18,6 +18,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { browseNavLinks } from "@/lib/browseNav";
 
 const careerBoostLinks = [
   {
@@ -47,6 +48,7 @@ const MobileNav = () => {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [boostOpen, setBoostOpen] = useState(false);
+  const [browseOpen, setBrowseOpen] = useState(false);
 
   const siteName = "CareerSasa";
   const logoUrl = "/logo.png";
@@ -56,6 +58,7 @@ const MobileNav = () => {
     const closeMenu = () => {
       setOpen(false);
       setBoostOpen(false);
+      setBrowseOpen(false);
     };
     window.addEventListener("close-mobile-menu", closeMenu);
     return () => window.removeEventListener("close-mobile-menu", closeMenu);
@@ -78,6 +81,7 @@ const MobileNav = () => {
     try {
       setOpen(false);
       setBoostOpen(false);
+      setBrowseOpen(false);
     } catch (error) {
       console.debug("Error closing menu:", error);
     }
@@ -123,11 +127,40 @@ const MobileNav = () => {
           </div>
 
           <nav className="flex flex-col gap-1">
-            <Link href="/jobs" onClick={closeMenu} prefetch={true}>
-              <Button variant="ghost" className="w-full justify-start text-base">
-                Browse Jobs
-              </Button>
-            </Link>
+            <div>
+              <button
+                type="button"
+                onClick={() => setBrowseOpen(!browseOpen)}
+                className="flex items-center justify-between w-full px-4 py-2 text-base font-medium rounded-md hover:bg-accent/50 transition-colors"
+              >
+                Browse
+                <ChevronDown
+                  className={`h-4 w-4 transition-transform duration-200 ${
+                    browseOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+              {browseOpen && (
+                <div className="ml-3 pl-3 border-l-2 border-border/50 flex flex-col gap-0.5 mt-1">
+                  {browseNavLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={closeMenu}
+                      prefetch={true}
+                    >
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start text-sm h-9 gap-2"
+                      >
+                        <link.icon className="h-4 w-4 text-primary shrink-0" />
+                        {link.title}
+                      </Button>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
 
             <Link href="/companies" onClick={closeMenu} prefetch={true}>
               <Button variant="ghost" className="w-full justify-start text-base">

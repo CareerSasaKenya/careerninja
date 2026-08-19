@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import MobileNav from "./MobileNav";
 import NotificationBell from "./NotificationBell";
 import { useEffect, useCallback } from "react";
+import { browseNavLinks } from "@/lib/browseNav";
 
 const careerBoostLinks = [
   {
@@ -98,17 +99,39 @@ const Navbar = () => {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-1">
-          <Link href="/jobs" prefetch={true}>
-            <Button variant="ghost">Browse Jobs</Button>
-          </Link>
-
-          <Link href="/companies" prefetch={true}>
-            <Button variant="ghost">Companies</Button>
-          </Link>
-
-          {/* Career Boost dropdown */}
           <NavigationMenu>
             <NavigationMenuList>
+              <NavigationMenuItem>
+                <NavigationMenuTrigger className="bg-transparent hover:bg-accent/50 data-[state=open]:bg-accent/50 font-medium h-9 px-3">
+                  Browse
+                </NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="grid w-[340px] gap-2 p-3">
+                    {browseNavLinks.map((link) => (
+                      <li key={link.href}>
+                        <NavigationMenuLink asChild>
+                          <Link
+                            href={link.href}
+                            className="flex items-start gap-3 rounded-md p-3 hover:bg-accent/60 transition-colors no-underline outline-none focus:shadow-md"
+                            prefetch={true}
+                          >
+                            <link.icon className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                            <div>
+                              <div className="text-sm font-semibold leading-none mb-1">
+                                {link.title}
+                              </div>
+                              <p className="text-xs text-muted-foreground leading-snug">
+                                {link.description}
+                              </p>
+                            </div>
+                          </Link>
+                        </NavigationMenuLink>
+                      </li>
+                    ))}
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+
               <NavigationMenuItem>
                 <NavigationMenuTrigger className="bg-transparent hover:bg-accent/50 data-[state=open]:bg-accent/50 font-medium h-9 px-3">
                   Career Boost
@@ -141,6 +164,10 @@ const Navbar = () => {
               </NavigationMenuItem>
             </NavigationMenuList>
           </NavigationMenu>
+
+          <Link href="/companies" prefetch={true}>
+            <Button variant="ghost">Companies</Button>
+          </Link>
 
           <Link href="/blog" prefetch={true}>
             <Button variant="ghost">Blog</Button>
