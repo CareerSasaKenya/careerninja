@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { BrowseHubChrome } from "@/components/BrowseHubChrome";
 import { ExploreJobsByFunction } from "@/components/ExploreJobsByFunction";
+import { completeFunctionCatalog } from "@/lib/completeFunctionCatalog";
 import { getActiveJobsByFunction } from "@/lib/jobsByFunction";
 import { SITE_URL } from "@/lib/browseNav";
 
@@ -9,7 +10,7 @@ export const revalidate = 0;
 
 const title = "Jobs by Function";
 const description =
-  "Browse live jobs in Kenya by function or field. Compare every role type with full names and aligned counts.";
+  "Browse every job function on CareerSasa. See live counts, compare fields, and open roles in the area you work.";
 
 export const metadata: Metadata = {
   title,
@@ -33,10 +34,10 @@ export default async function JobsByFunctionPage() {
     <BrowseHubChrome
       eyebrow="Browse jobs"
       title="Jobs by Function"
-      description="Find opportunities based on what you do. Every field name is shown in full, and the bars share one starting line so you can compare at a glance."
+      description="Every field we hire for — including those with no live roles right now. Search, sort, and click through to open jobs."
     >
       <ExploreJobsByFunction
-        functions={functions}
+        functions={completeFunctionCatalog(functions)}
         variant="full"
         showHeader={false}
       />
