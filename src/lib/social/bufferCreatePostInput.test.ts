@@ -159,9 +159,9 @@ assertThrows(
     mediaUrl: og,
   })
   const assets = input.assets as { image: { url: string } }[]
-  assert(assets.length === 1, 'linkedin photo fallback')
-  assert(assets[0].image.url === og, 'fallback image url')
-  assert(input.metadata === undefined, 'no linkAttachment without a url')
+  assert(assets.length === 1, 'linkedin photo post')
+  assert(assets[0].image.url === og, 'image url')
+  assert(input.metadata === undefined, 'no linkAttachment on photo post')
 }
 
 // --- schedule requires dueAt ---

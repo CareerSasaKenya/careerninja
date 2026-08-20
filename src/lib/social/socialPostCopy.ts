@@ -50,7 +50,7 @@ export interface PlatformSpec {
   label: string
   /** Soft character guidance used by the composer UI + generators. */
   maxLength: number
-  /** Instagram needs a visual to be meaningful; store the OG graphic URL. */
+  /** Instagram and LinkedIn attach the job OG graphic; Facebook uses a link card. */
   usesMedia: boolean
 }
 
