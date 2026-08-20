@@ -22,7 +22,8 @@ import {
 } from './types'
 
 const BUFFER_API_BASE = 'https://api.buffer.com'
-const BUFFER_TIMEOUT_MS = 15000
+/** Buffer waits on image-dimension fetch during createPost; OG cards can take several seconds on a cache miss. */
+const BUFFER_TIMEOUT_MS = 30000
 
 export class BufferApiError extends Error {
   status: number
@@ -204,8 +205,16 @@ export interface CreatePostInput {
   channelName?: string | null
   /** Buffer channel.service (facebook, linkedin, instagram, …). */
   service?: string | null
-  /** Public HTTPS image URL, used as a Buffer image asset when present. */
+  /**
+   * Public HTTPS image URL.
+   * Instagram and LinkedIn attach it as a native photo (LinkedIn's API does not
+   * scrape OG thumbnails). Facebook uses it as the link-card thumbnail.
+   */
   mediaUrl?: string | null
+  /** Optional title shown on Facebook link cards / LinkedIn image alt text. */
+  linkTitle?: string | null
+  /** Optional description shown on Facebook link cards. */
+  linkDescription?: string | null
 }
 
 const FIRST_URL_RE = /https?:\/\/[^\s)>\]]+/i
@@ -215,17 +224,61 @@ export function extractFirstUrl(text: string): string | null {
   return match ? match[0] : null
 }
 
+/**
+ * LinkedIn treats a URL in the caption as an article/link post and then
+ * omits (or shrinks) the attached photo. Move the apply URL to the first comment.
+ */
+export function moveFirstUrlToComment(text: string): { text: string; firstComment: string | null } {
+  const trimmed = (text ?? '').trim()
+  const url = extractFirstUrl(trimmed)
+  if (!url) return { text: trimmed, firstComment: null }
+
+  let next = trimmed.replace(url, '')
+  next = next.replace(/[ \t]+$/gm, '')
+  next = next.replace(/Apply(?: on CareerSasa)?:\s*$/gim, '')
+  next = next.replace(/\n{3,}/g, '\n\n').trim()
+  return {
+    text: next || trimmed,
+    firstComment: `Apply on CareerSasa: ${url}`,
+  }
+}
+
 function channelService(service?: string | null): string {
   return (service ?? '').trim().toLowerCase()
+}
+
+function buildLinkAttachment(
+  url: string,
+  opts?: {
+    thumbnailUrl?: string | null
+    title?: string | null
+    description?: string | null
+  }
+): Record<string, unknown> {
+  const attachment: Record<string, unknown> = { url }
+  const thumbnailUrl = opts?.thumbnailUrl?.trim()
+  if (thumbnailUrl) attachment.thumbnail = { url: thumbnailUrl }
+  const title = opts?.title?.trim()
+  if (title) attachment.title = title
+  const description = opts?.description?.trim()
+  if (description) attachment.description = description
+  return attachment
 }
 
 /**
  * Build the GraphQL CreatePostInput object.
  * Facebook in particular rejects posts that arrive without a caption (`text`)
  * or without an explicit post type — Buffer then surfaces "Text is required".
+ *
+ * LinkedIn's Posts API does not scrape Open Graph thumbnails for partner posts
+ * (a URL in the caption, or a linkAttachment thumbnail URL, is ignored unless
+ * Buffer uploads a real image). Attach the job OG graphic as a native image
+ * asset so LinkedIn actually shows it. Facebook still uses a link card.
+ *
+ * Buffer rejects `linkAttachment` together with a non-empty `assets` array.
  */
 export function buildCreatePostVariables(input: CreatePostInput): Record<string, unknown> {
-  const text = (input.text ?? '').trim()
+  let text = (input.text ?? '').trim()
   if (!text) {
     throw new BufferApiError(
       'Post text is required. Add a caption before sending to Buffer.'
@@ -239,10 +292,28 @@ export function buildCreatePostVariables(input: CreatePostInput): Record<string,
         ? 'customScheduled'
         : 'addToQueue'
 
+  const service = channelService(input.service)
+  const isFacebook = service.includes('facebook')
+  const isLinkedIn = service.includes('linkedin')
+  const mediaUrl = input.mediaUrl?.trim() || null
+
+  let firstComment: string | null = null
+  if (isLinkedIn && mediaUrl) {
+    const moved = moveFirstUrlToComment(text)
+    text = moved.text
+    firstComment = moved.firstComment
+  }
+
+  const link = extractFirstUrl(text)
+  // Facebook unfurls OG from a link card. LinkedIn does not — use a photo.
+  const useLinkCard = isFacebook && Boolean(link)
+
   const assets: Record<string, unknown>[] = []
-  const mediaUrl = input.mediaUrl?.trim()
-  if (mediaUrl) {
-    assets.push({ image: { url: mediaUrl } })
+  if (mediaUrl && !useLinkCard) {
+    const image: Record<string, unknown> = { url: mediaUrl }
+    const alt = input.linkTitle?.trim()
+    if (alt) image.metadata = { altText: alt }
+    assets.push({ image })
   }
 
   const payload: Record<string, unknown> = {
@@ -261,15 +332,23 @@ export function buildCreatePostVariables(input: CreatePostInput): Record<string,
     payload.dueAt = input.dueAt
   }
 
-  const service = channelService(input.service)
-  if (service.includes('facebook')) {
+  const linkAttachment = link
+    ? buildLinkAttachment(link, {
+        thumbnailUrl: mediaUrl,
+        title: input.linkTitle,
+        description: input.linkDescription,
+      })
+    : null
+
+  if (isFacebook) {
     const facebook: Record<string, unknown> = { type: 'post' }
-    const link = extractFirstUrl(text)
-    // Link cards are mutually exclusive with a non-empty assets array.
-    if (link && assets.length === 0) {
-      facebook.linkAttachment = { url: link }
-    }
+    if (useLinkCard && linkAttachment) facebook.linkAttachment = linkAttachment
     payload.metadata = { facebook }
+  } else if (isLinkedIn) {
+    const linkedin: Record<string, unknown> = {}
+    if (firstComment) linkedin.firstComment = firstComment
+    else if (linkAttachment && assets.length === 0) linkedin.linkAttachment = linkAttachment
+    if (Object.keys(linkedin).length) payload.metadata = { linkedin }
   }
 
   return payload
@@ -315,6 +394,30 @@ export async function bufferCreatePost(
     )
   }
   return result.post
+}
+
+/**
+ * Fetch the OG PNG once so Vercel caches it before Buffer tries to read
+ * image dimensions (a cold generate can take several seconds and Buffer then
+ * creates a text-only post / fails dimension detection).
+ */
+export async function warmPublicImageUrl(url: string): Promise<boolean> {
+  const target = url.trim()
+  if (!target) return false
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), BUFFER_TIMEOUT_MS)
+  try {
+    const res = await fetch(target, { method: 'GET', redirect: 'follow', signal: controller.signal })
+    const contentType = (res.headers.get('content-type') || '').toLowerCase()
+    if (!res.ok || !contentType.includes('image/')) return false
+    // Drain the body so the CDN actually stores the PNG, not just headers.
+    await res.arrayBuffer()
+    return true
+  } catch {
+    return false
+  } finally {
+    clearTimeout(timer)
+  }
 }
 
 /** Delete a post on Buffer by its Buffer post id (used when cancelling queued posts). */

@@ -20,7 +20,7 @@ import { resolveOgTemplateSelection } from '@/lib/ogTemplateCatalog';
 import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabaseEnv';
 
 export const runtime = 'edge';
-export const revalidate = 900;
+export const revalidate = 86400;
 
 const SITE_URL = 'https://www.careersasa.co.ke';
 
@@ -64,7 +64,8 @@ function brandFallbackCard(width: number, height: number) {
       width,
       height,
       headers: {
-        'Cache-Control': 'public, max-age=900, s-maxage=900, stale-while-revalidate=3600',
+        'Cache-Control': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800',
+        'Content-Disposition': 'inline; filename="job-card.png"',
       },
     },
   );
@@ -204,7 +205,8 @@ export async function GET(
       height,
       fonts: fonts.length ? fonts : undefined,
       headers: {
-        'Cache-Control': 'public, max-age=900, s-maxage=900, stale-while-revalidate=3600',
+        'Cache-Control': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800',
+        'Content-Disposition': 'inline; filename="job-card.png"',
       },
     });
   } catch (error) {

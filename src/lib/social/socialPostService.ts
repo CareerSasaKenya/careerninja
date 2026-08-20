@@ -16,8 +16,9 @@ import {
   bufferListChannels,
   BufferApiError,
   resolveBufferApiKey,
+  warmPublicImageUrl,
 } from './bufferAdapter'
-import { generatePostCopy, type JobForCopy } from './socialPostCopy'
+import { generatePostCopy, jobOgImageUrl, type JobForCopy } from './socialPostCopy'
 import type {
   BufferChannel,
   BufferStatusDTO,
@@ -428,6 +429,14 @@ export async function publishToBuffer(
     .eq('id', post.id)
 
   try {
+    const mediaUrl = post.media_url?.trim() || (post.job ? jobOgImageUrl(post.job) : null)
+    if (mediaUrl) {
+      const warmed = await warmPublicImageUrl(mediaUrl)
+      if (!warmed) {
+        console.warn('[socialPostService] OG image warm failed, sending URL to Buffer anyway:', mediaUrl)
+      }
+    }
+
     const created = await bufferCreatePost(resolved.apiKey, {
       channelId: input.channelId,
       text: post.post_text,
@@ -435,7 +444,11 @@ export async function publishToBuffer(
       dueAt: input.mode === 'schedule' ? input.dueAt : null,
       channelName,
       service: channelService,
-      mediaUrl: post.media_url,
+      mediaUrl,
+      linkTitle: post.job?.title ?? null,
+      linkDescription: post.job
+        ? `${post.job.title} at ${post.job.company} — ${post.job.location}`
+        : null,
     })
 
     const isNow = input.mode === 'now'
@@ -757,9 +770,7 @@ export async function generatePosts(
     const job = row as unknown as JobForCopy & { id: string }
     const copy = await generatePostCopy(job, input.platform)
 
-    const mediaUrl = input.platform === 'instagram'
-      ? `https://www.careersasa.co.ke/api/og/job/${encodeURIComponent(job.job_slug ?? job.slug ?? job.id)}?template=job`
-      : null
+    const mediaUrl = jobOgImageUrl(job)
 
     created.push(
       await createPost(adminClient, userId, {

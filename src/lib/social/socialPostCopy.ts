@@ -12,6 +12,7 @@
  */
 
 import { callAI, hasAIConfigured } from '@/lib/aiProviders'
+import { buildShareOgImageFilePath } from '@/lib/ogTemplateCatalog'
 import type { SocialPlatform } from './types'
 
 export interface JobForCopy {
@@ -49,12 +50,12 @@ export interface PlatformSpec {
   label: string
   /** Soft character guidance used by the composer UI + generators. */
   maxLength: number
-  /** Instagram needs a visual to be meaningful; store the OG graphic URL. */
+  /** Instagram and LinkedIn attach the job OG graphic; Facebook uses a link card. */
   usesMedia: boolean
 }
 
 export const PLATFORM_SPECS: Record<SocialPlatform, PlatformSpec> = {
-  linkedin: { label: 'LinkedIn', maxLength: 3000, usesMedia: false },
+  linkedin: { label: 'LinkedIn', maxLength: 3000, usesMedia: true },
   facebook: { label: 'Facebook', maxLength: 2200, usesMedia: false },
   instagram: { label: 'Instagram', maxLength: 2200, usesMedia: true },
 }
@@ -64,6 +65,16 @@ export const SITE_URL = 'https://www.careersasa.co.ke'
 export function jobUrl(job: { job_slug?: string | null; slug?: string | null; id: string }): string {
   const slug = job.job_slug ?? job.slug ?? job.id
   return `${SITE_URL}/jobs/${encodeURIComponent(slug)}`
+}
+
+/** Public PNG URL Buffer can fetch as a file (rewritten to the OG generator). */
+export function jobOgImageUrl(job: {
+  job_slug?: string | null
+  slug?: string | null
+  id: string
+}): string {
+  const slug = job.job_slug ?? job.slug ?? job.id
+  return `${SITE_URL}${buildShareOgImageFilePath(slug)}`
 }
 
 /** Best display name for the employer: hiring org first, else company. */
