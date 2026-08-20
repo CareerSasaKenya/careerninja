@@ -7,7 +7,6 @@ import {
   BufferApiError,
   buildCreatePostVariables,
   extractFirstUrl,
-  moveFirstUrlToComment,
 } from './bufferAdapter'
 import { jobOgImageUrl, jobUrl } from './socialPostCopy'
 
@@ -38,17 +37,6 @@ assert(
   extractFirstUrl('See http://example.com/a) next') === 'http://example.com/a',
   'strips trailing paren'
 )
-
-{
-  const moved = moveFirstUrlToComment(
-    'We are hiring: Nurse\nApply on CareerSasa: https://www.careersasa.co.ke/jobs/nurse'
-  )
-  assert(moved.text === 'We are hiring: Nurse', 'strips apply url line leftovers')
-  assert(
-    moved.firstComment === 'Apply on CareerSasa: https://www.careersasa.co.ke/jobs/nurse',
-    'url moves to first comment'
-  )
-}
 
 // --- empty / whitespace text ---
 assertThrows(
@@ -99,13 +87,11 @@ assertThrows(
   assert(assets.length === 1, 'linkedin attaches og as photo')
   assert(assets[0].image.url === og, 'og image url')
   assert(assets[0].image.metadata?.altText === 'Nurse at Acme — Nairobi', 'alt text from title')
-  assert(input.text === 'We are hiring: Nurse', 'url removed from caption')
-  const liMeta = input.metadata as { linkedin: { firstComment?: string; linkAttachment?: unknown } }
   assert(
-    liMeta.linkedin.firstComment === 'Apply on CareerSasa: https://www.careersasa.co.ke/jobs/nurse',
-    'apply url in first comment'
+    input.text === 'We are hiring: Nurse\nApply: https://www.careersasa.co.ke/jobs/nurse',
+    'keeps apply url in caption (firstComment is Buffer paid-only)'
   )
-  assert(liMeta.linkedin.linkAttachment === undefined, 'no linkAttachment when image asset present')
+  assert(input.metadata === undefined, 'no firstComment or linkAttachment on photo post')
 }
 
 // --- Facebook: explicit post type + link card from the caption URL ---

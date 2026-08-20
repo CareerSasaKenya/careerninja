@@ -224,25 +224,6 @@ export function extractFirstUrl(text: string): string | null {
   return match ? match[0] : null
 }
 
-/**
- * LinkedIn treats a URL in the caption as an article/link post and then
- * omits (or shrinks) the attached photo. Move the apply URL to the first comment.
- */
-export function moveFirstUrlToComment(text: string): { text: string; firstComment: string | null } {
-  const trimmed = (text ?? '').trim()
-  const url = extractFirstUrl(trimmed)
-  if (!url) return { text: trimmed, firstComment: null }
-
-  let next = trimmed.replace(url, '')
-  next = next.replace(/[ \t]+$/gm, '')
-  next = next.replace(/Apply(?: on CareerSasa)?:\s*$/gim, '')
-  next = next.replace(/\n{3,}/g, '\n\n').trim()
-  return {
-    text: next || trimmed,
-    firstComment: `Apply on CareerSasa: ${url}`,
-  }
-}
-
 function channelService(service?: string | null): string {
   return (service ?? '').trim().toLowerCase()
 }
@@ -270,15 +251,16 @@ function buildLinkAttachment(
  * Facebook in particular rejects posts that arrive without a caption (`text`)
  * or without an explicit post type — Buffer then surfaces "Text is required".
  *
- * LinkedIn's Posts API does not scrape Open Graph thumbnails for partner posts
- * (a URL in the caption, or a linkAttachment thumbnail URL, is ignored unless
- * Buffer uploads a real image). Attach the job OG graphic as a native image
- * asset so LinkedIn actually shows it. Facebook still uses a link card.
+ * LinkedIn's Posts API does not scrape Open Graph thumbnails for partner posts.
+ * A large OG *link card* on organic LinkedIn is also sponsored-only.
+ * Attach the job graphic as a native image asset (works on free LinkedIn and
+ * free Buffer). Keep the apply URL in the caption. Do not set firstComment —
+ * Buffer first-comment scheduling is paid-plan-only and would fail the post.
  *
  * Buffer rejects `linkAttachment` together with a non-empty `assets` array.
  */
 export function buildCreatePostVariables(input: CreatePostInput): Record<string, unknown> {
-  let text = (input.text ?? '').trim()
+  const text = (input.text ?? '').trim()
   if (!text) {
     throw new BufferApiError(
       'Post text is required. Add a caption before sending to Buffer.'
@@ -296,14 +278,6 @@ export function buildCreatePostVariables(input: CreatePostInput): Record<string,
   const isFacebook = service.includes('facebook')
   const isLinkedIn = service.includes('linkedin')
   const mediaUrl = input.mediaUrl?.trim() || null
-
-  let firstComment: string | null = null
-  if (isLinkedIn && mediaUrl) {
-    const moved = moveFirstUrlToComment(text)
-    text = moved.text
-    firstComment = moved.firstComment
-  }
-
   const link = extractFirstUrl(text)
   // Facebook unfurls OG from a link card. LinkedIn does not — use a photo.
   const useLinkCard = isFacebook && Boolean(link)
@@ -344,11 +318,8 @@ export function buildCreatePostVariables(input: CreatePostInput): Record<string,
     const facebook: Record<string, unknown> = { type: 'post' }
     if (useLinkCard && linkAttachment) facebook.linkAttachment = linkAttachment
     payload.metadata = { facebook }
-  } else if (isLinkedIn) {
-    const linkedin: Record<string, unknown> = {}
-    if (firstComment) linkedin.firstComment = firstComment
-    else if (linkAttachment && assets.length === 0) linkedin.linkAttachment = linkAttachment
-    if (Object.keys(linkedin).length) payload.metadata = { linkedin }
+  } else if (isLinkedIn && linkAttachment && assets.length === 0) {
+    payload.metadata = { linkedin: { linkAttachment } }
   }
 
   return payload
