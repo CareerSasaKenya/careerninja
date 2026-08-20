@@ -205,13 +205,14 @@ export interface CreatePostInput {
   /** Buffer channel.service (facebook, linkedin, instagram, …). */
   service?: string | null
   /**
-   * Public HTTPS image URL. For Instagram this becomes a Buffer image asset.
-   * For Facebook/LinkedIn link cards it is the link-preview thumbnail (OG image).
+   * Public HTTPS image URL.
+   * Instagram and LinkedIn attach it as a native photo (LinkedIn's API does not
+   * scrape OG thumbnails). Facebook uses it as the link-card thumbnail.
    */
   mediaUrl?: string | null
-  /** Optional title shown on Facebook/LinkedIn link cards. */
+  /** Optional title shown on Facebook link cards / LinkedIn image alt text. */
   linkTitle?: string | null
-  /** Optional description shown on Facebook/LinkedIn link cards. */
+  /** Optional description shown on Facebook link cards. */
   linkDescription?: string | null
 }
 
@@ -249,10 +250,12 @@ function buildLinkAttachment(
  * Facebook in particular rejects posts that arrive without a caption (`text`)
  * or without an explicit post type — Buffer then surfaces "Text is required".
  *
- * LinkedIn (and Facebook) do not unfurl OG previews from a URL in the caption
- * unless `metadata.{service}.linkAttachment` is set. Buffer also rejects
- * `linkAttachment` together with a non-empty `assets` array, so the job OG
- * image is passed as the link-card thumbnail rather than as a photo asset.
+ * LinkedIn's Posts API does not scrape Open Graph thumbnails for partner posts
+ * (a URL in the caption, or a linkAttachment thumbnail URL, is ignored unless
+ * Buffer uploads a real image). Attach the job OG graphic as a native image
+ * asset so LinkedIn actually shows it. Facebook still uses a link card.
+ *
+ * Buffer rejects `linkAttachment` together with a non-empty `assets` array.
  */
 export function buildCreatePostVariables(input: CreatePostInput): Record<string, unknown> {
   const text = (input.text ?? '').trim()
@@ -274,12 +277,15 @@ export function buildCreatePostVariables(input: CreatePostInput): Record<string,
   const isLinkedIn = service.includes('linkedin')
   const link = extractFirstUrl(text)
   const mediaUrl = input.mediaUrl?.trim() || null
-  const useLinkCard = Boolean(link) && (isFacebook || isLinkedIn)
+  // Facebook unfurls OG from a link card. LinkedIn does not — use a photo.
+  const useLinkCard = isFacebook && Boolean(link)
 
   const assets: Record<string, unknown>[] = []
-  // Image assets and linkAttachment are mutually exclusive in Buffer.
   if (mediaUrl && !useLinkCard) {
-    assets.push({ image: { url: mediaUrl } })
+    const image: Record<string, unknown> = { url: mediaUrl }
+    const alt = input.linkTitle?.trim()
+    if (alt) image.metadata = { altText: alt }
+    assets.push({ image })
   }
 
   const payload: Record<string, unknown> = {
@@ -310,7 +316,8 @@ export function buildCreatePostVariables(input: CreatePostInput): Record<string,
     const facebook: Record<string, unknown> = { type: 'post' }
     if (useLinkCard && linkAttachment) facebook.linkAttachment = linkAttachment
     payload.metadata = { facebook }
-  } else if (isLinkedIn && useLinkCard && linkAttachment) {
+  } else if (isLinkedIn && linkAttachment && assets.length === 0) {
+    // No graphic to upload — last-resort link card (LinkedIn still may omit the image).
     payload.metadata = { linkedin: { linkAttachment } }
   }
 

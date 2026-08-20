@@ -49,7 +49,7 @@ assertThrows(
   'Post text is required'
 )
 
-// --- LinkedIn now: caption + link card from the job URL (no image assets) ---
+// --- LinkedIn now without graphic: caption + link-card fallback ---
 {
   const input = buildCreatePostVariables({
     channelId: 'ch_li',
@@ -66,12 +66,12 @@ assertThrows(
   const meta = input.metadata as { linkedin: { linkAttachment: { url: string } } }
   assert(
     meta.linkedin.linkAttachment.url === 'https://www.careersasa.co.ke/jobs/nurse',
-    'linkedin linkAttachment from caption url'
+    'linkedin linkAttachment fallback when no image'
   )
   assert(input.dueAt === undefined, 'no dueAt on now')
 }
 
-// --- LinkedIn with OG thumbnail: thumbnail on the link card, still no assets ---
+// --- LinkedIn with OG graphic: native image asset (LinkedIn ignores OG scrape) ---
 {
   const og = 'https://www.careersasa.co.ke/api/og/job/nurse?template=5'
   const input = buildCreatePostVariables({
@@ -83,21 +83,11 @@ assertThrows(
     linkTitle: 'Nurse at Acme — Nairobi',
     linkDescription: 'Apply on CareerSasa',
   })
-  assert(Array.isArray(input.assets) && (input.assets as unknown[]).length === 0, 'no image assets with link card')
-  const meta = input.metadata as {
-    linkedin: {
-      linkAttachment: {
-        url: string
-        thumbnail?: { url: string }
-        title?: string
-        description?: string
-      }
-    }
-  }
-  assert(meta.linkedin.linkAttachment.url === 'https://www.careersasa.co.ke/jobs/nurse', 'link url')
-  assert(meta.linkedin.linkAttachment.thumbnail?.url === og, 'og image as thumbnail')
-  assert(meta.linkedin.linkAttachment.title === 'Nurse at Acme — Nairobi', 'link title')
-  assert(meta.linkedin.linkAttachment.description === 'Apply on CareerSasa', 'link description')
+  const assets = input.assets as { image: { url: string; metadata?: { altText?: string } } }[]
+  assert(assets.length === 1, 'linkedin attaches og as photo')
+  assert(assets[0].image.url === og, 'og image url')
+  assert(assets[0].image.metadata?.altText === 'Nurse at Acme — Nairobi', 'alt text from title')
+  assert(input.metadata === undefined, 'no linkAttachment when image asset present')
 }
 
 // --- Facebook: explicit post type + link card from the caption URL ---

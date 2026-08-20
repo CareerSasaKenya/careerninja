@@ -55,7 +55,7 @@ export interface PlatformSpec {
 }
 
 export const PLATFORM_SPECS: Record<SocialPlatform, PlatformSpec> = {
-  linkedin: { label: 'LinkedIn', maxLength: 3000, usesMedia: false },
+  linkedin: { label: 'LinkedIn', maxLength: 3000, usesMedia: true },
   facebook: { label: 'Facebook', maxLength: 2200, usesMedia: false },
   instagram: { label: 'Instagram', maxLength: 2200, usesMedia: true },
 }
