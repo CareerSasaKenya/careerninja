@@ -248,8 +248,8 @@ function buildLinkAttachment(
 
 /**
  * Build the GraphQL CreatePostInput object.
- * Facebook in particular rejects posts that arrive without a caption (`text`)
- * or without an explicit post type — Buffer then surfaces "Text is required".
+ * Facebook and Instagram reject posts without an explicit post type
+ * (`metadata.{service}.type`). Instagram also requires `shouldShareToFeed`.
  *
  * LinkedIn's Posts API does not scrape Open Graph thumbnails for partner posts.
  * A large OG *link card* on organic LinkedIn is also sponsored-only.
@@ -277,10 +277,17 @@ export function buildCreatePostVariables(input: CreatePostInput): Record<string,
   const service = channelService(input.service)
   const isFacebook = service.includes('facebook')
   const isLinkedIn = service.includes('linkedin')
+  const isInstagram = service.includes('instagram')
   const mediaUrl = input.mediaUrl?.trim() || null
   const link = extractFirstUrl(text)
-  // Facebook unfurls OG from a link card. LinkedIn does not — use a photo.
+  // Facebook unfurls OG from a link card. LinkedIn/Instagram use a photo.
   const useLinkCard = isFacebook && Boolean(link)
+
+  if (isInstagram && !mediaUrl) {
+    throw new BufferApiError(
+      'Instagram needs an image. Generate the post from a job so the graphic is attached, then send again.'
+    )
+  }
 
   const assets: Record<string, unknown>[] = []
   if (mediaUrl && !useLinkCard) {
@@ -318,6 +325,8 @@ export function buildCreatePostVariables(input: CreatePostInput): Record<string,
     const facebook: Record<string, unknown> = { type: 'post' }
     if (useLinkCard && linkAttachment) facebook.linkAttachment = linkAttachment
     payload.metadata = { facebook }
+  } else if (isInstagram) {
+    payload.metadata = { instagram: { type: 'post', shouldShareToFeed: true } }
   } else if (isLinkedIn && linkAttachment && assets.length === 0) {
     payload.metadata = { linkedin: { linkAttachment } }
   }
