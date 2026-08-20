@@ -16,6 +16,7 @@ import {
   bufferListChannels,
   BufferApiError,
   resolveBufferApiKey,
+  warmPublicImageUrl,
 } from './bufferAdapter'
 import { generatePostCopy, jobOgImageUrl, type JobForCopy } from './socialPostCopy'
 import type {
@@ -428,6 +429,14 @@ export async function publishToBuffer(
     .eq('id', post.id)
 
   try {
+    const mediaUrl = post.media_url?.trim() || (post.job ? jobOgImageUrl(post.job) : null)
+    if (mediaUrl) {
+      const warmed = await warmPublicImageUrl(mediaUrl)
+      if (!warmed) {
+        console.warn('[socialPostService] OG image warm failed, sending URL to Buffer anyway:', mediaUrl)
+      }
+    }
+
     const created = await bufferCreatePost(resolved.apiKey, {
       channelId: input.channelId,
       text: post.post_text,
@@ -435,7 +444,7 @@ export async function publishToBuffer(
       dueAt: input.mode === 'schedule' ? input.dueAt : null,
       channelName,
       service: channelService,
-      mediaUrl: post.media_url?.trim() || (post.job ? jobOgImageUrl(post.job) : null),
+      mediaUrl,
       linkTitle: post.job?.title ?? null,
       linkDescription: post.job
         ? `${post.job.title} at ${post.job.company} — ${post.job.location}`

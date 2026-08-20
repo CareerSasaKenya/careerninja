@@ -7,6 +7,7 @@ import {
   BufferApiError,
   buildCreatePostVariables,
   extractFirstUrl,
+  moveFirstUrlToComment,
 } from './bufferAdapter'
 import { jobOgImageUrl, jobUrl } from './socialPostCopy'
 
@@ -37,6 +38,17 @@ assert(
   extractFirstUrl('See http://example.com/a) next') === 'http://example.com/a',
   'strips trailing paren'
 )
+
+{
+  const moved = moveFirstUrlToComment(
+    'We are hiring: Nurse\nApply on CareerSasa: https://www.careersasa.co.ke/jobs/nurse'
+  )
+  assert(moved.text === 'We are hiring: Nurse', 'strips apply url line leftovers')
+  assert(
+    moved.firstComment === 'Apply on CareerSasa: https://www.careersasa.co.ke/jobs/nurse',
+    'url moves to first comment'
+  )
+}
 
 // --- empty / whitespace text ---
 assertThrows(
@@ -87,7 +99,13 @@ assertThrows(
   assert(assets.length === 1, 'linkedin attaches og as photo')
   assert(assets[0].image.url === og, 'og image url')
   assert(assets[0].image.metadata?.altText === 'Nurse at Acme — Nairobi', 'alt text from title')
-  assert(input.metadata === undefined, 'no linkAttachment when image asset present')
+  assert(input.text === 'We are hiring: Nurse', 'url removed from caption')
+  const liMeta = input.metadata as { linkedin: { firstComment?: string; linkAttachment?: unknown } }
+  assert(
+    liMeta.linkedin.firstComment === 'Apply on CareerSasa: https://www.careersasa.co.ke/jobs/nurse',
+    'apply url in first comment'
+  )
+  assert(liMeta.linkedin.linkAttachment === undefined, 'no linkAttachment when image asset present')
 }
 
 // --- Facebook: explicit post type + link card from the caption URL ---
@@ -195,8 +213,8 @@ assertThrows(
     'jobUrl uses slug'
   )
   const og = jobOgImageUrl(job)
-  assert(og.startsWith('https://www.careersasa.co.ke/api/og/job/nurse-nairobi?template='), 'og path')
-  assert(/\?template=[245]$/.test(og), 'accepted share template')
+  assert(og.startsWith('https://www.careersasa.co.ke/og/jobs/nurse-nairobi.png?template='), 'og png path')
+  assert(/[?&]template=[245]$/.test(og), 'accepted share template')
 }
 
 console.log('bufferCreatePostInput.test.ts: all assertions passed')

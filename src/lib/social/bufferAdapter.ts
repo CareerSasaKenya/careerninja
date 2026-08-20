@@ -22,7 +22,8 @@ import {
 } from './types'
 
 const BUFFER_API_BASE = 'https://api.buffer.com'
-const BUFFER_TIMEOUT_MS = 15000
+/** Buffer waits on image-dimension fetch during createPost; OG cards can take several seconds on a cache miss. */
+const BUFFER_TIMEOUT_MS = 30000
 
 export class BufferApiError extends Error {
   status: number
@@ -223,6 +224,25 @@ export function extractFirstUrl(text: string): string | null {
   return match ? match[0] : null
 }
 
+/**
+ * LinkedIn treats a URL in the caption as an article/link post and then
+ * omits (or shrinks) the attached photo. Move the apply URL to the first comment.
+ */
+export function moveFirstUrlToComment(text: string): { text: string; firstComment: string | null } {
+  const trimmed = (text ?? '').trim()
+  const url = extractFirstUrl(trimmed)
+  if (!url) return { text: trimmed, firstComment: null }
+
+  let next = trimmed.replace(url, '')
+  next = next.replace(/[ \t]+$/gm, '')
+  next = next.replace(/Apply(?: on CareerSasa)?:\s*$/gim, '')
+  next = next.replace(/\n{3,}/g, '\n\n').trim()
+  return {
+    text: next || trimmed,
+    firstComment: `Apply on CareerSasa: ${url}`,
+  }
+}
+
 function channelService(service?: string | null): string {
   return (service ?? '').trim().toLowerCase()
 }
@@ -258,7 +278,7 @@ function buildLinkAttachment(
  * Buffer rejects `linkAttachment` together with a non-empty `assets` array.
  */
 export function buildCreatePostVariables(input: CreatePostInput): Record<string, unknown> {
-  const text = (input.text ?? '').trim()
+  let text = (input.text ?? '').trim()
   if (!text) {
     throw new BufferApiError(
       'Post text is required. Add a caption before sending to Buffer.'
@@ -275,8 +295,16 @@ export function buildCreatePostVariables(input: CreatePostInput): Record<string,
   const service = channelService(input.service)
   const isFacebook = service.includes('facebook')
   const isLinkedIn = service.includes('linkedin')
-  const link = extractFirstUrl(text)
   const mediaUrl = input.mediaUrl?.trim() || null
+
+  let firstComment: string | null = null
+  if (isLinkedIn && mediaUrl) {
+    const moved = moveFirstUrlToComment(text)
+    text = moved.text
+    firstComment = moved.firstComment
+  }
+
+  const link = extractFirstUrl(text)
   // Facebook unfurls OG from a link card. LinkedIn does not — use a photo.
   const useLinkCard = isFacebook && Boolean(link)
 
@@ -316,9 +344,11 @@ export function buildCreatePostVariables(input: CreatePostInput): Record<string,
     const facebook: Record<string, unknown> = { type: 'post' }
     if (useLinkCard && linkAttachment) facebook.linkAttachment = linkAttachment
     payload.metadata = { facebook }
-  } else if (isLinkedIn && linkAttachment && assets.length === 0) {
-    // No graphic to upload — last-resort link card (LinkedIn still may omit the image).
-    payload.metadata = { linkedin: { linkAttachment } }
+  } else if (isLinkedIn) {
+    const linkedin: Record<string, unknown> = {}
+    if (firstComment) linkedin.firstComment = firstComment
+    else if (linkAttachment && assets.length === 0) linkedin.linkAttachment = linkAttachment
+    if (Object.keys(linkedin).length) payload.metadata = { linkedin }
   }
 
   return payload
@@ -364,6 +394,30 @@ export async function bufferCreatePost(
     )
   }
   return result.post
+}
+
+/**
+ * Fetch the OG PNG once so Vercel caches it before Buffer tries to read
+ * image dimensions (a cold generate can take several seconds and Buffer then
+ * creates a text-only post / fails dimension detection).
+ */
+export async function warmPublicImageUrl(url: string): Promise<boolean> {
+  const target = url.trim()
+  if (!target) return false
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), BUFFER_TIMEOUT_MS)
+  try {
+    const res = await fetch(target, { method: 'GET', redirect: 'follow', signal: controller.signal })
+    const contentType = (res.headers.get('content-type') || '').toLowerCase()
+    if (!res.ok || !contentType.includes('image/')) return false
+    // Drain the body so the CDN actually stores the PNG, not just headers.
+    await res.arrayBuffer()
+    return true
+  } catch {
+    return false
+  } finally {
+    clearTimeout(timer)
+  }
 }
 
 /** Delete a post on Buffer by its Buffer post id (used when cancelling queued posts). */

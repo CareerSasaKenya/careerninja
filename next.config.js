@@ -75,9 +75,27 @@ const nextConfig = {
   trailingSlash: false,
   // Skip trailing slash redirect for better compatibility
   skipTrailingSlashRedirect: false,
+  async rewrites() {
+    return [
+      { source: '/og/jobs/:id.png', destination: '/api/og/job/:id' },
+    ]
+  },
   // Add headers to prevent Facebook WebView caching issues
   async headers() {
     return [
+      {
+        source: '/og/jobs/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800',
+          },
+          {
+            key: 'Content-Disposition',
+            value: 'inline; filename="job-card.png"',
+          },
+        ],
+      },
       {
         source: '/jobs/:slug*',
         headers: [

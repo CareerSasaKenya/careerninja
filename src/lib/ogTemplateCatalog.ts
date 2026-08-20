@@ -106,6 +106,15 @@ export function buildShareOgImagePath(jobIdOrSlug: string): string {
   return `/api/og/job/${encodeURIComponent(jobIdOrSlug)}?template=${template}`;
 }
 
+/**
+ * File-like PNG URL for Buffer/LinkedIn. Same generator as buildShareOgImagePath;
+ * the .png path is rewritten to /api/og/job/:id so fetchers treat it as an image file.
+ */
+export function buildShareOgImageFilePath(jobIdOrSlug: string): string {
+  const template = pickOgTemplateForJob(jobIdOrSlug);
+  return `/og/jobs/${encodeURIComponent(jobIdOrSlug)}.png?template=${template}`;
+}
+
 export function emptyReview(): OgTemplateReview {
   return { status: 'pending', notes: '', updatedAt: null };
 }
