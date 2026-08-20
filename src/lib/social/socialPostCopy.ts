@@ -12,6 +12,7 @@
  */
 
 import { callAI, hasAIConfigured } from '@/lib/aiProviders'
+import { buildShareOgImagePath } from '@/lib/ogTemplateCatalog'
 import type { SocialPlatform } from './types'
 
 export interface JobForCopy {
@@ -64,6 +65,16 @@ export const SITE_URL = 'https://www.careersasa.co.ke'
 export function jobUrl(job: { job_slug?: string | null; slug?: string | null; id: string }): string {
   const slug = job.job_slug ?? job.slug ?? job.id
   return `${SITE_URL}/jobs/${encodeURIComponent(slug)}`
+}
+
+/** Canonical public OG/share-card image for a job (same path as job page metadata). */
+export function jobOgImageUrl(job: {
+  job_slug?: string | null
+  slug?: string | null
+  id: string
+}): string {
+  const slug = job.job_slug ?? job.slug ?? job.id
+  return `${SITE_URL}${buildShareOgImagePath(slug)}`
 }
 
 /** Best display name for the employer: hiring org first, else company. */

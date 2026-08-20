@@ -204,8 +204,15 @@ export interface CreatePostInput {
   channelName?: string | null
   /** Buffer channel.service (facebook, linkedin, instagram, …). */
   service?: string | null
-  /** Public HTTPS image URL, used as a Buffer image asset when present. */
+  /**
+   * Public HTTPS image URL. For Instagram this becomes a Buffer image asset.
+   * For Facebook/LinkedIn link cards it is the link-preview thumbnail (OG image).
+   */
   mediaUrl?: string | null
+  /** Optional title shown on Facebook/LinkedIn link cards. */
+  linkTitle?: string | null
+  /** Optional description shown on Facebook/LinkedIn link cards. */
+  linkDescription?: string | null
 }
 
 const FIRST_URL_RE = /https?:\/\/[^\s)>\]]+/i
@@ -219,10 +226,33 @@ function channelService(service?: string | null): string {
   return (service ?? '').trim().toLowerCase()
 }
 
+function buildLinkAttachment(
+  url: string,
+  opts?: {
+    thumbnailUrl?: string | null
+    title?: string | null
+    description?: string | null
+  }
+): Record<string, unknown> {
+  const attachment: Record<string, unknown> = { url }
+  const thumbnailUrl = opts?.thumbnailUrl?.trim()
+  if (thumbnailUrl) attachment.thumbnail = { url: thumbnailUrl }
+  const title = opts?.title?.trim()
+  if (title) attachment.title = title
+  const description = opts?.description?.trim()
+  if (description) attachment.description = description
+  return attachment
+}
+
 /**
  * Build the GraphQL CreatePostInput object.
  * Facebook in particular rejects posts that arrive without a caption (`text`)
  * or without an explicit post type — Buffer then surfaces "Text is required".
+ *
+ * LinkedIn (and Facebook) do not unfurl OG previews from a URL in the caption
+ * unless `metadata.{service}.linkAttachment` is set. Buffer also rejects
+ * `linkAttachment` together with a non-empty `assets` array, so the job OG
+ * image is passed as the link-card thumbnail rather than as a photo asset.
  */
 export function buildCreatePostVariables(input: CreatePostInput): Record<string, unknown> {
   const text = (input.text ?? '').trim()
@@ -239,9 +269,16 @@ export function buildCreatePostVariables(input: CreatePostInput): Record<string,
         ? 'customScheduled'
         : 'addToQueue'
 
+  const service = channelService(input.service)
+  const isFacebook = service.includes('facebook')
+  const isLinkedIn = service.includes('linkedin')
+  const link = extractFirstUrl(text)
+  const mediaUrl = input.mediaUrl?.trim() || null
+  const useLinkCard = Boolean(link) && (isFacebook || isLinkedIn)
+
   const assets: Record<string, unknown>[] = []
-  const mediaUrl = input.mediaUrl?.trim()
-  if (mediaUrl) {
+  // Image assets and linkAttachment are mutually exclusive in Buffer.
+  if (mediaUrl && !useLinkCard) {
     assets.push({ image: { url: mediaUrl } })
   }
 
@@ -261,15 +298,20 @@ export function buildCreatePostVariables(input: CreatePostInput): Record<string,
     payload.dueAt = input.dueAt
   }
 
-  const service = channelService(input.service)
-  if (service.includes('facebook')) {
+  const linkAttachment = link
+    ? buildLinkAttachment(link, {
+        thumbnailUrl: mediaUrl,
+        title: input.linkTitle,
+        description: input.linkDescription,
+      })
+    : null
+
+  if (isFacebook) {
     const facebook: Record<string, unknown> = { type: 'post' }
-    const link = extractFirstUrl(text)
-    // Link cards are mutually exclusive with a non-empty assets array.
-    if (link && assets.length === 0) {
-      facebook.linkAttachment = { url: link }
-    }
+    if (useLinkCard && linkAttachment) facebook.linkAttachment = linkAttachment
     payload.metadata = { facebook }
+  } else if (isLinkedIn && useLinkCard && linkAttachment) {
+    payload.metadata = { linkedin: { linkAttachment } }
   }
 
   return payload

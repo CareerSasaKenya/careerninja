@@ -17,7 +17,7 @@ import {
   BufferApiError,
   resolveBufferApiKey,
 } from './bufferAdapter'
-import { generatePostCopy, type JobForCopy } from './socialPostCopy'
+import { generatePostCopy, jobOgImageUrl, type JobForCopy } from './socialPostCopy'
 import type {
   BufferChannel,
   BufferStatusDTO,
@@ -435,7 +435,11 @@ export async function publishToBuffer(
       dueAt: input.mode === 'schedule' ? input.dueAt : null,
       channelName,
       service: channelService,
-      mediaUrl: post.media_url,
+      mediaUrl: post.media_url?.trim() || (post.job ? jobOgImageUrl(post.job) : null),
+      linkTitle: post.job?.title ?? null,
+      linkDescription: post.job
+        ? `${post.job.title} at ${post.job.company} — ${post.job.location}`
+        : null,
     })
 
     const isNow = input.mode === 'now'
@@ -757,9 +761,7 @@ export async function generatePosts(
     const job = row as unknown as JobForCopy & { id: string }
     const copy = await generatePostCopy(job, input.platform)
 
-    const mediaUrl = input.platform === 'instagram'
-      ? `https://www.careersasa.co.ke/api/og/job/${encodeURIComponent(job.job_slug ?? job.slug ?? job.id)}?template=job`
-      : null
+    const mediaUrl = jobOgImageUrl(job)
 
     created.push(
       await createPost(adminClient, userId, {
