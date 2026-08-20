@@ -136,7 +136,7 @@ assertThrows(
   assert(meta.facebook.linkAttachment?.thumbnail?.url === og, 'og image as thumbnail')
 }
 
-// --- Instagram: OG image is a photo asset (no link card) ---
+// --- Instagram: OG image is a photo asset + required post type ---
 {
   const og = 'https://www.careersasa.co.ke/api/og/job/nurse?template=5'
   const input = buildCreatePostVariables({
@@ -149,8 +149,21 @@ assertThrows(
   const assets = input.assets as { image: { url: string } }[]
   assert(assets.length === 1, 'instagram uses image asset')
   assert(assets[0].image.url === og, 'instagram image url')
-  assert(input.metadata === undefined, 'instagram has no link metadata')
+  const ig = input.metadata as { instagram: { type: string; shouldShareToFeed: boolean } }
+  assert(ig.instagram.type === 'post', 'instagram type is post')
+  assert(ig.instagram.shouldShareToFeed === true, 'share to feed')
 }
+
+assertThrows(
+  () =>
+    buildCreatePostVariables({
+      channelId: 'ch_ig',
+      text: 'Hiring Nurse',
+      mode: 'now',
+      service: 'instagram',
+    }),
+  'Instagram needs an image'
+)
 
 // --- LinkedIn without a URL: OG image becomes a photo asset ---
 {
