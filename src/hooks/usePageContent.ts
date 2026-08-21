@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { getContentValue as getStoredContentValue } from "@/lib/pageContent";
 
 export interface PageContent {
   id: string;
@@ -60,14 +61,7 @@ export function getContentValue(
   sectionKey: string,
   fallback: string = ""
 ): string {
-  if (!content) return fallback;
-
-  if (Array.isArray(content)) {
-    const item = content.find((c) => c.section_key === sectionKey);
-    return item?.content_value || fallback;
-  }
-
-  return content.section_key === sectionKey ? content.content_value : fallback;
+  return getStoredContentValue(content, sectionKey, fallback);
 }
 
 /**

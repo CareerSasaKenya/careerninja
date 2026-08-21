@@ -4,6 +4,8 @@ import { ExploreJobsByFunction } from "@/components/ExploreJobsByFunction";
 import { completeFunctionCatalog } from "@/lib/completeFunctionCatalog";
 import { getActiveJobsByFunction } from "@/lib/jobsByFunction";
 import { SITE_URL } from "@/lib/browseNav";
+import { fetchPageContentMap } from "@/lib/fetchPageContent";
+import { getContentValue } from "@/lib/pageContent";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -28,13 +30,20 @@ export const metadata: Metadata = {
 };
 
 export default async function JobsByFunctionPage() {
-  const functions = await getActiveJobsByFunction();
+  const [functions, content] = await Promise.all([
+    getActiveJobsByFunction(),
+    fetchPageContentMap("jobs-functions"),
+  ]);
 
   return (
     <BrowseHubChrome
-      eyebrow="Browse jobs"
-      title="Jobs by Function"
-      description="Every field we hire for — including those with no live roles right now. Search, sort, and click through to open jobs."
+      eyebrow={getContentValue(content, "eyebrow", "Browse jobs")}
+      title={getContentValue(content, "hero_title", "Jobs by Function")}
+      description={getContentValue(
+        content,
+        "hero_subtitle",
+        "Every field we hire for — including those with no live roles right now. Search, sort, and click through to open jobs."
+      )}
     >
       <ExploreJobsByFunction
         functions={completeFunctionCatalog(functions)}

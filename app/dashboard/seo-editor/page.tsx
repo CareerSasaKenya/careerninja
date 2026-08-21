@@ -8,11 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Save, Search, Globe, FileText, CheckCircle2, XCircle } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { RequireAdmin } from "@/components/RequireAdmin";
+import { CmsPagePicker } from "@/components/admin/CmsPagePicker";
+import { SEO_CMS_PAGES } from "@/lib/cmsPages";
 
 interface PageSEO {
   id: string;
@@ -27,14 +29,7 @@ interface PageSEO {
   seo_follow: boolean | null;
 }
 
-const PAGES = [
-  { slug: "home", label: "Homepage", defaultUrl: "/", defaultCanonical: "https://www.careersasa.co.ke/" },
-  { slug: "services-cv", label: "CV Services", defaultUrl: "/services/cv", defaultCanonical: "https://www.careersasa.co.ke/services/cv" },
-  { slug: "services-linkedin", label: "LinkedIn Services", defaultUrl: "/services/linkedin", defaultCanonical: "https://www.careersasa.co.ke/services/linkedin" },
-  { slug: "services-cover-letter", label: "Cover Letter Services", defaultUrl: "/services/cover-letter", defaultCanonical: "https://www.careersasa.co.ke/services/cover-letter" },
-  { slug: "about", label: "About Page", defaultUrl: "/about", defaultCanonical: "https://www.careersasa.co.ke/about" },
-  { slug: "contact", label: "Contact Page", defaultUrl: "/contact", defaultCanonical: "https://www.careersasa.co.ke/contact" },
-];
+const PAGES = SEO_CMS_PAGES;
 
 export default function SEOEditorPage() {
   const [selectedPage, setSelectedPage] = useState("home");
@@ -115,25 +110,23 @@ export default function SEOEditorPage() {
 
   return (
     <RequireAdmin>
-    <div className="container mx-auto px-4 py-8 max-w-5xl">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2 flex items-center gap-2">
-          <Search className="h-8 w-8" />
-          SEO Manager
+    <div className="container mx-auto w-full max-w-5xl overflow-x-hidden px-4 py-6 sm:py-8">
+      <div className="mb-6 sm:mb-8 min-w-0">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 flex items-center gap-2">
+          <Search className="h-6 w-6 sm:h-8 sm:w-8 shrink-0" />
+          <span className="break-words">SEO Manager</span>
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-sm sm:text-base text-muted-foreground">
           Optimize your pages for search engines - control titles, descriptions, and indexing
         </p>
       </div>
 
-      <Tabs value={selectedPage} onValueChange={setSelectedPage} className="space-y-6">
-        <TabsList className="grid grid-cols-3 lg:grid-cols-6 gap-2">
-          {PAGES.map((page) => (
-            <TabsTrigger key={page.slug} value={page.slug}>
-              {page.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+      <Tabs value={selectedPage} onValueChange={setSelectedPage} className="space-y-6 min-w-0">
+        <CmsPagePicker
+          pages={PAGES}
+          value={selectedPage}
+          onChange={setSelectedPage}
+        />
 
         {PAGES.map((page) => (
           <TabsContent key={page.slug} value={page.slug}>

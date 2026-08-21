@@ -3,6 +3,8 @@ import { BrowseHubChrome } from "@/components/BrowseHubChrome";
 import { JobsByCountyMap } from "@/components/ExploreJobsByCounty";
 import { getActiveJobsByCounty } from "@/lib/jobsByCounty";
 import { SITE_URL } from "@/lib/browseNav";
+import { fetchPageContentMap } from "@/lib/fetchPageContent";
+import { getContentValue } from "@/lib/pageContent";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -27,13 +29,20 @@ export const metadata: Metadata = {
 };
 
 export default async function JobsByCountyPage() {
-  const jobsByCounty = await getActiveJobsByCounty();
+  const [jobsByCounty, content] = await Promise.all([
+    getActiveJobsByCounty(),
+    fetchPageContentMap("jobs-counties"),
+  ]);
 
   return (
     <BrowseHubChrome
-      eyebrow="Browse jobs"
-      title="Jobs by County"
-      description="The interactive map belongs here — tap a county or pick from the ranked list to see live jobs nearby."
+      eyebrow={getContentValue(content, "eyebrow", "Browse jobs")}
+      title={getContentValue(content, "hero_title", "Jobs by County")}
+      description={getContentValue(
+        content,
+        "hero_subtitle",
+        "The interactive map belongs here — tap a county or pick from the ranked list to see live jobs nearby."
+      )}
     >
       {jobsByCounty.length > 0 ? (
         <JobsByCountyMap counts={jobsByCounty} />

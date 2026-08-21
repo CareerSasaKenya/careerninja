@@ -9,10 +9,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Save, Plus, Trash2, RefreshCw } from "lucide-react";
 import { RequireAdmin } from "@/components/RequireAdmin";
+import { CmsPagePicker } from "@/components/admin/CmsPagePicker";
+import { CMS_PAGES, getMissingDefaultSections } from "@/lib/cmsPages";
 
 interface PageContent {
   id: string;
@@ -29,15 +31,6 @@ interface PageContent {
   seo_h1_title?: string | null;
   seo_follow?: boolean | null;
 }
-
-const PAGES = [
-  { slug: "home", label: "Homepage" },
-  { slug: "services-cv", label: "CV Services" },
-  { slug: "services-linkedin", label: "LinkedIn Services" },
-  { slug: "services-cover-letter", label: "Cover Letter Services" },
-  { slug: "about", label: "About Page" },
-  { slug: "contact", label: "Contact Page" },
-];
 
 const CONTENT_TYPES = [
   { value: "text", label: "Text" },
@@ -58,7 +51,6 @@ export default function ContentEditorPage() {
 
   const queryClient = useQueryClient();
 
-  // Fetch content for selected page
   const { data: pageContent = [], isLoading } = useQuery({
     queryKey: ["page-content-admin", selectedPage],
     queryFn: async () => {
@@ -73,7 +65,11 @@ export default function ContentEditorPage() {
     },
   });
 
-  // Update mutation
+  const missingDefaults = getMissingDefaultSections(
+    selectedPage,
+    pageContent.map((item) => item.section_key)
+  );
+
   const updateMutation = useMutation({
     mutationFn: async (item: PageContent) => {
       const { error } = await supabase
@@ -105,13 +101,12 @@ export default function ContentEditorPage() {
     },
   });
 
-  // Create mutation
   const createMutation = useMutation({
     mutationFn: async () => {
       let metadata = {};
       try {
         metadata = JSON.parse(newItem.metadata);
-      } catch (e) {
+      } catch {
         throw new Error("Invalid JSON in metadata");
       }
 
@@ -141,7 +136,36 @@ export default function ContentEditorPage() {
     },
   });
 
-  // Delete mutation
+  const seedMissingMutation = useMutation({
+    mutationFn: async () => {
+      const missing = getMissingDefaultSections(
+        selectedPage,
+        pageContent.map((item) => item.section_key)
+      );
+      if (missing.length === 0) return;
+
+      const { error } = await supabase.from("page_content").insert(
+        missing.map((section) => ({
+          page_slug: selectedPage,
+          section_key: section.section_key,
+          content_type: section.content_type,
+          content_value: section.content_value,
+          metadata: section.metadata ?? {},
+        }))
+      );
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["page-content-admin", selectedPage] });
+      queryClient.invalidateQueries({ queryKey: ["page-content"] });
+      toast.success("Website sections added");
+    },
+    onError: (error) => {
+      toast.error(`Failed to add sections: ${error.message}`);
+    },
+  });
+
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("page_content").delete().eq("id", id);
@@ -175,55 +199,80 @@ export default function ContentEditorPage() {
     }
   };
 
+  const handlePageChange = (slug: string) => {
+    setEditingItem(null);
+    setSelectedPage(slug);
+  };
+
   return (
     <RequireAdmin>
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Content Editor</h1>
-        <p className="text-muted-foreground">
-          Edit front-facing page content without touching code
+    <div className="container mx-auto w-full max-w-7xl overflow-x-hidden px-4 py-6 sm:py-8">
+      <div className="mb-6 sm:mb-8 min-w-0">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 break-words">
+          Content Editor
+        </h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
+          Edit front-facing page content without touching code — including the Browse Jobs menu.
         </p>
       </div>
 
-      <Tabs value={selectedPage} onValueChange={setSelectedPage} className="space-y-6">
-        <TabsList className="grid grid-cols-3 lg:grid-cols-6 gap-2">
-          {PAGES.map((page) => (
-            <TabsTrigger key={page.slug} value={page.slug}>
-              {page.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+      <Tabs value={selectedPage} onValueChange={handlePageChange} className="space-y-6 min-w-0">
+        <CmsPagePicker
+          pages={CMS_PAGES}
+          value={selectedPage}
+          onChange={handlePageChange}
+        />
 
-        {PAGES.map((page) => (
-          <TabsContent key={page.slug} value={page.slug} className="space-y-6">
-            {/* Existing Content */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>Existing Content Sections</span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => queryClient.invalidateQueries({ queryKey: ["page-content-admin"] })}
-                  >
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Refresh
-                  </Button>
+        {CMS_PAGES.map((page) => (
+          <TabsContent key={page.slug} value={page.slug} className="space-y-6 min-w-0">
+            <Card className="min-w-0 overflow-hidden">
+              <CardHeader className="space-y-3 sm:space-y-0">
+                <CardTitle className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <span className="break-words">Existing Content Sections</span>
+                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                    {missingDefaults.length > 0 && (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="w-full sm:w-auto"
+                        onClick={() => seedMissingMutation.mutate()}
+                        disabled={seedMissingMutation.isPending}
+                      >
+                        <Plus className="h-4 w-4 mr-2 shrink-0" />
+                        Add {missingDefaults.length} website section
+                        {missingDefaults.length === 1 ? "" : "s"}
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full sm:w-auto"
+                      onClick={() => queryClient.invalidateQueries({ queryKey: ["page-content-admin"] })}
+                    >
+                      <RefreshCw className="h-4 w-4 mr-2 shrink-0" />
+                      Refresh
+                    </Button>
+                  </div>
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="min-w-0">
                 {isLoading ? (
                   <p className="text-muted-foreground">Loading...</p>
                 ) : pageContent.length === 0 ? (
-                  <p className="text-muted-foreground">No content found for this page</p>
+                  <p className="text-muted-foreground">
+                    No content found for this page
+                    {missingDefaults.length > 0
+                      ? ". Add the current website sections to start editing."
+                      : "."}
+                  </p>
                 ) : (
                   <div className="space-y-4">
                     {pageContent.map((item) => (
-                      <Card key={item.id} className="border-2">
-                        <CardContent className="pt-6">
+                      <Card key={item.id} className="border-2 min-w-0 overflow-hidden">
+                        <CardContent className="pt-6 px-4 sm:px-6 min-w-0">
                           {editingItem?.id === item.id ? (
-                            <div className="space-y-4">
-                              <div>
+                            <div className="space-y-4 min-w-0">
+                              <div className="min-w-0">
                                 <Label>Section Key</Label>
                                 <Input
                                   value={editingItem.section_key}
@@ -251,7 +300,7 @@ export default function ContentEditorPage() {
                                   </SelectContent>
                                 </Select>
                               </div>
-                              <div>
+                              <div className="min-w-0">
                                 <Label>Content Value</Label>
                                 <Textarea
                                   value={editingItem.content_value}
@@ -262,10 +311,10 @@ export default function ContentEditorPage() {
                                     })
                                   }
                                   rows={6}
-                                  className="font-mono text-sm"
+                                  className="font-mono text-sm break-words"
                                 />
                               </div>
-                              <div>
+                              <div className="min-w-0">
                                 <Label>Metadata (JSON)</Label>
                                 <Textarea
                                   value={JSON.stringify(editingItem.metadata, null, 2)}
@@ -278,13 +327,12 @@ export default function ContentEditorPage() {
                                     }
                                   }}
                                   rows={3}
-                                  className="font-mono text-sm"
+                                  className="font-mono text-sm break-words"
                                 />
                               </div>
 
-                              {/* SEO Fields Section */}
-                              <div className="border-t pt-4 mt-4">
-                                <h3 className="font-semibold text-lg mb-4">SEO Settings</h3>
+                              <div className="border-t pt-4 mt-4 min-w-0">
+                                <h3 className="font-semibold text-base sm:text-lg mb-4">SEO Settings</h3>
                                 <div className="space-y-4">
                                   <div>
                                     <Label>SEO Title</Label>
@@ -372,8 +420,8 @@ export default function ContentEditorPage() {
                                     </p>
                                   </div>
 
-                                  <div className="grid grid-cols-2 gap-4">
-                                    <div className="flex items-center space-x-2">
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="flex items-start space-x-2 min-w-0">
                                       <input
                                         type="checkbox"
                                         id={`index-${editingItem.id}`}
@@ -384,14 +432,14 @@ export default function ContentEditorPage() {
                                             seo_index: e.target.checked,
                                           })
                                         }
-                                        className="h-4 w-4"
+                                        className="h-4 w-4 mt-0.5 shrink-0"
                                       />
-                                      <Label htmlFor={`index-${editingItem.id}`}>
+                                      <Label htmlFor={`index-${editingItem.id}`} className="leading-snug">
                                         Index (Allow in search results)
                                       </Label>
                                     </div>
 
-                                    <div className="flex items-center space-x-2">
+                                    <div className="flex items-start space-x-2 min-w-0">
                                       <input
                                         type="checkbox"
                                         id={`follow-${editingItem.id}`}
@@ -402,9 +450,9 @@ export default function ContentEditorPage() {
                                             seo_follow: e.target.checked,
                                           })
                                         }
-                                        className="h-4 w-4"
+                                        className="h-4 w-4 mt-0.5 shrink-0"
                                       />
-                                      <Label htmlFor={`follow-${editingItem.id}`}>
+                                      <Label htmlFor={`follow-${editingItem.id}`} className="leading-snug">
                                         Follow (Follow links on page)
                                       </Label>
                                     </div>
@@ -412,31 +460,33 @@ export default function ContentEditorPage() {
                                 </div>
                               </div>
 
-                              <div className="flex gap-2">
+                              <div className="flex flex-col-reverse sm:flex-row gap-2">
                                 <Button
                                   onClick={() => handleSave(editingItem)}
                                   disabled={updateMutation.isPending}
+                                  className="w-full sm:w-auto"
                                 >
-                                  <Save className="h-4 w-4 mr-2" />
+                                  <Save className="h-4 w-4 mr-2 shrink-0" />
                                   Save Changes
                                 </Button>
                                 <Button
                                   variant="outline"
                                   onClick={() => setEditingItem(null)}
+                                  className="w-full sm:w-auto"
                                 >
                                   Cancel
                                 </Button>
                               </div>
                             </div>
                           ) : (
-                            <div className="space-y-3">
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <span className="font-semibold text-lg">
+                            <div className="space-y-3 min-w-0">
+                              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                                    <span className="font-semibold text-base sm:text-lg break-all">
                                       {item.section_key}
                                     </span>
-                                    <span className="text-xs bg-muted px-2 py-1 rounded">
+                                    <span className="text-xs bg-muted px-2 py-1 rounded shrink-0">
                                       {item.content_type}
                                     </span>
                                   </div>
@@ -445,47 +495,48 @@ export default function ContentEditorPage() {
                                       ? item.content_value.substring(0, 200) + "..."
                                       : item.content_value}
                                   </div>
-                                  {Object.keys(item.metadata).length > 0 && (
-                                    <div className="mt-2 text-xs text-muted-foreground">
+                                  {Object.keys(item.metadata || {}).length > 0 && (
+                                    <div className="mt-2 text-xs text-muted-foreground break-all">
                                       Metadata: {JSON.stringify(item.metadata)}
                                     </div>
                                   )}
                                   {(item.seo_title || item.seo_meta_description || item.seo_url_slug) && (
-                                    <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950 rounded border border-blue-200 dark:border-blue-800">
+                                    <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950 rounded border border-blue-200 dark:border-blue-800 min-w-0">
                                       <div className="text-xs font-semibold text-blue-900 dark:text-blue-100 mb-2">
                                         SEO Settings
                                       </div>
                                       {item.seo_title && (
-                                        <div className="text-xs text-blue-800 dark:text-blue-200 mb-1">
+                                        <div className="text-xs text-blue-800 dark:text-blue-200 mb-1 break-words">
                                           <span className="font-medium">Title:</span> {item.seo_title}
                                         </div>
                                       )}
                                       {item.seo_meta_description && (
-                                        <div className="text-xs text-blue-800 dark:text-blue-200 mb-1">
+                                        <div className="text-xs text-blue-800 dark:text-blue-200 mb-1 break-words">
                                           <span className="font-medium">Description:</span> {item.seo_meta_description}
                                         </div>
                                       )}
                                       {item.seo_url_slug && (
-                                        <div className="text-xs text-blue-800 dark:text-blue-200 mb-1">
+                                        <div className="text-xs text-blue-800 dark:text-blue-200 mb-1 break-all">
                                           <span className="font-medium">URL:</span> {item.seo_url_slug}
                                         </div>
                                       )}
                                       {item.seo_h1_title && (
-                                        <div className="text-xs text-blue-800 dark:text-blue-200 mb-1">
+                                        <div className="text-xs text-blue-800 dark:text-blue-200 mb-1 break-words">
                                           <span className="font-medium">H1:</span> {item.seo_h1_title}
                                         </div>
                                       )}
-                                      <div className="text-xs text-blue-800 dark:text-blue-200 flex gap-3 mt-1">
+                                      <div className="text-xs text-blue-800 dark:text-blue-200 flex flex-wrap gap-3 mt-1">
                                         <span>Index: {item.seo_index !== false ? "✓" : "✗"}</span>
                                         <span>Follow: {item.seo_follow !== false ? "✓" : "✗"}</span>
                                       </div>
                                     </div>
                                   )}
                                 </div>
-                                <div className="flex gap-2 ml-4">
+                                <div className="flex gap-2 w-full sm:w-auto sm:ml-4 shrink-0">
                                   <Button
                                     variant="outline"
                                     size="sm"
+                                    className="flex-1 sm:flex-none"
                                     onClick={() => setEditingItem(item)}
                                   >
                                     Edit
@@ -493,10 +544,12 @@ export default function ContentEditorPage() {
                                   <Button
                                     variant="destructive"
                                     size="sm"
+                                    className="flex-1 sm:flex-none"
                                     onClick={() => handleDelete(item.id)}
                                     disabled={deleteMutation.isPending}
                                   >
                                     <Trash2 className="h-4 w-4" />
+                                    <span className="sm:hidden ml-2">Delete</span>
                                   </Button>
                                 </div>
                               </div>
@@ -510,20 +563,19 @@ export default function ContentEditorPage() {
               </CardContent>
             </Card>
 
-            {/* Add New Content */}
-            <Card>
+            <Card className="min-w-0 overflow-hidden">
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Plus className="h-5 w-5 mr-2" />
-                  Add New Content Section
+                <CardTitle className="flex items-center min-w-0">
+                  <Plus className="h-5 w-5 mr-2 shrink-0" />
+                  <span className="break-words">Add New Content Section</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-4 min-w-0">
                   <div>
                     <Label>Section Key *</Label>
                     <Input
-                      placeholder="e.g., hero_title, cta_button_text"
+                      placeholder="e.g., hero_title, nav_browse_label"
                       value={newItem.section_key}
                       onChange={(e) =>
                         setNewItem({ ...newItem, section_key: e.target.value })
@@ -579,7 +631,7 @@ export default function ContentEditorPage() {
                     disabled={createMutation.isPending}
                     className="w-full"
                   >
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus className="h-4 w-4 mr-2 shrink-0" />
                     Create Content Section
                   </Button>
                 </div>

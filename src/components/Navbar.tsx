@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import MobileNav from "./MobileNav";
 import NotificationBell from "./NotificationBell";
 import { useEffect, useCallback } from "react";
-import { browseNavLinks } from "@/lib/browseNav";
+import { useNavContent } from "@/hooks/useNavContent";
 
 const careerBoostLinks = [
   {
@@ -54,6 +54,7 @@ const Navbar = () => {
 
   const siteName = "CareerSasa";
   const logoUrl = "/logo.png";
+  const { browseLabel, links: browseLinks } = useNavContent();
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -103,11 +104,11 @@ const Navbar = () => {
             <NavigationMenuList>
               <NavigationMenuItem>
                 <NavigationMenuTrigger className="bg-transparent hover:bg-accent/50 data-[state=open]:bg-accent/50 font-medium h-9 px-3">
-                  Browse
+                  {browseLabel}
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
-                  <ul className="grid w-[340px] gap-2 p-3">
-                    {browseNavLinks.map((link) => (
+                  <ul className="grid w-[min(340px,calc(100vw-2rem))] gap-2 p-3">
+                    {browseLinks.map((link) => (
                       <li key={link.href}>
                         <NavigationMenuLink asChild>
                           <Link
