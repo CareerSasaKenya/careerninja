@@ -1,7 +1,7 @@
 /**
  * Run: npx tsx src/lib/cmsPages.test.ts
  */
-import { CMS_PAGES, getMissingDefaultSections, SEO_CMS_PAGES } from "./cmsPages";
+import { CMS_PAGES, getMissingDefaultSections, getPageSeoRow, SEO_CMS_PAGES } from "./cmsPages";
 import { getContentValue } from "./pageContent";
 
 function assert(condition: unknown, message: string) {
@@ -107,6 +107,19 @@ assert(
     (section) => section.section_key === "hero_title"
   ),
   "companies defaults include hero_title"
+);
+
+assert(
+  getPageSeoRow([
+    { section_key: "story_p1" },
+    { section_key: "hero_title" },
+  ])?.section_key === "hero_title",
+  "SEO row prefers hero_title"
+);
+assert(
+  getPageSeoRow([{ section_key: "nav_browse_label" }])?.section_key ===
+    "nav_browse_label",
+  "SEO row falls back to the first section"
 );
 
 console.log("cmsPages tests passed");
