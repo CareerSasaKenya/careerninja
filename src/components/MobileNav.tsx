@@ -18,7 +18,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { browseNavLinks } from "@/lib/browseNav";
+import { useNavContent } from "@/hooks/useNavContent";
 
 const careerBoostLinks = [
   {
@@ -52,6 +52,7 @@ const MobileNav = () => {
 
   const siteName = "CareerSasa";
   const logoUrl = "/logo.png";
+  const { browseLabel, links: browseLinks } = useNavContent();
 
   // Listen for close event from Navbar
   useEffect(() => {
@@ -133,7 +134,7 @@ const MobileNav = () => {
                 onClick={() => setBrowseOpen(!browseOpen)}
                 className="flex items-center justify-between w-full px-4 py-2 text-base font-medium rounded-md hover:bg-accent/50 transition-colors"
               >
-                Browse
+                {browseLabel}
                 <ChevronDown
                   className={`h-4 w-4 transition-transform duration-200 ${
                     browseOpen ? "rotate-180" : ""
@@ -142,7 +143,7 @@ const MobileNav = () => {
               </button>
               {browseOpen && (
                 <div className="ml-3 pl-3 border-l-2 border-border/50 flex flex-col gap-0.5 mt-1">
-                  {browseNavLinks.map((link) => (
+                  {browseLinks.map((link) => (
                     <Link
                       key={link.href}
                       href={link.href}

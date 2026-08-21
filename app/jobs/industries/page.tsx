@@ -3,6 +3,8 @@ import { BrowseHubChrome } from "@/components/BrowseHubChrome";
 import { ExploreJobsByIndustry } from "@/components/ExploreJobsByIndustry";
 import { getActiveJobsByIndustry } from "@/lib/jobsByIndustry";
 import { SITE_URL } from "@/lib/browseNav";
+import { fetchPageContentMap } from "@/lib/fetchPageContent";
+import { getContentValue } from "@/lib/pageContent";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -27,13 +29,20 @@ export const metadata: Metadata = {
 };
 
 export default async function JobsByIndustryPage() {
-  const industries = await getActiveJobsByIndustry();
+  const [industries, content] = await Promise.all([
+    getActiveJobsByIndustry(),
+    fetchPageContentMap("jobs-industries"),
+  ]);
 
   return (
     <BrowseHubChrome
-      eyebrow="Browse jobs"
-      title="Jobs by Industry"
-      description="Pick a sector to see live roles. Industry names are shown in full so you can compare hiring at a glance."
+      eyebrow={getContentValue(content, "eyebrow", "Browse jobs")}
+      title={getContentValue(content, "hero_title", "Jobs by Industry")}
+      description={getContentValue(
+        content,
+        "hero_subtitle",
+        "Pick a sector to see live roles. Industry names are shown in full so you can compare hiring at a glance."
+      )}
     >
       <ExploreJobsByIndustry industries={industries} variant="full" />
     </BrowseHubChrome>

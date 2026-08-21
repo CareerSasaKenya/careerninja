@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { testSupabaseConnection } from "@/lib/testSupabase";
 import { SaveSearchButton } from "@/components/SaveSearchButton";
 import { KENYA_COUNTIES, countySearchValues } from "@/lib/counties";
+import { usePageContent, getContentValue } from "@/hooks/usePageContent";
 
 interface SearchFilters {
   searchTerm: string;
@@ -157,6 +158,17 @@ const Jobs = () => {
   
   const [currentPage, setCurrentPage] = useState(1);
   const [totalJobs, setTotalJobs] = useState(0);
+  const { data: jobsContent } = usePageContent("jobs");
+  const heroTitle = getContentValue(
+    jobsContent,
+    "hero_title",
+    "Find Your Next Job in Kenya"
+  );
+  const heroSubtitle = getContentValue(
+    jobsContent,
+    "hero_subtitle",
+    "Verified jobs from real employers, updated daily. Apply now. Early applicants get 4x more interview callbacks."
+  );
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["jobs", filters, currentPage],
@@ -522,10 +534,10 @@ const Jobs = () => {
         <div className="container relative z-10 mx-auto py-12 md:py-16 px-4">
           <div className="max-w-4xl animate-fade-in md:mx-auto md:text-center">
             <h1 className="text-4xl sm:text-5xl md:text-[3.25rem] font-bold mb-4 text-[#0A66C2] leading-[1.1] drop-shadow-[0_1px_10px_rgba(255,255,255,0.75)]">
-              Find Your Next Job in Kenya
+              {heroTitle}
             </h1>
             <p className="text-base md:text-lg text-white mb-5 max-w-xl leading-relaxed md:mx-auto drop-shadow-[0_1px_8px_rgba(0,0,0,0.5)]">
-              Verified jobs from real employers, updated daily. Apply now. Early applicants get 4x more interview callbacks.
+              {heroSubtitle}
             </p>
             <div className="mb-5 flex justify-center">
               <SaveSearchButton
