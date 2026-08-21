@@ -21,7 +21,7 @@ export type DefaultSection = {
 };
 
 /**
- * Pages the admin Content Editor (and SEO Manager) can manage.
+ * Pages the admin Content & SEO editor can manage.
  * Keep this in sync with public site chrome and jobs browse hubs.
  */
 export const CMS_PAGES: CmsPage[] = [
@@ -499,6 +499,12 @@ export function getMissingDefaultSections(
   const defaults = DEFAULT_PAGE_CONTENT[pageSlug] ?? [];
   const existing = new Set(existingKeys);
   return defaults.filter((section) => !existing.has(section.section_key));
+}
+
+export function getPageSeoRow<T extends { section_key: string }>(
+  rows: T[]
+): T | undefined {
+  return rows.find((row) => row.section_key === "hero_title") ?? rows[0];
 }
 
 export function toPageContentInserts(pageSlug: string, sections: DefaultSection[]) {

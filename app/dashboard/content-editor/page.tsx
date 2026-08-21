@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,17 @@ import { toast } from "sonner";
 import { Save, Plus, Trash2, RefreshCw } from "lucide-react";
 import { RequireAdmin } from "@/components/RequireAdmin";
 import { CmsPagePicker } from "@/components/admin/CmsPagePicker";
-import { CMS_PAGES, getMissingDefaultSections, toPageContentInserts } from "@/lib/cmsPages";
+import {
+  emptyPageSeoForm,
+  PageSeoPanel,
+  type PageSeoForm,
+} from "@/components/admin/PageSeoPanel";
+import {
+  CMS_PAGES,
+  getMissingDefaultSections,
+  getPageSeoRow,
+  toPageContentInserts,
+} from "@/lib/cmsPages";
 
 interface PageContent {
   id: string;
@@ -39,9 +50,18 @@ const CONTENT_TYPES = [
   { value: "number", label: "Number" },
 ];
 
-export default function ContentEditorPage() {
-  const [selectedPage, setSelectedPage] = useState("home");
+function ContentEditorInner() {
+  const searchParams = useSearchParams();
+  const pageFromUrl = searchParams.get("page");
+  const focusSeo = searchParams.get("focus") === "seo";
+  const initialPage =
+    CMS_PAGES.some((page) => page.slug === pageFromUrl) && pageFromUrl
+      ? pageFromUrl
+      : "home";
+
+  const [selectedPage, setSelectedPage] = useState(initialPage);
   const [editingItem, setEditingItem] = useState<PageContent | null>(null);
+  const [seoForm, setSeoForm] = useState<PageSeoForm>(emptyPageSeoForm());
   const [newItem, setNewItem] = useState({
     section_key: "",
     content_type: "text",
@@ -51,6 +71,8 @@ export default function ContentEditorPage() {
 
   const queryClient = useQueryClient();
   const seededPages = useRef(new Set<string>());
+  const scrolledToSeo = useRef(false);
+  const currentPage = CMS_PAGES.find((page) => page.slug === selectedPage);
 
   const { data: pageContent = [], isLoading } = useQuery({
     queryKey: ["page-content-admin", selectedPage],
@@ -70,6 +92,7 @@ export default function ContentEditorPage() {
     selectedPage,
     pageContent.map((item) => item.section_key)
   );
+  const seoRow = useMemo(() => getPageSeoRow(pageContent), [pageContent]);
 
   const updateMutation = useMutation({
     mutationFn: async (item: PageContent) => {
@@ -79,13 +102,6 @@ export default function ContentEditorPage() {
           content_value: item.content_value,
           content_type: item.content_type,
           metadata: item.metadata,
-          seo_title: item.seo_title,
-          seo_meta_description: item.seo_meta_description,
-          seo_url_slug: item.seo_url_slug,
-          seo_canonical_url: item.seo_canonical_url,
-          seo_index: item.seo_index,
-          seo_h1_title: item.seo_h1_title,
-          seo_follow: item.seo_follow,
         })
         .eq("id", item.id);
 
@@ -154,7 +170,6 @@ export default function ContentEditorPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["page-content-admin", selectedPage] });
       queryClient.invalidateQueries({ queryKey: ["page-content"] });
-      queryClient.invalidateQueries({ queryKey: ["page-seo"] });
       toast.success("Website sections added");
     },
     onError: (error) => {
@@ -168,9 +183,30 @@ export default function ContentEditorPage() {
     if (seededPages.current.has(selectedPage)) return;
     seededPages.current.add(selectedPage);
     seedMissingMutation.mutate();
-    // Auto-seed once per page so About / Contact / Companies are never empty.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPage, isLoading, missingDefaults.length]);
+
+  useEffect(() => {
+    if (!currentPage) return;
+    setSeoForm({
+      seo_title: seoRow?.seo_title || currentPage.label,
+      seo_meta_description: seoRow?.seo_meta_description || "",
+      seo_url_slug: seoRow?.seo_url_slug || currentPage.defaultUrl || "",
+      seo_canonical_url: seoRow?.seo_canonical_url || currentPage.defaultCanonical || "",
+      seo_h1_title: seoRow?.seo_h1_title || "",
+      seo_index: seoRow?.seo_index ?? true,
+      seo_follow: seoRow?.seo_follow ?? true,
+    });
+  }, [currentPage, seoRow]);
+
+  useEffect(() => {
+    if (!focusSeo || scrolledToSeo.current || !currentPage?.hasSeo) return;
+    if (isLoading) return;
+    const node = document.getElementById("page-seo");
+    if (!node) return;
+    scrolledToSeo.current = true;
+    node.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [focusSeo, isLoading, currentPage, pageContent.length]);
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -187,6 +223,36 @@ export default function ContentEditorPage() {
     },
   });
 
+  const seoMutation = useMutation({
+    mutationFn: async () => {
+      if (!seoRow?.id) {
+        throw new Error("Load website copy for this page before saving SEO");
+      }
+      const { error } = await supabase
+        .from("page_content")
+        .update({
+          seo_title: seoForm.seo_title,
+          seo_meta_description: seoForm.seo_meta_description,
+          seo_url_slug: seoForm.seo_url_slug,
+          seo_canonical_url: seoForm.seo_canonical_url,
+          seo_index: seoForm.seo_index,
+          seo_h1_title: seoForm.seo_h1_title,
+          seo_follow: seoForm.seo_follow,
+        })
+        .eq("id", seoRow.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["page-content-admin", selectedPage] });
+      queryClient.invalidateQueries({ queryKey: ["page-content"] });
+      toast.success("Search listing saved");
+    },
+    onError: (error) => {
+      toast.error(`Failed to save SEO: ${error.message}`);
+    },
+  });
+
   const handleSave = (item: PageContent) => {
     updateMutation.mutate(item);
   };
@@ -199,9 +265,13 @@ export default function ContentEditorPage() {
     createMutation.mutate();
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = (item: PageContent) => {
+    if (currentPage?.hasSeo && item.section_key === "hero_title") {
+      toast.error("hero_title also stores this page’s search listing. Edit it instead of deleting.");
+      return;
+    }
     if (confirm("Are you sure you want to delete this content?")) {
-      deleteMutation.mutate(id);
+      deleteMutation.mutate(item.id);
     }
   };
 
@@ -211,14 +281,13 @@ export default function ContentEditorPage() {
   };
 
   return (
-    <RequireAdmin>
     <div className="container mx-auto w-full max-w-7xl overflow-x-hidden px-4 py-6 sm:py-8">
       <div className="mb-6 sm:mb-8 min-w-0">
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 break-words">
-          Content Editor
+          Content & SEO
         </h1>
         <p className="text-sm sm:text-base text-muted-foreground">
-          Edit front-facing page content without touching code — including the Browse Jobs menu.
+          Edit page copy and the Google search listing for the same page, without touching code.
         </p>
       </div>
 
@@ -234,7 +303,7 @@ export default function ContentEditorPage() {
             <Card className="min-w-0 overflow-hidden">
               <CardHeader className="space-y-3 sm:space-y-0">
                 <CardTitle className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <span className="break-words">Existing Content Sections</span>
+                  <span className="break-words">Page copy</span>
                   <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                     {missingDefaults.length > 0 && (
                       <Button
@@ -337,135 +406,6 @@ export default function ContentEditorPage() {
                                 />
                               </div>
 
-                              <div className="border-t pt-4 mt-4 min-w-0">
-                                <h3 className="font-semibold text-base sm:text-lg mb-4">SEO Settings</h3>
-                                <div className="space-y-4">
-                                  <div>
-                                    <Label>SEO Title</Label>
-                                    <Input
-                                      value={editingItem.seo_title || ""}
-                                      onChange={(e) =>
-                                        setEditingItem({
-                                          ...editingItem,
-                                          seo_title: e.target.value,
-                                        })
-                                      }
-                                      placeholder="Controls the clickable headline in Google search results"
-                                    />
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                      Recommended: 50-60 characters
-                                    </p>
-                                  </div>
-
-                                  <div>
-                                    <Label>Meta Description</Label>
-                                    <Textarea
-                                      value={editingItem.seo_meta_description || ""}
-                                      onChange={(e) =>
-                                        setEditingItem({
-                                          ...editingItem,
-                                          seo_meta_description: e.target.value,
-                                        })
-                                      }
-                                      placeholder="Short summary shown under the title in search results"
-                                      rows={3}
-                                    />
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                      Recommended: 150-160 characters
-                                    </p>
-                                  </div>
-
-                                  <div>
-                                    <Label>URL Slug</Label>
-                                    <Input
-                                      value={editingItem.seo_url_slug || ""}
-                                      onChange={(e) =>
-                                        setEditingItem({
-                                          ...editingItem,
-                                          seo_url_slug: e.target.value,
-                                        })
-                                      }
-                                      placeholder="/page-url-slug"
-                                    />
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                      Defines the clean, readable page URL
-                                    </p>
-                                  </div>
-
-                                  <div>
-                                    <Label>Canonical URL</Label>
-                                    <Input
-                                      value={editingItem.seo_canonical_url || ""}
-                                      onChange={(e) =>
-                                        setEditingItem({
-                                          ...editingItem,
-                                          seo_canonical_url: e.target.value,
-                                        })
-                                      }
-                                      placeholder="https://www.careersasa.co.ke/page-url"
-                                    />
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                      Tells search engines which version is the main one
-                                    </p>
-                                  </div>
-
-                                  <div>
-                                    <Label>H1 Title</Label>
-                                    <Input
-                                      value={editingItem.seo_h1_title || ""}
-                                      onChange={(e) =>
-                                        setEditingItem({
-                                          ...editingItem,
-                                          seo_h1_title: e.target.value,
-                                        })
-                                      }
-                                      placeholder="Main heading for search engines"
-                                    />
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                      The single, clear main heading for the page
-                                    </p>
-                                  </div>
-
-                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div className="flex items-start space-x-2 min-w-0">
-                                      <input
-                                        type="checkbox"
-                                        id={`index-${editingItem.id}`}
-                                        checked={editingItem.seo_index ?? true}
-                                        onChange={(e) =>
-                                          setEditingItem({
-                                            ...editingItem,
-                                            seo_index: e.target.checked,
-                                          })
-                                        }
-                                        className="h-4 w-4 mt-0.5 shrink-0"
-                                      />
-                                      <Label htmlFor={`index-${editingItem.id}`} className="leading-snug">
-                                        Index (Allow in search results)
-                                      </Label>
-                                    </div>
-
-                                    <div className="flex items-start space-x-2 min-w-0">
-                                      <input
-                                        type="checkbox"
-                                        id={`follow-${editingItem.id}`}
-                                        checked={editingItem.seo_follow ?? true}
-                                        onChange={(e) =>
-                                          setEditingItem({
-                                            ...editingItem,
-                                            seo_follow: e.target.checked,
-                                          })
-                                        }
-                                        className="h-4 w-4 mt-0.5 shrink-0"
-                                      />
-                                      <Label htmlFor={`follow-${editingItem.id}`} className="leading-snug">
-                                        Follow (Follow links on page)
-                                      </Label>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-
                               <div className="flex flex-col-reverse sm:flex-row gap-2">
                                 <Button
                                   onClick={() => handleSave(editingItem)}
@@ -506,37 +446,6 @@ export default function ContentEditorPage() {
                                       Metadata: {JSON.stringify(item.metadata)}
                                     </div>
                                   )}
-                                  {(item.seo_title || item.seo_meta_description || item.seo_url_slug) && (
-                                    <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950 rounded border border-blue-200 dark:border-blue-800 min-w-0">
-                                      <div className="text-xs font-semibold text-blue-900 dark:text-blue-100 mb-2">
-                                        SEO Settings
-                                      </div>
-                                      {item.seo_title && (
-                                        <div className="text-xs text-blue-800 dark:text-blue-200 mb-1 break-words">
-                                          <span className="font-medium">Title:</span> {item.seo_title}
-                                        </div>
-                                      )}
-                                      {item.seo_meta_description && (
-                                        <div className="text-xs text-blue-800 dark:text-blue-200 mb-1 break-words">
-                                          <span className="font-medium">Description:</span> {item.seo_meta_description}
-                                        </div>
-                                      )}
-                                      {item.seo_url_slug && (
-                                        <div className="text-xs text-blue-800 dark:text-blue-200 mb-1 break-all">
-                                          <span className="font-medium">URL:</span> {item.seo_url_slug}
-                                        </div>
-                                      )}
-                                      {item.seo_h1_title && (
-                                        <div className="text-xs text-blue-800 dark:text-blue-200 mb-1 break-words">
-                                          <span className="font-medium">H1:</span> {item.seo_h1_title}
-                                        </div>
-                                      )}
-                                      <div className="text-xs text-blue-800 dark:text-blue-200 flex flex-wrap gap-3 mt-1">
-                                        <span>Index: {item.seo_index !== false ? "✓" : "✗"}</span>
-                                        <span>Follow: {item.seo_follow !== false ? "✓" : "✗"}</span>
-                                      </div>
-                                    </div>
-                                  )}
                                 </div>
                                 <div className="flex gap-2 w-full sm:w-auto sm:ml-4 shrink-0">
                                   <Button
@@ -551,7 +460,7 @@ export default function ContentEditorPage() {
                                     variant="destructive"
                                     size="sm"
                                     className="flex-1 sm:flex-none"
-                                    onClick={() => handleDelete(item.id)}
+                                    onClick={() => handleDelete(item)}
                                     disabled={deleteMutation.isPending}
                                   >
                                     <Trash2 className="h-4 w-4" />
@@ -568,6 +477,17 @@ export default function ContentEditorPage() {
                 )}
               </CardContent>
             </Card>
+
+            {page.hasSeo && (
+              <PageSeoPanel
+                page={page}
+                form={seoForm}
+                onChange={setSeoForm}
+                onSave={() => seoMutation.mutate()}
+                saving={seoMutation.isPending}
+                disabled={!seoRow}
+              />
+            )}
 
             <Card className="min-w-0 overflow-hidden">
               <CardHeader>
@@ -647,6 +567,21 @@ export default function ContentEditorPage() {
         ))}
       </Tabs>
     </div>
+  );
+}
+
+export default function ContentEditorPage() {
+  return (
+    <RequireAdmin>
+      <Suspense
+        fallback={
+          <div className="container mx-auto px-4 py-8 text-muted-foreground">
+            Loading editor...
+          </div>
+        }
+      >
+        <ContentEditorInner />
+      </Suspense>
     </RequireAdmin>
   );
 }

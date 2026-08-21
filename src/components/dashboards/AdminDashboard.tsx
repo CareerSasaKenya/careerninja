@@ -342,13 +342,7 @@ const AdminDashboard = () => {
           <Link href="/dashboard/content-editor">
             <Button variant="default" className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700">
               <FileEdit className="mr-2 h-4 w-4" />
-              Content Editor
-            </Button>
-          </Link>
-          <Link href="/dashboard/seo-editor">
-            <Button variant="default" className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700">
-              <Search className="mr-2 h-4 w-4" />
-              SEO Manager
+              Content & SEO
             </Button>
           </Link>
           <Link href="/blog/create">
