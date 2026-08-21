@@ -25,6 +25,22 @@ assert(
   "content editor includes jobs by county"
 );
 assert(
+  CMS_PAGES.some((page) => page.slug === "companies"),
+  "content editor includes Companies"
+);
+assert(
+  CMS_PAGES.find((page) => page.slug === "about")?.label === "About Us",
+  "about page is labeled About Us"
+);
+assert(
+  CMS_PAGES.find((page) => page.slug === "contact")?.label === "Contact Us",
+  "contact page is labeled Contact Us"
+);
+assert(
+  SEO_CMS_PAGES.some((page) => page.slug === "companies"),
+  "SEO editor includes Companies"
+);
+assert(
   !SEO_CMS_PAGES.some((page) => page.slug === "navigation"),
   "navigation is not a public SEO page"
 );
@@ -72,6 +88,25 @@ assert(
 assert(
   getContentValue(null, "nav_browse_label", "Browse Jobs") === "Browse Jobs",
   "fallback is used when content is missing"
+);
+
+const aboutMissing = getMissingDefaultSections("about", []);
+assert(aboutMissing.length > 0, "about has default website sections");
+assert(
+  aboutMissing.some((section) => section.section_key === "hero_title"),
+  "about defaults include hero_title"
+);
+assert(
+  getMissingDefaultSections("contact", []).some(
+    (section) => section.section_key === "hero_title"
+  ),
+  "contact defaults include hero_title"
+);
+assert(
+  getMissingDefaultSections("companies", []).some(
+    (section) => section.section_key === "hero_title"
+  ),
+  "companies defaults include hero_title"
 );
 
 console.log("cmsPages tests passed");

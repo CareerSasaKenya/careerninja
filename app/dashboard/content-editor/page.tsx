@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { Save, Plus, Trash2, RefreshCw } from "lucide-react";
 import { RequireAdmin } from "@/components/RequireAdmin";
 import { CmsPagePicker } from "@/components/admin/CmsPagePicker";
-import { CMS_PAGES, getMissingDefaultSections } from "@/lib/cmsPages";
+import { CMS_PAGES, getMissingDefaultSections, toPageContentInserts } from "@/lib/cmsPages";
 
 interface PageContent {
   id: string;
@@ -50,6 +50,7 @@ export default function ContentEditorPage() {
   });
 
   const queryClient = useQueryClient();
+  const seededPages = useRef(new Set<string>());
 
   const { data: pageContent = [], isLoading } = useQuery({
     queryKey: ["page-content-admin", selectedPage],
@@ -144,27 +145,32 @@ export default function ContentEditorPage() {
       );
       if (missing.length === 0) return;
 
-      const { error } = await supabase.from("page_content").insert(
-        missing.map((section) => ({
-          page_slug: selectedPage,
-          section_key: section.section_key,
-          content_type: section.content_type,
-          content_value: section.content_value,
-          metadata: section.metadata ?? {},
-        }))
-      );
+      const { error } = await supabase
+        .from("page_content")
+        .insert(toPageContentInserts(selectedPage, missing));
 
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["page-content-admin", selectedPage] });
       queryClient.invalidateQueries({ queryKey: ["page-content"] });
+      queryClient.invalidateQueries({ queryKey: ["page-seo"] });
       toast.success("Website sections added");
     },
     onError: (error) => {
       toast.error(`Failed to add sections: ${error.message}`);
     },
   });
+
+  useEffect(() => {
+    if (isLoading || seedMissingMutation.isPending) return;
+    if (missingDefaults.length === 0) return;
+    if (seededPages.current.has(selectedPage)) return;
+    seededPages.current.add(selectedPage);
+    seedMissingMutation.mutate();
+    // Auto-seed once per page so About / Contact / Companies are never empty.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPage, isLoading, missingDefaults.length]);
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -256,13 +262,13 @@ export default function ContentEditorPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="min-w-0">
-                {isLoading ? (
-                  <p className="text-muted-foreground">Loading...</p>
+                {isLoading || (missingDefaults.length > 0 && seedMissingMutation.isPending) ? (
+                  <p className="text-muted-foreground">Loading website copy...</p>
                 ) : pageContent.length === 0 ? (
                   <p className="text-muted-foreground">
                     No content found for this page
                     {missingDefaults.length > 0
-                      ? ". Add the current website sections to start editing."
+                      ? ". Click “Add website sections” to load the current copy."
                       : "."}
                   </p>
                 ) : (

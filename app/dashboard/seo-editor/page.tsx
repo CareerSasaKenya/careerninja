@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,11 @@ import { Save, Search, Globe, FileText, CheckCircle2, XCircle } from "lucide-rea
 import { Switch } from "@/components/ui/switch";
 import { RequireAdmin } from "@/components/RequireAdmin";
 import { CmsPagePicker } from "@/components/admin/CmsPagePicker";
-import { SEO_CMS_PAGES } from "@/lib/cmsPages";
+import {
+  SEO_CMS_PAGES,
+  getMissingDefaultSections,
+  toPageContentInserts,
+} from "@/lib/cmsPages";
 
 interface PageSEO {
   id: string;
@@ -34,41 +38,83 @@ const PAGES = SEO_CMS_PAGES;
 export default function SEOEditorPage() {
   const [selectedPage, setSelectedPage] = useState("home");
   const queryClient = useQueryClient();
+  const seededPages = useRef(new Set<string>());
 
   const currentPage = PAGES.find(p => p.slug === selectedPage);
 
-  // Fetch SEO data for selected page
   const { data: pageSEO, isLoading } = useQuery({
     queryKey: ["page-seo", selectedPage],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("page_content")
         .select("*")
-        .eq("page_slug", selectedPage)
-        .limit(1)
-        .maybeSingle();
+        .eq("page_slug", selectedPage);
 
       if (error) throw error;
-      return data as PageSEO | null;
+      if (!data?.length) return null;
+      return (
+        (data.find((row) => row.section_key === "hero_title") as PageSEO | undefined) ||
+        (data[0] as PageSEO)
+      );
     },
   });
 
   const [formData, setFormData] = useState<Partial<PageSEO>>({});
 
-  // Update form when data loads
-  useState(() => {
-    if (pageSEO) {
-      setFormData({
-        seo_title: pageSEO.seo_title || "",
-        seo_meta_description: pageSEO.seo_meta_description || "",
-        seo_url_slug: pageSEO.seo_url_slug || currentPage?.defaultUrl || "",
-        seo_canonical_url: pageSEO.seo_canonical_url || currentPage?.defaultCanonical || "",
-        seo_index: pageSEO.seo_index ?? true,
-        seo_h1_title: pageSEO.seo_h1_title || "",
-        seo_follow: pageSEO.seo_follow ?? true,
-      });
-    }
+  const seedMissingMutation = useMutation({
+    mutationFn: async () => {
+      const missing = getMissingDefaultSections(selectedPage, []);
+      const fallback = missing.length
+        ? missing
+        : [
+            {
+              section_key: "hero_title",
+              content_type: "text" as const,
+              content_value: currentPage?.label || selectedPage,
+              seo_title: currentPage?.label,
+              seo_url_slug: currentPage?.defaultUrl,
+              seo_canonical_url: currentPage?.defaultCanonical,
+              seo_h1_title: currentPage?.label,
+            },
+          ];
+
+      const { error } = await supabase
+        .from("page_content")
+        .insert(toPageContentInserts(selectedPage, fallback));
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["page-seo", selectedPage] });
+      queryClient.invalidateQueries({ queryKey: ["page-content-admin", selectedPage] });
+      queryClient.invalidateQueries({ queryKey: ["page-content"] });
+    },
+    onError: (error) => {
+      toast.error(`Failed to load page SEO: ${error.message}`);
+    },
   });
+
+  useEffect(() => {
+    if (isLoading || seedMissingMutation.isPending) return;
+    if (pageSEO) return;
+    if (seededPages.current.has(selectedPage)) return;
+    seededPages.current.add(selectedPage);
+    seedMissingMutation.mutate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPage, isLoading, pageSEO]);
+
+  useEffect(() => {
+    if (!pageSEO) return;
+    setFormData({
+      seo_title: pageSEO.seo_title || currentPage?.label || "",
+      seo_meta_description: pageSEO.seo_meta_description || "",
+      seo_url_slug: pageSEO.seo_url_slug || currentPage?.defaultUrl || "",
+      seo_canonical_url: pageSEO.seo_canonical_url || currentPage?.defaultCanonical || "",
+      seo_index: pageSEO.seo_index ?? true,
+      seo_h1_title: pageSEO.seo_h1_title || "",
+      seo_follow: pageSEO.seo_follow ?? true,
+    });
+  }, [pageSEO, currentPage]);
 
   // Update mutation
   const updateMutation = useMutation({
@@ -130,7 +176,7 @@ export default function SEOEditorPage() {
 
         {PAGES.map((page) => (
           <TabsContent key={page.slug} value={page.slug}>
-            {isLoading ? (
+            {isLoading || seedMissingMutation.isPending ? (
               <Card>
                 <CardContent className="py-8">
                   <p className="text-center text-muted-foreground">Loading SEO settings...</p>
@@ -138,10 +184,19 @@ export default function SEOEditorPage() {
               </Card>
             ) : !pageSEO ? (
               <Card>
-                <CardContent className="py-8">
-                  <p className="text-center text-muted-foreground">
-                    No content found for this page. Please add content in the Content Editor first.
+                <CardContent className="py-8 space-y-4 text-center">
+                  <p className="text-muted-foreground">
+                    No SEO row yet for this page. Load the current website copy to start editing.
                   </p>
+                  <Button
+                    onClick={() => {
+                      seededPages.current.delete(selectedPage);
+                      seedMissingMutation.mutate();
+                    }}
+                    disabled={seedMissingMutation.isPending}
+                  >
+                    Load website copy
+                  </Button>
                 </CardContent>
               </Card>
             ) : (
