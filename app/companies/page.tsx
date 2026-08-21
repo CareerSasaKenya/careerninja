@@ -3,6 +3,8 @@ import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { IndustryCardsGrid } from "@/components/IndustryCard";
 import { getCompanyDirectoryData } from "@/lib/companyDirectory";
+import { fetchPageContentMap, fetchPageSeo } from "@/lib/fetchPageContent";
+import { getContentValue } from "@/lib/pageContent";
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ||
@@ -12,25 +14,39 @@ const SITE_URL =
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export const metadata: Metadata = {
-  title: "Companies by Industry | CareerSasa",
-  description:
-    "Browse Kenyan employers by industry on CareerSasa. Pick a sector to see company profiles and open jobs.",
-  alternates: {
-    canonical: `${SITE_URL.replace(/\/$/, "")}/companies`,
-  },
-  openGraph: {
-    title: "Companies by Industry | CareerSasa",
-    description:
-      "Browse Kenyan employers by industry on CareerSasa. Pick a sector to see company profiles and open jobs.",
-    url: `${SITE_URL.replace(/\/$/, "")}/companies`,
-    type: "website",
-    siteName: "CareerSasa",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await fetchPageSeo("companies");
+  const title = seo?.seo_title || "Companies by Industry | CareerSasa";
+  const description =
+    seo?.seo_meta_description ||
+    "Browse Kenyan employers by industry on CareerSasa. Pick a sector to see company profiles and open jobs.";
+  const url = (seo?.seo_canonical_url || `${SITE_URL.replace(/\/$/, "")}/companies`);
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: url,
+    },
+    openGraph: {
+      title,
+      description,
+      url,
+      type: "website",
+      siteName: "CareerSasa",
+    },
+    robots: {
+      index: seo?.seo_index !== false,
+      follow: seo?.seo_follow !== false,
+    },
+  };
+}
 
 export default async function CompaniesPage() {
-  const { companies, industryCards } = await getCompanyDirectoryData();
+  const [{ companies, industryCards }, content] = await Promise.all([
+    getCompanyDirectoryData(),
+    fetchPageContentMap("companies"),
+  ]);
   const totalOpenJobs = companies.reduce((sum, c) => sum + c.openJobs, 0);
 
   return (
@@ -42,14 +58,17 @@ export default async function CompaniesPage() {
         <div className="absolute inset-0 bg-gradient-subtle" aria-hidden />
         <div className="container relative mx-auto px-4 py-8 md:py-10">
           <p className="text-sm font-medium text-primary mb-2 tracking-wide">
-            Employers on CareerSasa
+            {getContentValue(content, "eyebrow", "Employers on CareerSasa")}
           </p>
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3">
-            Companies
+            {getContentValue(content, "hero_title", "Companies")}
           </h1>
           <p className="text-muted-foreground text-base md:text-lg max-w-2xl leading-relaxed">
-            Choose an industry to explore employers hiring in Kenya — or browse all
-            companies at once.
+            {getContentValue(
+              content,
+              "hero_subtitle",
+              "Choose an industry to explore employers hiring in Kenya — or browse all companies at once."
+            )}
           </p>
         </div>
       </section>
