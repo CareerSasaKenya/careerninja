@@ -23,6 +23,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
+import { FailedScrapeJobsDialog } from "@/components/admin/FailedScrapeJobsDialog";
 import {
   ADAPTER_LABELS,
   CATEGORY_LABELS,
@@ -73,6 +74,10 @@ export default function AdminScraperSourcesPage() {
   const [enrichingAll, setEnrichingAll] = useState(false);
   const [enrichingId, setEnrichingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | ScraperSourceCategory>("all");
+  const [failedDialog, setFailedDialog] = useState<{
+    sourceId?: string;
+    sourceName?: string;
+  } | null>(null);
   const busy =
     loading ||
     discoveringAll ||
@@ -81,9 +86,9 @@ export default function AdminScraperSourcesPage() {
     enrichingAll ||
     !!enrichingId;
 
-  const fetchSources = useCallback(async () => {
+  const fetchSources = useCallback(async (options?: { silent?: boolean }) => {
     try {
-      setLoading(true);
+      if (!options?.silent) setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         toast.error("You must be logged in as admin");
@@ -102,7 +107,7 @@ export default function AdminScraperSourcesPage() {
       const message = error instanceof Error ? error.message : "Failed to load sources";
       toast.error(message);
     } finally {
-      setLoading(false);
+      if (!options?.silent) setLoading(false);
     }
   }, []);
 
@@ -479,7 +484,7 @@ export default function AdminScraperSourcesPage() {
             )}
             Enrich any sparse
           </Button>
-          <Button variant="outline" onClick={fetchSources} disabled={busy}>
+          <Button variant="outline" onClick={() => fetchSources()} disabled={busy}>
             {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
             Refresh
           </Button>
@@ -491,7 +496,17 @@ export default function AdminScraperSourcesPage() {
         <StatCard label="Queue pending" value={data?.totals.pending ?? 0} />
         <StatCard label="Processing" value={data?.totals.processing ?? 0} />
         <StatCard label="Published (done)" value={data?.totals.done ?? 0} />
-        <StatCard label="Failed" value={data?.totals.failed ?? 0} />
+        <StatCard
+          label="Failed"
+          value={data?.totals.failed ?? 0}
+          emphasize={data?.totals.failed ? "destructive" : undefined}
+          hint={(data?.totals.failed ?? 0) > 0 ? "Click to review, retry, or delete" : undefined}
+          onClick={
+            (data?.totals.failed ?? 0) > 0
+              ? () => setFailedDialog({})
+              : undefined
+          }
+        />
       </div>
 
       <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>
@@ -562,7 +577,18 @@ export default function AdminScraperSourcesPage() {
                                 <div><span className="text-muted-foreground">Pending:</span> {stats.pending}</div>
                                 <div><span className="text-muted-foreground">Done:</span> {stats.done}</div>
                                 {stats.failed > 0 && (
-                                  <div className="text-destructive">Failed: {stats.failed}</div>
+                                  <button
+                                    type="button"
+                                    className="text-destructive hover:underline"
+                                    onClick={() =>
+                                      setFailedDialog({
+                                        sourceId: source.source_id,
+                                        sourceName: source.name,
+                                      })
+                                    }
+                                  >
+                                    Failed: {stats.failed} — review
+                                  </button>
                                 )}
                               </div>
                             </TableCell>
@@ -634,6 +660,16 @@ export default function AdminScraperSourcesPage() {
         </TabsContent>
       </Tabs>
 
+      <FailedScrapeJobsDialog
+        open={failedDialog !== null}
+        onOpenChange={(open) => {
+          if (!open) setFailedDialog(null);
+        }}
+        sourceId={failedDialog?.sourceId}
+        sourceName={failedDialog?.sourceName}
+        onChanged={() => fetchSources({ silent: true })}
+      />
+
       <Card>
         <CardHeader>
           <CardTitle>Seeded Kenyan sources</CardTitle>
@@ -662,12 +698,51 @@ export default function AdminScraperSourcesPage() {
   );
 }
 
-function StatCard({ label, value }: { label: string; value: number }) {
+function StatCard({
+  label,
+  value,
+  onClick,
+  emphasize,
+  hint,
+}: {
+  label: string;
+  value: number;
+  onClick?: () => void;
+  emphasize?: "destructive";
+  hint?: string;
+}) {
+  const interactive = typeof onClick === "function";
   return (
-    <Card>
+    <Card
+      className={
+        interactive
+          ? "cursor-pointer transition-colors hover:border-destructive/40 hover:bg-destructive/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          : undefined
+      }
+      role={interactive ? "button" : undefined}
+      tabIndex={interactive ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={
+        interactive
+          ? (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onClick();
+              }
+            }
+          : undefined
+      }
+    >
       <CardContent className="pt-6">
-        <div className="text-2xl font-bold">{value}</div>
+        <div
+          className={`text-2xl font-bold ${
+            emphasize === "destructive" && value > 0 ? "text-destructive" : ""
+          }`}
+        >
+          {value}
+        </div>
         <div className="text-sm text-muted-foreground">{label}</div>
+        {hint ? <div className="text-xs text-muted-foreground mt-1">{hint}</div> : null}
       </CardContent>
     </Card>
   );

@@ -11,6 +11,7 @@
     "test:supabase-env": "npx tsx src/lib/supabaseEnv.test.ts && npx tsx scripts/check-supabase-clients.mts",
     "test:scrape-discover": "npx tsx src/lib/scrapeDiscover.test.ts",
     "test:scrape-queue-stats": "npx tsx src/lib/scrapeQueueStats.test.ts",
+    "test:scrape-queue-failed": "npx tsx src/lib/scrapeQueueFailed.test.ts",
     "test:scraper-deadline": "npx tsx src/lib/scraperDeadline.test.ts",
     "test:psc-adapter": "npx tsx src/lib/psc-adapter.test.ts",
     "test:slug": "npx tsx src/lib/testSlug.ts",
