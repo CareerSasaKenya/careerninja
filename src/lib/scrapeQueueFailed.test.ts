@@ -7,10 +7,17 @@ import {
   parseFailedQueueAction,
   parseFailedQueueListOptions,
   parseFailedQueueScope,
+  parseQueueManageStatus,
+  requeuePatchForStatus,
 } from './scrapeQueueFailed'
 
 assert.equal(isUuid('3b0d261c-86a2-4383-89f0-9162c1c10662'), true)
 assert.equal(isUuid('not-a-uuid'), false)
+
+assert.equal(parseQueueManageStatus('pending'), 'pending')
+assert.equal(parseQueueManageStatus('processing'), 'processing')
+assert.equal(parseQueueManageStatus('failed'), 'failed')
+assert.equal('error' in parseQueueManageStatus('done'), true)
 
 {
   const parsed = parseFailedQueueScope({
@@ -33,6 +40,7 @@ assert.equal('error' in parseFailedQueueScope({ source_id: 'no spaces allowed' }
 assert.equal('error' in parseFailedQueueScope({}), true)
 
 assert.equal(parseFailedQueueAction('retry'), 'retry')
+assert.equal(parseFailedQueueAction('requeue'), 'requeue')
 assert.equal(parseFailedQueueAction('delete'), 'delete')
 assert.equal('error' in parseFailedQueueAction('archive'), true)
 
@@ -40,10 +48,33 @@ assert.equal('error' in parseFailedQueueAction('archive'), true)
   const parsed = parseFailedQueueListOptions(
     new URLSearchParams('source_id=fuzu-kenya&limit=200&offset=10')
   )
-  assert.deepEqual(parsed, { sourceId: 'fuzu-kenya', limit: 100, offset: 10 })
+  assert.deepEqual(parsed, { status: 'failed', sourceId: 'fuzu-kenya', limit: 100, offset: 10 })
 }
+{
+  const parsed = parseFailedQueueListOptions(
+    new URLSearchParams('status=pending&limit=25')
+  )
+  assert.deepEqual(parsed, { status: 'pending', sourceId: undefined, limit: 25, offset: 0 })
+}
+assert.equal(
+  'error' in parseFailedQueueListOptions(new URLSearchParams(''), { requireStatus: true }),
+  true
+)
+assert.equal('error' in parseFailedQueueListOptions(new URLSearchParams('status=done')), true)
 assert.equal('error' in parseFailedQueueListOptions(new URLSearchParams('limit=-1')), true)
 assert.equal('error' in parseFailedQueueListOptions(new URLSearchParams('source_id=bad id')), true)
+
+assert.equal(requeuePatchForStatus('pending').ok, false)
+assert.equal(requeuePatchForStatus('processing').ok, true)
+assert.equal(requeuePatchForStatus('failed').ok, true)
+assert.deepEqual(requeuePatchForStatus('processing').ok ? requeuePatchForStatus('processing') : null, {
+  ok: true,
+  patch: {
+    status: 'pending',
+    error_message: 'Reclaimed by admin from processing',
+    processed_at: null,
+  },
+})
 
 assert.equal(
   failedJobDisplayTitle({ title: '  Finance Officer  ' }, 'https://example.com/jobs/ignored'),
@@ -62,6 +93,7 @@ assert.deepEqual(
     id: '3b0d261c-86a2-4383-89f0-9162c1c10662',
     source_id: 'fuzu-kenya',
     job_url: 'https://www.fuzu.com/kenya/job/ops-lead',
+    status: 'pending',
     error_message: 'HTTP 404',
     attempts: 3,
     queued_at: '2026-08-01T00:00:00.000Z',
@@ -80,6 +112,7 @@ assert.deepEqual(
     attempts: 3,
     queued_at: '2026-08-01T00:00:00.000Z',
     processed_at: '2026-08-02T00:00:00.000Z',
+    status: 'pending',
   }
 )
 
