@@ -64,17 +64,20 @@ assert.equal('error' in parseFailedQueueListOptions(new URLSearchParams('status=
 assert.equal('error' in parseFailedQueueListOptions(new URLSearchParams('limit=-1')), true)
 assert.equal('error' in parseFailedQueueListOptions(new URLSearchParams('source_id=bad id')), true)
 
-assert.equal(requeuePatchForStatus('pending').ok, false)
-assert.equal(requeuePatchForStatus('processing').ok, true)
-assert.equal(requeuePatchForStatus('failed').ok, true)
-assert.deepEqual(requeuePatchForStatus('processing').ok ? requeuePatchForStatus('processing') : null, {
-  ok: true,
-  patch: {
-    status: 'pending',
-    error_message: 'Reclaimed by admin from processing',
-    processed_at: null,
-  },
-})
+assert.equal(requeuePatchForStatus('pending').ok === false, true)
+assert.equal(requeuePatchForStatus('processing').ok === true, true)
+assert.equal(requeuePatchForStatus('failed').ok === true, true)
+{
+  const processing = requeuePatchForStatus('processing')
+  assert.equal(processing.ok, true)
+  if (processing.ok === true) {
+    assert.deepEqual(processing.patch, {
+      status: 'pending',
+      error_message: 'Reclaimed by admin from processing',
+      processed_at: null,
+    })
+  }
+}
 
 assert.equal(
   failedJobDisplayTitle({ title: '  Finance Officer  ' }, 'https://example.com/jobs/ignored'),

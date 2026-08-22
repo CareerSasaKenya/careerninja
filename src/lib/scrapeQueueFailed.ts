@@ -174,9 +174,11 @@ export function failedJobLocation(partialData: unknown): string | null {
   return null
 }
 
-export function requeuePatchForStatus(
-  status: QueueManageStatus
-): { ok: true; patch: Record<string, unknown> } | { ok: false; error: string } {
+export type RequeuePatchResult =
+  | { ok: true; patch: Record<string, unknown> }
+  | { ok: false; error: string }
+
+export function requeuePatchForStatus(status: QueueManageStatus): RequeuePatchResult {
   if (status === 'pending') {
     return { ok: false, error: 'Pending jobs are already queued' }
   }
@@ -325,7 +327,7 @@ export async function retryFailedQueueItems(
   status: QueueManageStatus = 'failed'
 ): Promise<number> {
   const patch = requeuePatchForStatus(status)
-  if (!patch.ok) throw new Error(patch.error)
+  if (patch.ok === false) throw new Error(patch.error)
   return updateScopedQueueItems(supabase, status, scope, patch.patch)
 }
 
