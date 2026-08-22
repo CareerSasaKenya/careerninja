@@ -23,7 +23,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
-import { FailedScrapeJobsDialog } from "@/components/admin/FailedScrapeJobsDialog";
+import { ScrapeQueueJobsDialog, type QueueDialogStatus } from "@/components/admin/ScrapeQueueJobsDialog";
 import {
   ADAPTER_LABELS,
   CATEGORY_LABELS,
@@ -74,7 +74,8 @@ export default function AdminScraperSourcesPage() {
   const [enrichingAll, setEnrichingAll] = useState(false);
   const [enrichingId, setEnrichingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | ScraperSourceCategory>("all");
-  const [failedDialog, setFailedDialog] = useState<{
+  const [queueDialog, setQueueDialog] = useState<{
+    status: QueueDialogStatus;
     sourceId?: string;
     sourceName?: string;
   } | null>(null);
@@ -493,8 +494,28 @@ export default function AdminScraperSourcesPage() {
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <StatCard label="Active sources" value={data?.active_count ?? 0} />
-        <StatCard label="Queue pending" value={data?.totals.pending ?? 0} />
-        <StatCard label="Processing" value={data?.totals.processing ?? 0} />
+        <StatCard
+          label="Queue pending"
+          value={data?.totals.pending ?? 0}
+          emphasize={data?.totals.pending ? "primary" : undefined}
+          hint={(data?.totals.pending ?? 0) > 0 ? "Click to review or delete" : undefined}
+          onClick={
+            (data?.totals.pending ?? 0) > 0
+              ? () => setQueueDialog({ status: "pending" })
+              : undefined
+          }
+        />
+        <StatCard
+          label="Processing"
+          value={data?.totals.processing ?? 0}
+          emphasize={data?.totals.processing ? "warning" : undefined}
+          hint={(data?.totals.processing ?? 0) > 0 ? "Click to review, reclaim, or delete" : undefined}
+          onClick={
+            (data?.totals.processing ?? 0) > 0
+              ? () => setQueueDialog({ status: "processing" })
+              : undefined
+          }
+        />
         <StatCard label="Published (done)" value={data?.totals.done ?? 0} />
         <StatCard
           label="Failed"
@@ -503,7 +524,7 @@ export default function AdminScraperSourcesPage() {
           hint={(data?.totals.failed ?? 0) > 0 ? "Click to review, retry, or delete" : undefined}
           onClick={
             (data?.totals.failed ?? 0) > 0
-              ? () => setFailedDialog({})
+              ? () => setQueueDialog({ status: "failed" })
               : undefined
           }
         />
@@ -574,14 +595,46 @@ export default function AdminScraperSourcesPage() {
                             </TableCell>
                             <TableCell>
                               <div className="text-xs space-y-0.5">
-                                <div><span className="text-muted-foreground">Pending:</span> {stats.pending}</div>
+                                {stats.pending > 0 ? (
+                                  <button
+                                    type="button"
+                                    className="text-primary hover:underline"
+                                    onClick={() =>
+                                      setQueueDialog({
+                                        status: "pending",
+                                        sourceId: source.source_id,
+                                        sourceName: source.name,
+                                      })
+                                    }
+                                  >
+                                    Pending: {stats.pending} — review
+                                  </button>
+                                ) : (
+                                  <div><span className="text-muted-foreground">Pending:</span> {stats.pending}</div>
+                                )}
+                                {stats.processing > 0 && (
+                                  <button
+                                    type="button"
+                                    className="text-amber-600 hover:underline"
+                                    onClick={() =>
+                                      setQueueDialog({
+                                        status: "processing",
+                                        sourceId: source.source_id,
+                                        sourceName: source.name,
+                                      })
+                                    }
+                                  >
+                                    Processing: {stats.processing} — review
+                                  </button>
+                                )}
                                 <div><span className="text-muted-foreground">Done:</span> {stats.done}</div>
                                 {stats.failed > 0 && (
                                   <button
                                     type="button"
                                     className="text-destructive hover:underline"
                                     onClick={() =>
-                                      setFailedDialog({
+                                      setQueueDialog({
+                                        status: "failed",
                                         sourceId: source.source_id,
                                         sourceName: source.name,
                                       })
@@ -660,13 +713,14 @@ export default function AdminScraperSourcesPage() {
         </TabsContent>
       </Tabs>
 
-      <FailedScrapeJobsDialog
-        open={failedDialog !== null}
+      <ScrapeQueueJobsDialog
+        open={queueDialog !== null}
         onOpenChange={(open) => {
-          if (!open) setFailedDialog(null);
+          if (!open) setQueueDialog(null);
         }}
-        sourceId={failedDialog?.sourceId}
-        sourceName={failedDialog?.sourceName}
+        status={queueDialog?.status ?? "failed"}
+        sourceId={queueDialog?.sourceId}
+        sourceName={queueDialog?.sourceName}
         onChanged={() => fetchSources({ silent: true })}
       />
 
@@ -708,15 +762,27 @@ function StatCard({
   label: string;
   value: number;
   onClick?: () => void;
-  emphasize?: "destructive";
+  emphasize?: "primary" | "warning" | "destructive";
   hint?: string;
 }) {
   const interactive = typeof onClick === "function";
+  const hoverClass =
+    emphasize === "warning"
+      ? "hover:border-amber-500/40 hover:bg-amber-500/5"
+      : emphasize === "primary"
+        ? "hover:border-primary/40 hover:bg-primary/5"
+        : "hover:border-destructive/40 hover:bg-destructive/5";
+  const valueClass =
+    emphasize === "destructive" && value > 0
+      ? "text-destructive"
+      : emphasize === "warning" && value > 0
+        ? "text-amber-600"
+        : "";
   return (
     <Card
       className={
         interactive
-          ? "cursor-pointer transition-colors hover:border-destructive/40 hover:bg-destructive/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          ? `cursor-pointer transition-colors ${hoverClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring`
           : undefined
       }
       role={interactive ? "button" : undefined}
@@ -734,13 +800,7 @@ function StatCard({
       }
     >
       <CardContent className="pt-6">
-        <div
-          className={`text-2xl font-bold ${
-            emphasize === "destructive" && value > 0 ? "text-destructive" : ""
-          }`}
-        >
-          {value}
-        </div>
+        <div className={`text-2xl font-bold ${valueClass}`}>{value}</div>
         <div className="text-sm text-muted-foreground">{label}</div>
         {hint ? <div className="text-xs text-muted-foreground mt-1">{hint}</div> : null}
       </CardContent>

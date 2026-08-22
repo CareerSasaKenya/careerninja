@@ -8,6 +8,9 @@ const MAX_PAGE_SIZE = 100
 const DEFAULT_PAGE_SIZE = 50
 const WRITE_PAGE_SIZE = 500
 
+export const QUEUE_MANAGE_STATUSES = ['pending', 'processing', 'failed'] as const
+export type QueueManageStatus = (typeof QUEUE_MANAGE_STATUSES)[number]
+
 export interface FailedQueueItem {
   id: string
   source_id: string
@@ -19,6 +22,7 @@ export interface FailedQueueItem {
   attempts: number
   queued_at: string | null
   processed_at: string | null
+  status: QueueManageStatus
 }
 
 export type FailedQueueScope =
@@ -26,9 +30,10 @@ export type FailedQueueScope =
   | { kind: 'source'; source_id: string }
   | { kind: 'all' }
 
-export type FailedQueueAction = 'retry' | 'delete'
+export type FailedQueueAction = 'retry' | 'requeue' | 'delete'
 
 export interface FailedQueueListOptions {
+  status?: QueueManageStatus
   sourceId?: string
   limit?: number
   offset?: number
@@ -39,10 +44,12 @@ export interface FailedQueueListResult {
   total: number
   limit: number
   offset: number
+  status: QueueManageStatus
 }
 
 export interface FailedQueueMutationResult {
   action: FailedQueueAction
+  status: QueueManageStatus
   affected: number
 }
 
@@ -50,6 +57,7 @@ type FailedQueueRow = {
   id: string
   source_id: string
   job_url: string
+  status?: string | null
   error_message: string | null
   attempts: number | null
   queued_at: string | null
@@ -60,6 +68,13 @@ type FailedQueueRow = {
 
 export function isUuid(value: string): boolean {
   return UUID_RE.test(value)
+}
+
+export function parseQueueManageStatus(value: unknown): QueueManageStatus | { error: string } {
+  if (typeof value === 'string' && (QUEUE_MANAGE_STATUSES as readonly string[]).includes(value)) {
+    return value as QueueManageStatus
+  }
+  return { error: 'status must be pending, processing, or failed' }
 }
 
 export function parseFailedQueueScope(body: unknown): FailedQueueScope | { error: string } {
@@ -90,11 +105,28 @@ export function parseFailedQueueScope(body: unknown): FailedQueueScope | { error
 }
 
 export function parseFailedQueueAction(value: unknown): FailedQueueAction | { error: string } {
-  if (value === 'retry' || value === 'delete') return value
-  return { error: 'action must be retry or delete' }
+  if (value === 'retry' || value === 'requeue' || value === 'delete') return value
+  return { error: 'action must be retry, requeue, or delete' }
 }
 
-export function parseFailedQueueListOptions(searchParams: URLSearchParams): FailedQueueListOptions | { error: string } {
+export function parseFailedQueueListOptions(
+  searchParams: URLSearchParams,
+  defaults: { status?: QueueManageStatus; requireStatus?: boolean } = {}
+): FailedQueueListOptions | { error: string } {
+  const rawStatus = searchParams.get('status')
+  let status: QueueManageStatus | undefined
+  if (rawStatus) {
+    const parsed = parseQueueManageStatus(rawStatus)
+    if (typeof parsed === 'object') return parsed
+    status = parsed
+  } else if (defaults.status) {
+    status = defaults.status
+  } else if (defaults.requireStatus) {
+    return { error: 'status must be pending, processing, or failed' }
+  } else {
+    status = 'failed'
+  }
+
   const sourceId = searchParams.get('source_id')?.trim() || undefined
   if (sourceId && !SOURCE_ID_RE.test(sourceId)) {
     return { error: 'Invalid source_id' }
@@ -109,6 +141,7 @@ export function parseFailedQueueListOptions(searchParams: URLSearchParams): Fail
   if (!Number.isFinite(offset) || offset < 0) return { error: 'offset must be 0 or greater' }
 
   return {
+    status,
     sourceId,
     limit: Math.min(Math.floor(limit), MAX_PAGE_SIZE),
     offset: Math.floor(offset),
@@ -141,6 +174,35 @@ export function failedJobLocation(partialData: unknown): string | null {
   return null
 }
 
+export type RequeuePatchResult =
+  | { ok: true; patch: Record<string, unknown> }
+  | { ok: false; error: string }
+
+export function requeuePatchForStatus(status: QueueManageStatus): RequeuePatchResult {
+  if (status === 'pending') {
+    return { ok: false, error: 'Pending jobs are already queued' }
+  }
+  if (status === 'processing') {
+    return {
+      ok: true,
+      patch: {
+        status: 'pending',
+        error_message: 'Reclaimed by admin from processing',
+        processed_at: null,
+      },
+    }
+  }
+  return {
+    ok: true,
+    patch: {
+      status: 'pending',
+      error_message: 'Requeued by admin after failure',
+      attempts: 0,
+      processed_at: null,
+    },
+  }
+}
+
 function sourceNameFromJoin(
   joined: FailedQueueRow['scraper_sources']
 ): string | null {
@@ -150,7 +212,15 @@ function sourceNameFromJoin(
   return typeof name === 'string' && name.trim() ? name : null
 }
 
-export function mapFailedQueueRow(row: FailedQueueRow): FailedQueueItem {
+function rowStatus(row: FailedQueueRow, fallback: QueueManageStatus): QueueManageStatus {
+  const parsed = parseQueueManageStatus(row.status)
+  return typeof parsed === 'string' ? parsed : fallback
+}
+
+export function mapFailedQueueRow(
+  row: FailedQueueRow,
+  fallbackStatus: QueueManageStatus = 'failed'
+): FailedQueueItem {
   return {
     id: row.id,
     source_id: row.source_id,
@@ -162,26 +232,37 @@ export function mapFailedQueueRow(row: FailedQueueRow): FailedQueueItem {
     attempts: row.attempts || 0,
     queued_at: row.queued_at,
     processed_at: row.processed_at,
+    status: rowStatus(row, fallbackStatus),
   }
 }
 
-const FAILED_SELECT =
-  'id, source_id, job_url, error_message, attempts, queued_at, processed_at, partial_data, scraper_sources(name)'
+const QUEUE_SELECT =
+  'id, source_id, job_url, status, error_message, attempts, queued_at, processed_at, partial_data, scraper_sources(name)'
 
 export async function listFailedQueueItems(
   supabase: SupabaseClient,
   options: FailedQueueListOptions = {}
 ): Promise<FailedQueueListResult> {
+  const status = options.status ?? 'failed'
   const limit = options.limit ?? DEFAULT_PAGE_SIZE
   const offset = options.offset ?? 0
 
   let query = supabase
     .from('scrape_queue')
-    .select(FAILED_SELECT, { count: 'exact' })
-    .eq('status', 'failed')
-    .order('processed_at', { ascending: false })
-    .order('queued_at', { ascending: false })
-    .range(offset, offset + limit - 1)
+    .select(QUEUE_SELECT, { count: 'exact' })
+    .eq('status', status)
+
+  if (status === 'failed') {
+    query = query
+      .order('processed_at', { ascending: false })
+      .order('queued_at', { ascending: false })
+  } else {
+    query = query
+      .order('queued_at', { ascending: true })
+      .order('attempts', { ascending: true })
+  }
+
+  query = query.range(offset, offset + limit - 1)
 
   if (options.sourceId) {
     query = query.eq('source_id', options.sourceId)
@@ -191,10 +272,11 @@ export async function listFailedQueueItems(
   if (error) throw error
 
   return {
-    items: ((data || []) as FailedQueueRow[]).map(mapFailedQueueRow),
+    items: ((data || []) as FailedQueueRow[]).map(row => mapFailedQueueRow(row, status)),
     total: count ?? 0,
     limit,
     offset,
+    status,
   }
 }
 
@@ -206,22 +288,17 @@ function applyScope<T extends { eq: (column: string, value: string) => T }>(
   return query
 }
 
-export async function retryFailedQueueItems(
+async function updateScopedQueueItems(
   supabase: SupabaseClient,
-  scope: FailedQueueScope
+  status: QueueManageStatus,
+  scope: FailedQueueScope,
+  patch: Record<string, unknown>
 ): Promise<number> {
-  const patch = {
-    status: 'pending',
-    error_message: 'Requeued by admin after failure',
-    attempts: 0,
-    processed_at: null,
-  }
-
   if (scope.kind === 'ids') {
     const { data, error } = await supabase
       .from('scrape_queue')
       .update(patch)
-      .eq('status', 'failed')
+      .eq('status', status)
       .in('id', scope.ids)
       .select('id')
     if (error) throw error
@@ -231,7 +308,7 @@ export async function retryFailedQueueItems(
   let affected = 0
   for (;;) {
     const { data, error } = await applyScope(
-      supabase.from('scrape_queue').update(patch).eq('status', 'failed'),
+      supabase.from('scrape_queue').update(patch).eq('status', status),
       scope
     )
       .select('id')
@@ -244,15 +321,26 @@ export async function retryFailedQueueItems(
   return affected
 }
 
+export async function retryFailedQueueItems(
+  supabase: SupabaseClient,
+  scope: FailedQueueScope,
+  status: QueueManageStatus = 'failed'
+): Promise<number> {
+  const patch = requeuePatchForStatus(status)
+  if (patch.ok === false) throw new Error(patch.error)
+  return updateScopedQueueItems(supabase, status, scope, patch.patch)
+}
+
 export async function deleteFailedQueueItems(
   supabase: SupabaseClient,
-  scope: FailedQueueScope
+  scope: FailedQueueScope,
+  status: QueueManageStatus = 'failed'
 ): Promise<number> {
   if (scope.kind === 'ids') {
     const { data, error } = await supabase
       .from('scrape_queue')
       .delete()
-      .eq('status', 'failed')
+      .eq('status', status)
       .in('id', scope.ids)
       .select('id')
     if (error) throw error
@@ -262,7 +350,7 @@ export async function deleteFailedQueueItems(
   let affected = 0
   for (;;) {
     const { data, error } = await applyScope(
-      supabase.from('scrape_queue').delete().eq('status', 'failed'),
+      supabase.from('scrape_queue').delete().eq('status', status),
       scope
     )
       .select('id')
@@ -278,11 +366,12 @@ export async function deleteFailedQueueItems(
 export async function mutateFailedQueueItems(
   supabase: SupabaseClient,
   action: FailedQueueAction,
-  scope: FailedQueueScope
+  scope: FailedQueueScope,
+  status: QueueManageStatus = 'failed'
 ): Promise<FailedQueueMutationResult> {
   const affected =
-    action === 'retry'
-      ? await retryFailedQueueItems(supabase, scope)
-      : await deleteFailedQueueItems(supabase, scope)
-  return { action, affected }
+    action === 'delete'
+      ? await deleteFailedQueueItems(supabase, scope, status)
+      : await retryFailedQueueItems(supabase, scope, status)
+  return { action, status, affected }
 }
