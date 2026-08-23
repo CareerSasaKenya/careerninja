@@ -16,6 +16,7 @@ function authorize(request: NextRequest): boolean {
 /**
  * GET /api/cron/social-auto-queue
  * Vercel Cron: fill Buffer queues (3 exclusive posts per channel per Nairobi day).
+ * Runs 06:00 and 10:00 EAT so the 08:00 / 12:30 / 17:00 Buffer slots are still open.
  *
  * Query: dryRun=1 to preview without sending.
  */

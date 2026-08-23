@@ -31,7 +31,7 @@ The job management system requires periodic tasks to:
 - **Scrape Discover**: Every 4 hours (`0 */4 * * *`) — queues new jobs from active sources (needed for same-day MyJobMag / board volume)
 - **Scrape Process**: Every 15 minutes (`*/15 * * * *`) — publishes pending queue items (default 20/run, Pro)
 - **Email Automations**: Daily at 8:00 AM UTC (`0 8 * * *`)
-- **Social Auto-Queue**: 05:00 and 11:00 UTC (`0 5,11 * * *`) — 08:00 and 14:00 EAT. Fills Buffer queues, 3 exclusive posts per channel per Nairobi day.
+- **Social Auto-Queue**: 03:00 and 07:00 UTC (`0 3,7 * * *`) — 06:00 and 10:00 EAT, so the Buffer 08:00 / 12:30 / 17:00 slots are filled before they fire.
 
 ### Endpoints
 

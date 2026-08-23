@@ -71,6 +71,7 @@ export interface AutoQueueOutcome {
   ok: boolean
   dry_run: boolean
   skipped?: string
+  warnings: string[]
   daily_cap: number
   queue_cap: number
   remaining: Record<SocialPlatform, number>
@@ -199,6 +200,7 @@ export async function autoQueueDailyPosts(
       ok: true,
       dry_run: dryRun,
       skipped: 'Buffer is not connected. Connect it in Social Publishing → Buffer Settings.',
+      warnings: [],
       daily_cap: dailyCap,
       queue_cap: BUFFER_FREE_QUEUE_CAP,
       remaining: { linkedin: 0, facebook: 0, instagram: 0 },
@@ -210,9 +212,19 @@ export async function autoQueueDailyPosts(
 
   const channels = status.channels ?? []
   const channelByPlatform: Partial<Record<SocialPlatform, BufferChannel>> = {}
+  const warnings: string[] = []
   for (const platform of PLATFORMS) {
     const channel = matchChannel(channels, platform)
-    if (channel) channelByPlatform[platform] = channel
+    if (!channel) {
+      warnings.push(`No ${platform} channel connected in Buffer. Connect it and refresh channels.`)
+      continue
+    }
+    if (channel.isQueuePaused) {
+      warnings.push(
+        `${channel.name} (${platform}) queue is paused in Buffer. Posts can still be added, but they will not publish until you unpause.`
+      )
+    }
+    channelByPlatform[platform] = channel
   }
 
   const [usedJobIds, counts, jobs] = await Promise.all([
@@ -237,6 +249,7 @@ export async function autoQueueDailyPosts(
     return {
       ok: true,
       dry_run: true,
+      warnings,
       daily_cap: dailyCap,
       queue_cap: BUFFER_FREE_QUEUE_CAP,
       remaining,
@@ -291,6 +304,7 @@ export async function autoQueueDailyPosts(
   return {
     ok: failed.length === 0,
     dry_run: false,
+    warnings,
     daily_cap: dailyCap,
     queue_cap: BUFFER_FREE_QUEUE_CAP,
     remaining,
@@ -306,6 +320,7 @@ export function summarizeAutoQueue(result: AutoQueueOutcome): string {
   const queued = PLATFORMS.map((p) => `${p}=${result.queued[p].length}`).join(' ')
   const selected = PLATFORMS.map((p) => `${p}=${result.selected[p].length}`).join(' ')
   const failed = result.failed.length
-  return `queued[${queued}] selected[${selected}] failed=${failed} dry_run=${result.dry_run}`
+  const warn = result.warnings.length ? ` warnings=${result.warnings.length}` : ''
+  return `queued[${queued}] selected[${selected}] failed=${failed} dry_run=${result.dry_run}${warn}`
 }
 

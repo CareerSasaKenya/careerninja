@@ -13,6 +13,7 @@ assert.match(
     ok: true,
     dry_run: false,
     skipped: 'Buffer is not connected. Connect it in Social Publishing → Buffer Settings.',
+    warnings: [],
     daily_cap: 3,
     queue_cap: 10,
     remaining: { linkedin: 0, facebook: 0, instagram: 0 },
@@ -33,6 +34,7 @@ assert.match(
     remaining: { linkedin: 3, facebook: 2, instagram: 1 },
     queued: empty,
     failed: [],
+    warnings: [],
     selected: {
       linkedin: [{ id: '1', title: 'Engineer' }],
       facebook: [{ id: '2', title: 'Sales' }, { id: '3', title: 'Driver' }],

@@ -39,7 +39,7 @@ export function startScheduler(): ScheduledTask[] {
 
   console.log(`[scheduler] discover: "${env.cronDiscover}"`)
   console.log(`[scheduler] process:  "${env.cronProcess}" (batch=${env.processBatch})`)
-  console.log(`[scheduler] social:   "${env.cronSocial}" (3/channel/day via Buffer queue)`)
+  console.log(`[scheduler] social:   "${env.cronSocial}" (3/channel/day via Buffer queue; runs before 08:00/12:30 EAT slots)`)
   console.log('[scheduler] running — press Ctrl+C to stop')
 
   return tasks
