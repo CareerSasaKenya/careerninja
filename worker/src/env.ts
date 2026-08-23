@@ -16,7 +16,7 @@ export const env = {
 
   cronDiscover: optional('WORKER_CRON_DISCOVER', '0 5 * * *'),
   cronProcess: optional('WORKER_CRON_PROCESS', '*/15 * * * *'),
-  cronSocial: optional('WORKER_CRON_SOCIAL', '0 5,11 * * *'),
+  cronSocial: optional('WORKER_CRON_SOCIAL', '0 3,7 * * *'),
   processBatch: parseInt(optional('WORKER_PROCESS_BATCH', '10'), 10) || 10,
   /** Soft time budget per process run (ms). Defaults to 240s — safe under most hosts. */
   processBudgetMs: parseInt(optional('WORKER_PROCESS_BUDGET_MS', '240000'), 10) || 240000,

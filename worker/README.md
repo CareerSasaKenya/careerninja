@@ -162,7 +162,7 @@ npm run worker:server
 |-----|------|---------|
 | Discover | `WORKER_CRON_DISCOVER` | `0 5 * * *` (05:00 daily) |
 | Process | `WORKER_CRON_PROCESS` | `*/15 * * * *` (every 15 min) |
-| Social | `WORKER_CRON_SOCIAL` | `0 5,11 * * *` (VPS fallback only — production uses Vercel Cron) |
+| Social | `WORKER_CRON_SOCIAL` | `0 3,7 * * *` (06:00 and 10:00 EAT; VPS fallback only — production uses Vercel Cron) |
 
 `WORKER_PROCESS_BATCH` controls how many queue items each process run handles (default 10).
 
