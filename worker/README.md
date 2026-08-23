@@ -7,18 +7,17 @@ It imports the **same code** the Vercel routes use (`src/lib/scrapeDiscover.ts`,
 ## Architecture
 
 ```text
-Vercel (storefront)                    GitHub Actions (worker)
+Vercel (storefront + light crons)      GitHub Actions (heavy scrape worker)
   website / API                         scheduled workflows:
   admin dashboard                         discover   → scraper_sources → scrape_queue
-  discover/process buttons ──HTTP──►       process    → scrape_queue → jobs + scraped_job_sources
-                          (optional)       enrich     → sparse/scraped AI normalize
-                                           social     → jobs → Buffer queue (3/channel/day)
+  expire/renew/email crons                process    → scrape_queue → jobs
+  social-auto-queue cron ──Buffer──►      enrich     → sparse/scraped AI normalize
                       └─────────── Supabase (single source of truth) ──────────┘
 ```
 
 - Worker reads/writes Supabase **directly** with the service-role key (same as Vercel routes).
-- Discover, process, enrich, and social are separate scheduled workflows so they can run at different cadences.
-- The admin Scraper Sources page dispatches Discover/Process/Enrich to these workflows (via `GITHUB_ACTIONS_TOKEN`), so you can still trigger a run from the UI. Social auto-queue is dispatched from GitHub Actions (or `npm run worker:social`).
+- Discover, process, and enrich stay on GitHub Actions. Social auto-queue runs on **Vercel Cron** (`/api/cron/social-auto-queue`) because it is small (at most 9 Buffer posts per run).
+- The admin Scraper Sources page dispatches Discover/Process/Enrich to GitHub Actions. Social can still be dry-run from Actions → **Social Auto-Queue**, or `npm run worker:social`.
 
 ## Recommended: GitHub Actions (free, no servers)
 
@@ -31,7 +30,7 @@ Three scrape workflows plus social auto-queue are committed in `.github/workflow
 | `discover.yml` | hourly tick, ~40% run chance | mean ≈ 2.5h (range ~1–5h) | Sweep all active sources, queue new job links (10-min budget) |
 | `process.yml` | 15-min tick, ~85% run chance | mean ≈ 17.6 min | Drain the queue — fetch details, AI-enrich, publish (batch up to 25) |
 | `enrich.yml` | every 4h + 0–90 min jitter | ~4h | AI-enrich sparse active jobs (scheduled); also supports re-enriching published scraped jobs |
-| `social.yml` | 05:00 and 11:00 UTC | 08:00 and 14:00 EAT | Generate exclusive job posts and add them to the Buffer queue (3 per channel per Nairobi day) |
+| `social.yml` | manual only | — | Dry-run / one-off Buffer refill. Production cadence is Vercel Cron |
 
 The intervals are **randomized** (probability-skip + jitter per tick) so scraping looks natural instead of firing on a fixed clock. Manual dispatch via the admin UI or API always runs immediately.
 
@@ -65,7 +64,7 @@ Repo → **Actions** → pick **Scrape Discover** → **Run workflow** (leave in
 
 ### 4. Turn off the Vercel scrape crons (once stable)
 
-The Vercel scrape crons (`scrape-discover`, `scrape-process`, `enrich-jobs`) have been removed from `vercel.json` in this change — scraping now runs entirely on GitHub Actions. Keep the other crons (`expire-jobs`, `auto-renew-jobs`, `expire-promotions`, `email-automations`, `enrich-company-logos`) on Vercel — they're lightweight.
+The Vercel scrape crons (`scrape-discover`, `scrape-process`, `enrich-jobs`) were intended to move fully to GitHub Actions. Keep the lightweight crons on Vercel (`expire-jobs`, `auto-renew-jobs`, `expire-promotions`, `email-automations`, `enrich-company-logos`, **`social-auto-queue`**).
 
 ## Alternative: VPS (Hetzner / InterServer / Oracle)
 
@@ -163,7 +162,7 @@ npm run worker:server
 |-----|------|---------|
 | Discover | `WORKER_CRON_DISCOVER` | `0 5 * * *` (05:00 daily) |
 | Process | `WORKER_CRON_PROCESS` | `*/15 * * * *` (every 15 min) |
-| Social | `WORKER_CRON_SOCIAL` | `0 5,11 * * *` (08:00 and 14:00 EAT) |
+| Social | `WORKER_CRON_SOCIAL` | `0 5,11 * * *` (VPS fallback only — production uses Vercel Cron) |
 
 `WORKER_PROCESS_BATCH` controls how many queue items each process run handles (default 10).
 

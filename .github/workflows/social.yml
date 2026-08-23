@@ -1,12 +1,8 @@
 name: Social Auto-Queue
 
 on:
-  schedule:
-    # 08:00 and 14:00 EAT. Morning run fills up to 3 posts per channel into
-    # the Buffer queue; afternoon run only fills leftover slots (failed morning
-    # or jobs that landed after 08:00). Manual dispatch always runs immediately.
-    - cron: '0 5 * * *'
-    - cron: '0 11 * * *'
+  # Production cadence is Vercel Cron (`/api/cron/social-auto-queue`).
+  # Keep workflow_dispatch for a manual dry-run or one-off refill.
   workflow_dispatch:
     inputs:
       dry_run:
