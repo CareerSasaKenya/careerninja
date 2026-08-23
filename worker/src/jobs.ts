@@ -2,6 +2,7 @@ import { runScrapeDiscover } from '../../src/lib/scrapeDiscover'
 import { runScrapeProcessBatch } from '../../src/lib/scrapeProcess'
 import { enrichJobsNeedingEnrichment } from '../../src/lib/enrichJobById'
 import { runReenrichScrapedJobs } from '../../src/lib/reenrichScrapedJobs'
+import { autoQueueDailyPosts } from '../../src/lib/social/autoQueueJobs'
 import { createServiceRoleClient } from '../../src/lib/supabaseServiceClient'
 import { env } from './env'
 
@@ -55,5 +56,17 @@ export async function runEnrich(
     limit,
     sourceFilter: sourceId || null,
     apply: true,
+  })
+}
+
+/**
+ * Generate exclusive platform posts for recent active jobs and add them to
+ * the Buffer queue (3 per channel per Nairobi day, Free-plan queue cap 10).
+ */
+export async function runSocial(options: { dryRun?: boolean } = {}) {
+  const supabase = createServiceRoleClient()
+  return autoQueueDailyPosts(supabase, {
+    dryRun: options.dryRun === true,
+    userId: process.env.SCRAPER_USER_ID ?? null,
   })
 }

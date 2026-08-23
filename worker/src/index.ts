@@ -1,10 +1,11 @@
 import { env } from './env'
-import { runDiscover, runEnrich, runProcess } from './jobs'
+import { runDiscover, runEnrich, runProcess, runSocial } from './jobs'
 import { startScheduler } from './scheduler'
 import { startServer } from './server'
 
 const mode = process.argv[2] || 'schedule'
 const extra = process.argv[3]
+const dryRun = process.argv.includes('--dry-run')
 
 async function main() {
   switch (mode) {
@@ -59,6 +60,21 @@ async function main() {
       break
     }
 
+    case 'social': {
+      const result = await runSocial({ dryRun })
+      console.log(JSON.stringify(result, null, 2))
+      const queued =
+        result.queued.linkedin.length + result.queued.facebook.length + result.queued.instagram.length
+      const selected =
+        result.selected.linkedin.length + result.selected.facebook.length + result.selected.instagram.length
+      // Skip (Buffer disconnected) and empty leftover slots are healthy no-ops.
+      if (result.skipped) break
+      if (!result.dry_run && selected > 0 && queued === 0 && result.failed.length === selected) {
+        process.exit(1)
+      }
+      break
+    }
+
     case 'schedule':
       startScheduler()
       startServer()
@@ -73,7 +89,7 @@ async function main() {
 
     default:
       console.error(
-        'Usage: tsx src/index.ts <discover|process [batch]|enrich [scraped|sparse] [limit] [source_id]|schedule|server>'
+        'Usage: tsx src/index.ts <discover|process [batch]|enrich [scraped|sparse] [limit] [source_id]|social [--dry-run]|schedule|server>'
       )
       process.exit(1)
   }

@@ -122,7 +122,8 @@ export function SocialPublishing() {
           <h1 className="text-3xl font-bold tracking-tight">Social Publishing</h1>
           <p className="text-muted-foreground mt-1">
             Select jobs, generate platform-ready posts and send them through Buffer — LinkedIn, Facebook
-            and Instagram.
+            and Instagram. Auto-queue also fills up to 3 exclusive posts per channel each Nairobi day
+            (featured/professional → LinkedIn, visual/youth → Instagram, high-volume/entry → Facebook).
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2">

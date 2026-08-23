@@ -11,6 +11,7 @@ const WORKFLOWS = {
   discover: { file: 'discover.yml' },
   process: { file: 'process.yml' },
   enrich: { file: 'enrich.yml' },
+  social: { file: 'social.yml' },
 } as const
 
 type Action = keyof typeof WORKFLOWS
@@ -22,11 +23,12 @@ type Action = keyof typeof WORKFLOWS
  * scope stored as GITHUB_ACTIONS_TOKEN in the Vercel app env.
  *
  * Body:
- *   action:     'discover' | 'process' | 'enrich'
+ *   action:     'discover' | 'process' | 'enrich' | 'social'
  *   source_id?: string               (discover / enrich-scraped)
  *   max?:       number               (process)
  *   mode?:      'scraped' | 'sparse' (enrich)
  *   limit?:     number               (enrich)
+ *   dry_run?:   boolean              (social)
  */
 export async function POST(request: NextRequest) {
   const auth = await requireAdmin(request)
@@ -50,7 +52,7 @@ export async function POST(request: NextRequest) {
   const workflow = WORKFLOWS[action]
   if (!workflow) {
     return NextResponse.json(
-      { error: 'Unknown action. Use "discover", "process", or "enrich".' },
+      { error: 'Unknown action. Use "discover", "process", "enrich", or "social".' },
       { status: 400 }
     )
   }
@@ -67,6 +69,9 @@ export async function POST(request: NextRequest) {
     if (typeof body.limit === 'number' && body.limit > 0) {
       inputs.limit = String(Math.min(Math.max(1, body.limit), 15))
     }
+  }
+  if (action === 'social' && body.dry_run === true) {
+    inputs.dry_run = 'true'
   }
 
   try {

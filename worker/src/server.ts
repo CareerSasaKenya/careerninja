@@ -1,6 +1,6 @@
 import http from 'http'
 import { env } from './env'
-import { runDiscover, runProcess } from './jobs'
+import { runDiscover, runProcess, runSocial } from './jobs'
 
 function readBody(req: http.IncomingMessage): Promise<Record<string, unknown>> {
   return new Promise((resolve) => {
@@ -52,6 +52,12 @@ export function startServer() {
         const body = await readBody(req)
         const max = typeof body.max === 'number' ? body.max : env.processBatch
         const result = await runProcess(max)
+        return send(res, 200, result)
+      }
+
+      if (method === 'POST' && path === '/social') {
+        const body = await readBody(req)
+        const result = await runSocial({ dryRun: body.dry_run === true })
         return send(res, 200, result)
       }
 
