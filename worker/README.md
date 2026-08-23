@@ -1,6 +1,6 @@
 # CareerSasa Background Worker
 
-Runs the heavy background work (scraping, processing, AI enrichment, and — later — social posting) outside of Vercel serverless functions.
+Runs the heavy background work (scraping, processing, AI enrichment, and social posting via Buffer) outside of Vercel serverless functions.
 
 It imports the **same code** the Vercel routes use (`src/lib/scrapeDiscover.ts`, `src/lib/scrapeProcess.ts`, `src/lib/supabaseServiceClient.ts`), so behaviour is identical wherever the job runs.
 
@@ -11,25 +11,27 @@ Vercel (storefront)                    GitHub Actions (worker)
   website / API                         scheduled workflows:
   admin dashboard                         discover   → scraper_sources → scrape_queue
   discover/process buttons ──HTTP──►       process    → scrape_queue → jobs + scraped_job_sources
-                          (optional)
+                          (optional)       enrich     → sparse/scraped AI normalize
+                                           social     → jobs → Buffer queue (3/channel/day)
                       └─────────── Supabase (single source of truth) ──────────┘
 ```
 
 - Worker reads/writes Supabase **directly** with the service-role key (same as Vercel routes).
-- Discover, process, and enrich are separate scheduled workflows so they can run at different cadences.
-- The admin Scraper Sources page dispatches Discover/Process/Enrich to these workflows (via `GITHUB_ACTIONS_TOKEN`), so you can still trigger a run from the UI.
+- Discover, process, enrich, and social are separate scheduled workflows so they can run at different cadences.
+- The admin Scraper Sources page dispatches Discover/Process/Enrich to these workflows (via `GITHUB_ACTIONS_TOKEN`), so you can still trigger a run from the UI. Social auto-queue is dispatched from GitHub Actions (or `npm run worker:social`).
 
 ## Recommended: GitHub Actions (free, no servers)
 
 GitHub Actions runs the worker on scheduled workflows. Because `careerninja` is a **public** repository, Actions minutes are **unlimited** — the heavy scraping runs at zero cost, and Vercel only serves the website.
 
-Three workflows are committed in `.github/workflows/`:
+Three scrape workflows plus social auto-queue are committed in `.github/workflows/`:
 
 | Workflow | Schedule (UTC) | Effective cadence | What it does |
 |----------|----------------|-------------------|--------------|
 | `discover.yml` | hourly tick, ~40% run chance | mean ≈ 2.5h (range ~1–5h) | Sweep all active sources, queue new job links (10-min budget) |
 | `process.yml` | 15-min tick, ~85% run chance | mean ≈ 17.6 min | Drain the queue — fetch details, AI-enrich, publish (batch up to 25) |
 | `enrich.yml` | every 4h + 0–90 min jitter | ~4h | AI-enrich sparse active jobs (scheduled); also supports re-enriching published scraped jobs |
+| `social.yml` | 05:00 and 11:00 UTC | 08:00 and 14:00 EAT | Generate exclusive job posts and add them to the Buffer queue (3 per channel per Nairobi day) |
 
 The intervals are **randomized** (probability-skip + jitter per tick) so scraping looks natural instead of firing on a fixed clock. Manual dispatch via the admin UI or API always runs immediately.
 
@@ -45,6 +47,7 @@ Repo → **Settings → Secrets and variables → Actions** → **New repository
 | `DEEPSEEK_API_KEY` / `_2` | DeepSeek platform |
 | `DEEPSEEK_MODEL` | Optional — defaults to `deepseek-v4-flash` |
 | `GEMINI_API_KEY` / `_2` / `_3` | Optional — Gemini is the fallback provider |
+| `BUFFER_API_KEY` | Optional if Buffer was connected in Admin → Social Publishing (stored in `buffer_config`). Recommended in production. Generate at publish.buffer.com/settings/api |
 
 To trigger runs **from the admin UI**, also add a GitHub Personal Access Token with the `workflow` scope as the Vercel env var `GITHUB_ACTIONS_TOKEN` (Settings → Developer settings → Personal access tokens → Fine-grained, repo `careerninja`, **Actions: write**). The UI buttons call `POST /api/admin/gh-actions/trigger`.
 
@@ -143,6 +146,10 @@ npm run worker:enrich -- sparse 10
 # One-shot: re-normalize published scraped jobs (scraped mode, optional source)
 npm run worker:enrich -- scraped 10 myjobmag-kenya
 
+# One-shot: fill Buffer queues (3 posts/channel/Nairobi day). --dry-run previews only.
+npm run worker:social
+npm run worker:social -- --dry-run
+
 # Long-running: scheduler + HTTP trigger
 npm run worker:start
 
@@ -156,6 +163,7 @@ npm run worker:server
 |-----|------|---------|
 | Discover | `WORKER_CRON_DISCOVER` | `0 5 * * *` (05:00 daily) |
 | Process | `WORKER_CRON_PROCESS` | `*/15 * * * *` (every 15 min) |
+| Social | `WORKER_CRON_SOCIAL` | `0 5,11 * * *` (08:00 and 14:00 EAT) |
 
 `WORKER_PROCESS_BATCH` controls how many queue items each process run handles (default 10).
 
@@ -172,6 +180,7 @@ Endpoints (all `POST`):
 
 - `/discover` — body `{ "source_id"?: string }`
 - `/process` — body `{ "max"?: number }`
+- `/social` — body `{ "dry_run"?: boolean }`
 - `/health` — `GET`
 
 Header: `x-worker-secret: <WORKER_SECRET>`.
@@ -183,3 +192,4 @@ The Vercel admin buttons now dispatch GitHub Actions workflows instead (see abov
 - Env vars must match the Vercel app (same Supabase project).
 - `SCRAPER_USER_ID` is still required — it's the user that owns scraped/published jobs (see `src/lib/scrapeProcess.ts`).
 - AI enrichment uses the same provider chain as the app: **DeepSeek → Gemini**. Add `DEEPSEEK_API_KEY` to `.env` to use DeepSeek.
+- Social auto-queue sends **3 posts per channel per Nairobi day** through Buffer Free (`addToQueue`). Routing is exclusive: featured/professional → LinkedIn, visual/youth → Instagram, high-volume/entry → Facebook. The same job is never generated for two platforms. Set three posting times per channel in Buffer so the queue drips through the day.

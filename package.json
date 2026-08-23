@@ -19,6 +19,8 @@
     "test:company-identity": "npx tsx src/lib/companyIdentity.test.ts",
     "test:company-industry": "npx tsx src/lib/companyIndustryInference.test.ts",
     "test:mpesa": "npx tsx src/lib/mpesa/mpesa.test.ts",
+    "test:social-route": "npx tsx src/lib/social/routeJobToPlatform.test.ts",
+    "test:social-auto-queue": "npx tsx src/lib/social/autoQueueJobs.test.ts",
     "merge:companies": "npx tsx scripts/merge-duplicate-companies.mts",
     "merge:companies:apply": "npx tsx scripts/merge-duplicate-companies.mts --apply",
     "enrich:companies": "npx tsx scripts/enrich-company-profiles.mts",
@@ -28,6 +30,7 @@
     "worker:process": "tsx worker/src/index.ts process",
     "worker:process:n": "tsx worker/src/index.ts process 5",
     "worker:enrich": "tsx worker/src/index.ts enrich",
+    "worker:social": "tsx worker/src/index.ts social",
     "worker:start": "tsx worker/src/index.ts schedule",
     "worker:server": "tsx worker/src/index.ts server",
     "postbuild": "next-sitemap"

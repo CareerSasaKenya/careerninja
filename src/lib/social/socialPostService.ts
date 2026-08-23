@@ -234,7 +234,7 @@ export interface CreatePostInput {
 
 export async function createPost(
   adminClient: SupabaseClient,
-  userId: string,
+  userId: string | null,
   input: CreatePostInput
 ): Promise<SocialPostDTO> {
   const { data, error } = await adminClient
@@ -246,7 +246,7 @@ export async function createPost(
       media_url: input.media_url ?? null,
       status: input.status ?? 'draft',
       is_repost: input.is_repost ?? false,
-      created_by: userId,
+      created_by: userId || null,
     })
     .select(POST_SELECT)
     .single()
