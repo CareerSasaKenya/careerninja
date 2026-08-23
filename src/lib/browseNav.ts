@@ -1,6 +1,6 @@
 import { Briefcase, Building2, Layers, MapPin } from "lucide-react";
 
-/** Shared Browse Jobs menu + footer links for jobs hubs. */
+/** Shared Browse Jobs menu links for jobs hubs. */
 export const browseNavLinks = [
   {
     title: "All jobs",

@@ -127,21 +127,6 @@ export function Footer() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/jobs/industries" className="text-muted-foreground hover:text-foreground transition-colors" prefetch={true}>
-                    Jobs by Industry
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/jobs/functions" className="text-muted-foreground hover:text-foreground transition-colors" prefetch={true}>
-                    Jobs by Function
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/jobs/counties" className="text-muted-foreground hover:text-foreground transition-colors" prefetch={true}>
-                    Jobs by County
-                  </Link>
-                </li>
-                <li>
                   <Link href="/companies" className="text-muted-foreground hover:text-foreground transition-colors" prefetch={true}>
                     Companies
                   </Link>
