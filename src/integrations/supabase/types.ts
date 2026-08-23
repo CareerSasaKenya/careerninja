@@ -3536,6 +3536,74 @@ export type Database = {
         }
         Relationships: []
       }
+      social_share_queue: {
+        Row: {
+          id: string
+          job_id: string
+          platform: string
+          status: string
+          caption: string | null
+          share_url: string | null
+          image_url: string | null
+          platform_post_id: string | null
+          error_message: string | null
+          skip_reason: string | null
+          attempts: number
+          max_attempts: number
+          scheduled_at: string
+          processed_at: string | null
+          posted_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          job_id: string
+          platform: string
+          status?: string
+          caption?: string | null
+          share_url?: string | null
+          image_url?: string | null
+          platform_post_id?: string | null
+          error_message?: string | null
+          skip_reason?: string | null
+          attempts?: number
+          max_attempts?: number
+          scheduled_at?: string
+          processed_at?: string | null
+          posted_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          job_id?: string
+          platform?: string
+          status?: string
+          caption?: string | null
+          share_url?: string | null
+          image_url?: string | null
+          platform_post_id?: string | null
+          error_message?: string | null
+          skip_reason?: string | null
+          attempts?: number
+          max_attempts?: number
+          scheduled_at?: string
+          processed_at?: string | null
+          posted_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_share_queue_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       skill_assessments: {
         Row: {
           category: string

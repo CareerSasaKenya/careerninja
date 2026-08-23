@@ -890,6 +890,28 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
             if (!enrichRes.ok) {
               console.warn("[JobPostingForm] enrich failed", await enrichRes.text());
             }
+
+            // Queue active jobs for automatic social sharing (best-effort).
+            if ((data.status || "active") === "active") {
+              try {
+                const shareRes = await fetch("/api/social-share/enqueue", {
+                  method: "POST",
+                  headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({ job_id: savedJobId }),
+                });
+                if (!shareRes.ok) {
+                  console.warn(
+                    "[JobPostingForm] social share enqueue failed",
+                    await shareRes.text()
+                  );
+                }
+              } catch (shareErr) {
+                console.warn("[JobPostingForm] social share enqueue error", shareErr);
+              }
+            }
           }
         } catch (enrichErr) {
           console.warn("[JobPostingForm] enrich error", enrichErr);
