@@ -142,15 +142,121 @@ export function deadlineLabel(job: JobForCopy): string | null {
 const HTML_TAG = /<[^>]+>/g
 const WHITESPACE = /\s+/g
 
+/** "Looking for… / Looking to…?" — the overused Facebook job-post hook. */
+const LOOKING_FOR_HOOK = /\b(?:are\s+you\s+)?(?:still\s+)?looking\s+(?:for|to)\b/i
+
 export function plainText(value: string | null | undefined): string {
   if (!value) return ''
   return value.replace(HTML_TAG, ' ').replace(WHITESPACE, ' ').trim()
 }
 
+function hashSeed(input: string): number {
+  let h = 0
+  for (let i = 0; i < input.length; i++) {
+    h = (h * 31 + input.charCodeAt(i)) >>> 0
+  }
+  return h
+}
+
+/** Strip leading emoji / punctuation so hook detection sees the real words. */
+function stripDecorativePrefix(value: string): string {
+  return value
+    .replace(/^[\s\p{Extended_Pictographic}\uFE0F\u200D]+/u, '')
+    .replace(/^[\s¡!?.…~\-–—*•]+/, '')
+    .trim()
+}
+
+function firstSentence(value: string): { sentence: string; rest: string } {
+  const trimmed = value.trimStart()
+  const match = trimmed.match(/^(.+?(?:[.!?]+|(?=\n)|$))([\s\S]*)/)
+  if (!match) return { sentence: trimmed, rest: '' }
+  return { sentence: match[1].trim(), rest: match[2].trim() }
+}
+
+export function isLookingForHook(text: string): boolean {
+  const core = stripDecorativePrefix(text)
+  if (!core) return false
+  return LOOKING_FOR_HOOK.test(core)
+}
+
+/**
+ * Drop leading "looking for / looking to" sentences from job-ad prose so
+ * captions are not primed with that boilerplate.
+ */
+export function dropLookingForLeadSentences(text: string): string {
+  let remaining = text.trim()
+  for (let i = 0; i < 3 && remaining; i++) {
+    const { sentence, rest } = firstSentence(remaining)
+    if (!isLookingForHook(sentence)) break
+    remaining = rest
+  }
+  return remaining
+}
+
+function restLeadsWithJobFacts(rest: string, job: JobForCopy): boolean {
+  const head = rest.slice(0, 220).toLowerCase()
+  const title = job.title.trim().toLowerCase()
+  const employer = employerName(job).trim().toLowerCase()
+  if (title.length >= 4 && head.includes(title)) return true
+  if (employer.length >= 3 && head.includes(employer)) return true
+  return false
+}
+
+/** Stable, fact-led first line — never "Looking for…". */
+export function factLedOpening(job: JobForCopy): string {
+  const title = job.title.trim()
+  const employer = employerName(job)
+  const loc = locationLabel(job)
+  const options = [
+    `${title} — ${loc}.`,
+    `${employer} is hiring a ${title} in ${loc}.`,
+    `New role: ${title} at ${employer} (${loc}).`,
+    `${title} open at ${employer} in ${loc}.`,
+    `${employer} · ${title} · ${loc}.`,
+  ]
+  return options[hashSeed(job.id || title) % options.length]
+}
+
+/**
+ * Rewrite captions that open with the repetitive "Looking for… / Looking to…?"
+ * hook. Prompt bans are not enough — models keep emitting it.
+ */
+export function rewriteLookingForOpening(text: string, job: JobForCopy): string {
+  let remaining = text.replace(/^\uFEFF/, '')
+  let dropped = false
+  for (let i = 0; i < 4 && remaining.trim(); i++) {
+    const { sentence, rest } = firstSentence(remaining)
+    if (!stripDecorativePrefix(sentence)) {
+      remaining = rest
+      continue
+    }
+    if (!isLookingForHook(sentence)) break
+    dropped = true
+    remaining = rest
+  }
+  if (!dropped) return text.trim()
+  remaining = remaining.trim()
+  if (!remaining || !restLeadsWithJobFacts(remaining, job)) {
+    const opening = factLedOpening(job)
+    remaining = remaining ? `${opening}\n\n${remaining}` : opening
+  }
+  return remaining
+}
+
+export function hasLookingForOpening(text: string): boolean {
+  if (!text.trim()) return false
+  const { sentence } = firstSentence(text)
+  return isLookingForHook(sentence)
+}
+
+function finalizeCopy(text: string, job: JobForCopy, platform: SocialPlatform): string {
+  return enforceLimit(rewriteLookingForOpening(text.trim(), job), platform)
+}
+
 /** First N chars of the description/responsibilities as a post summary. */
 export function summary(job: JobForCopy, maxChars = 240): string {
   const source = [job.description, job.responsibilities].filter(Boolean).join(' ')
-  const text = plainText(source)
+  const text = dropLookingForLeadSentences(plainText(source))
   if (!text) return ''
   const cut = text.slice(0, maxChars)
   return cut.length < text.length ? `${cut.trim().replace(/[,.;:\s]+$/, '')}…` : cut
@@ -323,14 +429,14 @@ function buildFactsBlock(job: JobForCopy): string {
 
 const PLATFORM_PROMPTS: Record<SocialPlatform, string> = {
   linkedin:
-    'Professional, confident tone. Strong job title opening, employer, location, a short description, key requirements, clear CTA and the Careersasa URL. No emojis. Under 3000 characters.',
+    'Professional, confident tone. Open with the job title (not a question). Then employer, location, a short description, key requirements, clear CTA and the Careersasa URL. No emojis. Under 3000 characters.',
   facebook:
-    'Conversational and engaging tone. Use a few relevant emojis sparingly. Highlight the opportunity, include a short description and requirements, and end with a clear CTA to Careersasa. Under 2200 characters.',
+    'Conversational and engaging tone. Use a few relevant emojis sparingly. Open with the job title, employer, or location as the first line. Never open with "Looking for…", "Looking to…?", "Are you looking…", or "We\'re looking for…". Vary the first line from post to post. Include a short description and requirements, and end with a clear CTA to Careersasa. Under 2200 characters.',
   instagram:
-    'Short copy with a strong hook. A couple of relevant hashtags and the Careersasa URL. Designed to accompany a Careersasa job graphic. Under 2200 characters.',
+    'Short copy. Lead with the job title or employer, not a "Looking for…?" question. A couple of relevant hashtags and the Careersasa URL. Designed to accompany a Careersasa job graphic. Under 2200 characters.',
 }
 
-function systemPromptFor(platform: SocialPlatform): string {
+export function systemPromptFor(platform: SocialPlatform): string {
   return [
     'You write social media posts for CareerSasa (careersasa.co.ke), a Kenyan jobs platform.',
     `Platform: ${PLATFORM_SPECS[platform].label}. Style: ${PLATFORM_PROMPTS[platform]}`,
@@ -339,6 +445,7 @@ function systemPromptFor(platform: SocialPlatform): string {
     '- If a fact is missing or null, omit it entirely.',
     '- Do not add information that is not present in the JSON block.',
     '- Do not wrap the answer in quotes or markdown. Output plain text only.',
+    '- Never start the post with "Looking for", "Looking to", "Are you looking", or "We\'re looking for". Those openings are banned. Lead with a concrete fact from the JSON (title, employer, or location).',
   ].join('\n')
 }
 
@@ -354,7 +461,7 @@ export async function generatePostCopyWithAI(
   })
   const text = result.text.trim()
   if (!text) throw new Error('AI returned an empty post — try again or use the template.')
-  return enforceLimit(text, platform)
+  return finalizeCopy(text, job, platform)
 }
 
 export function enforceLimit(text: string, platform: SocialPlatform): string {
@@ -389,10 +496,10 @@ export async function generatePostCopy(
 export function templateFor(job: JobForCopy, platform: SocialPlatform): string {
   switch (platform) {
     case 'linkedin':
-      return enforceLimit(templateLinkedIn(job), platform)
+      return finalizeCopy(templateLinkedIn(job), job, platform)
     case 'facebook':
-      return enforceLimit(templateFacebook(job), platform)
+      return finalizeCopy(templateFacebook(job), job, platform)
     case 'instagram':
-      return enforceLimit(templateInstagram(job), platform)
+      return finalizeCopy(templateInstagram(job), job, platform)
   }
 }
