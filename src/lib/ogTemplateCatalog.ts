@@ -100,19 +100,24 @@ export function buildOgPreviewUrl(
   return `/api/og/job/${encodeURIComponent(jobIdOrSlug)}?${params.toString()}`;
 }
 
-/** Canonical share image path (includes chosen template for cache-stable URLs). */
+/**
+ * Canonical share image path.
+ *
+ * Always the file-like `/og/jobs/{id}.png` URL (rewritten to the generator).
+ * Facebook's crawler often skips or times out `/api/og/...` URLs without an
+ * image extension; Buffer warms this same path before publishing.
+ */
 export function buildShareOgImagePath(jobIdOrSlug: string): string {
   const template = pickOgTemplateForJob(jobIdOrSlug);
-  return `/api/og/job/${encodeURIComponent(jobIdOrSlug)}?template=${template}`;
+  return `/og/jobs/${encodeURIComponent(jobIdOrSlug)}.png?template=${template}`;
 }
 
 /**
- * File-like PNG URL for Buffer/LinkedIn. Same generator as buildShareOgImagePath;
- * the .png path is rewritten to /api/og/job/:id so fetchers treat it as an image file.
+ * File-like PNG URL for Buffer / LinkedIn / Facebook.
+ * Same as buildShareOgImagePath — kept as an alias so existing callers stay clear.
  */
 export function buildShareOgImageFilePath(jobIdOrSlug: string): string {
-  const template = pickOgTemplateForJob(jobIdOrSlug);
-  return `/og/jobs/${encodeURIComponent(jobIdOrSlug)}.png?template=${template}`;
+  return buildShareOgImagePath(jobIdOrSlug);
 }
 
 export function emptyReview(): OgTemplateReview {

@@ -3,6 +3,8 @@
  * Tuned for @vercel/og (Satori): flexbox + inline styles only.
  */
 
+import { OG_FETCH_TIMEOUT_MS, fetchWithTimeout } from '@/lib/ogFetch';
+
 export const OG_COLORS = {
   /** CareerSasa primary — LinkedIn / corporate blue family */
   primaryBlue: '#1565C0',
@@ -148,7 +150,10 @@ export async function loadPublicAssetDataUrl(
   const unique = [...new Set(bases)];
   for (const base of unique) {
     try {
-      const res = await fetch(`${base}${path.startsWith('/') ? path : `/${path}`}`);
+      const res = await fetchWithTimeout(
+        `${base}${path.startsWith('/') ? path : `/${path}`}`,
+        OG_FETCH_TIMEOUT_MS.asset,
+      );
       if (!res.ok) continue;
       const contentType = res.headers.get('content-type') || 'image/png';
       if (!contentType.startsWith('image/')) continue;
@@ -172,19 +177,19 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   return btoa(binary);
 }
 
-/** Load Inter TTF weights for @vercel/og */
+/** Load Inter TTF weights for @vercel/og. Skip 400 — cards use 600/700/800. */
 export async function loadInterFonts(): Promise<
-  { name: string; data: ArrayBuffer; weight: 400 | 600 | 700 | 800; style: 'normal' }[]
+  { name: string; data: ArrayBuffer; weight: 600 | 700 | 800; style: 'normal' }[]
 > {
-  const weights: Array<400 | 600 | 700 | 800> = [400, 600, 700, 800];
-  const fonts: { name: string; data: ArrayBuffer; weight: 400 | 600 | 700 | 800; style: 'normal' }[] =
+  const weights: Array<600 | 700 | 800> = [600, 700, 800];
+  const fonts: { name: string; data: ArrayBuffer; weight: 600 | 700 | 800; style: 'normal' }[] =
     [];
 
   await Promise.all(
     weights.map(async (weight) => {
       try {
         const url = `https://cdn.jsdelivr.net/fontsource/fonts/inter@5.2.5/latin-${weight}-normal.ttf`;
-        const res = await fetch(url);
+        const res = await fetchWithTimeout(url, OG_FETCH_TIMEOUT_MS.font);
         if (!res.ok) return;
         const data = await res.arrayBuffer();
         if (!data.byteLength) return;

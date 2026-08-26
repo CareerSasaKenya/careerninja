@@ -91,6 +91,10 @@ const nextConfig = {
             value: 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800',
           },
           {
+            key: 'Content-Type',
+            value: 'image/png',
+          },
+          {
             key: 'Content-Disposition',
             value: 'inline; filename="job-card.png"',
           },

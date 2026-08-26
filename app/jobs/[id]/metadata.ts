@@ -65,7 +65,7 @@ export async function generateJobMetadata(id: string): Promise<Metadata> {
       || `${jobTitle} job at ${companyName || 'a top company'} in ${locationPart}. Apply now on CareerSasa.`;
 
     const siteUrl = 'https://www.careersasa.co.ke';
-    // Stable per-job pick among accepted OG templates (2 / 4 / 5)
+    // Same .png URL Buffer warms before Facebook scrapes the link card.
     const thumbnailUrl = `${siteUrl}${buildShareOgImagePath(id)}`;
     const url = `${siteUrl}/jobs/${job.job_slug || job.id || id}`;
     const imageAlt = `${jobTitle}${companyName ? ` at ${companyName}` : ''}`;
@@ -81,6 +81,8 @@ export async function generateJobMetadata(id: string): Promise<Metadata> {
         images: [
           {
             url: thumbnailUrl,
+            secureUrl: thumbnailUrl,
+            type: 'image/png',
             width: 1200,
             height: 630,
             alt: imageAlt,

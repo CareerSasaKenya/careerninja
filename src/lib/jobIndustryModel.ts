@@ -4,6 +4,8 @@
  * (not imported into the Edge OG bundle) to stay under Vercel's ~500KB limit.
  */
 
+import { OG_FETCH_TIMEOUT_MS, fetchWithTimeout } from '@/lib/ogFetch';
+
 export type JobIndustryModelCategory =
   | 'healthcare'
   | 'technology'
@@ -304,7 +306,7 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
 
 async function fetchImageAsDataUrl(url: string): Promise<string | null> {
   try {
-    const res = await fetch(url);
+    const res = await fetchWithTimeout(url, OG_FETCH_TIMEOUT_MS.asset);
     if (!res.ok) {
       console.warn(`Industry model image fetch failed (${res.status}): ${url}`);
       return null;

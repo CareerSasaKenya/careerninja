@@ -16,6 +16,8 @@ import {
   resolveOgCardSize,
   type OgJobCardData,
 } from '@/lib/ogJobCardDesign';
+import { OG_FETCH_TIMEOUT_MS, fetchWithTimeout } from '@/lib/ogFetch';
+import { finalizeOgPngResponse, ogImageHeadResponse } from '@/lib/ogImageResponse';
 import { resolveOgTemplateSelection } from '@/lib/ogTemplateCatalog';
 import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabaseEnv';
 
@@ -24,50 +26,56 @@ export const revalidate = 86400;
 
 const SITE_URL = 'https://www.careersasa.co.ke';
 
+/** Facebook (and Buffer) often HEAD the image URL first — never run Satori here. */
+export async function HEAD(
+  _request: NextRequest,
+  _context: { params: Promise<{ id: string }> },
+) {
+  return ogImageHeadResponse();
+}
+
 function brandFallbackCard(width: number, height: number) {
-  return new ImageResponse(
-    (
-      <div
-        style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: `linear-gradient(145deg, ${OG_COLORS.primaryBlueDeep}, ${OG_COLORS.primaryBlue})`,
-          color: OG_COLORS.white,
-          fontFamily: 'Inter, sans-serif',
-          padding: 48,
-        }}
-      >
-        <div style={{ display: 'flex', fontSize: 64, fontWeight: 800 }}>CareerSasa</div>
-        <div style={{ display: 'flex', fontSize: 32, marginTop: 16, opacity: 0.9 }}>
-          Find Your Dream Job in Kenya
-        </div>
+  return finalizeOgPngResponse(
+    new ImageResponse(
+      (
         <div
           style={{
+            width: '100%',
+            height: '100%',
             display: 'flex',
-            marginTop: 36,
-            padding: '14px 32px',
-            borderRadius: 18,
-            background: `linear-gradient(135deg, ${OG_COLORS.accentOrange}, ${OG_COLORS.accentOrangeDeep})`,
-            fontSize: 28,
-            fontWeight: 800,
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: `linear-gradient(145deg, ${OG_COLORS.primaryBlueDeep}, ${OG_COLORS.primaryBlue})`,
+            color: OG_COLORS.white,
+            fontFamily: 'Inter, sans-serif',
+            padding: 48,
           }}
         >
-          APPLY NOW
+          <div style={{ display: 'flex', fontSize: 64, fontWeight: 800 }}>CareerSasa</div>
+          <div style={{ display: 'flex', fontSize: 32, marginTop: 16, opacity: 0.9 }}>
+            Find Your Dream Job in Kenya
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              marginTop: 36,
+              padding: '14px 32px',
+              borderRadius: 18,
+              background: `linear-gradient(135deg, ${OG_COLORS.accentOrange}, ${OG_COLORS.accentOrangeDeep})`,
+              fontSize: 28,
+              fontWeight: 800,
+            }}
+          >
+            APPLY NOW
+          </div>
         </div>
-      </div>
-    ),
-    {
-      width,
-      height,
-      headers: {
-        'Cache-Control': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800',
-        'Content-Disposition': 'inline; filename="job-card.png"',
+      ),
+      {
+        width,
+        height,
       },
-    },
+    ),
   );
 }
 
@@ -151,7 +159,7 @@ export async function GET(
       // Official CareerSasa symbol only; the wordmark is rendered separately in the footer.
       loadPublicAssetDataUrl('/careersasa-icon.png', assetOrigin),
       companyLogoUrl
-        ? fetch(companyLogoUrl)
+        ? fetchWithTimeout(companyLogoUrl, OG_FETCH_TIMEOUT_MS.logo)
             .then(async (res) => {
               if (!res.ok) return null;
               const contentType = (res.headers.get('content-type') || 'image/png').split(';')[0];
@@ -200,15 +208,13 @@ export async function GET(
         <JobSocialCardTemplate2 {...cardData} />
       );
 
-    return new ImageResponse(card, {
-      width,
-      height,
-      fonts: fonts.length ? fonts : undefined,
-      headers: {
-        'Cache-Control': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800',
-        'Content-Disposition': 'inline; filename="job-card.png"',
-      },
-    });
+    return finalizeOgPngResponse(
+      new ImageResponse(card, {
+        width,
+        height,
+        fonts: fonts.length ? fonts : undefined,
+      }),
+    );
   } catch (error) {
     console.error('Error generating OG image:', error);
     return brandFallbackCard(width, height);

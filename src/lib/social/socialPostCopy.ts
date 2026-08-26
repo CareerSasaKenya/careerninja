@@ -67,7 +67,7 @@ export function jobUrl(job: { job_slug?: string | null; slug?: string | null; id
   return `${SITE_URL}/jobs/${encodeURIComponent(slug)}`
 }
 
-/** Public PNG URL Buffer can fetch as a file (rewritten to the OG generator). */
+/** Public PNG URL Buffer and Facebook both fetch (rewritten to the OG generator). */
 export function jobOgImageUrl(job: {
   job_slug?: string | null
   slug?: string | null
