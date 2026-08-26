@@ -377,9 +377,9 @@ export async function bufferCreatePost(
 }
 
 /**
- * Fetch the OG PNG once so Vercel caches it before Buffer tries to read
- * image dimensions (a cold generate can take several seconds and Buffer then
- * creates a text-only post / fails dimension detection).
+ * Fetch the OG PNG once so Vercel caches it before Buffer (and Facebook)
+ * try to read image dimensions. A cold generate can take several seconds;
+ * Facebook's crawler then leaves the link-card image blank.
  */
 export async function warmPublicImageUrl(url: string): Promise<boolean> {
   const target = url.trim()
