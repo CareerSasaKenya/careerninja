@@ -71,8 +71,8 @@ export function canConsumeUsage(used: number, limit = DAILY_SUGGEST_LIMIT): bool
 }
 
 function contentTokens(text: string): string[] {
-  const matches = stripJdPlaintext(text).toLowerCase().match(/[a-z][a-z0-9+#.]{2,}/g) || [];
-  return matches.filter((token) => token.length >= 3);
+  const matches = stripJdPlaintext(text).toLowerCase().match(/[a-z][a-z0-9+#.]{2,}/g);
+  return matches ? Array.from(matches) : [];
 }
 
 export function suggestCorpus(request: SuggestRequest): string {
