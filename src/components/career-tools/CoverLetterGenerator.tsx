@@ -19,15 +19,20 @@ import {
   getCoverLetterTemplateConfig,
   type CoverLetterTemplateConfig,
 } from '@/data/coverLetterTemplates';
+import SuggestFieldButton from '@/components/career-tools/SuggestFieldButton';
 import {
   getCoverLetterTemplates,
+  getUserCVs,
   getUserCoverLetters,
   createCoverLetter,
   updateCoverLetter,
   deleteCoverLetter,
+  type CandidateCV,
   type CoverLetterTemplate,
   type CandidateCoverLetter,
 } from '@/lib/careerTools';
+import type { SuggestUsage } from '@/lib/careerSuggest';
+import { fetchSuggestUsage } from '@/lib/requestCareerSuggest';
 import {
   coverLetterPlaintext,
   hydrateCoverLetter,
@@ -73,12 +78,19 @@ export default function CoverLetterGenerator({
   const [formData, setFormData] = useState<Record<string, string>>(() =>
     emptyCoverLetterFields('Classic Professional Cover Letter'),
   );
+  const [sourceCv, setSourceCv] = useState<CandidateCV | null>(null);
+  const [usage, setUsage] = useState<SuggestUsage | null>(null);
 
   const { toast } = useToast();
   const router = useRouter();
 
   useEffect(() => {
     loadData();
+    fetchSuggestUsage()
+      .then((result) => {
+        if (result.usage) setUsage(result.usage);
+      })
+      .catch(() => undefined);
   }, []);
 
   async function loadData() {
@@ -88,10 +100,15 @@ export default function CoverLetterGenerator({
 
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const lettersData = await getUserCoverLetters(user.id);
+        const [lettersData, cvsData] = await Promise.all([
+          getUserCoverLetters(user.id),
+          getUserCVs(user.id).catch(() => [] as CandidateCV[]),
+        ]);
         setLetters(lettersData ?? []);
+        setSourceCv(cvsData.find((cv) => cv.is_primary) || cvsData[0] || null);
       } else {
         setLetters([]);
+        setSourceCv(null);
       }
     } catch (error: any) {
       toast({ title: 'Error loading data', description: error.message, variant: 'destructive' });
@@ -362,7 +379,10 @@ export default function CoverLetterGenerator({
         <DialogContent className="max-w-6xl w-[95vw] max-h-[90vh] h-[90vh] overflow-hidden flex flex-col p-0">
           <DialogHeader className="px-6 pt-6 pb-3 border-b">
             <DialogTitle>{activeTemplateName}</DialogTitle>
-            <DialogDescription>Edit your details on the left — the preview updates live on the right.</DialogDescription>
+            <DialogDescription>
+              Edit your details on the left — the preview updates live on the right.
+              {usage ? ` AI ${usage.used}/${usage.limit} today.` : ''}
+            </DialogDescription>
           </DialogHeader>
           <div className="flex flex-1 overflow-hidden">
             <div className="w-[340px] flex-shrink-0 border-r overflow-y-auto px-5 py-4 space-y-4">
@@ -386,6 +406,21 @@ export default function CoverLetterGenerator({
                       <Label htmlFor={`letter-${key}`} className="text-sm">{field.label}</Label>
                       {field.type === 'textarea' ? (
                         <>
+                          <div className="mt-1 mb-1">
+                            <SuggestFieldButton
+                              kind="letter_paragraph"
+                              label="Rewrite"
+                              request={{
+                                cv: sourceCv?.content,
+                                jdText: sourceCv?.target_jd_text,
+                                letterField: key,
+                                letterFields: formData,
+                                currentText: val,
+                              }}
+                              onUsage={setUsage}
+                              onPick={(text) => updateField(key, text)}
+                            />
+                          </div>
                           <Textarea
                             id={`letter-${key}`}
                             className="mt-1 text-sm"

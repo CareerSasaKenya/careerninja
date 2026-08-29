@@ -639,6 +639,7 @@ export default function CVBuilder({
                   <CVEditor
                     cv={selectedCV}
                     templateName={getTemplateName(selectedCV.template_id)}
+                    jdText={selectedCV.target_jd_text}
                     onSave={handleEditorSave}
                     onCancel={handleEditorCancel}
                   />

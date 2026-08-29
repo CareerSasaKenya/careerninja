@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, lazy, Suspense, useRef } from 'react';
+import { useState, lazy, Suspense, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,8 +8,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2, Save, X, Eye, EyeOff, ChevronDown, ChevronRight, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import SuggestFieldButton from '@/components/career-tools/SuggestFieldButton';
 import { updateCV, type CandidateCV } from '@/lib/careerTools';
+import { applySuggestionToList, type SuggestUsage } from '@/lib/careerSuggest';
 import { normalizeCVContent, toTemplateProps } from '@/lib/cvContent';
+import { fetchSuggestUsage } from '@/lib/requestCareerSuggest';
 
 const ClassicTemplate = lazy(() => import('./templates/ClassicTemplate'));
 const ModernTemplate = lazy(() => import('./templates/ModernTemplate'));
@@ -27,6 +30,7 @@ const ATSOptimizedTemplate = lazy(() => import('./templates/ATSOptimizedTemplate
 interface CVEditorProps {
   cv: CandidateCV;
   templateName?: string;
+  jdText?: string | null;
   onSave: () => void;
   onCancel: () => void;
 }
@@ -70,10 +74,19 @@ function Section({ title, children, defaultOpen = true }: { title: string; child
   );
 }
 
-export default function CVEditor({ cv, templateName, onSave, onCancel }: CVEditorProps) {
+export default function CVEditor({ cv, templateName, jdText = null, onSave, onCancel }: CVEditorProps) {
   const [saving, setSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
+  const [usage, setUsage] = useState<SuggestUsage | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    fetchSuggestUsage()
+      .then((result) => {
+        if (result.usage) setUsage(result.usage);
+      })
+      .catch(() => undefined);
+  }, []);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const initial = normalizeCVContent(cv.content);
 
@@ -185,6 +198,11 @@ export default function CVEditor({ cv, templateName, onSave, onCancel }: CVEdito
       <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/30">
         <span className="text-sm text-muted-foreground">
           Template: <span className="font-medium text-foreground">{resolvedTemplateName}</span>
+          {usage && (
+            <span className="ml-3 text-xs">
+              AI {usage.used}/{usage.limit} today
+            </span>
+          )}
         </span>
         <Button size="sm" variant="outline" onClick={() => setShowPreview(p => !p)}>
           {showPreview ? <EyeOff className="h-4 w-4 mr-1" /> : <Eye className="h-4 w-4 mr-1" />}
@@ -254,7 +272,20 @@ export default function CVEditor({ cv, templateName, onSave, onCancel }: CVEdito
               </div>
             </div>
             <div className="mt-3">
-              <Label>Professional Summary</Label>
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <Label>Professional Summary</Label>
+                <SuggestFieldButton
+                  kind="summary"
+                  label="Rewrite"
+                  request={{
+                    cv: editorContent,
+                    jdText: jdText || cv.target_jd_text,
+                    currentText: personal.profile,
+                  }}
+                  onUsage={setUsage}
+                  onPick={(text) => setPersonal((prev) => ({ ...prev, profile: text }))}
+                />
+              </div>
               <Textarea value={personal.profile} onChange={e => setPersonal(p => ({ ...p, profile: e.target.value }))} placeholder="Brief summary of your professional background and goals..." rows={4} />
             </div>
           </Section>
@@ -262,6 +293,17 @@ export default function CVEditor({ cv, templateName, onSave, onCancel }: CVEdito
           {/* Skills */}
           <Section title="Skills">
             <div className="space-y-2">
+              <SuggestFieldButton
+                kind="skills"
+                label="Tighten skills"
+                request={{
+                  cv: editorContent,
+                  jdText: jdText || cv.target_jd_text,
+                  currentText: skills.join(', '),
+                }}
+                onUsage={setUsage}
+                onPick={(text) => setSkills(applySuggestionToList(text, 'comma'))}
+              />
               {skills.map((skill, i) => (
                 <div key={i} className="flex gap-2">
                   <Input value={skill} onChange={e => { const s = [...skills]; s[i] = e.target.value; setSkills(s); }} placeholder="e.g. Project Management" />
@@ -288,7 +330,25 @@ export default function CVEditor({ cv, templateName, onSave, onCancel }: CVEdito
                     <div className="col-span-2"><Label className="text-xs">Dates</Label><Input value={exp.dates} onChange={e => set(setExperience)(ei, 'dates', e.target.value)} placeholder="Jan 2021 – Present" /></div>
                   </div>
                   <div>
-                    <Label className="text-xs">Responsibilities / Achievements</Label>
+                    <div className="flex items-center justify-between gap-2">
+                      <Label className="text-xs">Responsibilities / Achievements</Label>
+                      <SuggestFieldButton
+                        kind="experience_bullets"
+                        label="Rewrite bullets"
+                        request={{
+                          cv: editorContent,
+                          jdText: jdText || cv.target_jd_text,
+                          experienceIndex: ei,
+                          currentText: exp.details.join('\n'),
+                        }}
+                        onUsage={setUsage}
+                        onPick={(text) => {
+                          const next = [...experience];
+                          next[ei] = { ...next[ei], details: applySuggestionToList(text, 'lines') };
+                          setExperience(next);
+                        }}
+                      />
+                    </div>
                     <div className="space-y-1.5 mt-1">
                       {exp.details.map((d, di) => (
                         <div key={di} className="flex gap-2">
