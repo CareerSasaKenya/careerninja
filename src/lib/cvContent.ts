@@ -1,4 +1,5 @@
-import type { CVContent, CVEducation, CVExperience, CVPersonal } from '@/types/careerDocuments';
+import { emptyHiddenSections } from '@/lib/cvDesign';
+import type { CVContent, CVEducation, CVExperience, CVPersonal, CVProject } from '@/types/careerDocuments';
 
 function str(value: unknown): string {
   return typeof value === 'string' ? value : value == null ? '' : String(value);
@@ -69,6 +70,57 @@ function normalizeEducation(raw: unknown): CVEducation[] {
   });
 }
 
+function normalizeProjects(raw: unknown): CVProject[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((item) => {
+    const p = asRecord(item);
+    const title = str(p.title || p.name);
+    const year = str(p.year || p.dates);
+    return {
+      title,
+      name: str(p.name || p.title),
+      client: str(p.client || p.company),
+      year,
+      dates: str(p.dates || p.year),
+      tech: str(p.tech),
+      description: str(p.description),
+      link: str(p.link),
+    };
+  });
+}
+
+function normalizeSkillCategories(raw: unknown): Array<{ title: string; skills: string[] }> {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((item) => {
+    const c = asRecord(item);
+    return { title: str(c.title), skills: stringArray(c.skills) };
+  });
+}
+
+function normalizeLabeledList(
+  raw: unknown,
+  keys: string[],
+): Array<string | Record<string, string>> {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((item) => {
+    if (typeof item === 'string') return item;
+    const record = asRecord(item);
+    const labeled: Record<string, string> = {};
+    for (const key of keys) labeled[key] = str(record[key]);
+    if (keys.some((key) => labeled[key])) return labeled;
+    return str(item);
+  });
+}
+
+function asStringList(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((item) => {
+    if (typeof item === 'string') return item;
+    const record = asRecord(item);
+    return str(record.event || record.title || record.platform || record.name || item);
+  }).filter((item) => item.length > 0);
+}
+
 function normalizePersonal(raw: unknown): CVPersonal {
   const p = asRecord(raw);
   const profile = str(p.profile || p.summary || p.objective);
@@ -118,12 +170,14 @@ export function normalizeCVContent(raw: unknown): CVContent {
     achievements: stringArray(source.achievements || source.awards),
     languages: stringArray(source.languages),
     tools: stringArray(source.tools),
-    projects: Array.isArray(source.projects) ? source.projects : [],
+    projects: normalizeProjects(source.projects),
     internships: Array.isArray(source.internships)
       ? normalizeExperience(source.internships)
-      : experience,
+      : Array.isArray(source.attachment)
+        ? normalizeExperience(source.attachment)
+        : experience,
     activities: stringArray(source.activities),
-    publications: stringArray(source.publications),
+    publications: normalizeLabeledList(source.publications, ['title', 'platform', 'year']),
     conferences: stringArray(source.conferences),
     grants: stringArray(source.grants || source.certifications),
     awards: stringArray(source.awards || source.achievements),
@@ -132,6 +186,13 @@ export function normalizeCVContent(raw: unknown): CVContent {
     researchInterests: stringArray(source.researchInterests).length
       ? stringArray(source.researchInterests)
       : stringArray(source.skills),
+    skillCategories: normalizeSkillCategories(source.skillCategories),
+    social: asStringList(source.social),
+    speaking: normalizeLabeledList(source.speaking, ['event', 'location', 'year']),
+    mediaFeatures: asStringList(source.mediaFeatures),
+    design: source.design && typeof source.design === 'object' && !Array.isArray(source.design)
+      ? source.design
+      : undefined,
   };
 }
 
@@ -162,8 +223,33 @@ export function toTemplateProps(raw: unknown, _templateName?: string) {
       ? content.internships
       : content.experience,
   );
+  const projects = (content.projects || []).map((project) => ({
+    title: project.title || project.name || '',
+    name: project.name || project.title || '',
+    client: project.client || '',
+    company: project.client || '',
+    year: project.year || project.dates || '',
+    dates: project.dates || project.year || '',
+    tech: project.tech || '',
+    description: project.description || '',
+    link: project.link || '',
+  }));
+  const publications = (content.publications || []).map((item) => {
+    if (typeof item === 'string') return item;
+    const record = item as { title?: string; platform?: string; year?: string };
+    return {
+      title: record.title || '',
+      platform: record.platform || '',
+      year: record.year || '',
+    };
+  });
+  const speaking = (content.speaking || []).map((item) => {
+    if (typeof item === 'string') return { event: item, location: '', year: '' };
+    const record = item as { event?: string; location?: string; year?: string };
+    return { event: record.event || '', location: record.location || '', year: record.year || '' };
+  });
 
-  return {
+  const props = {
     name: p.name || '',
     title: p.title || '',
     tagline: p.title || '',
@@ -184,6 +270,7 @@ export function toTemplateProps(raw: unknown, _templateName?: string) {
     experience,
     education: content.education.map((e) => ({
       degree: e.degree || '',
+      program: e.degree || '',
       institution: e.institution || '',
       dates: e.dates || '',
       thesis: e.thesis,
@@ -193,8 +280,9 @@ export function toTemplateProps(raw: unknown, _templateName?: string) {
     achievements: content.achievements,
     languages: content.languages,
     tools: content.tools,
-    projects: content.projects || [],
+    projects,
     internships,
+    attachment: internships,
     activities: content.activities || [],
     researchInterests: content.researchInterests?.length
       ? content.researchInterests
@@ -205,7 +293,7 @@ export function toTemplateProps(raw: unknown, _templateName?: string) {
       location: e.location,
       dates: e.dates,
     })),
-    publications: content.publications || [],
+    publications,
     conferences: content.conferences || [],
     grants: content.grants?.length ? content.grants : content.certifications,
     awards: content.awards?.length ? content.awards : content.achievements,
@@ -213,9 +301,14 @@ export function toTemplateProps(raw: unknown, _templateName?: string) {
     coreSkills: content.skills,
     skillCategories: content.skillCategories || [],
     social: content.social || [],
-    speaking: content.speaking || [],
+    speaking,
     mediaFeatures: content.mediaFeatures || [],
     boardMemberships: content.boardMemberships || [],
     strategicInitiatives: content.strategicInitiatives || [],
+    design: content.design,
   };
+
+  const visible = emptyHiddenSections(content.design, props) as typeof props;
+  visible.attachment = visible.internships;
+  return visible;
 }

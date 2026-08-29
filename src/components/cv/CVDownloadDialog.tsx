@@ -7,9 +7,12 @@ import { Download, FileText, FileType } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { type CandidateCV } from '@/lib/careerTools';
 import { toTemplateProps } from '@/lib/cvContent';
+import { mergeDesign } from '@/lib/cvDesign';
 import { downloadReactElementAsPdf, pdfFilename } from '@/lib/documentPdf';
 import { resolveCVTemplate } from '@/components/cv/resolveCVTemplate';
+import CVStudioFrame from '@/components/cv/CVStudioFrame';
 import { createElement, type ComponentType } from 'react';
+import type { CVDesign } from '@/types/careerDocuments';
 
 interface CVDownloadDialogProps {
   open: boolean;
@@ -26,9 +29,13 @@ export default function CVDownloadDialog({ open, onOpenChange, cv, templateName 
     try {
       setDownloading(true);
       const TemplateComponent = (await resolveCVTemplate(templateName)) as ComponentType<{ data: any }>;
+      const design = mergeDesign(undefined, (cv.content as { design?: CVDesign } | null)?.design);
       await downloadReactElementAsPdf({
-        element: createElement(TemplateComponent, {
-          data: toTemplateProps(cv.content, templateName),
+        element: createElement(CVStudioFrame, {
+          design,
+          children: createElement(TemplateComponent, {
+            data: toTemplateProps(cv.content, templateName),
+          }),
         }),
         filename: pdfFilename(cv.title),
       });

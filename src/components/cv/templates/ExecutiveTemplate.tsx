@@ -47,7 +47,7 @@ interface ExecutiveTemplateProps {
 
 export default function ExecutiveTemplate({ data }: ExecutiveTemplateProps) {
   return (
-    <div className="w-[794px] h-[1123px] bg-white p-8 text-gray-900 font-serif shadow-lg print:shadow-none">
+    <div className="w-[794px] min-h-[1123px] bg-white p-8 text-gray-900 overflow-visible shadow-lg print:shadow-none">
       {/* Header Section */}
       <header className="mb-5 pb-3 border-b-2 border-gray-900">
         <div className="flex items-start gap-4">

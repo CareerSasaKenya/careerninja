@@ -47,7 +47,7 @@ interface DigitalProfessionalTemplateProps {
 
 export default function DigitalProfessionalTemplate({ data }: DigitalProfessionalTemplateProps) {
   return (
-    <div className="w-[794px] h-[1123px] bg-white grid grid-cols-3 font-sans text-gray-800 overflow-hidden">
+    <div className="w-[794px] min-h-[1123px] bg-white grid grid-cols-3 text-gray-800 overflow-visible">
       {/* Sidebar */}
       <aside className="col-span-1 bg-gray-900 text-white p-6">
         {data.photoUrl && (

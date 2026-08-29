@@ -34,7 +34,7 @@ interface ATSOptimizedTemplateProps {
 
 export default function ATSOptimizedTemplate({ data }: ATSOptimizedTemplateProps) {
   return (
-    <div className="w-[794px] h-[1123px] bg-white p-10 font-sans text-gray-900 overflow-hidden">
+    <div className="w-[794px] min-h-[1123px] bg-white p-10 text-gray-900 overflow-visible">
 
       {/* Header */}
       <header className="mb-6">

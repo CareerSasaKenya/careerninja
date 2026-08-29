@@ -29,6 +29,7 @@ import {
 } from '@/lib/careerTools';
 import { targetingHeadline } from '@/lib/jobTargeting';
 import { getTemplateDefaultContent } from '@/data/templateDefaultContent';
+import { designFromTemplateData } from '@/lib/cvDesign';
 
 const TEMPLATE_SECTIONS = [
   {
@@ -308,7 +309,10 @@ export default function CVBuilder({
         user_id: user.id,
         template_id: selectedTemplate.id,
         title: cvName,
-        content: getTemplateDefaultContent(selectedTemplate.name),
+        content: {
+          ...getTemplateDefaultContent(selectedTemplate.name),
+          design: designFromTemplateData(selectedTemplate.template_data, selectedTemplate.name),
+        },
         is_primary: cvs.length === 0
       });
 
@@ -366,7 +370,8 @@ export default function CVBuilder({
         certifications: [],
         achievements: [],
         languages: [],
-        tools: []
+        tools: [],
+        design: designFromTemplateData(selectedTemplate.template_data, selectedTemplate.name),
       };
 
       const newCV = await createCV({
@@ -639,6 +644,7 @@ export default function CVBuilder({
                   <CVEditor
                     cv={selectedCV}
                     templateName={getTemplateName(selectedCV.template_id)}
+                    templateData={templates.find((template) => template.id === selectedCV.template_id)?.template_data}
                     jdText={selectedCV.target_jd_text}
                     onSave={handleEditorSave}
                     onCancel={handleEditorCancel}

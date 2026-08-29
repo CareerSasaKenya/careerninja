@@ -22,7 +22,7 @@
     "test:social-route": "npx tsx src/lib/social/routeJobToPlatform.test.ts",
     "test:social-auto-queue": "npx tsx src/lib/social/autoQueueJobs.test.ts",
     "test:social-copy": "npx tsx src/lib/social/socialPostCopy.test.ts",
-    "test:career-docs": "npx tsx src/lib/cvContent.test.ts && npx tsx src/lib/coverLetterContent.test.ts && npx tsx src/lib/applyDocuments.test.ts && npx tsx src/lib/jobTargeting.test.ts && npx tsx src/lib/careerSuggest.test.ts",
+    "test:career-docs": "npx tsx src/lib/cvContent.test.ts && npx tsx src/lib/coverLetterContent.test.ts && npx tsx src/lib/applyDocuments.test.ts && npx tsx src/lib/jobTargeting.test.ts && npx tsx src/lib/careerSuggest.test.ts && npx tsx src/lib/cvDesign.test.ts && npx tsx src/lib/cvTemplateExtras.test.ts",
     "merge:companies": "npx tsx scripts/merge-duplicate-companies.mts",
     "merge:companies:apply": "npx tsx scripts/merge-duplicate-companies.mts --apply",
     "enrich:companies": "npx tsx scripts/enrich-company-profiles.mts",

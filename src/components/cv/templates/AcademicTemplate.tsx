@@ -20,7 +20,7 @@ interface AcademicData {
     location: string;
     dates: string;
   }>;
-  publications: string[];
+  publications: Array<string | { title?: string; platform?: string; year?: string }>;
   conferences: string[];
   education: Array<{
     degree: string;
@@ -39,7 +39,7 @@ interface AcademicTemplateProps {
 
 export default function AcademicTemplate({ data }: AcademicTemplateProps) {
   return (
-    <div className="w-[794px] h-[1123px] bg-white p-10 font-serif text-gray-900 overflow-hidden">
+    <div className="w-[794px] min-h-[1123px] bg-white p-10 text-gray-900 overflow-visible">
       {/* Header */}
       <header className="mb-5 border-b-2 border-gray-800 pb-4">
         <div className="flex items-start gap-4">
@@ -69,7 +69,7 @@ export default function AcademicTemplate({ data }: AcademicTemplateProps) {
         <p className="text-xs leading-relaxed">{data.profile}</p>
       </section>
 
-      {/* Research Interests */}
+      {data.researchInterests?.length > 0 && (
       <section className="mb-4">
         <h2 className="text-sm font-bold uppercase tracking-widest text-gray-800 border-b border-gray-400 pb-1 mb-2">
           Research Interests
@@ -80,6 +80,7 @@ export default function AcademicTemplate({ data }: AcademicTemplateProps) {
           ))}
         </ul>
       </section>
+      )}
 
       {/* Academic Positions */}
       <section className="mb-4">
@@ -98,19 +99,22 @@ export default function AcademicTemplate({ data }: AcademicTemplateProps) {
         ))}
       </section>
 
-      {/* Publications */}
+      {data.publications?.length > 0 && (
       <section className="mb-4">
         <h2 className="text-sm font-bold uppercase tracking-widest text-gray-800 border-b border-gray-400 pb-1 mb-2">
           Selected Publications
         </h2>
         <ol className="text-xs list-decimal ml-5 space-y-1">
           {data.publications.map((pub, index) => (
-            <li key={index} className="leading-relaxed">{pub}</li>
+            <li key={index} className="leading-relaxed">
+              {typeof pub === 'string' ? pub : [pub.title, pub.platform, pub.year].filter(Boolean).join(' — ')}
+            </li>
           ))}
         </ol>
       </section>
+      )}
 
-      {/* Conferences */}
+      {data.conferences?.length > 0 && (
       <section className="mb-4">
         <h2 className="text-sm font-bold uppercase tracking-widest text-gray-800 border-b border-gray-400 pb-1 mb-2">
           Conferences & Presentations
@@ -121,6 +125,7 @@ export default function AcademicTemplate({ data }: AcademicTemplateProps) {
           ))}
         </ul>
       </section>
+      )}
 
       {/* Education */}
       <section className="mb-4">

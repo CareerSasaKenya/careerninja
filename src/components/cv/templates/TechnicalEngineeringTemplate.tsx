@@ -40,10 +40,10 @@ interface TechnicalEngineeringTemplateProps {
 
 export default function TechnicalEngineeringTemplate({ data }: TechnicalEngineeringTemplateProps) {
   return (
-    <div className="w-[794px] h-[1123px] bg-white grid grid-cols-3 font-sans text-gray-800 overflow-hidden">
+    <div className="w-[794px] min-h-[1123px] bg-white grid grid-cols-3 text-gray-800 overflow-visible">
 
       {/* Sidebar */}
-      <aside className="col-span-1 bg-gray-100 p-8 overflow-hidden">
+      <aside className="col-span-1 bg-gray-100 p-8 overflow-visible">
         {data.photoUrl && (
           <div className="flex justify-center mb-4">
             <img src={data.photoUrl} alt="Profile" className="w-20 h-20 rounded-full object-cover border-2 border-gray-300" />
@@ -98,7 +98,7 @@ export default function TechnicalEngineeringTemplate({ data }: TechnicalEngineer
       </aside>
 
       {/* Main Content */}
-      <main className="col-span-2 p-10 overflow-hidden">
+      <main className="col-span-2 p-10 overflow-visible">
 
         {/* Summary */}
         <section className="mb-6">
@@ -108,7 +108,7 @@ export default function TechnicalEngineeringTemplate({ data }: TechnicalEngineer
           <p className="text-xs leading-relaxed text-gray-700">{data.summary}</p>
         </section>
 
-        {/* Engineering Projects */}
+        {data.projects?.length > 0 && (
         <section className="mb-6">
           <h2 className="text-sm font-bold uppercase tracking-wider text-gray-900 border-b-2 border-gray-800 pb-1 mb-3">
             Key Engineering Projects
@@ -123,6 +123,7 @@ export default function TechnicalEngineeringTemplate({ data }: TechnicalEngineer
             </div>
           ))}
         </section>
+        )}
 
         {/* Experience */}
         <section className="mb-6">

@@ -75,17 +75,17 @@ export interface CVContent {
   projects?: CVProject[];
   internships?: CVExperience[];
   activities?: string[];
-  publications?: string[];
+  publications?: Array<string | { title?: string; platform?: string; year?: string }>;
   conferences?: string[];
   grants?: string[];
   awards?: string[];
   boardMemberships?: string[];
   strategicInitiatives?: string[];
   researchInterests?: string[];
-  skillCategories?: unknown[];
-  social?: unknown[];
-  speaking?: unknown[];
-  mediaFeatures?: unknown[];
+  skillCategories?: Array<{ title?: string; skills?: string[] }>;
+  social?: string[];
+  speaking?: Array<string | { event?: string; location?: string; year?: string }>;
+  mediaFeatures?: string[];
   design?: CVDesign;
   [key: string]: unknown;
 }

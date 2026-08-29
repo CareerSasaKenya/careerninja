@@ -43,7 +43,7 @@ interface FunctionalTemplateProps {
 
 export default function FunctionalTemplate({ data }: FunctionalTemplateProps) {
   return (
-    <div className="w-[794px] h-[1123px] bg-white p-12 font-sans text-gray-800 overflow-hidden">
+    <div className="w-[794px] min-h-[1123px] bg-white p-12 text-gray-800 overflow-visible">
       {/* Header */}
       <header className="mb-6 border-b-2 border-gray-300 pb-4">
         <div className="flex items-start gap-4">
@@ -109,7 +109,7 @@ export default function FunctionalTemplate({ data }: FunctionalTemplateProps) {
         </div>
       </section>
 
-      {/* Skills Categories */}
+      {data.skillCategories?.length > 0 && (
       <section className="mb-6">
         <h2 className="text-lg font-bold text-gray-900 mb-3 uppercase tracking-wide border-b border-gray-300 pb-1">
           Professional Skills
@@ -119,7 +119,7 @@ export default function FunctionalTemplate({ data }: FunctionalTemplateProps) {
             <div key={index}>
               <h3 className="text-sm font-bold text-blue-700 mb-2">{category.title}</h3>
               <ul className="space-y-1.5 ml-4">
-                {category.skills.map((skill, i) => (
+                {(category.skills || []).map((skill, i) => (
                   <li key={i} className="text-sm text-gray-700 flex items-start">
                     <span className="text-gray-400 mr-2">•</span>
                     <span>{skill}</span>
@@ -130,6 +130,7 @@ export default function FunctionalTemplate({ data }: FunctionalTemplateProps) {
           ))}
         </div>
       </section>
+      )}
 
       {/* Work Experience (brief) */}
       <section className="mb-6">

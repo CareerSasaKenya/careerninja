@@ -206,7 +206,14 @@ export function collectCvPlaintext(content: unknown): string {
   pushText(parts, cv.certifications);
   pushText(parts, cv.achievements);
   pushText(parts, cv.activities);
-  pushText(parts, cv.publications);
+  pushText(
+    parts,
+    (cv.publications || []).map((item) =>
+      typeof item === 'string'
+        ? item
+        : [item.title, item.platform, item.year].filter(Boolean).join(' '),
+    ),
+  );
   pushText(parts, cv.conferences);
   pushText(parts, cv.grants);
   pushText(parts, cv.awards);

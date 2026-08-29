@@ -9,10 +9,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2, Save, X, Eye, EyeOff, ChevronDown, ChevronRight, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import SuggestFieldButton from '@/components/career-tools/SuggestFieldButton';
+import CVDesignToolbar from '@/components/cv/CVDesignToolbar';
+import CVExtraSectionsEditor from '@/components/cv/CVExtraSectionsEditor';
+import CVStudioFrame from '@/components/cv/CVStudioFrame';
 import { updateCV, type CandidateCV } from '@/lib/careerTools';
 import { applySuggestionToList, type SuggestUsage } from '@/lib/careerSuggest';
 import { normalizeCVContent, toTemplateProps } from '@/lib/cvContent';
+import { designFromTemplateData, mergeDesign } from '@/lib/cvDesign';
+import { extraFieldsForTemplate } from '@/lib/cvTemplateExtras';
 import { fetchSuggestUsage } from '@/lib/requestCareerSuggest';
+import type { CVDesign } from '@/types/careerDocuments';
 
 const ClassicTemplate = lazy(() => import('./templates/ClassicTemplate'));
 const ModernTemplate = lazy(() => import('./templates/ModernTemplate'));
@@ -30,9 +36,29 @@ const ATSOptimizedTemplate = lazy(() => import('./templates/ATSOptimizedTemplate
 interface CVEditorProps {
   cv: CandidateCV;
   templateName?: string;
+  templateData?: unknown;
   jdText?: string | null;
   onSave: () => void;
   onCancel: () => void;
+}
+
+function extrasFromRawContent(raw: unknown, templateName?: string): Record<string, unknown> {
+  const source = raw && typeof raw === 'object' && !Array.isArray(raw)
+    ? (raw as Record<string, unknown>)
+    : {};
+  const extras: Record<string, unknown> = {};
+  for (const field of extraFieldsForTemplate(templateName)) {
+    if (field.key === 'internships') {
+      extras[field.key] = Array.isArray(source.internships)
+        ? source.internships
+        : Array.isArray(source.attachment)
+          ? source.attachment
+          : [];
+    } else {
+      extras[field.key] = source[field.key] ?? [];
+    }
+  }
+  return extras;
 }
 
 interface Experience { jobTitle: string; company: string; location: string; dates: string; details: string[]; }
@@ -74,7 +100,7 @@ function Section({ title, children, defaultOpen = true }: { title: string; child
   );
 }
 
-export default function CVEditor({ cv, templateName, jdText = null, onSave, onCancel }: CVEditorProps) {
+export default function CVEditor({ cv, templateName, templateData, jdText = null, onSave, onCancel }: CVEditorProps) {
   const [saving, setSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
   const [usage, setUsage] = useState<SuggestUsage | null>(null);
@@ -89,6 +115,14 @@ export default function CVEditor({ cv, templateName, jdText = null, onSave, onCa
   }, []);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const initial = normalizeCVContent(cv.content);
+  const resolvedTemplateName = templateName || 'Classic Professional';
+  const extraFields = extraFieldsForTemplate(resolvedTemplateName);
+  const [design, setDesign] = useState<CVDesign>(() =>
+    mergeDesign(designFromTemplateData(templateData, resolvedTemplateName), initial.design),
+  );
+  const [extras, setExtras] = useState<Record<string, unknown>>(() =>
+    extrasFromRawContent(cv.content, resolvedTemplateName),
+  );
 
   // Personal info
   const [personal, setPersonal] = useState({
@@ -159,13 +193,16 @@ export default function CVEditor({ cv, templateName, jdText = null, onSave, onCa
     achievements,
     languages,
     tools,
+    design,
+    ...extras,
   };
-  const liveData = toTemplateProps(editorContent, templateName || 'Classic Professional');
+  const liveData = toTemplateProps(editorContent, resolvedTemplateName);
 
   const handleSave = async () => {
     try {
       setSaving(true);
       const updatedContent = {
+        ...cv.content,
         personal,
         skills: skills.filter(s => s.trim()),
         experience: experience.filter(e => e.jobTitle || e.company),
@@ -174,11 +211,8 @@ export default function CVEditor({ cv, templateName, jdText = null, onSave, onCa
         achievements: achievements.filter(a => a.trim()),
         languages: languages.filter(l => l.trim()),
         tools: tools.filter(t => t.trim()),
-        ...Object.fromEntries(
-          Object.entries(cv.content).filter(([k]) =>
-            !['personal','skills','experience','education','certifications','achievements','languages','tools'].includes(k)
-          )
-        ),
+        design,
+        ...extras,
       };
       await updateCV(cv.id, { content: updatedContent });
       toast({ title: 'Saved', description: 'CV updated successfully' });
@@ -189,8 +223,6 @@ export default function CVEditor({ cv, templateName, jdText = null, onSave, onCa
       setSaving(false);
     }
   };
-
-  const resolvedTemplateName = templateName || 'Classic Professional';
 
   return (
     <div className="flex flex-col h-full">
@@ -209,6 +241,7 @@ export default function CVEditor({ cv, templateName, jdText = null, onSave, onCa
           {showPreview ? 'Hide Preview' : 'Show Preview'}
         </Button>
       </div>
+      <CVDesignToolbar design={design} templateName={resolvedTemplateName} onChange={setDesign} />
 
       <div className={`flex flex-1 overflow-hidden ${showPreview ? 'flex-row' : ''}`}>
         {/* ── LEFT: Form ── */}
@@ -442,6 +475,13 @@ export default function CVEditor({ cv, templateName, jdText = null, onSave, onCa
             </Section>
           )}
 
+          <CVExtraSectionsEditor
+            fields={extraFields}
+            values={extras}
+            design={design}
+            onChange={(key, value) => setExtras((prev) => ({ ...prev, [key]: value }))}
+          />
+
           {/* Add optional section buttons */}
           {(!showCertifications || !showAchievements || !showLanguages || !showTools) && (
             <div className="border border-dashed rounded-lg p-3">
@@ -469,10 +509,12 @@ export default function CVEditor({ cv, templateName, jdText = null, onSave, onCa
               Live Preview — updates as you type
             </div>
             <div className="flex-1 overflow-auto p-4 bg-gray-50">
-              <div style={{ width: '437px', height: '618px', overflow: 'hidden', position: 'relative' }}>
-                <div style={{ transform: 'scale(0.55)', transformOrigin: 'top left', width: '794px', height: '1123px' }}>
-                  <Suspense fallback={<div className="flex items-center justify-center h-full text-sm text-muted-foreground">Loading preview...</div>}>
-                    <LivePreview templateName={resolvedTemplateName} data={liveData} />
+              <div className="flex justify-center">
+                <div className="bg-white shadow-lg" style={{ zoom: 0.55, width: 794 }}>
+                  <Suspense fallback={<div className="flex items-center justify-center h-[400px] text-sm text-muted-foreground">Loading preview...</div>}>
+                    <CVStudioFrame design={design}>
+                      <LivePreview templateName={resolvedTemplateName} data={liveData} />
+                    </CVStudioFrame>
                   </Suspense>
                 </div>
               </div>

@@ -6,15 +6,22 @@ import { supabase } from '@/integrations/supabase/client';
 import { isBuilderPdfCacheFresh } from '@/lib/applyDocuments';
 import { updateCV, type CandidateCV } from '@/lib/careerTools';
 import { toTemplateProps } from '@/lib/cvContent';
+import { mergeDesign } from '@/lib/cvDesign';
 import { pdfFilename, renderReactElementToPdfBlob } from '@/lib/documentPdf';
+import CVStudioFrame from '@/components/cv/CVStudioFrame';
+import type { CVDesign } from '@/types/careerDocuments';
 
 export async function generateCareerCvPdfBlob(
   cv: CandidateCV,
   templateName: string,
 ): Promise<Blob> {
   const Template = await resolveCVTemplate(templateName);
+  const design = mergeDesign(undefined, (cv.content as { design?: CVDesign } | null)?.design);
   return renderReactElementToPdfBlob({
-    element: createElement(Template, { data: toTemplateProps(cv.content, templateName) }),
+    element: createElement(CVStudioFrame, {
+      design,
+      children: createElement(Template, { data: toTemplateProps(cv.content, templateName) }),
+    }),
     filename: pdfFilename(cv.title),
   });
 }

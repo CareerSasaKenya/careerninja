@@ -50,4 +50,37 @@ import { normalizeCVContent, toTemplateProps } from './cvContent';
   assert.equal(empty.personal.name, '');
 }
 
+{
+  const props = toTemplateProps({
+    personal: { name: 'Jane' },
+    skills: [],
+    experience: [],
+    education: [{ degree: 'Diploma', institution: 'NITA', dates: '2022' }],
+    internships: [{ role: 'Trainee', organization: 'Kenya Power', dates: '2024', details: ['Wired boards'] }],
+    projects: [{ title: 'Street lights', client: 'County', year: '2023', description: 'LDR circuit' }],
+    publications: [{ title: 'A paper', platform: 'Journal', year: '2024' }],
+    design: { primaryColor: '#be123c', hiddenSections: ['publications'] },
+  });
+
+  assert.equal(props.design?.primaryColor, '#be123c');
+  assert.deepEqual(props.publications, []);
+  assert.equal(props.education[0].program, 'Diploma');
+  assert.equal(props.attachment[0].organization, 'Kenya Power');
+  assert.equal(props.projects[0].company, 'County');
+  assert.equal(props.projects[0].dates, '2023');
+}
+
+{
+  const hiddenInternships = toTemplateProps({
+    personal: { name: 'Jane' },
+    skills: [],
+    experience: [],
+    education: [],
+    internships: [{ role: 'Trainee', company: 'Kenya Power', dates: '2024', details: ['Wired boards'] }],
+    design: { hiddenSections: ['internships'] },
+  });
+  assert.deepEqual(hiddenInternships.internships, []);
+  assert.deepEqual(hiddenInternships.attachment, []);
+}
+
 console.log('cvContent.test.ts: ok');

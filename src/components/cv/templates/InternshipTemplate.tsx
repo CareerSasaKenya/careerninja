@@ -46,7 +46,7 @@ interface InternshipTemplateProps {
 
 export default function InternshipTemplate({ data }: InternshipTemplateProps) {
   return (
-    <div className="w-[794px] h-[1123px] bg-white p-10 font-sans text-gray-800">
+    <div className="w-[794px] min-h-[1123px] bg-white p-10 text-gray-800 overflow-visible">
       {/* Header */}
       <header className="mb-6">
         <div className="flex items-start gap-4">
@@ -78,7 +78,7 @@ export default function InternshipTemplate({ data }: InternshipTemplateProps) {
         
         {data.education.map((edu, index) => (
           <div key={index} className="mb-3">
-            <p className="text-sm font-semibold">{edu.program}</p>
+            <p className="text-sm font-semibold">{edu.program || (edu as { degree?: string }).degree}</p>
             <p className="text-sm">{edu.institution}</p>
             <p className="text-xs text-gray-500">{edu.dates}</p>
           </div>
