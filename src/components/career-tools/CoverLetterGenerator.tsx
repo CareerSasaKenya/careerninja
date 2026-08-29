@@ -57,7 +57,11 @@ function hydrateWithDefaults(
   };
 }
 
-export default function CoverLetterGenerator() {
+export default function CoverLetterGenerator({
+  initialJobId = null,
+}: {
+  initialJobId?: string | null;
+}) {
   const [letters, setLetters] = useState<CandidateCoverLetter[]>([]);
   const [dbTemplates, setDbTemplates] = useState<CoverLetterTemplate[]>([]);
   const [showEditor, setShowEditor] = useState(false);
@@ -143,11 +147,13 @@ export default function CoverLetterGenerator() {
       const content_json = toCoverLetterContentJson(activeTemplateName, formData);
 
       if (editingId) {
+        const existing = letters.find((letter) => letter.id === editingId);
         const updated = await updateCoverLetter(editingId, {
           template_id: matchedTpl?.id ?? null,
           title: letterTitle,
           content,
           content_json,
+          ...(initialJobId && !existing?.job_id ? { job_id: initialJobId } : {}),
         });
         setLetters((prev) => prev.map((l) => (l.id === updated.id ? updated : l)));
         toast({ title: 'Cover letter updated' });
@@ -158,7 +164,7 @@ export default function CoverLetterGenerator() {
           title: letterTitle,
           content,
           content_json,
-          job_id: null,
+          job_id: initialJobId || null,
         });
         setLetters((prev) => [created, ...prev]);
         toast({ title: 'Cover letter saved' });
@@ -261,6 +267,11 @@ export default function CoverLetterGenerator() {
         <p className="text-sm text-muted-foreground max-w-2xl">
           Structured letters for Kenyan applications. Pick a template, edit, save, and download as PDF.
         </p>
+        {initialJobId && (
+          <p className="text-xs text-[#0A66C2]">
+            New letters saved in this session are linked to the job you opened Career Tools from.
+          </p>
+        )}
       </div>
 
       {letters.length > 0 && (
@@ -281,6 +292,11 @@ export default function CoverLetterGenerator() {
                       <CardDescription className="text-xs">
                         {templateNameForLetter(letter, dbTemplates)} · {new Date(letter.created_at).toLocaleDateString()}
                       </CardDescription>
+                      {letter.job_id && (
+                        <Badge variant="outline" className="mt-1 w-fit border-[#0A66C2]/30 text-[#0A66C2]">
+                          Linked to a job
+                        </Badge>
+                      )}
                     </div>
                     <div className="flex shrink-0 gap-1.5">
                       <Button size="sm" variant="outline" onClick={() => openSavedLetter(letter)}>

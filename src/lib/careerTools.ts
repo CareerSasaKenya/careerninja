@@ -1,7 +1,9 @@
 // Career Tools Library - CV Builder, Cover Letters, Assessments, Career Paths, Salary Insights
 
 import { supabase } from '@/integrations/supabase/client';
+import { isMissingDbColumnError } from '@/lib/applyDocuments';
 import { normalizeCVContent } from '@/lib/cvContent';
+import { tailoredCvTitle, withoutTargetingFields } from '@/lib/jobTargeting';
 import type { CoverLetterContentJson } from '@/types/careerDocuments';
 
 // ============================================================================
@@ -28,6 +30,9 @@ export interface CandidateCV {
   version: number;
   file_url: string | null;
   last_generated_at: string | null;
+  parent_cv_id?: string | null;
+  target_job_id?: string | null;
+  target_jd_text?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -153,11 +158,26 @@ export async function createCV(cv: Partial<CandidateCV>) {
     ...cv,
     content: normalizeCVContent(cv.content ?? {}),
   };
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from('candidate_cvs' as any)
     .insert(payload)
     .select()
     .single();
+
+  if (
+    error &&
+    (isMissingDbColumnError(error, 'parent_cv_id') ||
+      isMissingDbColumnError(error, 'target_job_id') ||
+      isMissingDbColumnError(error, 'target_jd_text'))
+  ) {
+    const retry = await supabase
+      .from('candidate_cvs' as any)
+      .insert(withoutTargetingFields(payload))
+      .select()
+      .single();
+    data = retry.data;
+    error = retry.error;
+  }
 
   if (error) throw error;
   return data as unknown as CandidateCV;
@@ -171,15 +191,69 @@ export async function updateCV(id: string, updates: Partial<CandidateCV>) {
   if (updates.content !== undefined) {
     payload.content = normalizeCVContent(updates.content);
   }
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from('candidate_cvs' as any)
     .update(payload)
     .eq('id', id)
     .select()
     .single();
 
+  if (
+    error &&
+    (isMissingDbColumnError(error, 'parent_cv_id') ||
+      isMissingDbColumnError(error, 'target_job_id') ||
+      isMissingDbColumnError(error, 'target_jd_text'))
+  ) {
+    const retry = await supabase
+      .from('candidate_cvs' as any)
+      .update(withoutTargetingFields(payload))
+      .eq('id', id)
+      .select()
+      .single();
+    data = retry.data;
+    error = retry.error;
+  }
+
   if (error) throw error;
   return data as unknown as CandidateCV;
+}
+
+export async function attachJobToCV(
+  cvId: string,
+  targeting: { target_job_id?: string | null; target_jd_text?: string | null },
+) {
+  return updateCV(cvId, {
+    target_job_id: targeting.target_job_id ?? null,
+    target_jd_text: targeting.target_jd_text ?? null,
+  });
+}
+
+export async function createTargetedCvCopy(
+  source: CandidateCV,
+  targeting: { target_job_id?: string | null; target_jd_text?: string | null; jobTitle?: string | null },
+) {
+  const title = tailoredCvTitle(source.title, targeting.jobTitle);
+  const payload: Partial<CandidateCV> = {
+    user_id: source.user_id,
+    template_id: source.template_id,
+    title,
+    content: source.content,
+    is_primary: false,
+    parent_cv_id: source.id,
+    target_job_id: targeting.target_job_id ?? null,
+    target_jd_text: targeting.target_jd_text ?? null,
+  };
+  try {
+    return await createCV(payload);
+  } catch (error: any) {
+    if (error?.code === '23505') {
+      return createCV({
+        ...payload,
+        title: `${title} (${new Date().toISOString().slice(11, 19)})`.slice(0, 120),
+      });
+    }
+    throw error;
+  }
 }
 
 export async function deleteCV(id: string) {

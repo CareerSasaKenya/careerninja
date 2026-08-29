@@ -923,6 +923,9 @@ export type Database = {
           id: string
           is_primary: boolean | null
           last_generated_at: string | null
+          parent_cv_id: string | null
+          target_job_id: string | null
+          target_jd_text: string | null
           template_id: string | null
           title: string
           updated_at: string | null
@@ -936,6 +939,9 @@ export type Database = {
           id?: string
           is_primary?: boolean | null
           last_generated_at?: string | null
+          parent_cv_id?: string | null
+          target_job_id?: string | null
+          target_jd_text?: string | null
           template_id?: string | null
           title: string
           updated_at?: string | null
@@ -949,6 +955,9 @@ export type Database = {
           id?: string
           is_primary?: boolean | null
           last_generated_at?: string | null
+          parent_cv_id?: string | null
+          target_job_id?: string | null
+          target_jd_text?: string | null
           template_id?: string | null
           title?: string
           updated_at?: string | null
@@ -956,6 +965,20 @@ export type Database = {
           version?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "candidate_cvs_parent_cv_id_fkey"
+            columns: ["parent_cv_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_cvs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_cvs_target_job_id_fkey"
+            columns: ["target_job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "candidate_cvs_template_id_fkey"
             columns: ["template_id"]

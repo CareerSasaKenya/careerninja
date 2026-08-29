@@ -316,7 +316,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                 
                 <CardContent className="space-y-4 py-5 sm:space-y-5 sm:py-6">
                   {/* CV Builder promo — shown before description */}
-                  <CVAdBanner />
+                  <CVAdBanner jobId={job.id} />
 
                   <div>
                     <h3 className="mb-2.5 flex items-center gap-2 text-xl font-semibold text-[#0A66C2] sm:mb-3">

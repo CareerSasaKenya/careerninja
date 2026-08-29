@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ import CVTemplatePreview from '@/components/cv/CVTemplatePreview';
 import CVTemplateSelectionDialog from '@/components/cv/CVTemplateSelectionDialog';
 import CVEditor from '@/components/cv/CVEditor';
 import CVDownloadDialog from '@/components/cv/CVDownloadDialog';
+import JobTargetingPanel from '@/components/career-tools/JobTargetingPanel';
 import {
   getCVTemplates,
   getUserCVs,
@@ -26,6 +27,7 @@ import {
   type CVTemplate,
   type CandidateCV
 } from '@/lib/careerTools';
+import { targetingHeadline } from '@/lib/jobTargeting';
 import { getTemplateDefaultContent } from '@/data/templateDefaultContent';
 
 const TEMPLATE_SECTIONS = [
@@ -51,7 +53,13 @@ const TEMPLATE_SECTIONS = [
   },
 ] as const;
 
-export default function CVBuilder() {
+export default function CVBuilder({
+  initialJobId = null,
+  initialCvId = null,
+}: {
+  initialJobId?: string | null;
+  initialCvId?: string | null;
+}) {
   const [cvs, setCvs] = useState<CandidateCV[]>([]);
   const [templates, setTemplates] = useState<CVTemplate[]>([]);
   const [selectedCV, setSelectedCV] = useState<CandidateCV | null>(null);
@@ -64,12 +72,34 @@ export default function CVBuilder() {
   const [switchTemplateCV, setSwitchTemplateCV] = useState<CandidateCV | null>(null);
   const [isSwitchingTemplate, setIsSwitchingTemplate] = useState(false);
   const [loading, setLoading] = useState(true);
+  const autoOpenedRef = useRef(false);
   const { toast } = useToast();
   const router = useRouter();
 
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (loading || cvs.length === 0 || autoOpenedRef.current) return;
+    if (initialCvId) {
+      const match = cvs.find((cv) => cv.id === initialCvId);
+      if (match) {
+        autoOpenedRef.current = true;
+        setSelectedCV(match);
+        setIsEditing(true);
+        return;
+      }
+    }
+    if (initialJobId) {
+      const targeted = cvs.find((cv) => cv.target_job_id === initialJobId);
+      if (targeted) {
+        autoOpenedRef.current = true;
+        setSelectedCV(targeted);
+        setIsEditing(true);
+      }
+    }
+  }, [loading, cvs, initialCvId, initialJobId]);
 
   function requireAuth(actionLabel = 'use CV templates') {
     toast({
@@ -208,6 +238,14 @@ export default function CVBuilder() {
         variant: 'destructive'
       });
     }
+  }
+
+  function handleCvUpdated(updated: CandidateCV) {
+    setCvs((prev) => {
+      const exists = prev.some((cv) => cv.id === updated.id);
+      return exists ? prev.map((cv) => (cv.id === updated.id ? updated : cv)) : [updated, ...prev];
+    });
+    if (selectedCV?.id === updated.id || !selectedCV) setSelectedCV(updated);
   }
 
   function handleEditCV(cv: CandidateCV) {
@@ -419,6 +457,14 @@ export default function CVBuilder() {
         </p>
       </div>
 
+      <JobTargetingPanel
+        cvs={cvs}
+        activeCv={isEditing ? selectedCV : null}
+        initialJobId={initialJobId}
+        onCvUpdated={handleCvUpdated}
+        onOpenCv={handleEditCV}
+      />
+
       {cvs.length > 0 && (
         <section className="space-y-3">
           <div className="flex items-center justify-between gap-3">
@@ -494,6 +540,11 @@ export default function CVBuilder() {
                   <CardDescription className="text-xs">
                     {getTemplateName(cv.template_id)} · Updated {new Date(cv.updated_at).toLocaleDateString()}
                   </CardDescription>
+                  {(cv.target_job_id || cv.target_jd_text) && (
+                    <Badge variant="outline" className="mt-2 w-fit border-[#0A66C2]/30 text-[#0A66C2]">
+                      Targeted: {targetingHeadline(cv.target_jd_text) || 'this job'}
+                    </Badge>
+                  )}
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
@@ -573,14 +624,26 @@ export default function CVBuilder() {
               Add, remove, or edit your CV sections. The live preview on the right shows exactly how your download will look.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden flex flex-col">
             {selectedCV && (
-              <CVEditor
-                cv={selectedCV}
-                templateName={getTemplateName(selectedCV.template_id)}
-                onSave={handleEditorSave}
-                onCancel={handleEditorCancel}
-              />
+              <>
+                <div className="px-6 pb-3 max-h-[34%] overflow-y-auto">
+                  <JobTargetingPanel
+                    cvs={cvs}
+                    activeCv={selectedCV}
+                    initialJobId={initialJobId || selectedCV.target_job_id}
+                    onCvUpdated={handleCvUpdated}
+                  />
+                </div>
+                <div className="flex-1 overflow-hidden">
+                  <CVEditor
+                    cv={selectedCV}
+                    templateName={getTemplateName(selectedCV.template_id)}
+                    onSave={handleEditorSave}
+                    onCancel={handleEditorCancel}
+                  />
+                </div>
+              </>
             )}
           </div>
         </DialogContent>

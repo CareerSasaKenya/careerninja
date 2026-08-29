@@ -548,7 +548,7 @@ export default function ApplySection({
                         You do not have a Career Tools CV yet. Build one, then come back to apply with it.
                       </p>
                       <Button asChild variant="outline" size="sm">
-                        <Link href="/dashboard/career-tools">
+                        <Link href={`/dashboard/career-tools?jobId=${encodeURIComponent(job.id)}`}>
                           <FileText className="h-4 w-4 mr-2" />
                           Open CV builder
                         </Link>
@@ -600,7 +600,7 @@ export default function ApplySection({
                           Choosing a saved letter fills the cover letter box so you can still edit it before sending.
                         </p>
                       </div>
-                      <Link href="/dashboard/career-tools" className="inline-flex items-center text-sm text-[#0A66C2] hover:underline">
+                      <Link href={`/dashboard/career-tools?jobId=${encodeURIComponent(job.id)}`} className="inline-flex items-center text-sm text-[#0A66C2] hover:underline">
                         <FileText className="h-4 w-4 mr-1" />
                         Edit CVs and letters
                       </Link>

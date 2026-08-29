@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileText, Mail, Award, TrendingUp, DollarSign } from 'lucide-react';
 import CVBuilder from '@/components/career-tools/CVBuilder';
@@ -20,6 +20,19 @@ const TABS = [
 
 export default function CareerToolsPage() {
   const [activeTab, setActiveTab] = useState('cv-builder');
+  const [jobId, setJobId] = useState<string | null>(null);
+  const [cvId, setCvId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const nextJobId = params.get('jobId');
+    const nextCvId = params.get('cvId');
+    const tab = params.get('tab');
+    setJobId(nextJobId);
+    setCvId(nextCvId);
+    if (tab === 'cover-letter') setActiveTab('cover-letter');
+    else if (nextJobId || nextCvId) setActiveTab('cv-builder');
+  }, []);
 
   return (
     <div className="container mx-auto px-4 py-6 sm:py-8">
@@ -49,13 +62,13 @@ export default function CareerToolsPage() {
 
         <TabsContent value="cv-builder" className="space-y-4">
           <ToolErrorBoundary fallbackTitle="CV Builder is unavailable">
-            <CVBuilder />
+            <CVBuilder initialJobId={jobId} initialCvId={cvId} />
           </ToolErrorBoundary>
         </TabsContent>
 
         <TabsContent value="cover-letter" className="space-y-4">
           <ToolErrorBoundary fallbackTitle="Cover Letter Generator is unavailable">
-            <CoverLetterGenerator />
+            <CoverLetterGenerator initialJobId={jobId} />
           </ToolErrorBoundary>
         </TabsContent>
 
