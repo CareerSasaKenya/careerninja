@@ -465,6 +465,8 @@ export function getTemplateDefaultContent(templateName: string): CVContent {
     'Internship / Industrial Attachment': 'Internship / Attachment',
     'Personal Brand CV': 'Personal Brand',
     'International / ATS Optimized CV': 'ATS Optimised',
+    'Academic / Research CV': 'Academic / Research',
+    'Technical / Engineering CV': 'Technical / Engineering',
   };
   const key = defaults[templateName] ? templateName : aliases[templateName];
   return { ...(defaults[key] || empty), ...extrasForTemplate(key) } as CVContent;
