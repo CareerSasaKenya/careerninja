@@ -48,7 +48,7 @@ const STOPWORDS = new Set([
   'knowledge', 'understanding', 'familiarity', 'demonstrated', 'track', 'record',
   'environment', 'based', 'level', 'type', 'full', 'part', 'contract',
   'salary', 'benefit', 'benefits', 'package', 'closing', 'deadline',
-  'end', 'nice',
+  'end', 'nice', 'close',
 ]);
 
 const SHORT_KEEP = new Set([
