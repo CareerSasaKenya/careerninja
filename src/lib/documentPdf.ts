@@ -7,17 +7,14 @@
 
 import type { ReactElement } from 'react';
 
-export async function downloadReactElementAsPdf(options: {
+type PdfOptions = {
   element: ReactElement;
   filename: string;
   waitMs?: number;
-}): Promise<void> {
-  const { element, filename, waitMs = 300 } = options;
+};
 
-  const [html2pdf, { createRoot }] = await Promise.all([
-    import('html2pdf.js').then((m) => m.default),
-    import('react-dom/client'),
-  ]);
+async function renderTemplateElement(element: ReactElement, waitMs: number) {
+  const [{ createRoot }] = await Promise.all([import('react-dom/client')]);
 
   const wrapper = document.createElement('div');
   wrapper.style.position = 'fixed';
@@ -49,20 +46,49 @@ export async function downloadReactElementAsPdf(options: {
     unlockOverflow(templateEl);
     templateEl.style.minHeight = '1123px';
 
-    const opt = {
-      margin: 0,
-      filename,
-      image: { type: 'jpeg' as const, quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, logging: false },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
-      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
-    };
-
-    await (html2pdf as any)().set(opt).from(templateEl).save();
-  } finally {
+    return { templateEl, cleanup: () => { root.unmount(); wrapper.remove(); } };
+  } catch (error) {
     root.unmount();
     wrapper.remove();
+    throw error;
   }
+}
+
+function pdfOptions(filename: string) {
+  return {
+    margin: 0,
+    filename,
+    image: { type: 'jpeg' as const, quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, logging: false },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+  };
+}
+
+export async function renderReactElementToPdfBlob(options: PdfOptions): Promise<Blob> {
+  const { element, filename, waitMs = 300 } = options;
+  const html2pdf = (await import('html2pdf.js')).default as any;
+  const { templateEl, cleanup } = await renderTemplateElement(element, waitMs);
+
+  try {
+    const blob = await html2pdf().set(pdfOptions(filename)).from(templateEl).outputPdf('blob');
+    if (!(blob instanceof Blob)) {
+      throw new Error('PDF export did not return a file');
+    }
+    return blob;
+  } finally {
+    cleanup();
+  }
+}
+
+export async function downloadReactElementAsPdf(options: PdfOptions): Promise<void> {
+  const blob = await renderReactElementToPdfBlob(options);
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = options.filename;
+  link.click();
+  URL.revokeObjectURL(url);
 }
 
 export function pdfFilename(title: string): string {

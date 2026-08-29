@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { type CandidateCV } from '@/lib/careerTools';
 import { toTemplateProps } from '@/lib/cvContent';
 import { downloadReactElementAsPdf, pdfFilename } from '@/lib/documentPdf';
+import { resolveCVTemplate } from '@/components/cv/resolveCVTemplate';
 import { createElement, type ComponentType } from 'react';
 
 interface CVDownloadDialogProps {
@@ -21,42 +22,10 @@ export default function CVDownloadDialog({ open, onOpenChange, cv, templateName 
   const [downloading, setDownloading] = useState(false);
   const { toast } = useToast();
 
-  /** Resolve the correct template component */
-  const resolveTemplate = async (name: string) => {
-    switch (name) {
-      case 'Classic Professional':
-        return (await import('./templates/ClassicTemplate')).default;
-      case 'Modern Professional':
-        return (await import('./templates/ModernTemplate')).default;
-      case 'Executive Leadership':
-        return (await import('./templates/ExecutiveTemplate')).default;
-      case 'Graduate Starter CV':
-        return (await import('./templates/GraduateTemplate')).default;
-      case 'Skills-Based (Functional)':
-        return (await import('./templates/FunctionalTemplate')).default;
-      case 'Internship / Industrial Attachment':
-        return (await import('./templates/InternshipTemplate')).default;
-      case 'Creative Portfolio':
-        return (await import('./templates/CreativeTemplate')).default;
-      case 'Digital Professional':
-        return (await import('./templates/DigitalProfessionalTemplate')).default;
-      case 'Personal Brand CV':
-        return (await import('./templates/PersonalBrandTemplate')).default;
-      case 'Academic / Research CV':
-        return (await import('./templates/AcademicTemplate')).default;
-      case 'Technical / Engineering CV':
-        return (await import('./templates/TechnicalEngineeringTemplate')).default;
-      case 'International / ATS Optimized CV':
-        return (await import('./templates/ATSOptimizedTemplate')).default;
-      default:
-        return (await import('./templates/ClassicTemplate')).default;
-    }
-  };
-
   const handleDownloadPDF = async () => {
     try {
       setDownloading(true);
-      const TemplateComponent = (await resolveTemplate(templateName)) as ComponentType<{ data: any }>;
+      const TemplateComponent = (await resolveCVTemplate(templateName)) as ComponentType<{ data: any }>;
       await downloadReactElementAsPdf({
         element: createElement(TemplateComponent, {
           data: toTemplateProps(cv.content, templateName),

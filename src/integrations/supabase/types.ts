@@ -2137,6 +2137,8 @@ export type Database = {
           cv_file_name: string | null
           cv_file_size: number | null
           cv_file_url: string | null
+          candidate_cv_id: string | null
+          candidate_cover_letter_id: string | null
           email: string | null
           employer_viewed_at: string | null
           expected_salary_max: number | null
@@ -2160,6 +2162,8 @@ export type Database = {
         Insert: {
           application_method?: string | null
           candidate_profile_id?: string | null
+          candidate_cv_id?: string | null
+          candidate_cover_letter_id?: string | null
           cover_letter?: string | null
           created_at?: string
           cv_file_name?: string | null
@@ -2188,6 +2192,8 @@ export type Database = {
         Update: {
           application_method?: string | null
           candidate_profile_id?: string | null
+          candidate_cv_id?: string | null
+          candidate_cover_letter_id?: string | null
           cover_letter?: string | null
           created_at?: string
           cv_file_name?: string | null
