@@ -64,7 +64,8 @@ export default function ApplySection({
   const [cvTemplates, setCvTemplates] = useState<CVTemplate[]>([]);
   const [selectedCvId, setSelectedCvId] = useState('');
   const [selectedLetterId, setSelectedLetterId] = useState('none');
-  const [loadingBuilderDocs, setLoadingBuilderDocs] = useState(false);
+  const [loadingBuilderDocs, setLoadingBuilderDocs] = useState(true);
+  const [builderSignedIn, setBuilderSignedIn] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -76,6 +77,7 @@ export default function ApplySection({
         if (cancelled) return;
         setCvTemplates(templates);
 
+        setBuilderSignedIn(!!user);
         if (!user) {
           setBuilderCvs([]);
           setBuilderLetters([]);
@@ -159,7 +161,7 @@ export default function ApplySection({
           description: "Please sign in to apply for this job",
           variant: "destructive",
         });
-        router.push('/auth/signin');
+        router.push('/auth');
         return;
       }
 
@@ -531,6 +533,15 @@ export default function ApplySection({
                       <Loader2 className="h-4 w-4 animate-spin" />
                       Loading your Career Tools documents…
                     </p>
+                  ) : !builderSignedIn ? (
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground">
+                        Sign in to choose a Career Tools CV and optional cover letter. We will generate a PDF for the employer.
+                      </p>
+                      <Button asChild variant="outline" size="sm">
+                        <Link href="/auth">Sign in to continue</Link>
+                      </Button>
+                    </div>
                   ) : builderCvs.length === 0 ? (
                     <div className="space-y-2">
                       <p className="text-sm text-muted-foreground">
