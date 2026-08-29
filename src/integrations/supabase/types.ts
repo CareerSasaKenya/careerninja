@@ -854,6 +854,7 @@ export type Database = {
       candidate_cover_letters: {
         Row: {
           content: string
+          content_json: Json | null
           created_at: string | null
           file_url: string | null
           generated_content: string | null
@@ -866,6 +867,7 @@ export type Database = {
         }
         Insert: {
           content: string
+          content_json?: Json | null
           created_at?: string | null
           file_url?: string | null
           generated_content?: string | null
@@ -878,6 +880,7 @@ export type Database = {
         }
         Update: {
           content?: string
+          content_json?: Json | null
           created_at?: string | null
           file_url?: string | null
           generated_content?: string | null

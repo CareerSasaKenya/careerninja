@@ -6,6 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Download, FileText, FileType } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { type CandidateCV } from '@/lib/careerTools';
+import { toTemplateProps } from '@/lib/cvContent';
+import { downloadReactElementAsPdf, pdfFilename } from '@/lib/documentPdf';
+import { createElement, type ComponentType } from 'react';
 
 interface CVDownloadDialogProps {
   open: boolean;
@@ -17,45 +20,6 @@ interface CVDownloadDialogProps {
 export default function CVDownloadDialog({ open, onOpenChange, cv, templateName }: CVDownloadDialogProps) {
   const [downloading, setDownloading] = useState(false);
   const { toast } = useToast();
-
-  /** Build the data object that all template components expect */
-  const buildTemplateData = () => ({
-    name: cv.content.personal?.name || '',
-    title: cv.content.personal?.title || '',
-    contact: {
-      phone: cv.content.personal?.phone || '',
-      email: cv.content.personal?.email || '',
-      linkedin: cv.content.personal?.linkedin || '',
-      location: cv.content.personal?.location || '',
-    },
-    photoUrl: cv.content.personal?.photoUrl || '',
-    profile: cv.content.personal?.profile || '',
-    objective: cv.content.personal?.objective || cv.content.personal?.profile || '',
-    summary: cv.content.personal?.profile || '',
-    skills: cv.content.skills || [],
-    experience: cv.content.experience || [],
-    education: cv.content.education || [],
-    certifications: cv.content.certifications || [],
-    achievements: cv.content.achievements || [],
-    languages: cv.content.languages || [],
-    tools: cv.content.tools || [],
-    projects: cv.content.projects || [],
-    internships: cv.content.internships || cv.content.experience || [],
-    activities: cv.content.activities || [],
-    researchInterests: cv.content.researchInterests || [],
-    positions: cv.content.positions || cv.content.experience || [],
-    publications: cv.content.publications || [],
-    conferences: cv.content.conferences || [],
-    grants: cv.content.grants || [],
-    awards: cv.content.awards || cv.content.achievements || [],
-    techStack: cv.content.techStack || cv.content.skills || [],
-    coreSkills: cv.content.coreSkills || cv.content.skills || [],
-    skillCategories: cv.content.skillCategories || [],
-    tagline: cv.content.personal?.title || '',
-    social: cv.content.social || [],
-    speaking: cv.content.speaking || [],
-    mediaFeatures: cv.content.mediaFeatures || [],
-  });
 
   /** Resolve the correct template component */
   const resolveTemplate = async (name: string) => {
@@ -92,61 +56,13 @@ export default function CVDownloadDialog({ open, onOpenChange, cv, templateName 
   const handleDownloadPDF = async () => {
     try {
       setDownloading(true);
-
-      const [html2pdf, { createRoot }, React, TemplateComponent] = await Promise.all([
-        import('html2pdf.js').then(m => m.default),
-        import('react-dom/client'),
-        import('react'),
-        resolveTemplate(templateName),
-      ]) as any;
-
-      const data = buildTemplateData();
-
-      // Mount into a real DOM node so Tailwind CSS applies
-      const wrapper = document.createElement('div');
-      wrapper.style.position = 'fixed';
-      wrapper.style.top = '0';
-      wrapper.style.left = '-9999px';
-      wrapper.style.width = '794px';
-      wrapper.style.zIndex = '-1';
-      document.body.appendChild(wrapper);
-
-      const root = createRoot(wrapper);
-
-      await new Promise<void>(resolve => {
-        root.render(React.createElement(TemplateComponent, { data }));
-        // Give React a tick to flush, then wait for fonts/images
-        setTimeout(() => resolve(), 300);
+      const TemplateComponent = (await resolveTemplate(templateName)) as ComponentType<{ data: any }>;
+      await downloadReactElementAsPdf({
+        element: createElement(TemplateComponent, {
+          data: toTemplateProps(cv.content, templateName),
+        }),
+        filename: pdfFilename(cv.title),
       });
-
-      const opt = {
-        margin: 0,
-        filename: `${cv.title.replace(/\s+/g, '_')}.pdf`,
-        image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: false },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
-      };
-
-      // Capture the first child (the rendered template div)
-      const templateEl = wrapper.firstElementChild as HTMLElement;
-
-      // Remove fixed height so all content renders (not clipped to 1123px)
-      // Also recursively remove overflow:hidden from all descendants
-      const unlockOverflow = (el: HTMLElement) => {
-        el.style.height = 'auto';
-        el.style.maxHeight = 'none';
-        el.style.overflow = 'visible';
-        Array.from(el.children).forEach(child => unlockOverflow(child as HTMLElement));
-      };
-      unlockOverflow(templateEl);
-      templateEl.style.minHeight = '1123px';
-
-      await html2pdf().set(opt).from(templateEl).save();
-
-      root.unmount();
-      document.body.removeChild(wrapper);
-
       toast({ title: 'Success', description: 'CV downloaded as PDF' });
     } catch (error: any) {
       toast({ title: 'Error', description: 'Failed to download PDF: ' + error.message, variant: 'destructive' });

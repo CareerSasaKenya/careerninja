@@ -414,5 +414,13 @@ const defaults: Record<string, CVContent> = {
 };
 
 export function getTemplateDefaultContent(templateName: string): CVContent {
-  return defaults[templateName] || empty;
+  const aliases: Record<string, string> = {
+    'Graduate Starter CV': 'Graduate Starter',
+    'Skills-Based (Functional)': 'Functional / Skills-Based',
+    'Internship / Industrial Attachment': 'Internship / Attachment',
+    'Personal Brand CV': 'Personal Brand',
+    'International / ATS Optimized CV': 'ATS Optimised',
+  };
+  const key = defaults[templateName] ? templateName : aliases[templateName];
+  return defaults[key] || empty;
 }

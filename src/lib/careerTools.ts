@@ -1,6 +1,8 @@
 // Career Tools Library - CV Builder, Cover Letters, Assessments, Career Paths, Salary Insights
 
 import { supabase } from '@/integrations/supabase/client';
+import { normalizeCVContent } from '@/lib/cvContent';
+import type { CoverLetterContentJson } from '@/types/careerDocuments';
 
 // ============================================================================
 // TYPES
@@ -48,6 +50,7 @@ export interface CandidateCoverLetter {
   job_id: string | null;
   title: string;
   content: string;
+  content_json: CoverLetterContentJson | null;
   generated_content: string | null;
   file_url: string | null;
   created_at: string;
@@ -146,9 +149,13 @@ export async function getUserCVs(userId: string) {
 }
 
 export async function createCV(cv: Partial<CandidateCV>) {
+  const payload = {
+    ...cv,
+    content: normalizeCVContent(cv.content ?? {}),
+  };
   const { data, error } = await supabase
     .from('candidate_cvs' as any)
-    .insert(cv)
+    .insert(payload)
     .select()
     .single();
 
@@ -157,9 +164,16 @@ export async function createCV(cv: Partial<CandidateCV>) {
 }
 
 export async function updateCV(id: string, updates: Partial<CandidateCV>) {
+  const payload: Partial<CandidateCV> = {
+    ...updates,
+    updated_at: new Date().toISOString(),
+  };
+  if (updates.content !== undefined) {
+    payload.content = normalizeCVContent(updates.content);
+  }
   const { data, error } = await supabase
     .from('candidate_cvs' as any)
-    .update({ ...updates, updated_at: new Date().toISOString() })
+    .update(payload)
     .eq('id', id)
     .select()
     .single();
@@ -219,7 +233,12 @@ export async function getUserCoverLetters(userId: string) {
     .order('updated_at', { ascending: false });
 
   if (error) throw error;
-  return data;
+  return (data ?? []) as unknown as CandidateCoverLetter[];
+}
+
+function isMissingContentJsonColumn(error: { message?: string } | null): boolean {
+  const message = error?.message || '';
+  return /content_json/i.test(message) && /column/i.test(message);
 }
 
 export async function createCoverLetter(letter: Partial<CandidateCoverLetter>) {
@@ -228,6 +247,17 @@ export async function createCoverLetter(letter: Partial<CandidateCoverLetter>) {
     .insert(letter)
     .select()
     .single();
+
+  if (error && letter.content_json && isMissingContentJsonColumn(error)) {
+    const { content_json: _, ...withoutJson } = letter;
+    const retry = await supabase
+      .from('candidate_cover_letters' as any)
+      .insert(withoutJson)
+      .select()
+      .single();
+    if (retry.error) throw retry.error;
+    return retry.data as unknown as CandidateCoverLetter;
+  }
 
   if (error) throw error;
 
@@ -251,8 +281,29 @@ export async function updateCoverLetter(id: string, updates: Partial<CandidateCo
     .select()
     .single();
 
+  if (error && updates.content_json && isMissingContentJsonColumn(error)) {
+    const { content_json: _, ...withoutJson } = updates;
+    const retry = await supabase
+      .from('candidate_cover_letters' as any)
+      .update({ ...withoutJson, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
+    if (retry.error) throw retry.error;
+    return retry.data as unknown as CandidateCoverLetter;
+  }
+
   if (error) throw error;
   return data as unknown as CandidateCoverLetter;
+}
+
+export async function deleteCoverLetter(id: string) {
+  const { error } = await supabase
+    .from('candidate_cover_letters' as any)
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
 }
 
 export async function generateCoverLetterFromTemplate(

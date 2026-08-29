@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2, Save, X, Eye, EyeOff, ChevronDown, ChevronRight, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { updateCV, type CandidateCV } from '@/lib/careerTools';
+import { normalizeCVContent, toTemplateProps } from '@/lib/cvContent';
 
 const ClassicTemplate = lazy(() => import('./templates/ClassicTemplate'));
 const ModernTemplate = lazy(() => import('./templates/ModernTemplate'));
@@ -74,33 +75,48 @@ export default function CVEditor({ cv, templateName, onSave, onCancel }: CVEdito
   const [showPreview, setShowPreview] = useState(true);
   const { toast } = useToast();
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const initial = normalizeCVContent(cv.content);
 
   // Personal info
   const [personal, setPersonal] = useState({
-    name: cv.content.personal?.name || '',
-    title: cv.content.personal?.title || '',
-    phone: cv.content.personal?.phone || '',
-    email: cv.content.personal?.email || '',
-    linkedin: cv.content.personal?.linkedin || '',
-    location: cv.content.personal?.location || '',
-    profile: cv.content.personal?.profile || '',
-    photoUrl: cv.content.personal?.photoUrl || '',
+    name: initial.personal.name || '',
+    title: initial.personal.title || '',
+    phone: initial.personal.phone || '',
+    email: initial.personal.email || '',
+    linkedin: initial.personal.linkedin || '',
+    location: initial.personal.location || '',
+    profile: initial.personal.profile || '',
+    photoUrl: initial.personal.photoUrl || '',
   });
 
   // Core sections
-  const [skills, setSkills] = useState<string[]>(cv.content.skills || []);
-  const [experience, setExperience] = useState<Experience[]>(cv.content.experience || []);
-  const [education, setEducation] = useState<Education[]>(cv.content.education || []);
-  const [certifications, setCertifications] = useState<string[]>(cv.content.certifications || []);
-  const [achievements, setAchievements] = useState<string[]>(cv.content.achievements || []);
-  const [languages, setLanguages] = useState<string[]>(cv.content.languages || []);
-  const [tools, setTools] = useState<string[]>(cv.content.tools || []);
+  const [skills, setSkills] = useState<string[]>(initial.skills);
+  const [experience, setExperience] = useState<Experience[]>(
+    initial.experience.map((e) => ({
+      jobTitle: e.jobTitle || '',
+      company: e.company || '',
+      location: e.location || '',
+      dates: e.dates || '',
+      details: e.details?.length ? e.details : [''],
+    })),
+  );
+  const [education, setEducation] = useState<Education[]>(
+    initial.education.map((e) => ({
+      degree: e.degree || '',
+      institution: e.institution || '',
+      dates: e.dates || '',
+    })),
+  );
+  const [certifications, setCertifications] = useState<string[]>(initial.certifications);
+  const [achievements, setAchievements] = useState<string[]>(initial.achievements);
+  const [languages, setLanguages] = useState<string[]>(initial.languages);
+  const [tools, setTools] = useState<string[]>(initial.tools);
 
   // Optional sections — only shown when user adds them
-  const [showLanguages, setShowLanguages] = useState((cv.content.languages || []).length > 0);
-  const [showTools, setShowTools] = useState((cv.content.tools || []).length > 0);
-  const [showCertifications, setShowCertifications] = useState((cv.content.certifications || []).length > 0);
-  const [showAchievements, setShowAchievements] = useState((cv.content.achievements || []).length > 0);
+  const [showLanguages, setShowLanguages] = useState(initial.languages.length > 0);
+  const [showTools, setShowTools] = useState(initial.tools.length > 0);
+  const [showCertifications, setShowCertifications] = useState(initial.certifications.length > 0);
+  const [showAchievements, setShowAchievements] = useState(initial.achievements.length > 0);
 
   const set = (setter: React.Dispatch<React.SetStateAction<any[]>>) => (i: number, field: string, value: string) => {
     setter((prev: any[]) => { const a = [...prev]; a[i] = { ...a[i], [field]: value }; return a; });
@@ -120,20 +136,9 @@ export default function CVEditor({ cv, templateName, onSave, onCancel }: CVEdito
     reader.readAsDataURL(file);
   };
 
-  // Build live preview data — only real user input, no mock fallbacks
-  const liveData = {
-    name: personal.name,
-    title: personal.title,
-    photoUrl: personal.photoUrl,
-    contact: {
-      phone: personal.phone,
-      email: personal.email,
-      linkedin: personal.linkedin,
-      location: personal.location,
-    },
-    profile: personal.profile,
-    objective: personal.profile,
-    summary: personal.profile,
+  const editorContent = {
+    ...cv.content,
+    personal,
     skills,
     experience,
     education,
@@ -141,23 +146,8 @@ export default function CVEditor({ cv, templateName, onSave, onCancel }: CVEdito
     achievements,
     languages,
     tools,
-    researchInterests: skills,
-    positions: experience,
-    publications: cv.content.publications || [],
-    conferences: cv.content.conferences || [],
-    grants: certifications,
-    awards: achievements,
-    projects: cv.content.projects || [],
-    internships: experience,
-    activities: cv.content.activities || [],
-    techStack: skills,
-    coreSkills: skills,
-    skillCategories: cv.content.skillCategories || [],
-    tagline: personal.title,
-    social: cv.content.social || [],
-    speaking: cv.content.speaking || [],
-    mediaFeatures: cv.content.mediaFeatures || [],
   };
+  const liveData = toTemplateProps(editorContent, templateName || 'Classic Professional');
 
   const handleSave = async () => {
     try {
