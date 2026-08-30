@@ -118,7 +118,14 @@ export function planCvWordSections(raw: unknown, templateName?: string): Planned
     }
     if (items.length) sections.push({ heading: extraHeading(templateName, 'skillCategories', 'SKILLS'), items });
   } else {
-    pushBullets(sections, 'KEY SKILLS', props.skills);
+    const researchAsSkills = extraFieldsForTemplate(templateName).some((field) => field.key === 'researchInterests')
+      && props.skills.length > 0
+      && (props.researchInterests || []).join('\n') === props.skills.join('\n');
+    pushBullets(
+      sections,
+      researchAsSkills ? extraHeading(templateName, 'researchInterests', 'RESEARCH INTERESTS') : 'KEY SKILLS',
+      props.skills,
+    );
   }
 
   pushBullets(sections, 'TOOLS & PLATFORMS', props.tools);

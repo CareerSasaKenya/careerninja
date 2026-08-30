@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { getTemplateDefaultContent } from '../data/templateDefaultContent';
 import { buildCvWordBlob, cvPlaintext, planCvWordSections } from './careerDocumentExport';
 import { fileBasename, isLikelyIos, isLikelyMobile, mimeForFilename, wordFilename } from './downloadBlob';
 
@@ -27,11 +28,24 @@ import { fileBasename, isLikelyIos, isLikelyMobile, mimeForFilename, wordFilenam
   assert.match(planned.contact, /Nairobi/);
   const headings = planned.sections.map((section) => section.heading);
   assert.ok(headings.includes('PROFESSIONAL SUMMARY'));
+  assert.ok(headings.includes('RESEARCH INTERESTS') || headings.includes('KEY SKILLS'));
   assert.ok(headings.includes('PUBLICATIONS'));
   assert.ok(headings.includes('PROJECTS'));
   assert.ok(headings.includes('INDUSTRIAL ATTACHMENT') || headings.includes('INTERNSHIPS'));
   const pubs = planned.sections.find((section) => section.heading === 'PUBLICATIONS');
   assert.equal((pubs?.items[0] as { text?: string })?.text, 'A paper — Journal — 2024');
+}
+
+{
+  const academic = planCvWordSections(
+    getTemplateDefaultContent('Academic / Research CV'),
+    'Academic / Research CV',
+  );
+  const headings = academic.sections.map((section) => section.heading);
+  assert.ok(headings.includes('RESEARCH INTERESTS'));
+  assert.ok(headings.includes('PUBLICATIONS'));
+  assert.ok(headings.includes('CONFERENCES'));
+  assert.ok(headings.includes('GRANTS & FUNDING'));
 }
 
 {
