@@ -3,6 +3,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { isMissingDbColumnError } from '@/lib/applyDocuments';
 import { normalizeCVContent } from '@/lib/cvContent';
+import { isShareColumnMissing, withoutShareFields } from '@/lib/cvShare';
 import { tailoredCvTitle, withoutTargetingFields } from '@/lib/jobTargeting';
 import type { CoverLetterContentJson } from '@/types/careerDocuments';
 
@@ -33,6 +34,9 @@ export interface CandidateCV {
   parent_cv_id?: string | null;
   target_job_id?: string | null;
   target_jd_text?: string | null;
+  share_token?: string | null;
+  is_public?: boolean | null;
+  shared_at?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -168,11 +172,12 @@ export async function createCV(cv: Partial<CandidateCV>) {
     error &&
     (isMissingDbColumnError(error, 'parent_cv_id') ||
       isMissingDbColumnError(error, 'target_job_id') ||
-      isMissingDbColumnError(error, 'target_jd_text'))
+      isMissingDbColumnError(error, 'target_jd_text') ||
+      isShareColumnMissing(error))
   ) {
     const retry = await supabase
       .from('candidate_cvs' as any)
-      .insert(withoutTargetingFields(payload))
+      .insert(withoutShareFields(withoutTargetingFields(payload)))
       .select()
       .single();
     data = retry.data;
@@ -202,11 +207,12 @@ export async function updateCV(id: string, updates: Partial<CandidateCV>) {
     error &&
     (isMissingDbColumnError(error, 'parent_cv_id') ||
       isMissingDbColumnError(error, 'target_job_id') ||
-      isMissingDbColumnError(error, 'target_jd_text'))
+      isMissingDbColumnError(error, 'target_jd_text') ||
+      isShareColumnMissing(error))
   ) {
     const retry = await supabase
       .from('candidate_cvs' as any)
-      .update(withoutTargetingFields(payload))
+      .update(withoutShareFields(withoutTargetingFields(payload)))
       .eq('id', id)
       .select()
       .single();

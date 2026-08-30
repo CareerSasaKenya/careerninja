@@ -924,6 +924,9 @@ export type Database = {
           is_primary: boolean | null
           last_generated_at: string | null
           parent_cv_id: string | null
+          share_token: string | null
+          is_public: boolean
+          shared_at: string | null
           target_job_id: string | null
           target_jd_text: string | null
           template_id: string | null
@@ -940,6 +943,9 @@ export type Database = {
           is_primary?: boolean | null
           last_generated_at?: string | null
           parent_cv_id?: string | null
+          share_token?: string | null
+          is_public?: boolean
+          shared_at?: string | null
           target_job_id?: string | null
           target_jd_text?: string | null
           template_id?: string | null
@@ -956,6 +962,9 @@ export type Database = {
           is_primary?: boolean | null
           last_generated_at?: string | null
           parent_cv_id?: string | null
+          share_token?: string | null
+          is_public?: boolean
+          shared_at?: string | null
           target_job_id?: string | null
           target_jd_text?: string | null
           template_id?: string | null

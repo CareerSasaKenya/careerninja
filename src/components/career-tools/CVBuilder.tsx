@@ -17,6 +17,7 @@ import CVTemplateSelectionDialog from '@/components/cv/CVTemplateSelectionDialog
 import CVEditor from '@/components/cv/CVEditor';
 import CVDownloadDialog from '@/components/cv/CVDownloadDialog';
 import JobTargetingPanel from '@/components/career-tools/JobTargetingPanel';
+import CVShareControls from '@/components/career-tools/CVShareControls';
 import {
   getCVTemplates,
   getUserCVs,
@@ -575,6 +576,7 @@ export default function CVBuilder({
                       <Copy className="h-4 w-4 mr-1" />
                       Copy
                     </Button>
+                    <CVShareControls cv={cv} onUpdated={handleCvUpdated} />
                     <Button size="sm" variant="destructive" onClick={() => handleDeleteCV(cv.id)}>
                       <Trash2 className="h-4 w-4 mr-1" />
                       Delete

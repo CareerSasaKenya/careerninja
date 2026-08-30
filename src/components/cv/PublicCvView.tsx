@@ -1,0 +1,56 @@
+'use client';
+
+import { useEffect, useState, type ComponentType } from 'react';
+import Link from 'next/link';
+import CVStudioFrame from '@/components/cv/CVStudioFrame';
+import { resolveCVTemplate } from '@/components/cv/resolveCVTemplate';
+import { toTemplateProps } from '@/lib/cvContent';
+import { mergeDesign } from '@/lib/cvDesign';
+import type { CVDesign } from '@/types/careerDocuments';
+
+export default function PublicCvView({
+  title,
+  content,
+  templateName,
+}: {
+  title: string;
+  content: unknown;
+  templateName: string;
+}) {
+  const [Template, setTemplate] = useState<ComponentType<{ data: any }> | null>(null);
+  const design = mergeDesign(undefined, (content as { design?: CVDesign } | null)?.design);
+  const name = (content as { personal?: { name?: string } } | null)?.personal?.name || title;
+
+  useEffect(() => {
+    resolveCVTemplate(templateName).then(setTemplate);
+  }, [templateName]);
+
+  return (
+    <div className="min-h-screen bg-gray-100">
+      <header className="border-b bg-white">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+          <div>
+            <p className="text-sm font-semibold">{name}</p>
+            <p className="text-xs text-muted-foreground">{title}</p>
+          </div>
+          <Link href="/" className="text-xs text-[#0A66C2] hover:underline">
+            Shared via CareerSasa
+          </Link>
+        </div>
+      </header>
+      <div className="overflow-x-auto px-4 py-8">
+        <div className="mx-auto bg-white shadow-lg" style={{ width: 794 }}>
+          {Template ? (
+            <CVStudioFrame design={design}>
+              <Template data={toTemplateProps(content, templateName)} />
+            </CVStudioFrame>
+          ) : (
+            <div className="flex h-[400px] items-center justify-center text-sm text-muted-foreground">
+              Loading CV…
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

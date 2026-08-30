@@ -8,6 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { getSavedJobs, unsaveJob, updateSavedJobNotes } from "@/lib/savedJobs";
 import JobCard from "@/components/JobCard";
+import SavedJobDocumentBadges from "@/components/saved-jobs/SavedJobDocumentBadges";
+import { getUserCoverLetters, getUserCVs } from "@/lib/careerTools";
+import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 
 export default function SavedJobsPage() {
@@ -19,6 +22,23 @@ export default function SavedJobsPage() {
   const { data: savedJobs, isLoading, error } = useQuery({
     queryKey: ["savedJobs"],
     queryFn: getSavedJobs,
+  });
+
+  const { data: documents } = useQuery({
+    queryKey: ["savedJobDocuments"],
+    queryFn: async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { cvs: [], letters: [] };
+        const [cvs, letters] = await Promise.all([
+          getUserCVs(user.id),
+          getUserCoverLetters(user.id),
+        ]);
+        return { cvs, letters };
+      } catch {
+        return { cvs: [], letters: [] };
+      }
+    },
   });
 
   const unsaveMutation = useMutation({
@@ -203,6 +223,12 @@ export default function SavedJobsPage() {
                       )}
                     </div>
                     */}
+
+                    <SavedJobDocumentBadges
+                      job={job}
+                      cvs={documents?.cvs || []}
+                      letters={documents?.letters || []}
+                    />
 
                     <div>
                       <p className="text-xs text-muted-foreground mb-2">
