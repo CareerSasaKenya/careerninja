@@ -22,7 +22,13 @@ export default function PublicCvView({
   const name = (content as { personal?: { name?: string } } | null)?.personal?.name || title;
 
   useEffect(() => {
-    resolveCVTemplate(templateName).then(setTemplate);
+    let cancelled = false;
+    resolveCVTemplate(templateName).then((Component) => {
+      if (!cancelled) setTemplate(() => Component);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [templateName]);
 
   return (
