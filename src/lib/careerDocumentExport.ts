@@ -70,7 +70,7 @@ function roleItems(rows: unknown[]): PlannedCvItem[] {
         : [];
     const company = [r.company || r.organization, r.location].filter(Boolean).join(' — ');
     return {
-      type: 'role',
+      type: 'role' as const,
       title: String(r.jobTitle || r.role || ''),
       company,
       dates: String(r.dates || ''),
