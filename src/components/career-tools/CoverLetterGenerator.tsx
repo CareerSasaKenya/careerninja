@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, createElement } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,8 +38,10 @@ import {
   hydrateCoverLetter,
   toCoverLetterContentJson,
 } from '@/lib/coverLetterContent';
+import CoverLetterDownloadDialog from '@/components/cover-letter/CoverLetterDownloadDialog';
+import { buildCoverLetterWordBlob, letterPlaintextForApply } from '@/lib/coverLetterExport';
+import { downloadBlob, wordFilename } from '@/lib/downloadBlob';
 import { downloadReactElementAsPdf, pdfFilename } from '@/lib/documentPdf';
-import { createElement } from 'react';
 
 function templateNameForLetter(
   letter: CandidateCoverLetter,
@@ -72,7 +74,7 @@ export default function CoverLetterGenerator({
   const [showEditor, setShowEditor] = useState(false);
   const [letterTitle, setLetterTitle] = useState('');
   const [saving, setSaving] = useState(false);
-  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [downloadLetter, setDownloadLetter] = useState<CandidateCoverLetter | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [activeTemplateName, setActiveTemplateName] = useState('Classic Professional Cover Letter');
   const [formData, setFormData] = useState<Record<string, string>>(() =>
@@ -205,35 +207,9 @@ export default function CoverLetterGenerator({
     }
   }
 
-  function copyToClipboard(content: string) {
-    navigator.clipboard.writeText(content);
+  function copyToClipboard(letter: CandidateCoverLetter) {
+    navigator.clipboard.writeText(letterPlaintextForApply(letter, templateNameForLetter(letter, dbTemplates)));
     toast({ title: 'Copied to clipboard' });
-  }
-
-  async function downloadLetter(letter: CandidateCoverLetter) {
-    const hydrated = hydrateWithDefaults(letter, dbTemplates);
-    const config = getCoverLetterTemplateConfig(hydrated.templateName);
-    if (!config) {
-      toast({ title: 'Cannot download', description: 'Unknown cover letter template.', variant: 'destructive' });
-      return;
-    }
-
-    setDownloadingId(letter.id);
-    try {
-      await downloadReactElementAsPdf({
-        element: createElement(config.component, { data: hydrated.fields }),
-        filename: pdfFilename(letter.title),
-      });
-      toast({ title: 'Downloaded', description: 'Cover letter saved as PDF' });
-    } catch (error: any) {
-      toast({
-        title: 'Download failed',
-        description: error.message || 'Could not generate PDF',
-        variant: 'destructive',
-      });
-    } finally {
-      setDownloadingId(null);
-    }
   }
 
   function renderTemplateGrid(templates: CoverLetterTemplateConfig[]) {
@@ -274,6 +250,7 @@ export default function CoverLetterGenerator({
   }
 
   const ActiveLetter = activeConfig?.component;
+  const downloadHydrated = downloadLetter ? hydrateWithDefaults(downloadLetter, dbTemplates) : null;
 
   return (
     <div className="space-y-8">
@@ -282,7 +259,7 @@ export default function CoverLetterGenerator({
           Cover Letter Templates
         </h2>
         <p className="text-sm text-muted-foreground max-w-2xl">
-          Structured letters for Kenyan applications. Pick a template, edit, save, and download as PDF.
+          Structured letters for Kenyan applications. Pick a template, edit, save, and download as PDF or Word.
         </p>
         {initialJobId && (
           <p className="text-xs text-[#0A66C2]">
@@ -319,14 +296,13 @@ export default function CoverLetterGenerator({
                       <Button size="sm" variant="outline" onClick={() => openSavedLetter(letter)}>
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => copyToClipboard(letter.content)}>
+                      <Button size="sm" variant="outline" onClick={() => copyToClipboard(letter)}>
                         <Copy className="h-4 w-4" />
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => downloadLetter(letter)}
-                        disabled={downloadingId === letter.id}
+                        onClick={() => setDownloadLetter(letter)}
                       >
                         <Download className="h-4 w-4" />
                       </Button>
@@ -454,7 +430,7 @@ export default function CoverLetterGenerator({
                         element: createElement(activeConfig.component, { data: formData }),
                         filename: pdfFilename(letterTitle || activeTemplateName),
                       });
-                      toast({ title: 'Downloaded', description: 'Cover letter saved as PDF' });
+                      toast({ title: 'Ready', description: 'Cover letter saved as a formatted A4 PDF.' });
                     } catch (error: any) {
                       toast({
                         title: 'Download failed',
@@ -466,6 +442,25 @@ export default function CoverLetterGenerator({
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Download PDF
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={async () => {
+                    try {
+                      const blob = await buildCoverLetterWordBlob(formData, activeTemplateName);
+                      await downloadBlob(blob, wordFilename(letterTitle || activeTemplateName));
+                      toast({ title: 'Ready', description: 'Cover letter saved as an editable Word document.' });
+                    } catch (error: any) {
+                      toast({
+                        title: 'Download failed',
+                        description: error.message || 'Could not generate Word file',
+                        variant: 'destructive',
+                      });
+                    }
+                  }}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Word
                 </Button>
                 <div className="flex gap-2">
                   <Button variant="outline" className="flex-1" onClick={() => setShowEditor(false)}>Cancel</Button>
@@ -483,6 +478,19 @@ export default function CoverLetterGenerator({
           </div>
         </DialogContent>
       </Dialog>
+
+      {downloadLetter && downloadHydrated && (
+        <CoverLetterDownloadDialog
+          open
+          onOpenChange={(open) => {
+            if (!open) setDownloadLetter(null);
+          }}
+          title={downloadLetter.title}
+          templateName={downloadHydrated.templateName}
+          fields={downloadHydrated.fields}
+          config={getCoverLetterTemplateConfig(downloadHydrated.templateName)}
+        />
+      )}
     </div>
   );
 }

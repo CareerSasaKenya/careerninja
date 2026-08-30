@@ -32,6 +32,7 @@ import {
   sortLettersForJob,
   type ApplicationMethod,
 } from "@/lib/applyDocuments";
+import { letterPlaintextForApply } from "@/lib/coverLetterExport";
 import { ensureCareerCvApplicationFile } from "@/lib/exportCareerCv";
 
 interface ApplySectionProps {
@@ -108,7 +109,7 @@ export default function ApplySection({
           setSelectedLetterId(preferredLetter.id);
           setFormData((prev) => ({
             ...prev,
-            coverLetter: prev.coverLetter || preferredLetter.content,
+            coverLetter: prev.coverLetter || letterPlaintextForApply(preferredLetter),
             applicationMethod: letterFromUrl ? 'career_tools' : prev.applicationMethod,
           }));
         }
@@ -177,6 +178,7 @@ export default function ApplySection({
       let cvFileSize = null;
       let candidateCvId: string | null = null;
       let candidateCoverLetterId: string | null = null;
+      let coverLetterText = formData.coverLetter.trim();
 
       if (formData.applicationMethod === 'cv' && formData.cvFile) {
         const fileExt = formData.cvFile.name.split('.').pop();
@@ -216,6 +218,9 @@ export default function ApplySection({
           const selectedLetter = builderLetters.find((l) => l.id === selectedLetterId);
           if (selectedLetter) {
             candidateCoverLetterId = selectedLetter.id;
+            if (!coverLetterText) {
+              coverLetterText = letterPlaintextForApply(selectedLetter);
+            }
             if (!selectedLetter.job_id) {
               try {
                 await updateCoverLetter(selectedLetter.id, { job_id: job.id });
@@ -234,7 +239,7 @@ export default function ApplySection({
         email: user.email,
         phone: profile?.phone,
         years_experience: formData.yearsExperience ? parseInt(formData.yearsExperience) : null,
-        cover_letter: formData.coverLetter || null,
+        cover_letter: coverLetterText || null,
         expected_salary_min: formData.expectedSalary ? parseFloat(formData.expectedSalary) : null,
         salary_negotiable: formData.salaryNegotiable,
         application_method: formData.applicationMethod,
@@ -579,8 +584,11 @@ export default function ApplySection({
                             setSelectedLetterId(value);
                             if (value === 'none') return;
                             const letter = builderLetters.find((l) => l.id === value);
-                            if (letter?.content) {
-                              setFormData((prev) => ({ ...prev, coverLetter: letter.content }));
+                            if (letter) {
+                              setFormData((prev) => ({
+                                ...prev,
+                                coverLetter: letterPlaintextForApply(letter),
+                              }));
                             }
                           }}
                         >

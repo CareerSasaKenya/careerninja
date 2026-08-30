@@ -3,6 +3,7 @@
 import { useEffect, useState, type ComponentType } from 'react';
 import Link from 'next/link';
 import CVStudioFrame from '@/components/cv/CVStudioFrame';
+import PublicCvDownloads from '@/components/cv/PublicCvDownloads';
 import { resolveCVTemplate } from '@/components/cv/resolveCVTemplate';
 import { toTemplateProps } from '@/lib/cvContent';
 import { mergeDesign } from '@/lib/cvDesign';
@@ -34,14 +35,17 @@ export default function PublicCvView({
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="border-b bg-white">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3">
           <div>
             <p className="text-sm font-semibold">{name}</p>
             <p className="text-xs text-muted-foreground">{title}</p>
           </div>
-          <Link href="/" className="text-xs text-[#0A66C2] hover:underline">
-            Shared via CareerSasa
-          </Link>
+          <div className="flex flex-wrap items-center gap-3">
+            <PublicCvDownloads title={title} content={content} templateName={templateName} />
+            <Link href="/" className="text-xs text-[#0A66C2] hover:underline">
+              Shared via CareerSasa
+            </Link>
+          </div>
         </div>
       </header>
       <div className="overflow-x-auto px-4 py-8">

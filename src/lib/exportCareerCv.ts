@@ -23,6 +23,7 @@ export async function generateCareerCvPdfBlob(
       children: createElement(Template, { data: toTemplateProps(cv.content, templateName) }),
     }),
     filename: pdfFilename(cv.title),
+    waitMs: 500,
   });
 }
 
