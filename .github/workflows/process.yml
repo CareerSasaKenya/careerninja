@@ -1,12 +1,8 @@
 name: Scrape Process
 
+# Schedules removed so this does not double-run with Vercel crons
+# (scrape-process in vercel.json). Manual / admin dispatch still works.
 on:
-  schedule:
-    # 15-minute tick. Each tick has a ~85% chance of running, so the gap between
-    # actual process runs is randomized (mean ≈ 17.6 min, range ~0–30 min) plus a
-    # 0–12 min jitter so runs never fire on a fixed clock. Manual dispatch
-    # (UI / API) always runs.
-    - cron: '*/15 * * * *'
   workflow_dispatch:
     inputs:
       max:
@@ -22,39 +18,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  decide:
-    name: Decide whether to run
-    runs-on: ubuntu-latest
-    outputs:
-      run: ${{ steps.decide.outputs.run }}
-      jitter: ${{ steps.decide.outputs.jitter }}
-    steps:
-      - name: Randomize scheduled tick
-        id: decide
-        shell: bash
-        run: |
-          # Manual dispatch always runs immediately (no skip, no jitter).
-          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
-            echo "run=1" >> "$GITHUB_OUTPUT"
-            echo "jitter=0" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          # ~85% of 15-min ticks → mean interval ≈ 17.6 min (natural variance).
-          if [ $(( RANDOM % 100 )) -lt 85 ]; then
-            echo "run=1" >> "$GITHUB_OUTPUT"
-            echo "jitter=$(( RANDOM % 720 ))" >> "$GITHUB_OUTPUT" # 0–12 min
-          else
-            echo "run=0" >> "$GITHUB_OUTPUT"
-            echo "jitter=0" >> "$GITHUB_OUTPUT"
-          fi
-      - name: Note skipped tick
-        if: steps.decide.outputs.run != '1'
-        run: echo "Skipped this scheduled tick — next process run time is randomized."
-
   process:
     name: Process queue
-    needs: decide
-    if: needs.decide.outputs.run == '1'
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
@@ -72,10 +37,6 @@ jobs:
       WORKER_PROCESS_BUDGET_MS: '240000'
 
     steps:
-      - name: Wait randomized jitter
-        shell: bash
-        run: sleep "${{ needs.decide.outputs.jitter }}"
-
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4

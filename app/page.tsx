@@ -3,12 +3,13 @@ import {
   getCompanyDirectoryData,
   getHomepageStats,
 } from "@/lib/companyDirectory";
+import { PUBLIC_PAGE_REVALIDATE_SECONDS } from "@/lib/cachePolicy";
 import { getActiveJobsByCounty } from "@/lib/jobsByCounty";
 import { getActiveJobsByFunction } from "@/lib/jobsByFunction";
 import { getActiveJobsByIndustry } from "@/lib/jobsByIndustry";
+import { getLatestJobCards, getRecentBlogPosts } from "@/lib/latestJobs";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = PUBLIC_PAGE_REVALIDATE_SECONDS;
 
 export default async function Page() {
   const [
@@ -17,12 +18,16 @@ export default async function Page() {
     jobsByCounty,
     jobsByFunction,
     jobsByIndustry,
+    latestJobs,
+    recentPosts,
   ] = await Promise.all([
-    getCompanyDirectoryData(),
+    getCompanyDirectoryData({ includeDescriptions: false }),
     getHomepageStats(),
     getActiveJobsByCounty(),
     getActiveJobsByFunction(),
     getActiveJobsByIndustry(),
+    getLatestJobCards(6),
+    getRecentBlogPosts(3),
   ]);
 
   const topCompanies = companies
@@ -37,6 +42,8 @@ export default async function Page() {
       jobsByCounty={jobsByCounty}
       jobsByFunction={jobsByFunction}
       jobsByIndustry={jobsByIndustry}
+      latestJobs={latestJobs}
+      recentPosts={recentPosts}
     />
   );
 }

@@ -7,8 +7,6 @@ import Navbar from "@/components/Navbar";
 import CanonicalTag from "@/components/CanonicalTag";
 import { CompanyLogo } from "@/components/CompanyLogo";
 import { CompanyCard, type CompanyCardData } from "@/components/CompanyCard";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +18,8 @@ import { formatJobSeoTitle, jobPostedLabel } from "@/lib/textUtils";
 import type { CountyJobCount } from "@/lib/jobsByCounty";
 import type { FunctionJobCount } from "@/lib/jobsByFunction";
 import type { IndustryJobCount } from "@/lib/jobsByIndustry";
+import type { JobCardRow } from "@/lib/jobCardSelect";
+import type { HomeBlogPost } from "@/lib/latestJobs";
 import { ExploreJobsByFunction } from "@/components/ExploreJobsByFunction";
 import { ExploreJobsByIndustry } from "@/components/ExploreJobsByIndustry";
 import { ExploreJobsByCountyTeaser } from "@/components/ExploreJobsByCounty";
@@ -57,6 +57,8 @@ type HomePageProps = {
   jobsByCounty: CountyJobCount[];
   jobsByFunction: FunctionJobCount[];
   jobsByIndustry: IndustryJobCount[];
+  latestJobs: JobCardRow[];
+  recentPosts: HomeBlogPost[];
 };
 
 export default function HomePage({
@@ -66,6 +68,8 @@ export default function HomePage({
   jobsByCounty,
   jobsByFunction,
   jobsByIndustry,
+  latestJobs = [],
+  recentPosts = [],
 }: HomePageProps) {
   const router = useRouter();
   const [searchKeyword, setSearchKeyword] = useState("");
@@ -155,37 +159,6 @@ export default function HomePage({
       handleSearch();
     }
   };
-
-  const { data: latestJobs = [], isLoading: loadingLatest } = useQuery({
-    queryKey: ["latest-jobs"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("jobs")
-        .select("*, companies(id, name, logo, website)")
-        .eq("status", "active")
-        .order("is_featured", { ascending: false, nullsFirst: false })
-        .order("is_promoted", { ascending: false, nullsFirst: false })
-        .order("date_posted", { ascending: false })
-        .limit(6);
-
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  const { data: blogPosts = [] } = useQuery({
-    queryKey: ["recent-blog-posts"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("blog_posts")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(3);
-
-      if (error) throw error;
-      return data || [];
-    },
-  });
 
   return (
     <div className="min-h-screen bg-background" suppressHydrationWarning>
@@ -482,8 +455,8 @@ export default function HomePage({
             </p>
           </div>
 
-          {loadingLatest ? (
-            <div className="text-center py-10">Loading latest jobs...</div>
+          {latestJobs.length === 0 ? (
+            <div className="text-center py-10">No jobs posted yet.</div>
           ) : (
             <>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mb-4">
@@ -642,7 +615,7 @@ export default function HomePage({
       </section>
 
       {/* Blog */}
-      {blogPosts.length > 0 && (
+      {recentPosts.length > 0 && (
         <section className="py-3 md:py-8 px-4">
           <div className="container mx-auto">
             <div className={SECTION_HEADER_WRAP_CLASS}>
@@ -655,7 +628,7 @@ export default function HomePage({
             </div>
 
             <div className="grid md:grid-cols-3 gap-4 md:gap-5 mb-4">
-              {blogPosts.map((post) => (
+              {recentPosts.map((post) => (
                 <Link key={post.id} href={`/blog/${post.slug}`} prefetch={true}>
                   <Card className="glass hover:shadow-xl transition-all duration-300 hover:scale-105 h-full">
                     {post.featured_image && (

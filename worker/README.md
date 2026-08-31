@@ -7,32 +7,29 @@ It imports the **same code** the Vercel routes use (`src/lib/scrapeDiscover.ts`,
 ## Architecture
 
 ```text
-Vercel (storefront + light crons)      GitHub Actions (heavy scrape worker)
-  website / API                         scheduled workflows:
-  admin dashboard                         discover   → scraper_sources → scrape_queue
-  expire/renew/email crons                process    → scrape_queue → jobs
-  social-auto-queue cron ──Buffer──►      enrich     → sparse/scraped AI normalize
+Vercel (storefront + live scrape crons)     GitHub Actions (manual / admin dispatch)
+  website / API                               workflow_dispatch only:
+  admin dashboard                               discover   → scraper_sources → scrape_queue
+  scrape-discover / scrape-process / enrich     process    → scrape_queue → jobs
+  expire/renew/email crons                      enrich     → sparse/scraped AI normalize
+  social-auto-queue cron ──Buffer──►
                       └─────────── Supabase (single source of truth) ──────────┘
 ```
 
 - Worker reads/writes Supabase **directly** with the service-role key (same as Vercel routes).
-- Discover, process, and enrich stay on GitHub Actions. Social auto-queue runs on **Vercel Cron** (`/api/cron/social-auto-queue`) because it is small (at most 9 Buffer posts per run).
-- The admin Scraper Sources page dispatches Discover/Process/Enrich to GitHub Actions. Social can still be dry-run from Actions → **Social Auto-Queue**, or `npm run worker:social`.
+- **Live scrape cadence is Vercel Cron** (`scrape-discover`, `scrape-process`, `enrich-jobs` in `vercel.json`). GitHub Actions scrape workflows are **manual only** so they do not double-fetch the same boards and inflate Supabase egress.
+- The admin Scraper Sources page can still dispatch Discover/Process/Enrich to GitHub Actions. Social can be dry-run from Actions → **Social Auto-Queue**, or `npm run worker:social`.
 
-## Recommended: GitHub Actions (free, no servers)
-
-GitHub Actions runs the worker on scheduled workflows. Because `careerninja` is a **public** repository, Actions minutes are **unlimited** — the heavy scraping runs at zero cost, and Vercel only serves the website.
+## Recommended: Vercel crons + on-demand Actions
 
 Three scrape workflows plus social auto-queue are committed in `.github/workflows/`:
 
 | Workflow | Schedule (UTC) | Effective cadence | What it does |
 |----------|----------------|-------------------|--------------|
-| `discover.yml` | hourly tick, ~40% run chance | mean ≈ 2.5h (range ~1–5h) | Sweep all active sources, queue new job links (10-min budget) |
-| `process.yml` | 15-min tick, ~85% run chance | mean ≈ 17.6 min | Drain the queue — fetch details, AI-enrich, publish (batch up to 25) |
-| `enrich.yml` | every 4h + 0–90 min jitter | ~4h | AI-enrich sparse active jobs (scheduled); also supports re-enriching published scraped jobs |
+| `discover.yml` | manual / admin only | — | Sweep all active sources, queue new job links (10-min budget) |
+| `process.yml` | manual / admin only | — | Drain the queue — fetch details, AI-enrich, publish (batch up to 25) |
+| `enrich.yml` | manual / admin only | — | AI-enrich sparse active jobs; also supports re-enriching published scraped jobs |
 | `social.yml` | manual only | — | Dry-run / one-off Buffer refill. Production cadence is Vercel Cron |
-
-The intervals are **randomized** (probability-skip + jitter per tick) so scraping looks natural instead of firing on a fixed clock. Manual dispatch via the admin UI or API always runs immediately.
 
 ### 1. Add the secrets (one time)
 
@@ -54,7 +51,7 @@ To trigger runs **from the admin UI**, also add a GitHub Personal Access Token w
 
 Repo → **Actions** → pick **Scrape Discover** → **Run workflow** (leave inputs blank). Watch the run finish green. Then run **Scrape Process** the same way. Or use Admin → Scraper Sources → the Discover / Process / Enrich buttons, which dispatch the same workflows.
 
-> The workflows also fire on their randomized schedules automatically.
+> These scrape workflows no longer run on a schedule. Live cadence is Vercel Cron; use Actions only for one-off / admin runs.
 
 ### 3. Verify quality/output is unchanged
 
@@ -62,9 +59,9 @@ Repo → **Actions** → pick **Scrape Discover** → **Run workflow** (leave in
 - Confirm jobs appear on the site with the same fields as before (identical code paths in `src/lib/`).
 - Check the Actions run logs for discover queued counts and process published counts.
 
-### 4. Turn off the Vercel scrape crons (once stable)
+### 4. Do not re-enable GitHub Actions scrape schedules
 
-The Vercel scrape crons (`scrape-discover`, `scrape-process`, `enrich-jobs`) were intended to move fully to GitHub Actions. Keep the lightweight crons on Vercel (`expire-jobs`, `auto-renew-jobs`, `expire-promotions`, `email-automations`, `enrich-company-logos`, **`social-auto-queue`**).
+Vercel already runs `scrape-discover`, `scrape-process`, and `enrich-jobs`. Re-adding Actions `on.schedule` would scrape twice and redo the egress spike. Keep the lightweight crons on Vercel (`expire-jobs`, `auto-renew-jobs`, `expire-promotions`, `email-automations`, `enrich-company-logos`, **`social-auto-queue`**).
 
 ## Alternative: VPS (Hetzner / InterServer / Oracle)
 

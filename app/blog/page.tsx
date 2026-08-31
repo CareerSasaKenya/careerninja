@@ -67,7 +67,7 @@ function BlogPageInner() {
     try {
       const { data, error } = await supabase
         .from("blog_posts")
-        .select("*")
+        .select("id, title, slug, featured_image, excerpt, category, tags, created_at, reading_time")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -76,8 +76,7 @@ function BlogPageInner() {
       // Compute reading_time client-side if not set
       const enriched = published.map((p: any) => ({
         ...p,
-        reading_time: p.reading_time ?? estimateReadingTime(p.content || ""),
-        content: undefined,
+        reading_time: p.reading_time ?? estimateReadingTime(p.excerpt || ""),
       }));
       setPosts(enriched);
     } catch (error) {

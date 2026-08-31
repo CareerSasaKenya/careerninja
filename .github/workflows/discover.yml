@@ -1,11 +1,8 @@
 name: Scrape Discover
 
+# Schedules removed so this does not double-run with Vercel crons
+# (scrape-discover in vercel.json). Manual / admin dispatch still works.
 on:
-  schedule:
-    # Hourly tick. Each tick has a ~40% chance of actually discovering, so the
-    # gap between real runs is randomized (mean ≈ 2.5h, typically 1–5h) instead
-    # of firing on a fixed clock. Manual dispatch (UI / API) always runs.
-    - cron: '0 * * * *'
   workflow_dispatch:
     inputs:
       source_id:
@@ -21,39 +18,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  decide:
-    name: Decide whether to run
-    runs-on: ubuntu-latest
-    outputs:
-      run: ${{ steps.decide.outputs.run }}
-      jitter: ${{ steps.decide.outputs.jitter }}
-    steps:
-      - name: Randomize scheduled tick
-        id: decide
-        shell: bash
-        run: |
-          # Manual dispatch always runs immediately (no skip, no jitter).
-          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
-            echo "run=1" >> "$GITHUB_OUTPUT"
-            echo "jitter=0" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          # ~40% of hourly ticks → mean interval ≈ 2.5h (natural variance).
-          if [ $(( RANDOM % 100 )) -lt 40 ]; then
-            echo "run=1" >> "$GITHUB_OUTPUT"
-            echo "jitter=$(( RANDOM % 2700 ))" >> "$GITHUB_OUTPUT" # 0–45 min
-          else
-            echo "run=0" >> "$GITHUB_OUTPUT"
-            echo "jitter=0" >> "$GITHUB_OUTPUT"
-          fi
-      - name: Note skipped tick
-        if: steps.decide.outputs.run != '1'
-        run: echo "Skipped this scheduled tick — next discovery time is randomized."
-
   discover:
     name: Discover
-    needs: decide
-    if: needs.decide.outputs.run == '1'
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
@@ -64,10 +30,6 @@ jobs:
       WORKER_DISCOVER_BUDGET_MS: '600000'
 
     steps:
-      - name: Wait randomized jitter
-        shell: bash
-        run: sleep "${{ needs.decide.outputs.jitter }}"
-
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4

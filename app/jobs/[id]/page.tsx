@@ -24,6 +24,8 @@ import {
   parseTagsInput,
   MAX_JOB_TAGS,
 } from "@/lib/jobParseNormalization";
+import { JOB_PAGE_REVALIDATE_SECONDS } from "@/lib/cachePolicy";
+import { jobCardCompany, jobCardDescription, queryJobCards, type JobCardRow } from "@/lib/jobCardSelect";
 import { getLookupOptions } from "@/lib/jobParsingOptimized";
 import { sanitizeScrapedJobHtmlForDisplay } from "@/lib/jobBoardApply";
 import { sanitizeStockTipsCopy } from "@/lib/sanitizeStockTipsCopy";
@@ -54,7 +56,8 @@ const supabase = createClient(getSupabaseUrl(), getSupabaseAnonKey());
 // Server-side data fetching
 async function getJobData(id: string) {
   try {
-    // Try to find by slug first (more user-friendly URLs)
+    // Full row is required for the job detail body (HTML, qualifications, etc.).
+    // List/related/homepage queries must keep using queryJobCards() instead.
     let { data: job, error } = await supabase
       .from("jobs")
       .select(`
@@ -116,17 +119,7 @@ function isJobLive(job: { valid_through?: string | null }): boolean {
 }
 
 async function getRelatedJobs(jobId: string, industries?: string[], jobFunctions?: string[]) {
-  const select = `
-    *,
-    companies (
-      id,
-      name,
-      logo,
-      website
-    )
-  `;
-
-  const rankRelated = (jobs: any[]) => {
+  const rankRelated = (jobs: JobCardRow[]) => {
     const live = jobs.filter(isJobLive);
     const expired = jobs.filter((j) => !isJobLive(j));
     return [...live, ...expired].slice(0, 6);
@@ -136,45 +129,49 @@ async function getRelatedJobs(jobId: string, industries?: string[], jobFunctions
     const hasIndustries = Boolean(industries && industries.length > 0);
     const hasFunctions = Boolean(jobFunctions && jobFunctions.length > 0);
 
-    // Fetch industry matches and function matches in parallel, then merge.
-    // (Previously industry-only matching hid related jobs when function was set
-    // but industry peers were sparse — common for freshly scraped roles.)
-    const queries: PromiseLike<{ data: any[] | null; error: any }>[] = [];
+    const queries: Promise<JobCardRow[]>[] = [];
 
     if (hasIndustries) {
       queries.push(
-        supabase
-          .from("jobs")
-          .select(select)
-          .neq("id", jobId)
-          .eq("status", "active")
-          .overlaps("industries", industries!)
-          .order("date_posted", { ascending: false })
-          .limit(24)
+        queryJobCards<JobCardRow[]>((select) =>
+          (supabase as any)
+            .from("jobs")
+            .select(select)
+            .neq("id", jobId)
+            .eq("status", "active")
+            .overlaps("industries", industries!)
+            .order("date_posted", { ascending: false })
+            .limit(8)
+        ).then(({ data, error }) => {
+          if (error) throw error;
+          return data || [];
+        })
       );
     }
     if (hasFunctions) {
       queries.push(
-        supabase
-          .from("jobs")
-          .select(select)
-          .neq("id", jobId)
-          .eq("status", "active")
-          .overlaps("job_functions", jobFunctions!)
-          .order("date_posted", { ascending: false })
-          .limit(24)
+        queryJobCards<JobCardRow[]>((select) =>
+          (supabase as any)
+            .from("jobs")
+            .select(select)
+            .neq("id", jobId)
+            .eq("status", "active")
+            .overlaps("job_functions", jobFunctions!)
+            .order("date_posted", { ascending: false })
+            .limit(8)
+        ).then(({ data, error }) => {
+          if (error) throw error;
+          return data || [];
+        })
       );
     }
 
     const results = queries.length > 0 ? await Promise.all(queries) : [];
-    for (const result of results) {
-      if (result.error) throw result.error;
-    }
 
     const seen = new Set<string>();
-    const merged: any[] = [];
-    for (const result of results) {
-      for (const row of result.data || []) {
+    const merged: JobCardRow[] = [];
+    for (const rows of results) {
+      for (const row of rows) {
         if (!row?.id || seen.has(row.id)) continue;
         seen.add(row.id);
         merged.push(row);
@@ -185,14 +182,16 @@ async function getRelatedJobs(jobId: string, industries?: string[], jobFunctions
       return rankRelated(merged);
     }
 
-    // Fallback: recent active jobs so the section is rarely empty
-    const { data: fallback, error: fallbackError } = await supabase
-      .from("jobs")
-      .select(select)
-      .neq("id", jobId)
-      .eq("status", "active")
-      .order("date_posted", { ascending: false })
-      .limit(6);
+    const { data: fallback, error: fallbackError } = await queryJobCards<JobCardRow[]>(
+      (select) =>
+        (supabase as any)
+          .from("jobs")
+          .select(select)
+          .neq("id", jobId)
+          .eq("status", "active")
+          .order("date_posted", { ascending: false })
+          .limit(6)
+    );
 
     if (fallbackError) throw fallbackError;
     return rankRelated(fallback || []);
@@ -202,9 +201,7 @@ async function getRelatedJobs(jobId: string, industries?: string[], jobFunctions
   }
 }
 
-// Force dynamic rendering and disable caching
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const revalidate = JOB_PAGE_REVALIDATE_SECONDS;
 
 // Metadata (including og:image) lives in layout.tsx via generateJobMetadata.
 // Do not export generateMetadata here — Next.js replaces nested openGraph/twitter
@@ -481,20 +478,22 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
             <div id="related-opportunities" className="mt-8 scroll-mt-24 sm:mt-10">
               <h2 className="mb-4 text-2xl font-bold text-[#0A66C2] sm:mb-5">Related Opportunities</h2>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 sm:gap-5">
-                {relatedJobs.slice(0, 6).map((relatedJob: any) => (
+                {relatedJobs.slice(0, 6).map((relatedJob: JobCardRow) => {
+                  const company = jobCardCompany(relatedJob);
+                  return (
                   <JobCard
                     key={relatedJob.id}
                     id={relatedJob.id}
                     title={relatedJob.title}
-                    company={relatedJob.companies?.name || relatedJob.company}
-                    location={relatedJob.location}
+                    company={company?.name || relatedJob.company}
+                    location={relatedJob.location || ""}
                     locationCity={relatedJob.job_location_city}
                     locationCounty={relatedJob.job_location_county}
-                    description={relatedJob.description}
+                    description={jobCardDescription(relatedJob)}
                     salary={relatedJob.salary || undefined}
                     companyId={relatedJob.company_id}
-                    companyLogo={relatedJob.companies?.logo}
-                    companyWebsite={relatedJob.companies?.website}
+                    companyLogo={company?.logo}
+                    companyWebsite={company?.website}
                     industry={relatedJob.industry}
                     locationType={relatedJob.job_location_type}
                     employmentType={relatedJob.employment_type}
@@ -516,7 +515,8 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
                     educationLevel=""
                     locationCountry={relatedJob.job_location_country}
                   />
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { JOB_PAGE_REVALIDATE_SECONDS } from '@/lib/cachePolicy';
 import { generateJobMetadata } from './metadata';
 
 type Props = {
@@ -11,10 +12,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return generateJobMetadata(id);
 }
 
-// Force dynamic rendering to ensure fresh metadata for each request
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-export const fetchCache = 'force-no-store';
+export const revalidate = JOB_PAGE_REVALIDATE_SECONDS;
 
 export default function JobLayout({ children }: Props) {
   return <>{children}</>;
