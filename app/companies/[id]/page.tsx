@@ -24,7 +24,6 @@ import {
   getIndustryCardImage,
 } from "@/lib/industryCardImages";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabaseEnv";
-import { PUBLIC_PAGE_REVALIDATE_SECONDS } from "@/lib/cachePolicy";
 import {
   jobCardCompany,
   jobCardDescription,
@@ -157,7 +156,7 @@ async function getCompanyJobs(
   }
 }
 
-export const revalidate = PUBLIC_PAGE_REVALIDATE_SECONDS;
+export const revalidate = 300;
 
 export async function generateMetadata({
   params,

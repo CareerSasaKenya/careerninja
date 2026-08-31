@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { PUBLIC_PAGE_REVALIDATE_SECONDS } from "@/lib/cachePolicy";
 import { BrowseHubChrome } from "@/components/BrowseHubChrome";
 import { JobsByCountyMap } from "@/components/ExploreJobsByCounty";
 import { getActiveJobsByCounty } from "@/lib/jobsByCounty";
@@ -7,7 +6,7 @@ import { SITE_URL } from "@/lib/browseNav";
 import { fetchPageContentMap } from "@/lib/fetchPageContent";
 import { getContentValue } from "@/lib/pageContent";
 
-export const revalidate = PUBLIC_PAGE_REVALIDATE_SECONDS;
+export const revalidate = 300;
 
 const title = "Jobs by County";
 const description =

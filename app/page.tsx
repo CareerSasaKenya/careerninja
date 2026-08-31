@@ -3,13 +3,12 @@ import {
   getCompanyDirectoryData,
   getHomepageStats,
 } from "@/lib/companyDirectory";
-import { PUBLIC_PAGE_REVALIDATE_SECONDS } from "@/lib/cachePolicy";
 import { getActiveJobsByCounty } from "@/lib/jobsByCounty";
 import { getActiveJobsByFunction } from "@/lib/jobsByFunction";
 import { getActiveJobsByIndustry } from "@/lib/jobsByIndustry";
 import { getLatestJobCards, getRecentBlogPosts } from "@/lib/latestJobs";
 
-export const revalidate = PUBLIC_PAGE_REVALIDATE_SECONDS;
+export const revalidate = 300;
 
 export default async function Page() {
   const [

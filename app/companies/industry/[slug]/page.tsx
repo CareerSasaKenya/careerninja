@@ -5,7 +5,6 @@ import { ArrowLeft } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { CompaniesDirectory } from "@/components/CompaniesDirectory";
-import { PUBLIC_PAGE_REVALIDATE_SECONDS } from "@/lib/cachePolicy";
 import {
   ALL_INDUSTRIES_SLUG,
   getCompanyDirectoryData,
@@ -21,7 +20,7 @@ const SITE_URL =
   process.env.SITE_URL ||
   "https://www.careersasa.co.ke";
 
-export const revalidate = PUBLIC_PAGE_REVALIDATE_SECONDS;
+export const revalidate = 300;
 
 type PageProps = {
   params: Promise<{ slug: string }>;

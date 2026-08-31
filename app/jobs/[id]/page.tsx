@@ -24,7 +24,6 @@ import {
   parseTagsInput,
   MAX_JOB_TAGS,
 } from "@/lib/jobParseNormalization";
-import { JOB_PAGE_REVALIDATE_SECONDS } from "@/lib/cachePolicy";
 import { jobCardCompany, jobCardDescription, queryJobCards, type JobCardRow } from "@/lib/jobCardSelect";
 import { getLookupOptions } from "@/lib/jobParsingOptimized";
 import { sanitizeScrapedJobHtmlForDisplay } from "@/lib/jobBoardApply";
@@ -201,7 +200,7 @@ async function getRelatedJobs(jobId: string, industries?: string[], jobFunctions
   }
 }
 
-export const revalidate = JOB_PAGE_REVALIDATE_SECONDS;
+export const revalidate = 600;
 
 // Metadata (including og:image) lives in layout.tsx via generateJobMetadata.
 // Do not export generateMetadata here — Next.js replaces nested openGraph/twitter

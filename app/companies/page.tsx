@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { IndustryCardsGrid } from "@/components/IndustryCard";
-import { PUBLIC_PAGE_REVALIDATE_SECONDS } from "@/lib/cachePolicy";
 import { getCompanyDirectoryData } from "@/lib/companyDirectory";
 import { fetchPageContentMap, fetchPageSeo } from "@/lib/fetchPageContent";
 import { getContentValue } from "@/lib/pageContent";
@@ -12,7 +11,7 @@ const SITE_URL =
   process.env.SITE_URL ||
   "https://www.careersasa.co.ke";
 
-export const revalidate = PUBLIC_PAGE_REVALIDATE_SECONDS;
+export const revalidate = 300;
 
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await fetchPageSeo("companies");
