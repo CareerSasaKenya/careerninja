@@ -84,7 +84,7 @@ export const getSavedJobs = async () => {
   const { data: { user } } = await supabase.auth.getUser();
   
   if (!user) {
-    throw new Error("User must be logged in");
+    return [];
   }
 
   const { data, error } = await supabase
