@@ -9,7 +9,6 @@ const jobSelect = `
   title,
   company,
   location,
-  description,
   job_slug,
   job_location_type,
   job_location_city,
@@ -60,9 +59,9 @@ export async function generateJobMetadata(id: string): Promise<Metadata> {
       ? `${jobTitle}${companyName ? ` at ${companyName}` : ''} Job — Remote (Kenya) | CareerSasa`
       : `${jobTitle}${companyName ? ` at ${companyName}` : ''} Job in ${locationPart} | CareerSasa`;
 
-    const plainDescription = job.description?.replace(/<[^>]*>/g, '').substring(0, 160);
-    const description = plainDescription
-      || `${jobTitle} job at ${companyName || 'a top company'} in ${locationPart}. Apply now on CareerSasa.`;
+    const description = isRemote
+      ? `${jobTitle} job${companyName ? ` at ${companyName}` : ''} — Remote (Kenya). Apply now on CareerSasa.`
+      : `${jobTitle} job${companyName ? ` at ${companyName}` : ''} in ${locationPart}. Apply now on CareerSasa.`;
 
     const siteUrl = 'https://www.careersasa.co.ke';
     // Same .png URL Buffer warms before Facebook scrapes the link card.

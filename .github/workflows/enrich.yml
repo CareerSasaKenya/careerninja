@@ -1,11 +1,8 @@
 name: Scrape Enrich
 
+# Schedules removed so this does not double-run with Vercel crons
+# (enrich-jobs in vercel.json). Manual / admin dispatch still works.
 on:
-  schedule:
-    # Every 4h tick with a 0–90 min randomized jitter so runs are never
-    # clock-aligned. Scheduled runs default to `sparse` mode — the same safe
-    # AI-enrich-sparse-jobs cadence the old Vercel enrich-jobs cron used.
-    - cron: '30 */4 * * *'
   workflow_dispatch:
     inputs:
       mode:
@@ -51,13 +48,6 @@ jobs:
       GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
 
     steps:
-      - name: Randomize scheduled tick timing
-        shell: bash
-        run: |
-          if [ "$GITHUB_EVENT_NAME" = "schedule" ]; then
-            sleep $(( RANDOM % 5400 )) # 0–90 min jitter
-          fi
-
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
@@ -70,7 +60,7 @@ jobs:
 
       - name: Enrich jobs
         env:
-          MODE: ${{ github.event_name == 'schedule' && 'sparse' || github.event.inputs.mode }}
+          MODE: ${{ github.event.inputs.mode }}
           SOURCE_ID: ${{ github.event.inputs.source_id }}
           LIMIT: ${{ github.event.inputs.limit }}
         run: |

@@ -29,6 +29,7 @@ export interface PageContent {
 export function usePageContent(pageSlug: string, sectionKey?: string) {
   return useQuery({
     queryKey: ["page-content", pageSlug, sectionKey],
+    staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       if (sectionKey) {
         const { data, error } = await supabase

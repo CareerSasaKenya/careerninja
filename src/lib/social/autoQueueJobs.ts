@@ -32,7 +32,7 @@ import type { BufferChannel, SocialPlatform } from './types'
 const PLATFORMS: SocialPlatform[] = ['linkedin', 'facebook', 'instagram']
 const ACTIVE_STATUSES = ['draft', 'ready', 'scheduled', 'publishing', 'published'] as const
 
-const JOB_SELECT = [
+const CANDIDATE_SELECT = [
   'id',
   'title',
   'company',
@@ -52,11 +52,6 @@ const JOB_SELECT = [
   'created_at',
   'job_slug',
   'slug',
-  'description',
-  'responsibilities',
-  'qualifications',
-  'required_qualifications',
-  'education_requirements',
   'salary',
   'salary_min',
   'salary_max',
@@ -65,6 +60,15 @@ const JOB_SELECT = [
   'salary_is_estimated',
   'salary_visibility',
   'application_deadline',
+].join(', ')
+
+const COPY_SELECT = [
+  CANDIDATE_SELECT,
+  'description',
+  'responsibilities',
+  'qualifications',
+  'required_qualifications',
+  'education_requirements',
 ].join(', ')
 
 export interface AutoQueueOutcome {
@@ -159,11 +163,11 @@ async function loadChannelCounts(
 async function loadCandidateJobs(
   adminClient: SupabaseClient,
   lookbackDays: number
-): Promise<(RoutableJob & JobForCopy)[]> {
+): Promise<RoutableJob[]> {
   const cutoff = lookbackIso(lookbackDays)
   const { data, error } = await adminClient
     .from('jobs')
-    .select(JOB_SELECT)
+    .select(CANDIDATE_SELECT)
     .eq('status', 'active')
     .or(`date_posted.gte.${cutoff},created_at.gte.${cutoff}`)
     .order('is_featured', { ascending: false, nullsFirst: false })
@@ -173,7 +177,29 @@ async function loadCandidateJobs(
     console.error('[autoQueueJobs] candidate query failed:', error.message)
     throw new Error('Failed to load jobs for social auto-queue')
   }
-  return (data ?? []) as unknown as (RoutableJob & JobForCopy)[]
+  return (data ?? []) as unknown as RoutableJob[]
+}
+
+async function hydrateJobsForCopy(
+  adminClient: SupabaseClient,
+  jobs: RoutableJob[]
+): Promise<Map<string, JobForCopy>> {
+  const ids = [...new Set(jobs.map((job) => job.id))]
+  const hydrated = new Map<string, JobForCopy>()
+  if (ids.length === 0) return hydrated
+
+  const { data, error } = await adminClient
+    .from('jobs')
+    .select(COPY_SELECT)
+    .in('id', ids)
+  if (error) {
+    console.error('[autoQueueJobs] copy hydrate query failed:', error.message)
+    throw new Error('Failed to load job copy fields for social auto-queue')
+  }
+  for (const row of (data ?? []) as unknown as JobForCopy[]) {
+    hydrated.set(row.id, row)
+  }
+  return hydrated
 }
 
 export interface AutoQueueOptions {
@@ -261,18 +287,21 @@ export async function autoQueueDailyPosts(
 
   const queued = emptyQueued()
   const failed: AutoQueueOutcome['failed'] = []
+  const selectedJobs = PLATFORMS.flatMap((platform) => selected[platform])
+  const hydrated = await hydrateJobsForCopy(adminClient, selectedJobs)
 
   for (const platform of PLATFORMS) {
     const channel = channelByPlatform[platform]
     if (!channel) continue
     for (const job of selected[platform]) {
       try {
-        const copy = await generatePostCopy(job as JobForCopy, platform)
+        const fullJob = hydrated.get(job.id) ?? (job as JobForCopy)
+        const copy = await generatePostCopy(fullJob, platform)
         const post = await createPost(adminClient, userId, {
           job_id: job.id,
           platform,
           post_text: copy.text,
-          media_url: jobOgImageUrl(job as JobForCopy),
+          media_url: jobOgImageUrl(fullJob),
           status: 'ready',
         })
         const outcome = await publishToBuffer(adminClient, {

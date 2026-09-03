@@ -24,6 +24,12 @@ import {
   getIndustryCardImage,
 } from "@/lib/industryCardImages";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabaseEnv";
+import {
+  jobCardCompany,
+  jobCardDescription,
+  queryJobCards,
+  type JobCardRow,
+} from "@/lib/jobCardSelect";
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ||
@@ -45,42 +51,7 @@ type CompanyRow = {
   updated_at: string;
 };
 
-type CompanyJob = {
-  id: string;
-  title: string;
-  company: string;
-  location: string | null;
-  description: string | null;
-  salary: string | null;
-  company_id: string | null;
-  industry: string | null;
-  job_location_type: string | null;
-  employment_type: string | null;
-  job_location_city: string | null;
-  job_location_county: string | null;
-  job_location_country: string | null;
-  salary_min: number | null;
-  salary_max: number | null;
-  salary_currency: string | null;
-  salary_period: string | null;
-  experience_level: string | null;
-  date_posted: string | null;
-  valid_through: string | null;
-  application_url: string | null;
-  apply_email: string | null;
-  apply_link: string | null;
-  job_function: string | null;
-  job_slug: string | null;
-  is_featured: boolean | null;
-  is_promoted: boolean | null;
-  promotion_tier: string | null;
-  companies?: {
-    id: string;
-    name: string;
-    logo: string | null;
-    website: string | null;
-  } | null;
-};
+type CompanyJob = JobCardRow;
 
 function normalizeCompanyJob(row: any): CompanyJob {
   const companiesRel = row?.companies;
@@ -135,39 +106,32 @@ async function getCompanyJobs(
   companyName: string
 ): Promise<CompanyJob[]> {
   try {
-    const jobSelect = `
-      id, title, company, location, description, salary, company_id,
-      industry, job_location_type, employment_type,
-      job_location_city, job_location_county, job_location_country,
-      salary_min, salary_max, salary_currency, salary_period,
-      experience_level, date_posted, valid_through,
-      application_url, apply_email, apply_link, job_function, job_slug,
-      is_featured, is_promoted, promotion_tier,
-      companies ( id, name, logo, website )
-    `;
-
     const [byId, byName] = await Promise.all([
       fetchAllCompanyJobs((from, to) =>
-        supabase
-          .from("jobs")
-          .select(jobSelect)
-          .eq("company_id", companyId)
-          .eq("status", "active")
-          .order("is_featured", { ascending: false, nullsFirst: false })
-          .order("is_promoted", { ascending: false, nullsFirst: false })
-          .order("date_posted", { ascending: false })
-          .range(from, to)
+        queryJobCards((select) =>
+          (supabase as any)
+            .from("jobs")
+            .select(select)
+            .eq("company_id", companyId)
+            .eq("status", "active")
+            .order("is_featured", { ascending: false, nullsFirst: false })
+            .order("is_promoted", { ascending: false, nullsFirst: false })
+            .order("date_posted", { ascending: false })
+            .range(from, to)
+        )
       ),
       // Catch active listings that still only have a company name match
       fetchAllCompanyJobs((from, to) =>
-        supabase
-          .from("jobs")
-          .select(jobSelect)
-          .is("company_id", null)
-          .ilike("company", companyName)
-          .eq("status", "active")
-          .order("date_posted", { ascending: false })
-          .range(from, to)
+        queryJobCards((select) =>
+          (supabase as any)
+            .from("jobs")
+            .select(select)
+            .is("company_id", null)
+            .ilike("company", companyName)
+            .eq("status", "active")
+            .order("date_posted", { ascending: false })
+            .range(from, to)
+        )
       ),
     ]);
 
@@ -192,8 +156,7 @@ async function getCompanyJobs(
   }
 }
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 300;
 
 export async function generateMetadata({
   params,
@@ -524,7 +487,9 @@ export default async function CompanyProfilePage({
 
             {jobs.length > 0 ? (
               <div className="grid grid-cols-1 gap-4 md:gap-6">
-                {jobs.map((job, index) => (
+                {jobs.map((job, index) => {
+                  const jobCompany = jobCardCompany(job);
+                  return (
                   <div
                     key={job.id}
                     style={{ animationDelay: `${index * 50}ms` }}
@@ -533,16 +498,16 @@ export default async function CompanyProfilePage({
                     <JobCard
                       id={job.id}
                       title={job.title}
-                      company={job.companies?.name || job.company || company.name}
+                      company={jobCompany?.name || job.company || company.name}
                       location={job.location || ""}
                       locationCity={job.job_location_city}
                       locationCounty={job.job_location_county}
-                      description={job.description || ""}
+                      description={jobCardDescription(job)}
                       salary={job.salary || undefined}
                       companyId={job.company_id || company.id}
-                      companyLogo={job.companies?.logo || company.logo}
+                      companyLogo={jobCompany?.logo || company.logo}
                       companyWebsite={
-                        job.companies?.website || company.website
+                        jobCompany?.website || company.website
                       }
                       industry={job.industry}
                       locationType={job.job_location_type}
@@ -565,7 +530,8 @@ export default async function CompanyProfilePage({
                       promotionTier={job.promotion_tier}
                     />
                   </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <Card className="border-dashed border-border/70">

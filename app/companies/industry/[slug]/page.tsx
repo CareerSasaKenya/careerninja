@@ -20,8 +20,7 @@ const SITE_URL =
   process.env.SITE_URL ||
   "https://www.careersasa.co.ke";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 300;
 
 type PageProps = {
   params: Promise<{ slug: string }>;

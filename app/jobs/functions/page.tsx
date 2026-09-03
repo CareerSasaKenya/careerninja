@@ -7,8 +7,7 @@ import { SITE_URL } from "@/lib/browseNav";
 import { fetchPageContentMap } from "@/lib/fetchPageContent";
 import { getContentValue } from "@/lib/pageContent";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 300;
 
 const title = "Jobs by Function";
 const description =

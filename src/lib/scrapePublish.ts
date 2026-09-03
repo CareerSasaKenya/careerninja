@@ -24,6 +24,7 @@ import { companyProfileToEnsureInput, type JobBoardCompanyProfile } from './jobB
 import { sanitizeAdditionalInfoApplyCopy } from './applyInstructionsCopy'
 import { isMissingOrLabelOnlyQualifications } from './experienceLevelLabel'
 import { applyKenyanSalaryEstimateIfMissing, isMissingSalaryEstimatedColumnError, withoutSalaryEstimatedFlag } from './kenyanSalaryEstimate'
+import { revalidatePublicJobSurfaces } from './revalidatePublic'
 
 export interface PublishScrapedJobParams {
   supabase: SupabaseClient
@@ -336,18 +337,23 @@ export async function publishScrapedJob(
     let { data: insertedJob, error: jobError } = await supabase
       .from('jobs')
       .insert(jobPayloadWithSalary)
-      .select('id')
+      .select('id, job_slug')
       .single()
 
     if (jobError && isMissingSalaryEstimatedColumnError(jobError)) {
       ;({ data: insertedJob, error: jobError } = await supabase
         .from('jobs')
         .insert(withoutSalaryEstimatedFlag(jobPayloadWithSalary))
-        .select('id')
+        .select('id, job_slug')
         .single())
     }
 
     if (jobError) throw jobError
+
+    await revalidatePublicJobSurfaces({
+      id: insertedJob.id,
+      job_slug: insertedJob.job_slug,
+    })
 
     await supabase.from('scraped_job_sources').insert({
       source_id: sourceId,

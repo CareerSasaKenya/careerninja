@@ -13,13 +13,19 @@ import { useState } from "react";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => {
+    const defaultOptions = {
+      queries: {
+        staleTime: 5 * 60 * 1000,
+      },
+    };
     try {
-      return new QueryClient();
+      return new QueryClient({ defaultOptions });
     } catch (error) {
       console.debug('Error creating QueryClient:', error);
       return new QueryClient({
         defaultOptions: {
           queries: {
+            ...defaultOptions.queries,
             retry: false,
           },
         },

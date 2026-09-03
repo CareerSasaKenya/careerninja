@@ -83,6 +83,7 @@ import { isJobBoardSource, rewriteJobBoardDescriptionLinks } from '@/lib/jobBoar
 import { sanitizeAdditionalInfoApplyCopy } from '@/lib/applyInstructionsCopy'
 import { isMissingOrLabelOnlyQualifications } from '@/lib/experienceLevelLabel'
 import { applyKenyanSalaryEstimateIfMissing, isMissingSalaryEstimatedColumnError, withoutSalaryEstimatedFlag } from '@/lib/kenyanSalaryEstimate'
+import { revalidatePublicJobSurfaces } from '@/lib/revalidatePublic'
 import type { WorkableJobDetail } from '@/lib/workable-adapter'
 import { reclaimStuckScrapeQueueItems } from '@/lib/scrapeQueueStats'
 
@@ -815,18 +816,23 @@ export async function runScrapeProcessOne(
     let { data: insertedJob, error: jobError } = await supabase
       .from('jobs')
       .insert(jobPayloadWithSalary)
-      .select('id')
+      .select('id, job_slug')
       .single()
 
     if (jobError && isMissingSalaryEstimatedColumnError(jobError)) {
       ;({ data: insertedJob, error: jobError } = await supabase
         .from('jobs')
         .insert(withoutSalaryEstimatedFlag(jobPayloadWithSalary))
-        .select('id')
+        .select('id, job_slug')
         .single())
     }
 
     if (jobError) throw jobError
+
+    await revalidatePublicJobSurfaces({
+      id: insertedJob.id,
+      job_slug: insertedJob.job_slug,
+    })
 
     await supabase.from('scraped_job_sources').insert({
       source_id: source.source_id,

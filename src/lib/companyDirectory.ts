@@ -61,10 +61,7 @@ type CompanyRow = {
   description: string | null;
 };
 type JobRow = {
-  id?: string;
   company_id: string | null;
-  industry?: string | string[] | null;
-  industries?: string[] | null;
 };
 type IndustryRow = { id: number | string; name: string };
 
@@ -90,27 +87,9 @@ async function fetchAllRows<T>(
   return rows;
 }
 
-function jobIndustryCandidates(job: JobRow): string[] {
-  const values: string[] = [];
-  if (Array.isArray(job.industries)) {
-    for (const value of job.industries) {
-      if (typeof value === "string" && value.trim()) values.push(value.trim());
-    }
-  }
-  if (Array.isArray(job.industry)) {
-    for (const value of job.industry) {
-      if (typeof value === "string" && value.trim()) values.push(value.trim());
-    }
-  } else if (typeof job.industry === "string" && job.industry.trim()) {
-    values.push(job.industry.trim());
-  }
-  return values;
-}
-
 /**
  * Resolve a company onto a canonical industry for directory cards.
- * Prefer stored company industry, then name/website inference, then the
- * modal industry of that company's active jobs (display-only fallback).
+ * Prefer stored company industry, then name/website inference.
  */
 export function resolveDirectoryCompanyIndustry(
   company: Pick<CompanyRow, "name" | "website" | "industry">,
@@ -134,66 +113,67 @@ export function resolveDirectoryCompanyIndustry(
   return null;
 }
 
-function buildOpenJobsAndModalIndustry(
-  jobRows: JobRow[],
-  industries: string[]
-): {
-  openJobsByCompany: Map<string, number>;
-  modalIndustryByCompany: Map<string, string>;
-} {
-  const openJobsByCompany = new Map<string, number>();
-  const industryVotesByCompany = new Map<string, Map<string, number>>();
+async function getOpenJobsByCompany(): Promise<Map<string, number>> {
+  const counts = new Map<string, number>();
+
+  try {
+    const { data: viewRows, error: viewError } = await supabase
+      .from("active_jobs_by_company")
+      .select("company_id, job_count");
+
+    if (!viewError && Array.isArray(viewRows) && viewRows.length > 0) {
+      for (const row of viewRows) {
+        const id = row.company_id as string | null;
+        if (!id) continue;
+        counts.set(id, Number(row.job_count ?? 0));
+      }
+      return counts;
+    }
+  } catch {
+    // View missing — fall through to a company_id-only scan.
+  }
+
+  const jobRows = await fetchAllRows<JobRow>((from, to) =>
+    supabase
+      .from("jobs")
+      .select("company_id")
+      .eq("status", "active")
+      .not("company_id", "is", null)
+      .order("company_id")
+      .range(from, to)
+  );
 
   for (const job of jobRows) {
     if (!job.company_id) continue;
-
-    openJobsByCompany.set(
-      job.company_id,
-      (openJobsByCompany.get(job.company_id) || 0) + 1
-    );
-
-    let matched: string | null = null;
-    for (const candidate of jobIndustryCandidates(job)) {
-      matched = resolveIndustryLabel(candidate, industries);
-      if (matched) break;
-    }
-    if (!matched) continue;
-
-    if (!industryVotesByCompany.has(job.company_id)) {
-      industryVotesByCompany.set(job.company_id, new Map());
-    }
-    const votes = industryVotesByCompany.get(job.company_id)!;
-    votes.set(matched, (votes.get(matched) || 0) + 1);
+    counts.set(job.company_id, (counts.get(job.company_id) || 0) + 1);
   }
-
-  const modalIndustryByCompany = new Map<string, string>();
-  for (const [companyId, votes] of industryVotesByCompany) {
-    const top = [...votes.entries()].sort((a, b) => b[1] - a[1])[0];
-    if (top) modalIndustryByCompany.set(companyId, top[0]);
-  }
-
-  return { openJobsByCompany, modalIndustryByCompany };
+  return counts;
 }
 
-export async function getCompanyDirectoryData(): Promise<CompanyDirectoryData> {
+export type CompanyDirectoryOptions = {
+  /** Homepage compact cards do not render blurbs. */
+  includeDescriptions?: boolean;
+};
+
+export async function getCompanyDirectoryData(
+  options: CompanyDirectoryOptions = {}
+): Promise<CompanyDirectoryData> {
+  const includeDescriptions = options.includeDescriptions !== false;
+
   try {
-    const [companyRows, jobRows, industryRows] = await Promise.all([
+    const companySelect = includeDescriptions
+      ? "id, name, logo, website, industry, location, description"
+      : "id, name, logo, website, industry, location";
+
+    const [companyRows, openJobsByCompany, industryRows] = await Promise.all([
       fetchAllRows<CompanyRow>((from, to) =>
-        supabase
+        (supabase as any)
           .from("companies")
-          .select("id, name, logo, website, industry, location, description")
+          .select(companySelect)
           .order("name")
           .range(from, to)
       ),
-      fetchAllRows<JobRow>((from, to) =>
-        supabase
-          .from("jobs")
-          .select("id, company_id, industry, industries")
-          .eq("status", "active")
-          .not("company_id", "is", null)
-          .order("id")
-          .range(from, to)
-      ),
+      getOpenJobsByCompany(),
       fetchAllRows<IndustryRow>((from, to) =>
         supabase.from("industries").select("id, name").order("name").range(from, to)
       ),
@@ -204,14 +184,10 @@ export async function getCompanyDirectoryData(): Promise<CompanyDirectoryData> {
       .filter(Boolean)
       .sort((a, b) => a.localeCompare(b));
 
-    const { openJobsByCompany, modalIndustryByCompany } =
-      buildOpenJobsAndModalIndustry(jobRows, industries);
-
     const rows: CompanyCardData[] = companyRows.map((company) => {
       const canonicalIndustry = resolveDirectoryCompanyIndustry(
         company,
-        industries,
-        modalIndustryByCompany.get(company.id) || null
+        industries
       );
 
       return {
@@ -221,7 +197,7 @@ export async function getCompanyDirectoryData(): Promise<CompanyDirectoryData> {
         website: company.website,
         industry: canonicalIndustry,
         location: company.location,
-        description: company.description,
+        description: includeDescriptions ? company.description : null,
         openJobs: openJobsByCompany.get(company.id) || 0,
       };
     });

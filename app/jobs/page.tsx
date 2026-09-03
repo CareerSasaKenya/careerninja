@@ -8,10 +8,15 @@ import { Loader2, ChevronLeft, ChevronRight, Search, RotateCcw, ChevronDown, Che
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Database } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
-import { testSupabaseConnection } from "@/lib/testSupabase";
 import { SaveSearchButton } from "@/components/SaveSearchButton";
 import { KENYA_COUNTIES, countySearchValues } from "@/lib/counties";
 import { usePageContent, getContentValue } from "@/hooks/usePageContent";
+import {
+  jobCardCompany,
+  jobCardDescription,
+  queryJobCards,
+  type JobCardRow,
+} from "@/lib/jobCardSelect";
 
 interface SearchFilters {
   searchTerm: string;
@@ -130,6 +135,79 @@ const INDUSTRIES = [
 const COUNTIES = KENYA_COUNTIES;
 
 const JOBS_PER_PAGE = 12;
+const SEARCH_DEBOUNCE_MS = 300;
+
+function applyJobListingFilters(query: any, filters: SearchFilters) {
+  query = query.eq("status", "active");
+
+  if (filters.searchTerm) {
+    query = query.ilike("title", `%${filters.searchTerm}%`);
+  }
+
+  if (filters.location) {
+    const countyValues = countySearchValues(filters.location);
+    query = countyValues.length > 1
+      ? query.in("job_location_county", countyValues)
+      : query.eq("job_location_county", filters.location);
+  }
+
+  if (filters.employmentType) {
+    query = query.eq(
+      "employment_type",
+      filters.employmentType as Database["public"]["Enums"]["employment_type"]
+    );
+  }
+
+  if (filters.experienceLevel) {
+    query = query.eq(
+      "experience_level",
+      filters.experienceLevel as Database["public"]["Enums"]["experience_level"]
+    );
+  }
+
+  if (filters.remoteOnly) {
+    query = query.eq("job_location_type", "REMOTE");
+  }
+
+  if (filters.educationLevel) {
+    query = query.ilike("education_requirements", `%${filters.educationLevel}%`);
+  }
+
+  if (filters.industry) {
+    query = query.eq("industry", filters.industry);
+  }
+
+  if (filters.jobType) {
+    query = query.eq("job_function", filters.jobType);
+  }
+
+  if (filters.salaryMin !== null) {
+    query = query.gte("salary_min", filters.salaryMin);
+  }
+
+  if (filters.salaryMax !== null) {
+    query = query.lte("salary_max", filters.salaryMax);
+  }
+
+  return query;
+}
+
+function applyJobListingSort(query: any, sortBy: string) {
+  query = query
+    .order("is_featured", { ascending: false, nullsFirst: false })
+    .order("is_promoted", { ascending: false, nullsFirst: false });
+
+  switch (sortBy) {
+    case "oldest":
+      return query.order("created_at", { ascending: true });
+    case "salary_high":
+      return query.order("salary_max", { ascending: false });
+    case "salary_low":
+      return query.order("salary_min", { ascending: true });
+    default:
+      return query.order("created_at", { ascending: false });
+  }
+}
 
 const Jobs = () => {
   const [filters, setFilters] = useState<SearchFilters>({
@@ -145,6 +223,14 @@ const Jobs = () => {
     industry: "",
     sortBy: "newest"
   });
+  const [debouncedFilters, setDebouncedFilters] = useState(filters);
+
+  useEffect(() => {
+    const handle = window.setTimeout(() => {
+      setDebouncedFilters(filters);
+    }, SEARCH_DEBOUNCE_MS);
+    return () => window.clearTimeout(handle);
+  }, [filters]);
   
   // State to track dropdown open states
   const [dropdownStates, setDropdownStates] = useState({
@@ -171,164 +257,42 @@ const Jobs = () => {
   );
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["jobs", filters, currentPage],
+    queryKey: ["jobs", debouncedFilters, currentPage],
     queryFn: async () => {
       try {
-        console.log("Fetching jobs with filters:", filters);
-        console.log("Current page:", currentPage);
-        
-        // First, get the total count
-        let countQuery = supabase
-          .from("jobs")
-          .select("*", { count: "exact", head: true });
-
-        // Apply search filters for count
-        if (filters.searchTerm) {
-          countQuery = countQuery.ilike("title", `%${filters.searchTerm}%`);
-        }
-
-        if (filters.location) {
-          const countyValues = countySearchValues(filters.location);
-          countQuery = countyValues.length > 1
-            ? countQuery.in("job_location_county", countyValues)
-            : countQuery.eq("job_location_county", filters.location);
-        }
-
-        if (filters.employmentType) {
-          countQuery = countQuery.eq("employment_type", filters.employmentType as Database["public"]["Enums"]["employment_type"]);
-        }
-
-        if (filters.experienceLevel) {
-          countQuery = countQuery.eq("experience_level", filters.experienceLevel as Database["public"]["Enums"]["experience_level"]);
-        }
-
-        if (filters.remoteOnly) {
-          countQuery = countQuery.eq("job_location_type", "REMOTE");
-        }
-
-        if (filters.educationLevel) {
-          countQuery = countQuery.ilike("education_requirements", `%${filters.educationLevel}%`);
-        }
-
-        if (filters.industry) {
-          countQuery = countQuery.eq("industry", filters.industry);
-        }
-
-        if (filters.jobType) {
-          countQuery = countQuery.eq("job_function", filters.jobType);
-        }
+        const countQuery = applyJobListingFilters(
+          supabase.from("jobs").select("id", { count: "exact", head: true }),
+          debouncedFilters
+        );
 
         const { count, error: countError } = await countQuery;
-        console.log("Count query result:", { count, countError });
-        
+
         if (countError) {
           console.error("Count query error:", countError);
           throw new Error(`Failed to fetch job count: ${countError.message}`);
         }
 
-        // Then get the paginated data with better error handling
-        let query = supabase
-          .from("jobs")
-          .select(`
-            *,
-            companies (
-              id,
-              name,
-              logo,
-              website
-            )
-          `)
-          .range((currentPage - 1) * JOBS_PER_PAGE, currentPage * JOBS_PER_PAGE - 1);
+        const from = (currentPage - 1) * JOBS_PER_PAGE;
+        const to = currentPage * JOBS_PER_PAGE - 1;
 
-        // Apply search filters
-        if (filters.searchTerm) {
-          query = query.ilike("title", `%${filters.searchTerm}%`);
+        const { data: rows, error: dataError } = await queryJobCards<JobCardRow[]>(
+          (select) =>
+            applyJobListingSort(
+              applyJobListingFilters(
+                (supabase as any).from("jobs").select(select),
+                debouncedFilters
+              ),
+              debouncedFilters.sortBy
+            ).range(from, to)
+        );
+
+        if (dataError) {
+          console.error("Data query error:", dataError);
+          throw new Error(`Failed to fetch jobs: ${dataError.message}`);
         }
 
-        if (filters.location) {
-          const countyValues = countySearchValues(filters.location);
-          query = countyValues.length > 1
-            ? query.in("job_location_county", countyValues)
-            : query.eq("job_location_county", filters.location);
-        }
-
-        if (filters.employmentType) {
-          query = query.eq("employment_type", filters.employmentType as Database["public"]["Enums"]["employment_type"]);
-        }
-
-        if (filters.experienceLevel) {
-          query = query.eq("experience_level", filters.experienceLevel as Database["public"]["Enums"]["experience_level"]);
-        }
-
-        if (filters.remoteOnly) {
-          query = query.eq("job_location_type", "REMOTE");
-        }
-
-        if (filters.educationLevel) {
-          query = query.ilike("education_requirements", `%${filters.educationLevel}%`);
-        }
-
-        if (filters.industry) {
-          query = query.eq("industry", filters.industry);
-        }
-
-        if (filters.jobType) {
-          query = query.eq("job_function", filters.jobType);
-        }
-
-        // Apply salary filters
-        if (filters.salaryMin !== null) {
-          query = query.gte("salary_min", filters.salaryMin);
-        }
-
-        if (filters.salaryMax !== null) {
-          query = query.lte("salary_max", filters.salaryMax);
-        }
-
-        // Apply sorting with featured/promoted priority
-        switch (filters.sortBy) {
-          case "newest":
-            query = query
-              .order("is_featured", { ascending: false, nullsFirst: false })
-              .order("is_promoted", { ascending: false, nullsFirst: false })
-              .order("created_at", { ascending: false });
-            break;
-          case "oldest":
-            query = query
-              .order("is_featured", { ascending: false, nullsFirst: false })
-              .order("is_promoted", { ascending: false, nullsFirst: false })
-              .order("created_at", { ascending: true });
-            break;
-          case "salary_high":
-            query = query
-              .order("is_featured", { ascending: false, nullsFirst: false })
-              .order("is_promoted", { ascending: false, nullsFirst: false })
-              .order("salary_max", { ascending: false });
-            break;
-          case "salary_low":
-            query = query
-              .order("is_featured", { ascending: false, nullsFirst: false })
-              .order("is_promoted", { ascending: false, nullsFirst: false })
-              .order("salary_min", { ascending: true });
-            break;
-          default:
-            query = query
-              .order("is_featured", { ascending: false, nullsFirst: false })
-              .order("is_promoted", { ascending: false, nullsFirst: false })
-              .order("created_at", { ascending: false });
-        }
-
-        const { data, error } = await query;
-        console.log("Data query result:", { data, error });
-
-        if (error) {
-          console.error("Data query error:", error);
-          throw new Error(`Failed to fetch jobs: ${error.message}`);
-        }
-        
-        // Return both data and count
         return {
-          data,
+          data: rows || [],
           count: count || 0
         };
       } catch (err) {
@@ -358,20 +322,10 @@ const Jobs = () => {
     }
   }, [error]);
 
-  // Reset to first page when filters change
+  // Reset to first page when the query filters settle
   useEffect(() => {
     setCurrentPage(1);
-  }, [filters]);
-
-  // Test Supabase connection on component mount
-  useEffect(() => {
-    const testConnection = async () => {
-      const result = await testSupabaseConnection();
-      console.log("Supabase connection test result:", result);
-    };
-    
-    testConnection();
-  }, []);
+  }, [debouncedFilters]);
 
   // Initialize filters from the URL (e.g. /jobs?location=Nairobi from the
   // homepage search or the jobs map). Re-applies on back/forward navigation.
@@ -795,20 +749,22 @@ const Jobs = () => {
               ) : data && data.data && data.data.length > 0 ? (
                 <>
                   <div className="grid grid-cols-1 gap-4 md:gap-6">
-                    {data.data.map((job, index) => (
+                    {data.data.map((job, index) => {
+                      const company = jobCardCompany(job);
+                      return (
                       <div key={job.id} style={{ animationDelay: `${index * 50}ms` }} className="animate-fade-in">
                         <JobCard
                           id={job.id}
                           title={job.title}
-                          company={job.companies?.name || job.company}
-                          location={job.location}
+                          company={company?.name || job.company}
+                          location={job.location || ""}
                           locationCity={job.job_location_city}
                           locationCounty={job.job_location_county}
-                          description={job.description}
+                          description={jobCardDescription(job)}
                           salary={job.salary || undefined}
                           companyId={job.company_id}
-                          companyLogo={job.companies?.logo}
-                          companyWebsite={job.companies?.website}
+                          companyLogo={company?.logo}
+                          companyWebsite={company?.website}
                           industry={job.industry}
                           locationType={job.job_location_type}
                           employmentType={job.employment_type}
@@ -834,7 +790,8 @@ const Jobs = () => {
                           promotionTier={job.promotion_tier}
                         />
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                   
                   {/* Scrollable Pagination */}
