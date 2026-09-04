@@ -1,6 +1,11 @@
 // Career Tools Library - CV Builder, Cover Letters, Assessments, Career Paths, Salary Insights
 
 import { supabase } from '@/integrations/supabase/client';
+import { isMissingDbColumnError } from '@/lib/applyDocuments';
+import { normalizeCVContent } from '@/lib/cvContent';
+import { isShareColumnMissing, withoutShareFields } from '@/lib/cvShare';
+import { tailoredCvTitle, withoutTargetingFields } from '@/lib/jobTargeting';
+import type { CoverLetterContentJson } from '@/types/careerDocuments';
 
 // ============================================================================
 // TYPES
@@ -26,6 +31,12 @@ export interface CandidateCV {
   version: number;
   file_url: string | null;
   last_generated_at: string | null;
+  parent_cv_id?: string | null;
+  target_job_id?: string | null;
+  target_jd_text?: string | null;
+  share_token?: string | null;
+  is_public?: boolean | null;
+  shared_at?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -48,6 +59,7 @@ export interface CandidateCoverLetter {
   job_id: string | null;
   title: string;
   content: string;
+  content_json: CoverLetterContentJson | null;
   generated_content: string | null;
   file_url: string | null;
   created_at: string;
@@ -146,26 +158,108 @@ export async function getUserCVs(userId: string) {
 }
 
 export async function createCV(cv: Partial<CandidateCV>) {
-  const { data, error } = await supabase
+  const payload = {
+    ...cv,
+    content: normalizeCVContent(cv.content ?? {}),
+  };
+  let { data, error } = await supabase
     .from('candidate_cvs' as any)
-    .insert(cv)
+    .insert(payload)
     .select()
     .single();
+
+  if (
+    error &&
+    (isMissingDbColumnError(error, 'parent_cv_id') ||
+      isMissingDbColumnError(error, 'target_job_id') ||
+      isMissingDbColumnError(error, 'target_jd_text') ||
+      isShareColumnMissing(error))
+  ) {
+    const retry = await supabase
+      .from('candidate_cvs' as any)
+      .insert(withoutShareFields(withoutTargetingFields(payload)))
+      .select()
+      .single();
+    data = retry.data;
+    error = retry.error;
+  }
 
   if (error) throw error;
   return data as unknown as CandidateCV;
 }
 
 export async function updateCV(id: string, updates: Partial<CandidateCV>) {
-  const { data, error } = await supabase
+  const payload: Partial<CandidateCV> = {
+    ...updates,
+    updated_at: new Date().toISOString(),
+  };
+  if (updates.content !== undefined) {
+    payload.content = normalizeCVContent(updates.content);
+  }
+  let { data, error } = await supabase
     .from('candidate_cvs' as any)
-    .update({ ...updates, updated_at: new Date().toISOString() })
+    .update(payload)
     .eq('id', id)
     .select()
     .single();
 
+  if (
+    error &&
+    (isMissingDbColumnError(error, 'parent_cv_id') ||
+      isMissingDbColumnError(error, 'target_job_id') ||
+      isMissingDbColumnError(error, 'target_jd_text') ||
+      isShareColumnMissing(error))
+  ) {
+    const retry = await supabase
+      .from('candidate_cvs' as any)
+      .update(withoutShareFields(withoutTargetingFields(payload)))
+      .eq('id', id)
+      .select()
+      .single();
+    data = retry.data;
+    error = retry.error;
+  }
+
   if (error) throw error;
   return data as unknown as CandidateCV;
+}
+
+export async function attachJobToCV(
+  cvId: string,
+  targeting: { target_job_id?: string | null; target_jd_text?: string | null },
+) {
+  return updateCV(cvId, {
+    target_job_id: targeting.target_job_id ?? null,
+    target_jd_text: targeting.target_jd_text ?? null,
+  });
+}
+
+export async function createTargetedCvCopy(
+  source: CandidateCV,
+  targeting: { target_job_id?: string | null; target_jd_text?: string | null; jobTitle?: string | null },
+) {
+  const title = tailoredCvTitle(source.title, targeting.jobTitle);
+  const payload: Partial<CandidateCV> = {
+    user_id: source.user_id,
+    template_id: source.template_id,
+    title,
+    content: source.content,
+    is_primary: false,
+    parent_cv_id: source.id,
+    target_job_id: targeting.target_job_id ?? null,
+    target_jd_text: targeting.target_jd_text ?? null,
+  };
+  try {
+    return await createCV(payload);
+  } catch (error: any) {
+    if (error?.code === '23505') {
+      return createCV({
+        ...payload,
+        title: `${title} (${new Date().toISOString().slice(11, 19)})`.slice(0, 120),
+      });
+    }
+    throw error;
+  }
 }
 
 export async function deleteCV(id: string) {
@@ -219,7 +313,12 @@ export async function getUserCoverLetters(userId: string) {
     .order('updated_at', { ascending: false });
 
   if (error) throw error;
-  return data;
+  return (data ?? []) as unknown as CandidateCoverLetter[];
+}
+
+function isMissingContentJsonColumn(error: { message?: string } | null): boolean {
+  const message = error?.message || '';
+  return /content_json/i.test(message) && /column/i.test(message);
 }
 
 export async function createCoverLetter(letter: Partial<CandidateCoverLetter>) {
@@ -228,6 +327,17 @@ export async function createCoverLetter(letter: Partial<CandidateCoverLetter>) {
     .insert(letter)
     .select()
     .single();
+
+  if (error && letter.content_json && isMissingContentJsonColumn(error)) {
+    const { content_json: _, ...withoutJson } = letter;
+    const retry = await supabase
+      .from('candidate_cover_letters' as any)
+      .insert(withoutJson)
+      .select()
+      .single();
+    if (retry.error) throw retry.error;
+    return retry.data as unknown as CandidateCoverLetter;
+  }
 
   if (error) throw error;
 
@@ -251,8 +361,29 @@ export async function updateCoverLetter(id: string, updates: Partial<CandidateCo
     .select()
     .single();
 
+  if (error && updates.content_json && isMissingContentJsonColumn(error)) {
+    const { content_json: _, ...withoutJson } = updates;
+    const retry = await supabase
+      .from('candidate_cover_letters' as any)
+      .update({ ...withoutJson, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
+    if (retry.error) throw retry.error;
+    return retry.data as unknown as CandidateCoverLetter;
+  }
+
   if (error) throw error;
   return data as unknown as CandidateCoverLetter;
+}
+
+export async function deleteCoverLetter(id: string) {
+  const { error } = await supabase
+    .from('candidate_cover_letters' as any)
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
 }
 
 export async function generateCoverLetterFromTemplate(

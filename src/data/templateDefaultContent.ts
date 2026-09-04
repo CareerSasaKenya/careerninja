@@ -413,6 +413,61 @@ const defaults: Record<string, CVContent> = {
   },
 };
 
+function extrasForTemplate(key: string | undefined): Record<string, unknown> {
+  switch (key) {
+    case 'Academic / Research':
+      return {
+        publications: academicPreviewData.publications,
+        conferences: academicPreviewData.conferences,
+        grants: academicPreviewData.grants,
+        researchInterests: academicPreviewData.researchInterests,
+      };
+    case 'Functional / Skills-Based':
+      return { skillCategories: functionalPreviewData.skillCategories };
+    case 'Creative Portfolio':
+      return { projects: creativePreviewData.projects };
+    case 'Executive Leadership':
+      return {
+        boardMemberships: executivePreviewData.boardMemberships,
+        strategicInitiatives: executivePreviewData.strategicInitiatives,
+      };
+    case 'Graduate Starter':
+      return {
+        projects: graduatePreviewData.projects,
+        internships: graduatePreviewData.internships,
+        activities: graduatePreviewData.activities,
+      };
+    case 'Internship / Attachment':
+      return {
+        projects: internshipPreviewData.projects,
+        internships: internshipPreviewData.attachment,
+        activities: internshipPreviewData.activities,
+      };
+    case 'Personal Brand':
+      return {
+        social: personalBrandPreviewData.social,
+        speaking: personalBrandPreviewData.speaking.map((talk) =>
+          [talk.event, talk.location, talk.year].filter(Boolean).join(' — '),
+        ),
+        mediaFeatures: personalBrandPreviewData.mediaFeatures,
+      };
+    case 'Technical / Engineering':
+      return { projects: technicalEngineeringPreviewData.projects };
+    default:
+      return {};
+  }
+}
+
 export function getTemplateDefaultContent(templateName: string): CVContent {
-  return defaults[templateName] || empty;
+  const aliases: Record<string, string> = {
+    'Graduate Starter CV': 'Graduate Starter',
+    'Skills-Based (Functional)': 'Functional / Skills-Based',
+    'Internship / Industrial Attachment': 'Internship / Attachment',
+    'Personal Brand CV': 'Personal Brand',
+    'International / ATS Optimized CV': 'ATS Optimised',
+    'Academic / Research CV': 'Academic / Research',
+    'Technical / Engineering CV': 'Technical / Engineering',
+  };
+  const key = defaults[templateName] ? templateName : aliases[templateName];
+  return { ...(defaults[key] || empty), ...extrasForTemplate(key) } as CVContent;
 }

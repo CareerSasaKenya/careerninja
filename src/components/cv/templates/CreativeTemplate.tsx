@@ -42,7 +42,7 @@ interface CreativeTemplateProps {
 
 export default function CreativeTemplate({ data }: CreativeTemplateProps) {
   return (
-    <div className="w-[794px] h-[1123px] bg-white grid grid-cols-3 font-sans">
+    <div className="w-[794px] min-h-[1123px] bg-white grid grid-cols-3 overflow-visible">
       {/* Sidebar */}
       <aside className="col-span-1 bg-indigo-600 text-white p-8">
         {data.photoUrl && (
@@ -115,7 +115,7 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
           <p className="text-sm leading-relaxed">{data.profile}</p>
         </section>
 
-        {/* Portfolio Projects */}
+        {data.projects?.length > 0 && (
         <section className="mb-6">
           <h2 className="text-lg font-semibold border-b-2 border-indigo-600 pb-1 mb-3">
             Portfolio Projects
@@ -131,6 +131,7 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
             </div>
           ))}
         </section>
+        )}
 
         {/* Work Experience */}
         <section className="mb-6">

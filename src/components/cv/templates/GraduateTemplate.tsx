@@ -46,7 +46,7 @@ interface GraduateTemplateProps {
 
 export default function GraduateTemplate({ data }: GraduateTemplateProps) {
   return (
-    <div className="w-[794px] h-[1123px] bg-white p-10 font-sans text-gray-800 overflow-hidden">
+    <div className="w-[794px] min-h-[1123px] bg-white p-10 text-gray-800 overflow-visible">
       {/* Header */}
       <header className="mb-6">
         <div className="flex items-start gap-4">

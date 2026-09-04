@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   MapPin,
   FileText,
@@ -8,6 +9,7 @@ import {
   CalendarDays,
   Star,
   TrendingUp,
+  Target,
 } from "lucide-react";
 import { CompanyLogo } from "@/components/CompanyLogo";
 import { SaveJobButton } from "@/components/SaveJobButton";
@@ -234,7 +236,21 @@ export default function JobDetailsHeader({
           </div>
         </div>
 
-        <div className="shrink-0">
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+          <Button asChild variant="outline" size="icon" className="sm:hidden">
+            <Link
+              href={`/dashboard/career-tools?jobId=${encodeURIComponent(job.id)}`}
+              aria-label="Target a Career Tools CV for this job"
+            >
+              <Target className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" size="default" className="hidden sm:inline-flex">
+            <Link href={`/dashboard/career-tools?jobId=${encodeURIComponent(job.id)}`}>
+              <Target className="h-4 w-4 mr-1.5" />
+              Target CV
+            </Link>
+          </Button>
           <SaveJobButton
             jobId={job.id}
             variant="outline"

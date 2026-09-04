@@ -854,6 +854,7 @@ export type Database = {
       candidate_cover_letters: {
         Row: {
           content: string
+          content_json: Json | null
           created_at: string | null
           file_url: string | null
           generated_content: string | null
@@ -866,6 +867,7 @@ export type Database = {
         }
         Insert: {
           content: string
+          content_json?: Json | null
           created_at?: string | null
           file_url?: string | null
           generated_content?: string | null
@@ -878,6 +880,7 @@ export type Database = {
         }
         Update: {
           content?: string
+          content_json?: Json | null
           created_at?: string | null
           file_url?: string | null
           generated_content?: string | null
@@ -920,6 +923,12 @@ export type Database = {
           id: string
           is_primary: boolean | null
           last_generated_at: string | null
+          parent_cv_id: string | null
+          share_token: string | null
+          is_public: boolean
+          shared_at: string | null
+          target_job_id: string | null
+          target_jd_text: string | null
           template_id: string | null
           title: string
           updated_at: string | null
@@ -933,6 +942,12 @@ export type Database = {
           id?: string
           is_primary?: boolean | null
           last_generated_at?: string | null
+          parent_cv_id?: string | null
+          share_token?: string | null
+          is_public?: boolean
+          shared_at?: string | null
+          target_job_id?: string | null
+          target_jd_text?: string | null
           template_id?: string | null
           title: string
           updated_at?: string | null
@@ -946,6 +961,12 @@ export type Database = {
           id?: string
           is_primary?: boolean | null
           last_generated_at?: string | null
+          parent_cv_id?: string | null
+          share_token?: string | null
+          is_public?: boolean
+          shared_at?: string | null
+          target_job_id?: string | null
+          target_jd_text?: string | null
           template_id?: string | null
           title?: string
           updated_at?: string | null
@@ -953,6 +974,20 @@ export type Database = {
           version?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "candidate_cvs_parent_cv_id_fkey"
+            columns: ["parent_cv_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_cvs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_cvs_target_job_id_fkey"
+            columns: ["target_job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "candidate_cvs_template_id_fkey"
             columns: ["template_id"]
@@ -2134,6 +2169,8 @@ export type Database = {
           cv_file_name: string | null
           cv_file_size: number | null
           cv_file_url: string | null
+          candidate_cv_id: string | null
+          candidate_cover_letter_id: string | null
           email: string | null
           employer_viewed_at: string | null
           expected_salary_max: number | null
@@ -2157,6 +2194,8 @@ export type Database = {
         Insert: {
           application_method?: string | null
           candidate_profile_id?: string | null
+          candidate_cv_id?: string | null
+          candidate_cover_letter_id?: string | null
           cover_letter?: string | null
           created_at?: string
           cv_file_name?: string | null
@@ -2185,6 +2224,8 @@ export type Database = {
         Update: {
           application_method?: string | null
           candidate_profile_id?: string | null
+          candidate_cv_id?: string | null
+          candidate_cover_letter_id?: string | null
           cover_letter?: string | null
           created_at?: string
           cv_file_name?: string | null

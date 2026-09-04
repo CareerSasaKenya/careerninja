@@ -47,7 +47,7 @@ interface ClassicTemplateProps {
 
 export default function ClassicTemplate({ data }: ClassicTemplateProps) {
   return (
-    <div className="w-[794px] h-[1123px] bg-white p-8 text-gray-900 font-sans shadow-lg print:shadow-none">
+    <div className="w-[794px] min-h-[1123px] bg-white p-8 text-gray-900 overflow-visible shadow-lg print:shadow-none">
       {/* Header Section */}
       <header className="mb-5 border-b-2 border-gray-800 pb-3">
         <div className="flex items-start gap-4">

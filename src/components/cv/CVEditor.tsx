@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, lazy, Suspense, useRef } from 'react';
+import { useState, lazy, Suspense, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,17 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2, Save, X, Eye, EyeOff, ChevronDown, ChevronRight, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import SuggestFieldButton from '@/components/career-tools/SuggestFieldButton';
+import CVDesignToolbar from '@/components/cv/CVDesignToolbar';
+import CVExtraSectionsEditor from '@/components/cv/CVExtraSectionsEditor';
+import CVStudioFrame from '@/components/cv/CVStudioFrame';
 import { updateCV, type CandidateCV } from '@/lib/careerTools';
+import { applySuggestionToList, type SuggestUsage } from '@/lib/careerSuggest';
+import { normalizeCVContent, toTemplateProps } from '@/lib/cvContent';
+import { designFromTemplateData, mergeDesign } from '@/lib/cvDesign';
+import { extraFieldsForTemplate } from '@/lib/cvTemplateExtras';
+import { fetchSuggestUsage } from '@/lib/requestCareerSuggest';
+import type { CVDesign } from '@/types/careerDocuments';
 
 const ClassicTemplate = lazy(() => import('./templates/ClassicTemplate'));
 const ModernTemplate = lazy(() => import('./templates/ModernTemplate'));
@@ -26,8 +36,29 @@ const ATSOptimizedTemplate = lazy(() => import('./templates/ATSOptimizedTemplate
 interface CVEditorProps {
   cv: CandidateCV;
   templateName?: string;
+  templateData?: unknown;
+  jdText?: string | null;
   onSave: () => void;
   onCancel: () => void;
+}
+
+function extrasFromRawContent(raw: unknown, templateName?: string): Record<string, unknown> {
+  const source = raw && typeof raw === 'object' && !Array.isArray(raw)
+    ? (raw as Record<string, unknown>)
+    : {};
+  const extras: Record<string, unknown> = {};
+  for (const field of extraFieldsForTemplate(templateName)) {
+    if (field.key === 'internships') {
+      extras[field.key] = Array.isArray(source.internships)
+        ? source.internships
+        : Array.isArray(source.attachment)
+          ? source.attachment
+          : [];
+    } else {
+      extras[field.key] = source[field.key] ?? [];
+    }
+  }
+  return extras;
 }
 
 interface Experience { jobTitle: string; company: string; location: string; dates: string; details: string[]; }
@@ -69,38 +100,70 @@ function Section({ title, children, defaultOpen = true }: { title: string; child
   );
 }
 
-export default function CVEditor({ cv, templateName, onSave, onCancel }: CVEditorProps) {
+export default function CVEditor({ cv, templateName, templateData, jdText = null, onSave, onCancel }: CVEditorProps) {
   const [saving, setSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
+  const [usage, setUsage] = useState<SuggestUsage | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    fetchSuggestUsage()
+      .then((result) => {
+        if (result.usage) setUsage(result.usage);
+      })
+      .catch(() => undefined);
+  }, []);
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const initial = normalizeCVContent(cv.content);
+  const resolvedTemplateName = templateName || 'Classic Professional';
+  const extraFields = extraFieldsForTemplate(resolvedTemplateName);
+  const [design, setDesign] = useState<CVDesign>(() =>
+    mergeDesign(designFromTemplateData(templateData, resolvedTemplateName), initial.design),
+  );
+  const [extras, setExtras] = useState<Record<string, unknown>>(() =>
+    extrasFromRawContent(cv.content, resolvedTemplateName),
+  );
 
   // Personal info
   const [personal, setPersonal] = useState({
-    name: cv.content.personal?.name || '',
-    title: cv.content.personal?.title || '',
-    phone: cv.content.personal?.phone || '',
-    email: cv.content.personal?.email || '',
-    linkedin: cv.content.personal?.linkedin || '',
-    location: cv.content.personal?.location || '',
-    profile: cv.content.personal?.profile || '',
-    photoUrl: cv.content.personal?.photoUrl || '',
+    name: initial.personal.name || '',
+    title: initial.personal.title || '',
+    phone: initial.personal.phone || '',
+    email: initial.personal.email || '',
+    linkedin: initial.personal.linkedin || '',
+    location: initial.personal.location || '',
+    profile: initial.personal.profile || '',
+    photoUrl: initial.personal.photoUrl || '',
   });
 
   // Core sections
-  const [skills, setSkills] = useState<string[]>(cv.content.skills || []);
-  const [experience, setExperience] = useState<Experience[]>(cv.content.experience || []);
-  const [education, setEducation] = useState<Education[]>(cv.content.education || []);
-  const [certifications, setCertifications] = useState<string[]>(cv.content.certifications || []);
-  const [achievements, setAchievements] = useState<string[]>(cv.content.achievements || []);
-  const [languages, setLanguages] = useState<string[]>(cv.content.languages || []);
-  const [tools, setTools] = useState<string[]>(cv.content.tools || []);
+  const [skills, setSkills] = useState<string[]>(initial.skills);
+  const [experience, setExperience] = useState<Experience[]>(
+    initial.experience.map((e) => ({
+      jobTitle: e.jobTitle || '',
+      company: e.company || '',
+      location: e.location || '',
+      dates: e.dates || '',
+      details: e.details?.length ? e.details : [''],
+    })),
+  );
+  const [education, setEducation] = useState<Education[]>(
+    initial.education.map((e) => ({
+      degree: e.degree || '',
+      institution: e.institution || '',
+      dates: e.dates || '',
+    })),
+  );
+  const [certifications, setCertifications] = useState<string[]>(initial.certifications);
+  const [achievements, setAchievements] = useState<string[]>(initial.achievements);
+  const [languages, setLanguages] = useState<string[]>(initial.languages);
+  const [tools, setTools] = useState<string[]>(initial.tools);
 
   // Optional sections — only shown when user adds them
-  const [showLanguages, setShowLanguages] = useState((cv.content.languages || []).length > 0);
-  const [showTools, setShowTools] = useState((cv.content.tools || []).length > 0);
-  const [showCertifications, setShowCertifications] = useState((cv.content.certifications || []).length > 0);
-  const [showAchievements, setShowAchievements] = useState((cv.content.achievements || []).length > 0);
+  const [showLanguages, setShowLanguages] = useState(initial.languages.length > 0);
+  const [showTools, setShowTools] = useState(initial.tools.length > 0);
+  const [showCertifications, setShowCertifications] = useState(initial.certifications.length > 0);
+  const [showAchievements, setShowAchievements] = useState(initial.achievements.length > 0);
 
   const set = (setter: React.Dispatch<React.SetStateAction<any[]>>) => (i: number, field: string, value: string) => {
     setter((prev: any[]) => { const a = [...prev]; a[i] = { ...a[i], [field]: value }; return a; });
@@ -120,20 +183,9 @@ export default function CVEditor({ cv, templateName, onSave, onCancel }: CVEdito
     reader.readAsDataURL(file);
   };
 
-  // Build live preview data — only real user input, no mock fallbacks
-  const liveData = {
-    name: personal.name,
-    title: personal.title,
-    photoUrl: personal.photoUrl,
-    contact: {
-      phone: personal.phone,
-      email: personal.email,
-      linkedin: personal.linkedin,
-      location: personal.location,
-    },
-    profile: personal.profile,
-    objective: personal.profile,
-    summary: personal.profile,
+  const editorContent = {
+    ...cv.content,
+    personal,
     skills,
     experience,
     education,
@@ -141,28 +193,16 @@ export default function CVEditor({ cv, templateName, onSave, onCancel }: CVEdito
     achievements,
     languages,
     tools,
-    researchInterests: skills,
-    positions: experience,
-    publications: cv.content.publications || [],
-    conferences: cv.content.conferences || [],
-    grants: certifications,
-    awards: achievements,
-    projects: cv.content.projects || [],
-    internships: experience,
-    activities: cv.content.activities || [],
-    techStack: skills,
-    coreSkills: skills,
-    skillCategories: cv.content.skillCategories || [],
-    tagline: personal.title,
-    social: cv.content.social || [],
-    speaking: cv.content.speaking || [],
-    mediaFeatures: cv.content.mediaFeatures || [],
+    design,
+    ...extras,
   };
+  const liveData = toTemplateProps(editorContent, resolvedTemplateName);
 
   const handleSave = async () => {
     try {
       setSaving(true);
       const updatedContent = {
+        ...cv.content,
         personal,
         skills: skills.filter(s => s.trim()),
         experience: experience.filter(e => e.jobTitle || e.company),
@@ -171,11 +211,8 @@ export default function CVEditor({ cv, templateName, onSave, onCancel }: CVEdito
         achievements: achievements.filter(a => a.trim()),
         languages: languages.filter(l => l.trim()),
         tools: tools.filter(t => t.trim()),
-        ...Object.fromEntries(
-          Object.entries(cv.content).filter(([k]) =>
-            !['personal','skills','experience','education','certifications','achievements','languages','tools'].includes(k)
-          )
-        ),
+        design,
+        ...extras,
       };
       await updateCV(cv.id, { content: updatedContent });
       toast({ title: 'Saved', description: 'CV updated successfully' });
@@ -187,20 +224,24 @@ export default function CVEditor({ cv, templateName, onSave, onCancel }: CVEdito
     }
   };
 
-  const resolvedTemplateName = templateName || 'Classic Professional';
-
   return (
     <div className="flex flex-col h-full">
       {/* Toolbar */}
       <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/30">
         <span className="text-sm text-muted-foreground">
           Template: <span className="font-medium text-foreground">{resolvedTemplateName}</span>
+          {usage && (
+            <span className="ml-3 text-xs">
+              AI {usage.used}/{usage.limit} today
+            </span>
+          )}
         </span>
         <Button size="sm" variant="outline" onClick={() => setShowPreview(p => !p)}>
           {showPreview ? <EyeOff className="h-4 w-4 mr-1" /> : <Eye className="h-4 w-4 mr-1" />}
           {showPreview ? 'Hide Preview' : 'Show Preview'}
         </Button>
       </div>
+      <CVDesignToolbar design={design} templateName={resolvedTemplateName} onChange={setDesign} />
 
       <div className={`flex flex-1 overflow-hidden ${showPreview ? 'flex-row' : ''}`}>
         {/* ── LEFT: Form ── */}
@@ -264,7 +305,20 @@ export default function CVEditor({ cv, templateName, onSave, onCancel }: CVEdito
               </div>
             </div>
             <div className="mt-3">
-              <Label>Professional Summary</Label>
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <Label>Professional Summary</Label>
+                <SuggestFieldButton
+                  kind="summary"
+                  label="Rewrite"
+                  request={{
+                    cv: editorContent,
+                    jdText: jdText || cv.target_jd_text,
+                    currentText: personal.profile,
+                  }}
+                  onUsage={setUsage}
+                  onPick={(text) => setPersonal((prev) => ({ ...prev, profile: text }))}
+                />
+              </div>
               <Textarea value={personal.profile} onChange={e => setPersonal(p => ({ ...p, profile: e.target.value }))} placeholder="Brief summary of your professional background and goals..." rows={4} />
             </div>
           </Section>
@@ -272,6 +326,17 @@ export default function CVEditor({ cv, templateName, onSave, onCancel }: CVEdito
           {/* Skills */}
           <Section title="Skills">
             <div className="space-y-2">
+              <SuggestFieldButton
+                kind="skills"
+                label="Tighten skills"
+                request={{
+                  cv: editorContent,
+                  jdText: jdText || cv.target_jd_text,
+                  currentText: skills.join(', '),
+                }}
+                onUsage={setUsage}
+                onPick={(text) => setSkills(applySuggestionToList(text, 'comma'))}
+              />
               {skills.map((skill, i) => (
                 <div key={i} className="flex gap-2">
                   <Input value={skill} onChange={e => { const s = [...skills]; s[i] = e.target.value; setSkills(s); }} placeholder="e.g. Project Management" />
@@ -298,7 +363,25 @@ export default function CVEditor({ cv, templateName, onSave, onCancel }: CVEdito
                     <div className="col-span-2"><Label className="text-xs">Dates</Label><Input value={exp.dates} onChange={e => set(setExperience)(ei, 'dates', e.target.value)} placeholder="Jan 2021 – Present" /></div>
                   </div>
                   <div>
-                    <Label className="text-xs">Responsibilities / Achievements</Label>
+                    <div className="flex items-center justify-between gap-2">
+                      <Label className="text-xs">Responsibilities / Achievements</Label>
+                      <SuggestFieldButton
+                        kind="experience_bullets"
+                        label="Rewrite bullets"
+                        request={{
+                          cv: editorContent,
+                          jdText: jdText || cv.target_jd_text,
+                          experienceIndex: ei,
+                          currentText: exp.details.join('\n'),
+                        }}
+                        onUsage={setUsage}
+                        onPick={(text) => {
+                          const next = [...experience];
+                          next[ei] = { ...next[ei], details: applySuggestionToList(text, 'lines') };
+                          setExperience(next);
+                        }}
+                      />
+                    </div>
                     <div className="space-y-1.5 mt-1">
                       {exp.details.map((d, di) => (
                         <div key={di} className="flex gap-2">
@@ -392,6 +475,13 @@ export default function CVEditor({ cv, templateName, onSave, onCancel }: CVEdito
             </Section>
           )}
 
+          <CVExtraSectionsEditor
+            fields={extraFields}
+            values={extras}
+            design={design}
+            onChange={(key, value) => setExtras((prev) => ({ ...prev, [key]: value }))}
+          />
+
           {/* Add optional section buttons */}
           {(!showCertifications || !showAchievements || !showLanguages || !showTools) && (
             <div className="border border-dashed rounded-lg p-3">
@@ -419,10 +509,12 @@ export default function CVEditor({ cv, templateName, onSave, onCancel }: CVEdito
               Live Preview — updates as you type
             </div>
             <div className="flex-1 overflow-auto p-4 bg-gray-50">
-              <div style={{ width: '437px', height: '618px', overflow: 'hidden', position: 'relative' }}>
-                <div style={{ transform: 'scale(0.55)', transformOrigin: 'top left', width: '794px', height: '1123px' }}>
-                  <Suspense fallback={<div className="flex items-center justify-center h-full text-sm text-muted-foreground">Loading preview...</div>}>
-                    <LivePreview templateName={resolvedTemplateName} data={liveData} />
+              <div className="flex justify-center">
+                <div className="bg-white shadow-lg" style={{ zoom: 0.55, width: 794 }}>
+                  <Suspense fallback={<div className="flex items-center justify-center h-[400px] text-sm text-muted-foreground">Loading preview...</div>}>
+                    <CVStudioFrame design={design}>
+                      <LivePreview templateName={resolvedTemplateName} data={liveData} />
+                    </CVStudioFrame>
                   </Suspense>
                 </div>
               </div>

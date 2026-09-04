@@ -11,15 +11,15 @@ interface PersonalBrandData {
   social: string[];
   profile: string;
   skills: string[];
-  publications: Array<{
-    title: string;
-    platform: string;
-    year: string;
+  publications: Array<string | {
+    title?: string;
+    platform?: string;
+    year?: string;
   }>;
-  speaking: Array<{
-    event: string;
-    location: string;
-    year: string;
+  speaking: Array<string | {
+    event?: string;
+    location?: string;
+    year?: string;
   }>;
   experience: Array<{
     role: string;
@@ -47,7 +47,7 @@ interface PersonalBrandTemplateProps {
 
 export default function PersonalBrandTemplate({ data }: PersonalBrandTemplateProps) {
   return (
-    <div className="w-[794px] h-[1123px] bg-white font-sans text-gray-800 overflow-hidden">
+    <div className="w-[794px] min-h-[1123px] bg-white text-gray-800 overflow-visible">
       {/* Header */}
       <header className="bg-indigo-600 text-white p-6">
         <div className="flex items-center gap-4">
@@ -71,6 +71,7 @@ export default function PersonalBrandTemplate({ data }: PersonalBrandTemplatePro
             <p className="text-xs leading-relaxed break-words">{data.contact.email}</p>
           </section>
 
+          {data.social?.length > 0 && (
           <section className="mb-5">
             <h2 className="font-semibold text-sm mb-2 text-indigo-700">ONLINE PRESENCE</h2>
             <ul className="text-xs space-y-1">
@@ -79,6 +80,7 @@ export default function PersonalBrandTemplate({ data }: PersonalBrandTemplatePro
               ))}
             </ul>
           </section>
+          )}
 
           <section className="mb-5">
             <h2 className="font-semibold text-sm mb-2 text-indigo-700">KEY SKILLS</h2>
@@ -111,35 +113,49 @@ export default function PersonalBrandTemplate({ data }: PersonalBrandTemplatePro
             <p className="text-xs leading-relaxed">{data.profile}</p>
           </section>
 
-          {/* Publications */}
+          {data.publications?.length > 0 && (
           <section className="mb-5">
             <h2 className="text-base font-semibold border-b-2 border-indigo-600 pb-1 mb-2">
               PUBLICATIONS & MEDIA
             </h2>
             {data.publications.map((item, index) => (
               <div key={index} className="mb-2">
-                <p className="text-xs font-semibold">{item.title}</p>
-                <p className="text-xs text-gray-600">
-                  {item.platform} | {item.year}
-                </p>
+                {typeof item === 'string' ? (
+                  <p className="text-xs font-semibold">{item}</p>
+                ) : (
+                  <>
+                    <p className="text-xs font-semibold">{item.title}</p>
+                    <p className="text-xs text-gray-600">
+                      {[item.platform, item.year].filter(Boolean).join(' | ')}
+                    </p>
+                  </>
+                )}
               </div>
             ))}
           </section>
+          )}
 
-          {/* Speaking */}
+          {data.speaking?.length > 0 && (
           <section className="mb-5">
             <h2 className="text-base font-semibold border-b-2 border-indigo-600 pb-1 mb-2">
               SPEAKING ENGAGEMENTS
             </h2>
             {data.speaking.map((talk, index) => (
               <div key={index} className="mb-2">
-                <p className="text-xs font-semibold">{talk.event}</p>
-                <p className="text-xs text-gray-600">
-                  {talk.location} | {talk.year}
-                </p>
+                {typeof talk === 'string' ? (
+                  <p className="text-xs font-semibold">{talk}</p>
+                ) : (
+                  <>
+                    <p className="text-xs font-semibold">{talk.event}</p>
+                    <p className="text-xs text-gray-600">
+                      {[talk.location, talk.year].filter(Boolean).join(' | ')}
+                    </p>
+                  </>
+                )}
               </div>
             ))}
           </section>
+          )}
 
           {/* Experience */}
           <section className="mb-5">

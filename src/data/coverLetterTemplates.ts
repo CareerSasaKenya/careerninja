@@ -4,6 +4,7 @@
  * Add new templates here as they are built.
  */
 
+import type { ComponentType } from 'react';
 import ClassicProfessionalLetter from '@/components/cover-letter/templates/ClassicProfessionalLetter';
 import { classicLetterPreviewData } from './classicLetterPreviewData';
 import { classicLetterSchema } from '@/schemas/classicLetterSchema';
@@ -32,8 +33,9 @@ export interface CoverLetterTemplateConfig {
   name: string;
   category: 'professional' | 'entry-level' | 'specialized';
   description: string;
+  why: string;
   bestFor: string[];
-  component: React.ComponentType<{ data: any }>;
+  component: ComponentType<{ data: any }>;
   defaultData: Record<string, string>;
   schema: Record<string, { label: string; type: 'text' | 'textarea'; placeholder?: string; hint?: string }>;
   isPremium: boolean;
@@ -46,6 +48,7 @@ export const coverLetterTemplateRegistry: Record<string, CoverLetterTemplateConf
     category: 'professional',
     description:
       'A formal, structured cover letter with traditional formatting. The safest option — works for government, NGOs, banking, corporate, and administrative roles.',
+    why: 'Safest option — works everywhere',
     bestFor: ['Government jobs', 'NGOs', 'Banking', 'Corporate roles', 'Administrative positions'],
     component: ClassicProfessionalLetter,
     defaultData: classicLetterPreviewData as unknown as Record<string, string>,
@@ -58,6 +61,7 @@ export const coverLetterTemplateRegistry: Record<string, CoverLetterTemplateConf
     category: 'professional',
     description:
       'Cleaner layout with better spacing and a contemporary tone. Ideal for private sector, marketing, business, and mid-level professional roles.',
+    why: 'Feels current without being risky',
     bestFor: ['Private sector', 'Marketing', 'Business roles', 'Mid-level professionals', 'Corporate upgrades'],
     component: ModernProfessionalLetter,
     defaultData: modernLetterPreviewData as unknown as Record<string, string>,
@@ -70,6 +74,7 @@ export const coverLetterTemplateRegistry: Record<string, CoverLetterTemplateConf
     category: 'professional',
     description:
       'Concise 3-paragraph format built for impact. Ideal for startups, tech companies, online applications, and busy recruiters who skim quickly.',
+    why: 'Matches modern hiring behavior',
     bestFor: ['Startups', 'Tech companies', 'Online applications', 'Busy recruiters'],
     component: ShortDirectLetter,
     defaultData: shortLetterPreviewData as unknown as Record<string, string>,
@@ -82,6 +87,7 @@ export const coverLetterTemplateRegistry: Record<string, CoverLetterTemplateConf
     category: 'entry-level',
     description:
       'Focuses on education, projects, and potential instead of experience. Solves the "I don\'t have experience" problem for fresh graduates and first-time job seekers.',
+    why: "Solves \"I don't have experience\" problem",
     bestFor: ['Fresh graduates', 'First-time job seekers', 'Graduate trainee programmes', 'Entry-level roles'],
     component: GraduateLetter,
     defaultData: graduateLetterPreviewData as unknown as Record<string, string>,
@@ -94,6 +100,7 @@ export const coverLetterTemplateRegistry: Record<string, CoverLetterTemplateConf
     category: 'entry-level',
     description:
       'Built for university and TVET students seeking industrial attachment. Highlights course, institution, and availability period — exactly what supervisors look for.',
+    why: 'Very relevant in Kenya — huge volume use case',
     bestFor: ['University students', 'TVET students', 'Industrial attachment', 'Internship applications'],
     component: InternshipLetter,
     defaultData: internshipLetterPreviewData as unknown as Record<string, string>,
@@ -107,6 +114,7 @@ export const coverLetterTemplateRegistry: Record<string, CoverLetterTemplateConf
     category: 'entry-level',
     description:
       'For candidates with little or no formal experience who have real, demonstrable skills. Ideal for self-taught professionals, freelancers, and hustlers who can do the work.',
+    why: 'Shows you can do the work without a traditional career story',
     bestFor: ['Self-taught professionals', 'Freelancers', 'Career starters', 'Digital creatives', 'No formal experience'],
     component: SkillsEntryLetter,
     defaultData: skillsEntryLetterPreviewData as unknown as Record<string, string>,
@@ -123,4 +131,15 @@ export function getCoverLetterTemplateConfig(
   templateName: string
 ): CoverLetterTemplateConfig | undefined {
   return coverLetterTemplateRegistry[templateName];
+}
+
+export function coverLetterTemplatesByCategory(
+  category: CoverLetterTemplateConfig['category']
+): CoverLetterTemplateConfig[] {
+  return Object.values(coverLetterTemplateRegistry).filter((t) => t.category === category);
+}
+
+export function emptyCoverLetterFields(templateName: string): Record<string, string> {
+  const config = getCoverLetterTemplateConfig(templateName);
+  return { ...((config?.defaultData || {}) as Record<string, string>) };
 }

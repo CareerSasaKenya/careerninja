@@ -49,7 +49,7 @@ interface ModernTemplateProps {
 
 export default function ModernTemplate({ data }: ModernTemplateProps) {
   return (
-    <div className="w-[794px] h-[1123px] bg-white flex font-sans shadow-lg print:shadow-none">
+    <div className="w-[794px] min-h-[1123px] bg-white flex overflow-visible shadow-lg print:shadow-none">
       {/* Left Sidebar - 35% width */}
       <div className="w-[278px] bg-blue-50 p-6">
         {/* Photo */}

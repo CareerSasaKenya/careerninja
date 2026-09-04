@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,11 +9,31 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Mail, ExternalLink, Upload, CheckCircle, Loader2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Mail, ExternalLink, FileText, CheckCircle, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { trackApplicationSource } from "@/lib/employerAnalytics";
+import {
+  getCVTemplates,
+  getUserCoverLetters,
+  getUserCVs,
+  updateCoverLetter,
+  type CandidateCoverLetter,
+  type CandidateCV,
+  type CVTemplate,
+} from "@/lib/careerTools";
+import {
+  applicationInsertWithoutDocumentFks,
+  defaultCvId,
+  isMissingDbColumnError,
+  pickLetterForPrefill,
+  sortLettersForJob,
+  type ApplicationMethod,
+} from "@/lib/applyDocuments";
+import { letterPlaintextForApply } from "@/lib/coverLetterExport";
+import { ensureCareerCvApplicationFile } from "@/lib/exportCareerCv";
 
 interface ApplySectionProps {
   job: any;
@@ -36,9 +57,71 @@ export default function ApplySection({
     coverLetter: '',
     expectedSalary: '',
     salaryNegotiable: false,
-    applicationMethod: 'profile' as 'profile' | 'cv',
+    applicationMethod: 'profile' as ApplicationMethod,
     cvFile: null as File | null,
   });
+  const [builderCvs, setBuilderCvs] = useState<CandidateCV[]>([]);
+  const [builderLetters, setBuilderLetters] = useState<CandidateCoverLetter[]>([]);
+  const [cvTemplates, setCvTemplates] = useState<CVTemplate[]>([]);
+  const [selectedCvId, setSelectedCvId] = useState('');
+  const [selectedLetterId, setSelectedLetterId] = useState('none');
+  const [loadingBuilderDocs, setLoadingBuilderDocs] = useState(true);
+  const [builderSignedIn, setBuilderSignedIn] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadBuilderDocs() {
+      setLoadingBuilderDocs(true);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        const templates = await getCVTemplates().catch(() => [] as CVTemplate[]);
+        if (cancelled) return;
+        setCvTemplates(templates);
+
+        setBuilderSignedIn(!!user);
+        if (!user) {
+          setBuilderCvs([]);
+          setBuilderLetters([]);
+          return;
+        }
+
+        const [cvs, letters] = await Promise.all([
+          getUserCVs(user.id),
+          getUserCoverLetters(user.id),
+        ]);
+        if (cancelled) return;
+        setBuilderCvs(cvs);
+        setBuilderLetters(sortLettersForJob(letters, job.id));
+
+        const params = new URLSearchParams(window.location.search);
+        const cvFromUrl = params.get('cvId');
+        const letterFromUrl = params.get('letterId');
+        const nextCvId = (cvFromUrl && cvs.some((c) => c.id === cvFromUrl))
+          ? cvFromUrl
+          : defaultCvId(cvs);
+        setSelectedCvId(nextCvId);
+        if (cvFromUrl && cvs.some((c) => c.id === cvFromUrl)) {
+          setFormData((prev) => ({ ...prev, applicationMethod: 'career_tools' }));
+        }
+
+        const preferredLetter = pickLetterForPrefill(letters, job.id, letterFromUrl);
+        if (preferredLetter) {
+          setSelectedLetterId(preferredLetter.id);
+          setFormData((prev) => ({
+            ...prev,
+            coverLetter: prev.coverLetter || letterPlaintextForApply(preferredLetter),
+            applicationMethod: letterFromUrl ? 'career_tools' : prev.applicationMethod,
+          }));
+        }
+      } catch (error) {
+        console.error('Failed to load Career Tools documents', error);
+      } finally {
+        if (!cancelled) setLoadingBuilderDocs(false);
+      }
+    }
+    loadBuilderDocs();
+    return () => { cancelled = true; };
+  }, [job.id]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -79,7 +162,7 @@ export default function ApplySection({
           description: "Please sign in to apply for this job",
           variant: "destructive",
         });
-        router.push('/auth/signin');
+        router.push('/auth');
         return;
       }
 
@@ -93,13 +176,15 @@ export default function ApplySection({
       let cvFileUrl = null;
       let cvFileName = null;
       let cvFileSize = null;
+      let candidateCvId: string | null = null;
+      let candidateCoverLetterId: string | null = null;
+      let coverLetterText = formData.coverLetter.trim();
 
-      // Upload CV if provided
-      if (formData.cvFile) {
+      if (formData.applicationMethod === 'cv' && formData.cvFile) {
         const fileExt = formData.cvFile.name.split('.').pop();
         const fileName = `${user.id}/${Date.now()}.${fileExt}`;
         
-        const { data: uploadData, error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from('application-cvs')
           .upload(fileName, formData.cvFile);
 
@@ -116,28 +201,76 @@ export default function ApplySection({
         cvFileSize = formData.cvFile.size;
       }
 
-      // Create application
-      const { data: applicationData, error: applicationError } = await supabase
+      if (formData.applicationMethod === 'career_tools') {
+        const selectedCv = builderCvs.find((cv) => cv.id === selectedCvId);
+        if (!selectedCv) {
+          throw new Error('Choose a Career Tools CV, or build one first.');
+        }
+        const templateName = cvTemplates.find((t) => t.id === selectedCv.template_id)?.name
+          || 'Classic Professional';
+        const exported = await ensureCareerCvApplicationFile(user.id, selectedCv, templateName);
+        cvFileUrl = exported.url;
+        cvFileName = exported.name;
+        cvFileSize = exported.size;
+        candidateCvId = selectedCv.id;
+
+        if (selectedLetterId !== 'none') {
+          const selectedLetter = builderLetters.find((l) => l.id === selectedLetterId);
+          if (selectedLetter) {
+            candidateCoverLetterId = selectedLetter.id;
+            if (!coverLetterText) {
+              coverLetterText = letterPlaintextForApply(selectedLetter);
+            }
+            if (!selectedLetter.job_id) {
+              try {
+                await updateCoverLetter(selectedLetter.id, { job_id: job.id });
+              } catch (linkError) {
+                console.error('Failed to link cover letter to job', linkError);
+              }
+            }
+          }
+        }
+      }
+
+      const applicationRow = {
+        job_id: job.id,
+        user_id: user.id,
+        full_name: profile?.full_name || user.email?.split('@')[0],
+        email: user.email,
+        phone: profile?.phone,
+        years_experience: formData.yearsExperience ? parseInt(formData.yearsExperience) : null,
+        cover_letter: coverLetterText || null,
+        expected_salary_min: formData.expectedSalary ? parseFloat(formData.expectedSalary) : null,
+        salary_negotiable: formData.salaryNegotiable,
+        application_method: formData.applicationMethod,
+        cv_file_url: cvFileUrl,
+        cv_file_name: cvFileName,
+        cv_file_size: cvFileSize,
+        candidate_profile_id: profile?.id,
+        candidate_cv_id: candidateCvId,
+        candidate_cover_letter_id: candidateCoverLetterId,
+        status: 'pending',
+      };
+
+      let { data: applicationData, error: applicationError } = await supabase
         .from('job_applications')
-        .insert({
-          job_id: job.id,
-          user_id: user.id,
-          full_name: profile?.full_name || user.email?.split('@')[0],
-          email: user.email,
-          phone: profile?.phone,
-          years_experience: formData.yearsExperience ? parseInt(formData.yearsExperience) : null,
-          cover_letter: formData.coverLetter || null,
-          expected_salary_min: formData.expectedSalary ? parseFloat(formData.expectedSalary) : null,
-          salary_negotiable: formData.salaryNegotiable,
-          application_method: formData.applicationMethod,
-          cv_file_url: cvFileUrl,
-          cv_file_name: cvFileName,
-          cv_file_size: cvFileSize,
-          candidate_profile_id: profile?.id,
-          status: 'pending',
-        })
+        .insert(applicationRow as any)
         .select()
         .single();
+
+      if (
+        applicationError &&
+        (isMissingDbColumnError(applicationError, 'candidate_cv_id') ||
+          isMissingDbColumnError(applicationError, 'candidate_cover_letter_id'))
+      ) {
+        const retry = await supabase
+          .from('job_applications')
+          .insert(applicationInsertWithoutDocumentFks(applicationRow) as any)
+          .select()
+          .single();
+        applicationData = retry.data;
+        applicationError = retry.error;
+      }
 
       if (applicationError) {
         if (applicationError.code === '23505') {
@@ -380,12 +513,16 @@ export default function ApplySection({
                 <Label>Choose how to apply</Label>
                 <RadioGroup 
                   value={formData.applicationMethod}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, applicationMethod: value as 'profile' | 'cv' }))}
-                  className="grid grid-cols-1 sm:grid-cols-2 gap-2"
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, applicationMethod: value as ApplicationMethod }))}
+                  className="grid grid-cols-1 gap-2"
                 >
                   <div className="flex items-center space-x-2 border rounded-md p-3">
                     <RadioGroupItem value="profile" id="apply-profile" />
                     <Label htmlFor="apply-profile" className="cursor-pointer">Apply with my profile</Label>
+                  </div>
+                  <div className="flex items-center space-x-2 border rounded-md p-3">
+                    <RadioGroupItem value="career_tools" id="apply-career-tools" />
+                    <Label htmlFor="apply-career-tools" className="cursor-pointer">Apply with Career Tools CV</Label>
                   </div>
                   <div className="flex items-center space-x-2 border rounded-md p-3">
                     <RadioGroupItem value="cv" id="apply-cv" />
@@ -394,8 +531,95 @@ export default function ApplySection({
                 </RadioGroup>
               </div>
 
+              {formData.applicationMethod === 'career_tools' && (
+                <div className="space-y-3 rounded-md border p-3">
+                  {loadingBuilderDocs ? (
+                    <p className="text-sm text-muted-foreground flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Loading your Career Tools documents…
+                    </p>
+                  ) : !builderSignedIn ? (
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground">
+                        Sign in to choose a Career Tools CV and optional cover letter. We will generate a PDF for the employer.
+                      </p>
+                      <Button asChild variant="outline" size="sm">
+                        <Link href="/auth">Sign in to continue</Link>
+                      </Button>
+                    </div>
+                  ) : builderCvs.length === 0 ? (
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground">
+                        You do not have a Career Tools CV yet. Build one, then come back to apply with it.
+                      </p>
+                      <Button asChild variant="outline" size="sm">
+                        <Link href={`/dashboard/career-tools?jobId=${encodeURIComponent(job.id)}`}>
+                          <FileText className="h-4 w-4 mr-2" />
+                          Open CV builder
+                        </Link>
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="space-y-2">
+                        <Label>Career Tools CV</Label>
+                        <Select value={selectedCvId} onValueChange={setSelectedCvId}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a CV" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {builderCvs.map((cv) => (
+                              <SelectItem key={cv.id} value={cv.id}>
+                                {cv.title}{cv.is_primary ? ' (Primary)' : ''}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Cover letter (optional)</Label>
+                        <Select
+                          value={selectedLetterId}
+                          onValueChange={(value) => {
+                            setSelectedLetterId(value);
+                            if (value === 'none') return;
+                            const letter = builderLetters.find((l) => l.id === value);
+                            if (letter) {
+                              setFormData((prev) => ({
+                                ...prev,
+                                coverLetter: letterPlaintextForApply(letter),
+                              }));
+                            }
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="No cover letter" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">No saved letter — use the box above</SelectItem>
+                            {builderLetters.map((letter) => (
+                              <SelectItem key={letter.id} value={letter.id}>
+                                {letter.title}{letter.job_id === job.id ? ' (this job)' : ''}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">
+                          Choosing a saved letter fills the cover letter box so you can still edit it before sending.
+                        </p>
+                      </div>
+                      <Link href={`/dashboard/career-tools?jobId=${encodeURIComponent(job.id)}`} className="inline-flex items-center text-sm text-[#0A66C2] hover:underline">
+                        <FileText className="h-4 w-4 mr-1" />
+                        Edit CVs and letters
+                      </Link>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {formData.applicationMethod === 'cv' && (
               <div className="space-y-2">
-                <Label htmlFor="cv">Upload CV (PDF/DOC) {formData.applicationMethod === 'cv' && <span className="text-red-500">*</span>}</Label>
+                <Label htmlFor="cv">Upload CV (PDF/DOC) <span className="text-red-500">*</span></Label>
                 <div className="flex items-center gap-2">
                   <Input 
                     id="cv" 
@@ -413,17 +637,22 @@ export default function ApplySection({
                 </div>
                 <p className="text-xs text-muted-foreground">Max file size: 5MB. Accepted formats: PDF, DOC, DOCX</p>
               </div>
+              )}
 
               <div className="pt-2">
                 <Button 
                   type="submit"
                   className="w-full bg-gradient-primary hover:opacity-90"
-                  disabled={isSubmitting || (formData.applicationMethod === 'cv' && !formData.cvFile)}
+                  disabled={
+                    isSubmitting
+                    || (formData.applicationMethod === 'cv' && !formData.cvFile)
+                    || (formData.applicationMethod === 'career_tools' && !selectedCvId)
+                  }
                 >
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Submitting...
+                      {formData.applicationMethod === 'career_tools' ? 'Preparing your CV…' : 'Submitting...'}
                     </>
                   ) : (
                     <>
