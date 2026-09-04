@@ -23,6 +23,7 @@ import {
   htmlContainsTable,
 } from './htmlTablesToBullets'
 import { isExperienceLevelOnlyText, isMissingOrLabelOnlyQualifications } from './experienceLevelLabel'
+import { ensureCareerTipsHtml, hasGeneratedCareerTips } from './careerTips'
 
 export interface ScrapedJobInput {
   title: string
@@ -1055,6 +1056,16 @@ export async function parseScrapedJobContent(
     parsed.description = `<p>${escapeHtmlText(input.title)} at ${escapeHtmlText(input.company)}${
       loc ? ` — ${escapeHtmlText(loc)}` : ''
     }.</p>`
+  }
+
+  if (!hasGeneratedCareerTips(parsed.additional_info)) {
+    parsed.additional_info = await ensureCareerTipsHtml(parsed.additional_info, {
+      title: input.title,
+      company: input.company,
+      description: parsed.description,
+      responsibilities: parsed.responsibilities,
+      qualifications: parsed.required_qualifications,
+    })
   }
 
   // Prefer known-employer industry, then AI/meta, then ATS hints.

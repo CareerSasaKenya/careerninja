@@ -42,6 +42,7 @@ interface ParsedJobData {
   apply_email?: string;
   apply_link?: string;
   application_url?: string;
+  additional_info?: string;
   tags?: string;
   job_function?: string;
   job_functions?: string[];
@@ -230,6 +231,15 @@ const ParseJobPage = () => {
                       {parsedData.salary_min && parsedData.salary_max && (
                         <div>
                           <span className="font-medium">Salary:</span> {parsedData.salary_currency} {parsedData.salary_min} - {parsedData.salary_max}
+                        </div>
+                      )}
+                      {parsedData.additional_info && (
+                        <div className="col-span-2 md:col-span-3">
+                          <span className="font-medium">Additional information:</span>{' '}
+                          {/how to apply/i.test(parsedData.additional_info) ? 'How to Apply' : 'Included'}
+                          {/<strong>\s*\d+\s*[.)]/i.test(parsedData.additional_info)
+                            ? ' + career tips'
+                            : ''}
                         </div>
                       )}
                     </div>

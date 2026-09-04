@@ -16,6 +16,12 @@ import {
 } from './scraperJobParsing'
 import { buildReenrichInput } from './reenrichScrapedJobs'
 import { sanitizeAdditionalInfoApplyCopy } from './applyInstructionsCopy'
+import {
+  appendCareerTips,
+  ensureCareerTipsHtml,
+  generateCareerTipsHtml,
+  hasGeneratedCareerTips,
+} from './careerTips'
 
 export interface EnrichJobOptions {
   /** Overwrite existing section/taxonomy fields (default true for admin force enrich) */
@@ -109,13 +115,17 @@ export function buildInputFromJobRow(job: JobRow): ScrapedJobInput | null {
   }
 }
 
-function jobNeedsEnrichment(job: JobRow): boolean {
+function jobNeedsFullParse(job: JobRow): boolean {
   const hasIndustry = Boolean(job.industry?.trim())
   const hasFunction = Boolean(job.job_function?.trim())
   const hasResp = Boolean(asHtmlSection(job.responsibilities).trim())
   const hasQuals = Boolean(asHtmlSection(job.required_qualifications).trim())
-  // Sparse posts (common for n8n / thin ATS / incomplete forms)
   return !hasIndustry || !hasFunction || !hasResp || !hasQuals
+}
+
+/** Sparse taxonomy/sections OR additional_info without generated career tips. */
+export function jobNeedsEnrichment(job: JobRow): boolean {
+  return jobNeedsFullParse(job) || !hasGeneratedCareerTips(job.additional_info)
 }
 
 /**
@@ -164,6 +174,78 @@ export async function enrichJobById(
       title: row.title || 'Untitled',
       status: 'skipped',
       detail: 'already complete',
+      ai_keys_configured: aiConfigured,
+    }
+  }
+
+  const needsFullParse = jobNeedsFullParse(row)
+  const needsTips = !hasGeneratedCareerTips(row.additional_info)
+
+  // Jobs that only lost career tips should not be force-reparsed (that
+  // clobbers good description/requirements HTML). Fill additional_info only.
+  if (!needsFullParse && needsTips) {
+    const tipsHtml = await generateCareerTipsHtml({
+      title: row.title,
+      company: row.hiring_organization_name || row.company,
+      description: row.description,
+      responsibilities: row.responsibilities,
+      qualifications: row.required_qualifications,
+    })
+    const nextInfo = sanitizeAdditionalInfoApplyCopy(
+      appendCareerTips(row.additional_info, tipsHtml),
+      {
+        apply_email: row.apply_email || null,
+        apply_link: row.apply_link || null,
+        application_url: row.application_url || null,
+      },
+      row.title || null
+    )
+    const unchanged =
+      (nextInfo || '').trim() === (row.additional_info || '').trim() ||
+      !hasGeneratedCareerTips(nextInfo)
+
+    if (unchanged) {
+      return {
+        job_id: row.id,
+        title: row.title || 'Untitled',
+        status: aiConfigured ? 'failed' : 'skipped',
+        detail: aiConfigured
+          ? 'career tips generation failed'
+          : 'AI keys missing; cannot generate career tips',
+        ai_keys_configured: aiConfigured,
+      }
+    }
+
+    const summary = `${row.title} | tips-only additional_info→${(nextInfo || '').length}`
+    if (!apply) {
+      return {
+        job_id: row.id,
+        title: row.title || 'Untitled',
+        status: 'dry_run',
+        summary,
+        ai_keys_configured: aiConfigured,
+      }
+    }
+
+    const { error: upErr } = await supabase
+      .from('jobs')
+      .update({ additional_info: nextInfo })
+      .eq('id', row.id)
+    if (upErr) {
+      return {
+        job_id: row.id,
+        title: row.title || 'Untitled',
+        status: 'failed',
+        detail: upErr.message,
+        ai_keys_configured: aiConfigured,
+      }
+    }
+
+    return {
+      job_id: row.id,
+      title: row.title || 'Untitled',
+      status: 'updated',
+      summary,
       ai_keys_configured: aiConfigured,
     }
   }
@@ -267,7 +349,13 @@ export async function enrichJobById(
     setIf(
       'additional_info',
       sanitizeAdditionalInfoApplyCopy(
-        parsed.additional_info || null,
+        await ensureCareerTipsHtml(parsed.additional_info || null, {
+          title: row.title,
+          company: row.hiring_organization_name || row.company,
+          description: parsed.description || row.description,
+          responsibilities: parsed.responsibilities || row.responsibilities,
+          qualifications: parsed.required_qualifications || row.required_qualifications,
+        }),
         {
           apply_email: parsed.apply_email || row.apply_email || null,
           apply_link: parsed.apply_link || row.apply_link || null,
@@ -396,7 +484,7 @@ export async function enrichJobsNeedingEnrichment(
   const { data: rows, error } = await supabase
     .from('jobs')
     .select(
-      'id, title, industry, job_function, responsibilities, required_qualifications, description'
+      'id, title, industry, job_function, responsibilities, required_qualifications, description, additional_info'
     )
     .eq('status', 'active')
     .order('created_at', { ascending: false })
@@ -414,7 +502,7 @@ export async function enrichJobsNeedingEnrichment(
         description: j.description,
         responsibilities: j.responsibilities,
         required_qualifications: j.required_qualifications,
-        additional_info: null,
+        additional_info: j.additional_info,
         industry: j.industry,
         job_function: j.job_function,
         location: null,
