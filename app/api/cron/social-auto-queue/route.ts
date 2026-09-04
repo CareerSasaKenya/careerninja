@@ -5,6 +5,8 @@ import { createServiceRoleClient } from '@/lib/supabaseServiceClient'
 /** Pro plan: copy generation + Buffer API for up to 9 posts. */
 export const maxDuration = 300
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 function authorize(request: NextRequest): boolean {
   const cronSecret = process.env.CRON_SECRET

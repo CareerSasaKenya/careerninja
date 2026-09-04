@@ -9,6 +9,7 @@ import {
   SOCIAL_DAILY_CAP_PER_CHANNEL,
   countsTowardToday,
   nairobiDayBounds,
+  occupiesBufferQueue,
   rankJobForPlatform,
   remainingDailySlots,
   routeJobToPlatform,
@@ -266,6 +267,30 @@ assert.equal(remainingDailySlots(3, 0), 0, 'daily cap reached')
 assert.equal(remainingDailySlots(0, 10), 0, 'Buffer queue full')
 assert.equal(remainingDailySlots(0, 8), 2, 'queue almost full limits below daily cap')
 assert.equal(remainingDailySlots(2, 9), 1, 'min of daily leftover and queue leftover')
+
+{
+  const now = new Date('2026-09-04T07:00:00.000Z')
+  assert.equal(
+    occupiesBufferQueue({ scheduled_at: '2026-09-04T14:00:00.000Z', created_at: '2026-09-04T03:00:00.000Z' }, now),
+    true,
+    'future Buffer slot still occupies the queue'
+  )
+  assert.equal(
+    occupiesBufferQueue({ scheduled_at: '2026-09-03T14:00:00.000Z', created_at: '2026-09-03T03:00:00.000Z' }, now),
+    false,
+    'past Buffer slot does not occupy the Free-plan cap'
+  )
+  assert.equal(
+    occupiesBufferQueue({ scheduled_at: null, created_at: '2026-09-04T03:00:00.000Z' }, now),
+    true,
+    'undated queue row created today still occupies'
+  )
+  assert.equal(
+    occupiesBufferQueue({ scheduled_at: null, created_at: '2026-09-02T03:00:00.000Z' }, now),
+    false,
+    'undated queue row from two days ago does not occupy'
+  )
+}
 
 {
   const remaining = slotsFromCounts({

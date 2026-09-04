@@ -43,6 +43,7 @@ assert.match(
   })
   assert.match(text, /queued\[linkedin=0 facebook=0 instagram=0\]/)
   assert.match(text, /selected\[linkedin=1 facebook=2 instagram=0\]/)
+  assert.match(text, /remaining\[linkedin=3 facebook=2 instagram=1\]/)
   assert.match(text, /dry_run=true/)
   assert.match(text, /failed=0/)
 }
