@@ -39,6 +39,7 @@ interface ParsedJobData {
   apply_email?: string;
   apply_link?: string;
   application_url?: string;
+  additional_info?: string;
   tags?: string;
   job_function?: string;
   job_functions?: string[];

@@ -7,6 +7,7 @@ import {
   normalizeParsedJobFields,
 } from '@/lib/jobParseNormalization';
 import { sanitizeStockTipsCopy } from '@/lib/sanitizeStockTipsCopy';
+import { ensureCareerTipsHtml } from '@/lib/careerTips';
 import {
   getSupabaseAnonKey,
   getSupabaseServiceRoleKey,
@@ -424,6 +425,15 @@ export async function finalizeParsedJobData(
     if (cleaned) normalized.additional_info = cleaned;
     else delete normalized.additional_info;
   }
+  const withTips = await ensureCareerTipsHtml(normalized.additional_info || '', {
+    title: normalized.title,
+    company: normalized.company,
+    description: normalized.description,
+    responsibilities: normalized.responsibilities,
+    qualifications: normalized.required_qualifications,
+  });
+  if (withTips) normalized.additional_info = withTips;
+  else if (!normalized.additional_info) delete normalized.additional_info;
   return normalized;
 }
 

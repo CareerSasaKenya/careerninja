@@ -1615,7 +1615,7 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
               label="Additional Information"
               placeholder="Add any additional information about this job, such as career tips, FAQs, etc..."
             />
-            <p className="text-xs text-muted-foreground">This will appear below the safety alert on the job details page</p>
+            <p className="text-xs text-muted-foreground">Shown in the Additional Information card on the job details page (How to Apply plus generated career tips).</p>
           </div>
           
           <div className="space-y-2">

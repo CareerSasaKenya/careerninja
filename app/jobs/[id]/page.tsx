@@ -372,7 +372,10 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
               {additionalInfoHtml && (
                 <Card className="border-border">
                   <CardHeader className="pb-3 pt-4 sm:pb-4 sm:pt-5">
-                    <CardTitle className="text-lg text-[#0A66C2]">Additional Information</CardTitle>
+                    <CardTitle className="flex items-center gap-2 text-lg text-[#0A66C2]">
+                      <Lightbulb className="h-5 w-5" />
+                      Additional Information
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="pb-4 pt-0 sm:pb-5">
                     <div className="richtext-content text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: additionalInfoHtml }} />

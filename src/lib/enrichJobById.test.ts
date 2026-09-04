@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { buildInputFromJobRow } from './enrichJobById'
+import { buildInputFromJobRow, jobNeedsEnrichment } from './enrichJobById'
 
 const input = buildInputFromJobRow({
   id: 'job-1',
@@ -38,5 +38,50 @@ const tooThin = buildInputFromJobRow({
   job_location_type: null,
 })
 assert.equal(tooThin, null)
+
+assert.equal(
+  jobNeedsEnrichment({
+    id: 'job-3',
+    title: 'Analyst',
+    company: 'KCB',
+    hiring_organization_name: 'KCB',
+    description: '<p>Role overview</p>',
+    responsibilities: '<ul><li>Analyse credit</li></ul>',
+    required_qualifications: '<ul><li>Finance degree</li></ul>',
+    additional_info: '<p><strong>How to Apply:</strong> Use the apply button.</p>',
+    industry: 'Banking, Insurance & Financial Services',
+    job_function: 'Accounting, Auditing & Finance',
+    location: 'Nairobi',
+    employment_type: 'FULL_TIME',
+    job_location_type: 'ON_SITE',
+  }),
+  true,
+  'complete jobs still need enrichment when career tips are missing'
+)
+
+assert.equal(
+  jobNeedsEnrichment({
+    id: 'job-4',
+    title: 'Analyst',
+    company: 'KCB',
+    hiring_organization_name: 'KCB',
+    description: '<p>Role overview</p>',
+    responsibilities: '<ul><li>Analyse credit</li></ul>',
+    required_qualifications: '<ul><li>Finance degree</li></ul>',
+    additional_info: `<p><strong>How to Apply:</strong> Use the apply button.</p>
+<h3>What Credit Files Must Prove Before The Committee</h3>
+<p>Intro</p>
+<p><strong>1. Spread the facility:</strong> Show the model.</p>
+<p><strong>2. Sector notes:</strong> Know SME risk.</p>
+<p><strong>3. Security pack:</strong> List collateral.</p>
+<p><strong>4. First 90 days:</strong> Name the reviews.</p>`,
+    industry: 'Banking, Insurance & Financial Services',
+    job_function: 'Accounting, Auditing & Finance',
+    location: 'Nairobi',
+    employment_type: 'FULL_TIME',
+    job_location_type: 'ON_SITE',
+  }),
+  false
+)
 
 console.log('enrichJobById.test.ts: ok')
