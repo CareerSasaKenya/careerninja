@@ -15,6 +15,8 @@ import type { SocialPlatform } from './types'
 export const SOCIAL_DAILY_CAP_PER_CHANNEL = 3
 export const BUFFER_FREE_QUEUE_CAP = 10
 export const SOCIAL_CANDIDATE_LOOKBACK_DAYS = 14
+/** Queued posts without a dueAt are assumed gone from Buffer after this. */
+export const BUFFER_QUEUE_STALE_AFTER_MS = 20 * 60 * 60 * 1000
 
 export interface RoutableJob {
   id: string
@@ -245,6 +247,28 @@ export function remainingDailySlots(
   const dailyLeft = dailyCap - todayCount
   const queueLeft = queueCap - scheduledCount
   return Math.max(0, Math.min(dailyLeft, queueLeft, dailyCap))
+}
+
+/**
+ * True when a Careersasa "scheduled" row is still waiting in Buffer's queue.
+ *
+ * Auto-queue uses Buffer addToQueue and stores status=scheduled. Buffer then
+ * publishes at 08:00 / 12:30 / 17:00 EAT, but we never flip the row to
+ * published. Counting every historical scheduled row against the Free-plan
+ * 10-slot cap makes the cron silently queue nothing after a few days.
+ */
+export function occupiesBufferQueue(
+  row: { scheduled_at?: string | null; created_at?: string | null },
+  now = new Date()
+): boolean {
+  if (row.scheduled_at) {
+    const due = new Date(row.scheduled_at).getTime()
+    if (Number.isFinite(due)) return due > now.getTime()
+  }
+  if (!row.created_at) return false
+  const created = new Date(row.created_at).getTime()
+  if (!Number.isFinite(created)) return false
+  return now.getTime() - created < BUFFER_QUEUE_STALE_AFTER_MS
 }
 
 export function countsTowardToday(

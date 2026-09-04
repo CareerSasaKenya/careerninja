@@ -19,10 +19,12 @@ import {
 import { generatePostCopy, jobOgImageUrl, type JobForCopy } from './socialPostCopy'
 import {
   BUFFER_FREE_QUEUE_CAP,
+  BUFFER_QUEUE_STALE_AFTER_MS,
   SOCIAL_CANDIDATE_LOOKBACK_DAYS,
   SOCIAL_DAILY_CAP_PER_CHANNEL,
   countsTowardToday,
   nairobiDayBounds,
+  occupiesBufferQueue,
   selectJobsForQueue,
   slotsFromCounts,
   type RoutableJob,
@@ -137,10 +139,11 @@ async function loadChannelCounts(
     instagram: { todayCount: 0, scheduledCount: 0 },
   }
 
-  // Scheduled occupancy is "how many are waiting", not only those created today.
+  // Occupancy is posts still waiting in Buffer — not every historical
+  // status=scheduled row (those stay scheduled after Buffer has published).
   const { data: waiting, error: waitingError } = await adminClient
     .from('social_posts')
-    .select('platform')
+    .select('platform, scheduled_at, created_at')
     .in('platform', PLATFORMS)
     .eq('status', 'scheduled')
   if (waitingError) {
@@ -148,6 +151,7 @@ async function loadChannelCounts(
     throw new Error('Failed to load Buffer queue occupancy')
   }
   for (const row of waiting ?? []) {
+    if (!occupiesBufferQueue(row, now)) continue
     const platform = row.platform as SocialPlatform
     if (counts[platform]) counts[platform].scheduledCount += 1
   }
@@ -180,6 +184,53 @@ async function loadCandidateJobs(
   return (data ?? []) as unknown as RoutableJob[]
 }
 
+/**
+ * Buffer publishes queued posts at the slot time, but Careersasa leaves the
+ * row as status=scheduled. Flip past-due rows to published so the admin
+ * Scheduled tab and the 10-slot cap match what Buffer actually still holds.
+ */
+async function markReleasedQueuePosts(
+  adminClient: SupabaseClient,
+  now = new Date()
+): Promise<number> {
+  const iso = now.toISOString()
+  const staleBefore = new Date(now.getTime() - BUFFER_QUEUE_STALE_AFTER_MS).toISOString()
+
+  const { data: dueRows, error: dueError } = await adminClient
+    .from('social_posts')
+    .update({
+      status: 'published',
+      published_at: iso,
+      updated_at: iso,
+    })
+    .eq('status', 'scheduled')
+    .not('buffer_post_id', 'is', null)
+    .not('scheduled_at', 'is', null)
+    .lt('scheduled_at', iso)
+    .select('id')
+  if (dueError) {
+    console.error('[autoQueueJobs] past-due publish reconcile failed:', dueError.message)
+  }
+
+  const { data: staleRows, error: staleError } = await adminClient
+    .from('social_posts')
+    .update({
+      status: 'published',
+      published_at: iso,
+      updated_at: iso,
+    })
+    .eq('status', 'scheduled')
+    .not('buffer_post_id', 'is', null)
+    .is('scheduled_at', null)
+    .lt('created_at', staleBefore)
+    .select('id')
+  if (staleError) {
+    console.error('[autoQueueJobs] stale-queue publish reconcile failed:', staleError.message)
+  }
+
+  return (dueRows?.length ?? 0) + (staleRows?.length ?? 0)
+}
+
 async function hydrateJobsForCopy(
   adminClient: SupabaseClient,
   jobs: RoutableJob[]
@@ -194,7 +245,7 @@ async function hydrateJobsForCopy(
     .in('id', ids)
   if (error) {
     console.error('[autoQueueJobs] copy hydrate query failed:', error.message)
-    throw new Error('Failed to load job copy fields for social auto-queue')
+    return hydrated
   }
   for (const row of (data ?? []) as unknown as JobForCopy[]) {
     hydrated.set(row.id, row)
@@ -253,6 +304,11 @@ export async function autoQueueDailyPosts(
     channelByPlatform[platform] = channel
   }
 
+  const released = dryRun ? 0 : await markReleasedQueuePosts(adminClient, now)
+  if (released > 0) {
+    warnings.push(`Marked ${released} past Buffer slot(s) as published so today's queue can refill.`)
+  }
+
   const [usedJobIds, counts, jobs] = await Promise.all([
     loadUsedJobIds(adminClient),
     loadChannelCounts(adminClient, now),
@@ -262,6 +318,11 @@ export async function autoQueueDailyPosts(
   const remaining = slotsFromCounts(counts, dailyCap)
   for (const platform of PLATFORMS) {
     if (!channelByPlatform[platform]) remaining[platform] = 0
+    else if (remaining[platform] === 0 && counts[platform].scheduledCount >= BUFFER_FREE_QUEUE_CAP) {
+      warnings.push(
+        `${platform} Buffer queue is full (${counts[platform].scheduledCount} waiting). New jobs will queue after a slot publishes.`
+      )
+    }
   }
 
   const selected = selectJobsForQueue(jobs, usedJobIds, remaining)
@@ -348,8 +409,9 @@ export function summarizeAutoQueue(result: AutoQueueOutcome): string {
   if (result.skipped) return `skipped: ${result.skipped}`
   const queued = PLATFORMS.map((p) => `${p}=${result.queued[p].length}`).join(' ')
   const selected = PLATFORMS.map((p) => `${p}=${result.selected[p].length}`).join(' ')
+  const remaining = PLATFORMS.map((p) => `${p}=${result.remaining[p]}`).join(' ')
   const failed = result.failed.length
   const warn = result.warnings.length ? ` warnings=${result.warnings.length}` : ''
-  return `queued[${queued}] selected[${selected}] failed=${failed} dry_run=${result.dry_run}${warn}`
+  return `queued[${queued}] selected[${selected}] remaining[${remaining}] failed=${failed} dry_run=${result.dry_run}${warn}`
 }
 
