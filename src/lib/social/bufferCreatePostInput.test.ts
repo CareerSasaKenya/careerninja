@@ -113,27 +113,26 @@ assertThrows(
   )
 }
 
-// --- Facebook with OG image: thumbnail on the link card (not an image asset) ---
+// --- Facebook with OG image: native photo (link cards scrape blank on Facebook) ---
 {
-  const og = 'https://www.careersasa.co.ke/api/og/job/nurse?template=job'
+  const og = 'https://www.careersasa.co.ke/og/jobs/nurse.png?template=5'
   const input = buildCreatePostVariables({
     channelId: 'ch_fb',
     text: 'Photo post https://www.careersasa.co.ke/jobs/nurse',
     mode: 'now',
     service: 'Facebook',
     mediaUrl: og,
+    linkTitle: 'Nurse at Acme',
   })
-  const assets = input.assets as { image: { url: string } }[]
-  assert(assets.length === 0, 'no image assets when a caption URL is present')
+  const assets = input.assets as { image: { url: string; metadata?: { altText?: string } } }[]
+  assert(assets.length === 1, 'facebook attaches og as photo')
+  assert(assets[0].image.url === og, 'facebook image url')
+  assert(assets[0].image.metadata?.altText === 'Nurse at Acme', 'alt text from title')
   const meta = input.metadata as {
-    facebook: { type: string; linkAttachment?: { url: string; thumbnail?: { url: string } } }
+    facebook: { type: string; linkAttachment?: { url: string } }
   }
   assert(meta.facebook.type === 'post', 'still a facebook post')
-  assert(
-    meta.facebook.linkAttachment?.url === 'https://www.careersasa.co.ke/jobs/nurse',
-    'linkAttachment kept when thumbnail present'
-  )
-  assert(meta.facebook.linkAttachment?.thumbnail?.url === og, 'og image as thumbnail')
+  assert(meta.facebook.linkAttachment === undefined, 'no linkAttachment when a photo is attached')
 }
 
 // --- Instagram: OG image is a photo asset + required post type ---

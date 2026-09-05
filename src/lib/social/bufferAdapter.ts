@@ -207,8 +207,10 @@ export interface CreatePostInput {
   service?: string | null
   /**
    * Public HTTPS image URL.
-   * Instagram and LinkedIn attach it as a native photo (LinkedIn's API does not
-   * scrape OG thumbnails). Facebook uses it as the link-card thumbnail.
+   * Facebook, LinkedIn, and Instagram attach it as a native photo.
+   * Facebook link-card thumbnails are not reliable: Facebook scrapes OG itself
+   * (and ignores Buffer's thumbnail unless the domain is verified), and a cold
+   * @vercel/og generate often times out into a blank preview.
    */
   mediaUrl?: string | null
   /** Optional title shown on Facebook link cards / LinkedIn image alt text. */
@@ -253,8 +255,11 @@ function buildLinkAttachment(
  *
  * LinkedIn's Posts API does not scrape Open Graph thumbnails for partner posts.
  * A large OG *link card* on organic LinkedIn is also sponsored-only.
- * Attach the job graphic as a native image asset (works on free LinkedIn and
- * free Buffer). Keep the apply URL in the caption. Do not set firstComment —
+ * Facebook link cards have the same failure mode on organic Page posts: Facebook
+ * scrapes the job URL itself, Buffer's thumbnail is ignored unless the domain is
+ * verified, and a cold OG PNG often exceeds Facebook's fetch window (blank slot).
+ * Attach the job graphic as a native image asset on Facebook, LinkedIn, and
+ * Instagram. Keep the apply URL in the caption. Do not set firstComment —
  * Buffer first-comment scheduling is paid-plan-only and would fail the post.
  *
  * Buffer rejects `linkAttachment` together with a non-empty `assets` array.
@@ -280,8 +285,9 @@ export function buildCreatePostVariables(input: CreatePostInput): Record<string,
   const isInstagram = service.includes('instagram')
   const mediaUrl = input.mediaUrl?.trim() || null
   const link = extractFirstUrl(text)
-  // Facebook unfurls OG from a link card. LinkedIn/Instagram use a photo.
-  const useLinkCard = isFacebook && Boolean(link)
+  // Native photo whenever we have a graphic. Facebook link cards are a fallback
+  // only when there is a URL and no image (Buffer forbids mixing both).
+  const useLinkCard = Boolean(link) && !mediaUrl && (isFacebook || isLinkedIn)
 
   if (isInstagram && !mediaUrl) {
     throw new BufferApiError(
@@ -290,7 +296,7 @@ export function buildCreatePostVariables(input: CreatePostInput): Record<string,
   }
 
   const assets: Record<string, unknown>[] = []
-  if (mediaUrl && !useLinkCard) {
+  if (mediaUrl) {
     const image: Record<string, unknown> = { url: mediaUrl }
     const alt = input.linkTitle?.trim()
     if (alt) image.metadata = { altText: alt }
@@ -323,11 +329,13 @@ export function buildCreatePostVariables(input: CreatePostInput): Record<string,
 
   if (isFacebook) {
     const facebook: Record<string, unknown> = { type: 'post' }
-    if (useLinkCard && linkAttachment) facebook.linkAttachment = linkAttachment
+    if (useLinkCard && linkAttachment && assets.length === 0) {
+      facebook.linkAttachment = linkAttachment
+    }
     payload.metadata = { facebook }
   } else if (isInstagram) {
     payload.metadata = { instagram: { type: 'post', shouldShareToFeed: true } }
-  } else if (isLinkedIn && linkAttachment && assets.length === 0) {
+  } else if (isLinkedIn && useLinkCard && linkAttachment && assets.length === 0) {
     payload.metadata = { linkedin: { linkAttachment } }
   }
 
@@ -381,23 +389,28 @@ export async function bufferCreatePost(
  * try to read image dimensions. A cold generate can take several seconds;
  * Facebook's crawler then leaves the link-card image blank.
  */
-export async function warmPublicImageUrl(url: string): Promise<boolean> {
+export async function warmPublicImageUrl(url: string, attempts = 2): Promise<boolean> {
   const target = url.trim()
   if (!target) return false
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), BUFFER_TIMEOUT_MS)
-  try {
-    const res = await fetch(target, { method: 'GET', redirect: 'follow', signal: controller.signal })
-    const contentType = (res.headers.get('content-type') || '').toLowerCase()
-    if (!res.ok || !contentType.includes('image/')) return false
-    // Drain the body so the CDN actually stores the PNG, not just headers.
-    await res.arrayBuffer()
-    return true
-  } catch {
-    return false
-  } finally {
-    clearTimeout(timer)
+  const tries = Math.max(1, attempts)
+  for (let i = 0; i < tries; i++) {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), BUFFER_TIMEOUT_MS)
+    try {
+      const res = await fetch(target, { method: 'GET', redirect: 'follow', signal: controller.signal })
+      const contentType = (res.headers.get('content-type') || '').toLowerCase()
+      if (res.ok && contentType.includes('image/')) {
+        // Drain the body so the CDN actually stores the PNG, not just headers.
+        const body = await res.arrayBuffer()
+        if (body.byteLength > 1024) return true
+      }
+    } catch {
+      // Retry a cold generate; Buffer still receives the URL if every attempt fails.
+    } finally {
+      clearTimeout(timer)
+    }
   }
+  return false
 }
 
 /** Delete a post on Buffer by its Buffer post id (used when cancelling queued posts). */
