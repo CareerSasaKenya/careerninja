@@ -6,21 +6,27 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'scraped = re-normalize published scraped jobs from raw_data; sparse = active jobs missing fields (any intake)'
+        description: 'scraped = re-normalize published scraped jobs from raw_data; sparse = active jobs missing fields (any intake); tips = career tips for jobs posted in the last N days'
         required: false
         default: 'scraped'
         type: choice
         options:
           - scraped
           - sparse
+          - tips
       source_id:
         description: 'Optional: only this scraper source (scraped mode only)'
         required: false
         type: string
       limit:
-        description: 'Batch size (default 10, max 15)'
+        description: 'Batch size (scraped/sparse default 10; tips default 80, max 200)'
         required: false
         default: '10'
+        type: number
+      days:
+        description: 'Lookback days for tips mode (default 7)'
+        required: false
+        default: '7'
         type: number
 
 permissions:
@@ -63,8 +69,16 @@ jobs:
           MODE: ${{ github.event.inputs.mode }}
           SOURCE_ID: ${{ github.event.inputs.source_id }}
           LIMIT: ${{ github.event.inputs.limit }}
+          DAYS: ${{ github.event.inputs.days }}
         run: |
-          ARGS="enrich ${MODE:-sparse}"
-          ARGS="$ARGS ${LIMIT:-10}"
-          if [ -n "$SOURCE_ID" ]; then ARGS="$ARGS $SOURCE_ID"; fi
-          npm run worker:enrich -- $ARGS
+          MODE="${MODE:-sparse}"
+          if [ "$MODE" = "tips" ]; then
+            TIPS_LIMIT="${LIMIT}"
+            # Shared workflow default is 10 (scraped/sparse). Treat that as 80 for tips.
+            if [ -z "$TIPS_LIMIT" ] || [ "$TIPS_LIMIT" = "10" ]; then TIPS_LIMIT=80; fi
+            npm run worker:enrich -- tips "$TIPS_LIMIT" "${DAYS:-7}"
+          else
+            ARGS="${MODE} ${LIMIT:-10}"
+            if [ -n "$SOURCE_ID" ]; then ARGS="$ARGS $SOURCE_ID"; fi
+            npm run worker:enrich -- $ARGS
+          fi

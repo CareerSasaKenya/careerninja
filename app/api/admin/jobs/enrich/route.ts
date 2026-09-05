@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/adminAuth'
 import {
+  backfillCareerTipsForRecentJobs,
   enrichJobById,
   enrichJobsNeedingEnrichment,
 } from '@/lib/enrichJobById'
@@ -17,6 +18,8 @@ export const maxDuration = 300
  * Body:
  *   job_id?: string     — enrich one job
  *   missing_only?: bool — batch enrich sparse active jobs
+ *   tips_only?: bool    — backfill career tips on jobs posted in the last `days`
+ *   days?: number       — lookback for tips_only (default 7, max 30)
  *   limit?: number      — batch size (default 10, max 25)
  *   dry_run?: boolean
  */
@@ -33,10 +36,19 @@ export async function POST(request: NextRequest) {
         ? body.job_id.trim()
         : null
     const missingOnly = body.missing_only === true
+    const tipsOnly =
+      body.tips_only === true || String(body.mode || '').toLowerCase() === 'tips'
     const dryRun = body.dry_run === true
     const limit = Math.min(
       Math.max(1, Math.floor(typeof body.limit === 'number' ? body.limit : 10)),
       25
+    )
+    const days = Math.min(
+      Math.max(
+        1,
+        Math.floor(typeof body.days === 'number' ? body.days : 7)
+      ),
+      30
     )
 
     if (jobId) {
@@ -47,6 +59,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: result.status === 'updated' || result.status === 'dry_run',
         ...result,
+      })
+    }
+
+    if (tipsOnly) {
+      const batch = await backfillCareerTipsForRecentJobs(auth.adminClient, {
+        days,
+        limit,
+        apply: !dryRun,
+        concurrency: 2,
+        budgetMs: 270_000,
+      })
+      return NextResponse.json({
+        success: true,
+        mode: 'tips',
+        ...batch,
       })
     }
 
@@ -69,7 +96,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error:
-          'Provide job_id for a single job, or missing_only:true for a batch of sparse jobs',
+          'Provide job_id for a single job, missing_only:true for sparse jobs, or tips_only:true for last-week career tips',
       },
       { status: 400 }
     )

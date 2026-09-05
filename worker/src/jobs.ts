@@ -1,6 +1,9 @@
 import { runScrapeDiscover } from '../../src/lib/scrapeDiscover'
 import { runScrapeProcessBatch } from '../../src/lib/scrapeProcess'
-import { enrichJobsNeedingEnrichment } from '../../src/lib/enrichJobById'
+import {
+  backfillCareerTipsForRecentJobs,
+  enrichJobsNeedingEnrichment,
+} from '../../src/lib/enrichJobById'
 import { runReenrichScrapedJobs } from '../../src/lib/reenrichScrapedJobs'
 import { autoQueueDailyPosts } from '../../src/lib/social/autoQueueJobs'
 import { createServiceRoleClient } from '../../src/lib/supabaseServiceClient'
@@ -39,17 +42,34 @@ export async function runProcess(batch = 10) {
  * Enrich jobs with AI normalize.
  * - mode 'sparse': active jobs missing fields from ANY intake path (the old
  *   Vercel enrich-jobs cron behavior).
+ * - mode 'tips': backfill career tips on jobs posted in the last `days`.
  * - mode 'scraped': re-normalize published scraped jobs from stored raw_data,
  *   optionally limited to one source (the admin "Enrich scraped" behavior).
  */
 export async function runEnrich(
-  options: { mode?: 'scraped' | 'sparse'; limit?: number; sourceId?: string } = {}
+  options: {
+    mode?: 'scraped' | 'sparse' | 'tips'
+    limit?: number
+    sourceId?: string
+    days?: number
+  } = {}
 ) {
-  const { mode = 'scraped', limit = 10, sourceId } = options
+  const { mode = 'scraped', limit = 10, sourceId, days = 7 } = options
   const supabase = createServiceRoleClient()
 
   if (mode === 'sparse') {
     return enrichJobsNeedingEnrichment(supabase, { limit, apply: true })
+  }
+
+  if (mode === 'tips') {
+    return backfillCareerTipsForRecentJobs(supabase, {
+      limit,
+      days,
+      apply: true,
+      concurrency: 3,
+      // GitHub Actions enrich job is 45 minutes; leave a small reserve.
+      budgetMs: 40 * 60 * 1000,
+    })
   }
 
   return runReenrichScrapedJobs(supabase, {

@@ -20,6 +20,7 @@ import {
   Rss,
   Building2,
   Send,
+  Lightbulb,
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -359,6 +360,52 @@ export default function AdminScraperSourcesPage() {
     }
   };
 
+  /** Backfill career tips on active jobs posted in the last week. */
+  const runBackfillCareerTips = async () => {
+    try {
+      setEnrichingAll(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+
+      const response = await fetch("/api/admin/jobs/enrich", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ tips_only: true, days: 7, limit: 15 }),
+      });
+
+      const body = await parseJsonResponse(response);
+      if (!response.ok) throw new Error(body.error || "Tips backfill failed");
+
+      const updated = typeof body.updated === "number" ? body.updated : 0;
+      const failed = typeof body.failed === "number" ? body.failed : 0;
+      const examined = typeof body.examined === "number" ? body.examined : 0;
+      const remaining = typeof body.remaining === "number" ? body.remaining : 0;
+      const missing = typeof body.missing === "number" ? body.missing : examined;
+
+      if (missing === 0 && examined === 0) {
+        toast.info("All jobs posted in the last 7 days already have career tips");
+      } else if (updated > 0) {
+        toast.success(
+          `Added career tips to ${updated} job(s) from the last 7 days` +
+            (remaining ? ` · ${remaining} still waiting` : "") +
+            (failed ? ` · ${failed} failed` : "")
+        );
+      } else {
+        toast.info(
+          `Examined ${examined} job(s) missing tips; nothing updated` +
+            (remaining ? ` (${remaining} remaining)` : "")
+        );
+      }
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Tips backfill failed");
+    } finally {
+      setEnrichingAll(false);
+    }
+  };
+
   /** Enrich sparse jobs from ANY intake path (manual, scrape, n8n, parse-job…). */
   const runEnrichSparseAll = async () => {
     try {
@@ -484,6 +531,19 @@ export default function AdminScraperSourcesPage() {
               <Sparkles className="h-4 w-4 mr-2" />
             )}
             Enrich any sparse
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => runBackfillCareerTips()}
+            disabled={busy}
+            title="Generate career tips for active jobs posted in the last 7 days that are still missing them"
+          >
+            {enrichingAll ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Lightbulb className="h-4 w-4 mr-2" />
+            )}
+            Backfill tips (7d)
           </Button>
           <Button variant="outline" onClick={() => fetchSources()} disabled={busy}>
             {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
