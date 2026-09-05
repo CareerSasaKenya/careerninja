@@ -139,6 +139,9 @@ npm run worker:process:n          # or: npm run worker:process -- 10
 # One-shot: AI-enrich active jobs missing fields (sparse mode)
 npm run worker:enrich -- sparse 10
 
+# One-shot: backfill career tips on jobs posted in the last 7 days
+npm run worker:enrich -- tips 80 7
+
 # One-shot: re-normalize published scraped jobs (scraped mode, optional source)
 npm run worker:enrich -- scraped 10 myjobmag-kenya
 

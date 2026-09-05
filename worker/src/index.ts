@@ -33,11 +33,15 @@ async function main() {
     }
 
     case 'enrich': {
-      // tsx worker/src/index.ts enrich [scraped|sparse] [limit] [source_id]
-      const enrichMode = extra === 'sparse' ? 'sparse' : 'scraped'
-      const limit = parseInt(process.argv[4], 10) || 10
-      const sourceId = process.argv[5]
-      const result = await runEnrich({ mode: enrichMode, limit, sourceId })
+      // tsx worker/src/index.ts enrich [scraped|sparse|tips] [limit] [source_id|days]
+      const enrichMode =
+        extra === 'sparse' ? 'sparse' : extra === 'tips' ? 'tips' : 'scraped'
+      const limit =
+        parseInt(process.argv[4], 10) || (enrichMode === 'tips' ? 80 : 10)
+      const sourceId = enrichMode === 'tips' ? undefined : process.argv[5]
+      const days =
+        enrichMode === 'tips' ? parseInt(process.argv[5], 10) || 7 : undefined
+      const result = await runEnrich({ mode: enrichMode, limit, sourceId, days })
       console.log(JSON.stringify(result, null, 2))
       // Fail when every examined job errored with nothing updated/skipped.
       // Sparse mode returns results[] with per-job status; scraped mode
@@ -89,7 +93,7 @@ async function main() {
 
     default:
       console.error(
-        'Usage: tsx src/index.ts <discover|process [batch]|enrich [scraped|sparse] [limit] [source_id]|social [--dry-run]|schedule|server>'
+        'Usage: tsx src/index.ts <discover|process [batch]|enrich [scraped|sparse|tips] [limit] [source_id|days]|social [--dry-run]|schedule|server>'
       )
       process.exit(1)
   }

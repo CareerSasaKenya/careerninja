@@ -1,5 +1,10 @@
 import assert from 'node:assert/strict'
-import { buildInputFromJobRow, jobNeedsEnrichment } from './enrichJobById'
+import {
+  buildInputFromJobRow,
+  isJobPostedWithinDays,
+  jobNeedsEnrichment,
+  selectJobsMissingCareerTips,
+} from './enrichJobById'
 
 const input = buildInputFromJobRow({
   id: 'job-1',
@@ -82,6 +87,106 @@ assert.equal(
     job_location_type: 'ON_SITE',
   }),
   false
+)
+
+const now = new Date('2026-09-05T04:55:00.000Z')
+const applyOnly =
+  '<p><strong>How to Apply:</strong> Use the apply button.</p>'
+const withTips = `<p><strong>How to Apply:</strong> Use the apply button.</p>
+<h3>What Credit Files Must Prove Before The Committee</h3>
+<p>Intro</p>
+<p><strong>1. Spread the facility:</strong> Show the model.</p>
+<p><strong>2. Sector notes:</strong> Know SME risk.</p>
+<p><strong>3. Security pack:</strong> List collateral.</p>
+<p><strong>4. First 90 days:</strong> Name the reviews.</p>`
+
+assert.equal(
+  isJobPostedWithinDays({ date_posted: '2026-09-03' }, 7, now),
+  true,
+  'jobs posted 2 days ago are in the 7-day window'
+)
+assert.equal(
+  isJobPostedWithinDays({ date_posted: '2026-08-29' }, 7, now),
+  true,
+  'date-only postings from exactly 7 days ago stay in the window'
+)
+assert.equal(
+  isJobPostedWithinDays({ date_posted: '2026-08-28' }, 7, now),
+  false,
+  'jobs posted 8 calendar days ago are excluded'
+)
+assert.equal(
+  isJobPostedWithinDays(
+    { date_posted: null, created_at: '2026-09-02T12:00:00.000Z' },
+    7,
+    now
+  ),
+  true,
+  'created_at fills in when date_posted is missing'
+)
+assert.equal(
+  isJobPostedWithinDays(
+    { date_posted: '2026-08-01', created_at: '2026-09-04T08:00:00.000Z' },
+    7,
+    now
+  ),
+  false,
+  'stale date_posted wins over a recent created_at'
+)
+
+const selected = selectJobsMissingCareerTips(
+  [
+    {
+      id: 'recent-no-tips',
+      title: 'Analyst',
+      additional_info: applyOnly,
+      date_posted: '2026-09-04',
+    },
+    {
+      id: 'recent-with-tips',
+      title: 'Analyst',
+      additional_info: withTips,
+      date_posted: '2026-09-04',
+    },
+    {
+      id: 'old-no-tips',
+      title: 'Analyst',
+      additional_info: applyOnly,
+      date_posted: '2026-08-20',
+    },
+    {
+      id: 'created-fallback',
+      title: 'Analyst',
+      additional_info: applyOnly,
+      date_posted: null,
+      created_at: '2026-09-01T09:00:00.000Z',
+    },
+  ],
+  { days: 7, now }
+)
+assert.deepEqual(
+  selected.map(j => j.id),
+  ['recent-no-tips', 'created-fallback']
+)
+
+const limited = selectJobsMissingCareerTips(
+  [
+    {
+      id: 'a',
+      additional_info: applyOnly,
+      date_posted: '2026-09-04',
+    },
+    {
+      id: 'b',
+      additional_info: applyOnly,
+      date_posted: '2026-09-03',
+    },
+  ],
+  { days: 7, limit: 1, now }
+)
+assert.deepEqual(
+  limited.map(j => j.id),
+  ['a']
 )
 
 console.log('enrichJobById.test.ts: ok')

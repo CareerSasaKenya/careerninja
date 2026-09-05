@@ -25,6 +25,10 @@
       "schedule": "30 */4 * * *"
     },
     {
+      "path": "/api/cron/enrich-career-tips",
+      "schedule": "0 */2 * * *"
+    },
+    {
       "path": "/api/cron/email-automations",
       "schedule": "0 8 * * *"
     },

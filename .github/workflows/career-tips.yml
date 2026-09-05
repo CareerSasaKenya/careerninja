@@ -1,0 +1,59 @@
+name: Career Tips Backfill
+
+# One-shot / catch-up: generate career tips for active jobs posted in the
+# last N days that still only have How to Apply (no numbered tips).
+# Vercel also runs /api/cron/enrich-career-tips every 2 hours (20 jobs).
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: 'Lookback days (default 7)'
+        required: false
+        default: '7'
+        type: number
+      limit:
+        description: 'Max jobs to update this run (default 80, max 200)'
+        required: false
+        default: '80'
+        type: number
+
+permissions:
+  contents: read
+
+concurrency:
+  group: scrape-enrich
+  cancel-in-progress: false
+
+jobs:
+  tips:
+    name: Backfill career tips
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      SCRAPER_USER_ID: ${{ secrets.SCRAPER_USER_ID }}
+      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+      DEEPSEEK_API_KEY_2: ${{ secrets.DEEPSEEK_API_KEY_2 }}
+      DEEPSEEK_MODEL: ${{ secrets.DEEPSEEK_MODEL }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+      GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Backfill career tips
+        env:
+          LIMIT: ${{ github.event.inputs.limit }}
+          DAYS: ${{ github.event.inputs.days }}
+        run: npm run worker:enrich -- tips "${LIMIT:-80}" "${DAYS:-7}"

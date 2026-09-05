@@ -60,6 +60,42 @@ type JobRow = {
   application_url?: string | null
 }
 
+export type PostedJobRef = {
+  id: string
+  title?: string | null
+  additional_info?: string | null
+  date_posted?: string | null
+  created_at?: string | null
+}
+
+export interface CareerTipsBackfillOptions {
+  days?: number
+  limit?: number
+  apply?: boolean
+  concurrency?: number
+  budgetMs?: number
+  now?: Date
+  /** Max active rows to scan in the lookback window (pagination cap). */
+  scanCap?: number
+}
+
+export interface CareerTipsBackfillResult {
+  days: number
+  scanned: number
+  missing: number
+  examined: number
+  updated: number
+  failed: number
+  skipped: number
+  remaining: number
+  timed_out: boolean
+  scan_capped: boolean
+  results: EnrichJobResult[]
+}
+
+const TIPS_BACKFILL_PAGE = 200
+const TIPS_BACKFILL_SCAN_CAP = 800
+
 function hasAiKeys(): boolean {
   return [
     process.env.DEEPSEEK_API_KEY,
@@ -126,6 +162,185 @@ function jobNeedsFullParse(job: JobRow): boolean {
 /** Sparse taxonomy/sections OR additional_info without generated career tips. */
 export function jobNeedsEnrichment(job: JobRow): boolean {
   return jobNeedsFullParse(job) || !hasGeneratedCareerTips(job.additional_info)
+}
+
+/**
+ * True when the job was posted within `days` of `now`.
+ * Prefers date_posted; falls back to created_at. Date-only values count
+ * as the whole UTC calendar day so a 7-day window does not drop
+ * "posted 7 days ago" DATE columns at midnight UTC.
+ */
+export function isJobPostedWithinDays(
+  job: { date_posted?: string | null; created_at?: string | null },
+  days: number,
+  now = new Date()
+): boolean {
+  const raw = (job.date_posted || job.created_at || '').trim()
+  if (!raw) return false
+  const postedMs = Date.parse(raw)
+  if (!Number.isFinite(postedMs)) return false
+  const windowDays = Math.max(1, days)
+  const cutoffMs = now.getTime() - windowDays * 24 * 60 * 60 * 1000
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    return postedMs >= Date.parse(new Date(cutoffMs).toISOString().slice(0, 10))
+  }
+  return postedMs >= cutoffMs
+}
+
+/** Recent jobs whose additional_info still lacks generated career tips. */
+export function selectJobsMissingCareerTips<T extends PostedJobRef>(
+  jobs: T[],
+  options: { days?: number; limit?: number; now?: Date } = {}
+): T[] {
+  const days = Math.min(Math.max(1, options.days ?? 7), 30)
+  const limit = Math.max(0, options.limit ?? jobs.length)
+  const now = options.now ?? new Date()
+  return jobs
+    .filter(
+      job =>
+        isJobPostedWithinDays(job, days, now) &&
+        !hasGeneratedCareerTips(job.additional_info)
+    )
+    .slice(0, limit)
+}
+
+async function runPool<T>(
+  items: T[],
+  concurrency: number,
+  budgetMs: number,
+  startedAt: number,
+  fn: (item: T) => Promise<void>
+): Promise<{ timedOut: boolean }> {
+  let cursor = 0
+  let timedOut = false
+  const workerCount = Math.max(1, Math.min(concurrency, items.length || 1))
+  await Promise.all(
+    Array.from({ length: workerCount }, async () => {
+      while (true) {
+        if (Date.now() - startedAt >= budgetMs) {
+          timedOut = true
+          return
+        }
+        const index = cursor++
+        if (index >= items.length) return
+        await fn(items[index])
+      }
+    })
+  )
+  return { timedOut }
+}
+
+async function loadRecentActiveJobs(
+  supabase: SupabaseClient,
+  days: number,
+  now: Date,
+  scanCap: number
+): Promise<PostedJobRef[]> {
+  const cutoff = new Date(
+    now.getTime() - days * 24 * 60 * 60 * 1000
+  ).toISOString()
+  const collected: PostedJobRef[] = []
+  for (let offset = 0; offset < scanCap; offset += TIPS_BACKFILL_PAGE) {
+    const to = Math.min(offset + TIPS_BACKFILL_PAGE - 1, scanCap - 1)
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('id, title, additional_info, date_posted, created_at')
+      .eq('status', 'active')
+      .or(`date_posted.gte.${cutoff},created_at.gte.${cutoff}`)
+      .order('date_posted', { ascending: false, nullsFirst: false })
+      .range(offset, to)
+    if (error) throw error
+    const rows = (data || []) as PostedJobRef[]
+    collected.push(...rows)
+    if (rows.length < TIPS_BACKFILL_PAGE) break
+  }
+  return collected
+}
+
+/**
+ * Fill career tips on active jobs posted in the last `days` (default 7).
+ * Uses the tips-only enrich path when taxonomy/sections are already complete.
+ */
+export async function backfillCareerTipsForRecentJobs(
+  supabase: SupabaseClient,
+  options: CareerTipsBackfillOptions = {}
+): Promise<CareerTipsBackfillResult> {
+  const days = Math.min(Math.max(1, options.days ?? 7), 30)
+  const limit = Math.min(Math.max(1, options.limit ?? 20), 200)
+  const apply = options.apply !== false
+  const concurrency = Math.min(Math.max(1, options.concurrency ?? 3), 5)
+  const budgetMs = Math.max(5_000, options.budgetMs ?? 270_000)
+  const now = options.now ?? new Date()
+  const scanCap = Math.min(
+    Math.max(limit, options.scanCap ?? TIPS_BACKFILL_SCAN_CAP),
+    2000
+  )
+  const startedAt = Date.now()
+
+  const scannedRows = await loadRecentActiveJobs(supabase, days, now, scanCap)
+  const missing = selectJobsMissingCareerTips(scannedRows, {
+    days,
+    limit: scannedRows.length,
+    now,
+  })
+  const queued = missing.slice(0, limit)
+
+  if (!apply) {
+    const results: EnrichJobResult[] = queued.map(job => ({
+      job_id: job.id,
+      title: job.title || 'Untitled',
+      status: 'dry_run' as const,
+      detail: 'missing career tips',
+    }))
+    return {
+      days,
+      scanned: scannedRows.length,
+      missing: missing.length,
+      examined: results.length,
+      updated: 0,
+      failed: 0,
+      skipped: 0,
+      remaining: Math.max(0, missing.length - results.length),
+      timed_out: false,
+      scan_capped: scannedRows.length >= scanCap,
+      results,
+    }
+  }
+
+  const results: EnrichJobResult[] = []
+  const { timedOut } = await runPool(
+    queued,
+    concurrency,
+    budgetMs,
+    startedAt,
+    async job => {
+      results.push(
+        await enrichJobById(supabase, job.id, {
+          force: true,
+          fillGapsOnly: false,
+          apply: true,
+        })
+      )
+    }
+  )
+
+  const updated = results.filter(r => r.status === 'updated').length
+  const failed = results.filter(r => r.status === 'failed').length
+  const skipped = results.filter(r => r.status === 'skipped').length
+
+  return {
+    days,
+    scanned: scannedRows.length,
+    missing: missing.length,
+    examined: results.length,
+    updated,
+    failed,
+    skipped,
+    remaining: Math.max(0, missing.length - results.length),
+    timed_out: timedOut,
+    scan_capped: scannedRows.length >= scanCap,
+    results,
+  }
 }
 
 /**

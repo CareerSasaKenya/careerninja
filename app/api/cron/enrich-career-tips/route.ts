@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import {
-  backfillCareerTipsForRecentJobs,
-  enrichJobsNeedingEnrichment,
-} from '@/lib/enrichJobById'
+import { backfillCareerTipsForRecentJobs } from '@/lib/enrichJobById'
 import { createServiceRoleClient } from '@/lib/supabaseServiceClient'
 
-/** Pro plan: AI-enrich sparse active jobs, or backfill career tips. */
+/** Pro plan: backfill career tips on jobs posted in the last week. */
 export const maxDuration = 300
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -37,48 +34,23 @@ async function handle(request: NextRequest) {
   try {
     const url = request.nextUrl
     const body = request.method === 'POST' ? await request.json().catch(() => ({})) : {}
-    const modeRaw = String(body.mode ?? url.searchParams.get('mode') ?? 'sparse')
-      .trim()
-      .toLowerCase()
-    const mode = modeRaw === 'tips' ? 'tips' : 'sparse'
     const dryRun = body.dryRun === true || url.searchParams.get('dryRun') === '1'
-    const supabase = createServiceRoleClient()
-
-    if (mode === 'tips') {
-      const batch = await backfillCareerTipsForRecentJobs(supabase, {
-        days: intParam(body.days ?? url.searchParams.get('days'), 7, 1, 30),
-        limit: intParam(body.limit ?? url.searchParams.get('limit'), 20, 1, 40),
-        apply: !dryRun,
-        concurrency: 2,
-        budgetMs: 270_000,
-      })
-      return NextResponse.json({
-        success: true,
-        mode: 'tips',
-        ...batch,
-        timestamp: new Date().toISOString(),
-      })
-    }
-
-    const limit = intParam(body.limit ?? url.searchParams.get('limit'), 10, 1, 25)
-    const batch = await enrichJobsNeedingEnrichment(supabase, {
-      limit,
+    const batch = await backfillCareerTipsForRecentJobs(createServiceRoleClient(), {
+      days: intParam(body.days ?? url.searchParams.get('days'), 7, 1, 30),
+      limit: intParam(body.limit ?? url.searchParams.get('limit'), 20, 1, 40),
       apply: !dryRun,
+      concurrency: 2,
+      budgetMs: 270_000,
     })
-
     return NextResponse.json({
       success: true,
-      mode: 'sparse',
-      examined: batch.examined,
-      updated: batch.results.filter(r => r.status === 'updated').length,
-      failed: batch.results.filter(r => r.status === 'failed').length,
-      skipped: batch.results.filter(r => r.status === 'skipped').length,
-      results: batch.results,
+      mode: 'tips',
+      ...batch,
       timestamp: new Date().toISOString(),
     })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error)
-    console.error('[cron/enrich-jobs] Error:', message)
+    console.error('[cron/enrich-career-tips] Error:', message)
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }
