@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/adminAuth'
-import {
-  backfillCareerTipsForRecentJobs,
-  enrichJobById,
-  enrichJobsNeedingEnrichment,
-} from '@/lib/enrichJobById'
+import { enrichJobById, enrichJobsNeedingEnrichment } from '@/lib/enrichJobById'
 
 export const runtime = 'nodejs'
 export const maxDuration = 300
@@ -18,10 +14,10 @@ export const maxDuration = 300
  * Body:
  *   job_id?: string     — enrich one job
  *   missing_only?: bool — batch enrich sparse active jobs
- *   tips_only?: bool    — backfill career tips on jobs posted in the last `days`
- *   days?: number       — lookback for tips_only (default 7, max 30)
  *   limit?: number      — batch size (default 10, max 25)
  *   dry_run?: boolean
+ *
+ * Career tips backfill (`tips_only`) is disabled. Tips still generate at ingest.
  */
 export async function POST(request: NextRequest) {
   const auth = await requireAdmin(request)
@@ -43,13 +39,17 @@ export async function POST(request: NextRequest) {
       Math.max(1, Math.floor(typeof body.limit === 'number' ? body.limit : 10)),
       25
     )
-    const days = Math.min(
-      Math.max(
-        1,
-        Math.floor(typeof body.days === 'number' ? body.days : 7)
-      ),
-      30
-    )
+
+    if (tipsOnly && !jobId) {
+      return NextResponse.json(
+        {
+          error: 'Career tips backfill is disabled',
+          mode: 'tips',
+          disabled: true,
+        },
+        { status: 410 }
+      )
+    }
 
     if (jobId) {
       const result = await enrichJobById(auth.adminClient, jobId, {
@@ -59,21 +59,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: result.status === 'updated' || result.status === 'dry_run',
         ...result,
-      })
-    }
-
-    if (tipsOnly) {
-      const batch = await backfillCareerTipsForRecentJobs(auth.adminClient, {
-        days,
-        limit,
-        apply: !dryRun,
-        concurrency: 2,
-        budgetMs: 270_000,
-      })
-      return NextResponse.json({
-        success: true,
-        mode: 'tips',
-        ...batch,
       })
     }
 
@@ -95,8 +80,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       {
-        error:
-          'Provide job_id for a single job, missing_only:true for sparse jobs, or tips_only:true for last-week career tips',
+        error: 'Provide job_id for a single job or missing_only:true for sparse jobs',
       },
       { status: 400 }
     )

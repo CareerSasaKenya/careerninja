@@ -90,8 +90,12 @@ export interface CareerTipsBackfillResult {
   remaining: number
   timed_out: boolean
   scan_capped: boolean
+  disabled?: boolean
   results: EnrichJobResult[]
 }
+
+/** Dedicated 7-day tips catch-up. Ingest-time generation is unchanged. */
+export const CAREER_TIPS_BACKFILL_ENABLED: boolean = false
 
 const TIPS_BACKFILL_PAGE = 200
 const TIPS_BACKFILL_SCAN_CAP = 800
@@ -159,9 +163,9 @@ function jobNeedsFullParse(job: JobRow): boolean {
   return !hasIndustry || !hasFunction || !hasResp || !hasQuals
 }
 
-/** Sparse taxonomy/sections OR additional_info without generated career tips. */
+/** Sparse taxonomy/sections. Missing career tips alone does not queue enrichment. */
 export function jobNeedsEnrichment(job: JobRow): boolean {
-  return jobNeedsFullParse(job) || !hasGeneratedCareerTips(job.additional_info)
+  return jobNeedsFullParse(job)
 }
 
 /**
@@ -257,15 +261,39 @@ async function loadRecentActiveJobs(
   return collected
 }
 
+function emptyBackfillResult(
+  days: number,
+  extra: Partial<CareerTipsBackfillResult> = {}
+): CareerTipsBackfillResult {
+  return {
+    days,
+    scanned: 0,
+    missing: 0,
+    examined: 0,
+    updated: 0,
+    failed: 0,
+    skipped: 0,
+    remaining: 0,
+    timed_out: false,
+    scan_capped: false,
+    results: [],
+    ...extra,
+  }
+}
+
 /**
  * Fill career tips on active jobs posted in the last `days` (default 7).
  * Uses the tips-only enrich path when taxonomy/sections are already complete.
+ * No-ops while {@link CAREER_TIPS_BACKFILL_ENABLED} is false.
  */
 export async function backfillCareerTipsForRecentJobs(
   supabase: SupabaseClient,
   options: CareerTipsBackfillOptions = {}
 ): Promise<CareerTipsBackfillResult> {
   const days = Math.min(Math.max(1, options.days ?? 7), 30)
+  if (!CAREER_TIPS_BACKFILL_ENABLED) {
+    return emptyBackfillResult(days, { disabled: true })
+  }
   const limit = Math.min(Math.max(1, options.limit ?? 20), 200)
   const apply = options.apply !== false
   const concurrency = Math.min(Math.max(1, options.concurrency ?? 3), 5)

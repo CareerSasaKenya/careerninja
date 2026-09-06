@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict'
 import {
+  backfillCareerTipsForRecentJobs,
   buildInputFromJobRow,
+  CAREER_TIPS_BACKFILL_ENABLED,
   isJobPostedWithinDays,
   jobNeedsEnrichment,
   selectJobsMissingCareerTips,
@@ -60,8 +62,28 @@ assert.equal(
     employment_type: 'FULL_TIME',
     job_location_type: 'ON_SITE',
   }),
+  false,
+  'complete jobs do not need sparse enrichment just because career tips are missing'
+)
+
+assert.equal(
+  jobNeedsEnrichment({
+    id: 'job-3b',
+    title: 'Analyst',
+    company: 'KCB',
+    hiring_organization_name: 'KCB',
+    description: '<p>Role overview</p>',
+    responsibilities: '<ul><li>Analyse credit</li></ul>',
+    required_qualifications: '<ul><li>Finance degree</li></ul>',
+    additional_info: '<p><strong>How to Apply:</strong> Use the apply button.</p>',
+    industry: null,
+    job_function: 'Accounting, Auditing & Finance',
+    location: 'Nairobi',
+    employment_type: 'FULL_TIME',
+    job_location_type: 'ON_SITE',
+  }),
   true,
-  'complete jobs still need enrichment when career tips are missing'
+  'jobs missing taxonomy still need sparse enrichment'
 )
 
 assert.equal(
@@ -188,5 +210,21 @@ assert.deepEqual(
   limited.map(j => j.id),
   ['a']
 )
+
+assert.equal(CAREER_TIPS_BACKFILL_ENABLED, false)
+
+const disabledBackfill = await backfillCareerTipsForRecentJobs(
+  {
+    from() {
+      throw new Error('career tips backfill must not query the database')
+    },
+  } as never,
+  { days: 7, limit: 20 }
+)
+assert.equal(disabledBackfill.disabled, true)
+assert.equal(disabledBackfill.updated, 0)
+assert.equal(disabledBackfill.examined, 0)
+assert.equal(disabledBackfill.scanned, 0)
+assert.deepEqual(disabledBackfill.results, [])
 
 console.log('enrichJobById.test.ts: ok')
