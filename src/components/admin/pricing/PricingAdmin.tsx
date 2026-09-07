@@ -656,7 +656,7 @@ function MpesaTab() {
       <CardHeader>
         <CardTitle>M-Pesa checkout</CardTitle>
         <CardDescription>
-          Payments currently go to <span className="font-mono">+254 795 565 135</span> via Send Money.
+          Payments currently go to <span className="font-mono">+254 795 564 135</span> via Send Money.
           Add a till number to offer Buy Goods and Services. Switch sandbox → live when Daraja live credentials are in the environment.
         </CardDescription>
       </CardHeader>
@@ -706,7 +706,7 @@ function MpesaTab() {
             <Input
               value={settings.phoneNumber}
               onChange={(e) => setSettings({ ...settings, phoneNumber: e.target.value })}
-              placeholder="254795565135"
+              placeholder="254795564135"
             />
           </div>
           <div className="space-y-1">

@@ -110,13 +110,13 @@ function testMpesaSettingsParse() {
     stkEnabled: true,
     defaultMethod: 'phone',
     stkMode: 'till',
-    phoneNumber: '+254795565135',
+    phoneNumber: '+254795564135',
     tillNumber: '123456',
     paybillNumber: '',
     accountReference: 'CareerSasaPay',
   });
   assert.equal(parsed.environment, 'production');
-  assert.equal(parsed.phoneNumber, '254795565135');
+  assert.equal(parsed.phoneNumber, '254795564135');
   assert.equal(parsed.stkMode, 'till');
 
   const pub = toPublicMpesaSettings(parsed);
@@ -130,7 +130,7 @@ function testMpesaSettingsParse() {
       phoneEnabled: true,
       tillEnabled: true,
       stkEnabled: false,
-      phoneNumber: '254795565135',
+      phoneNumber: '254795564135',
       tillNumber: '',
     })
   );

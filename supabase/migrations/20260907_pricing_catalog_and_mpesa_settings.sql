@@ -151,9 +151,16 @@ END $$;
 INSERT INTO public.app_settings (key, value)
 VALUES (
   'mpesa_settings',
-  '{"environment":"sandbox","phoneEnabled":true,"tillEnabled":true,"stkEnabled":false,"defaultMethod":"phone","stkMode":"paybill","phoneNumber":"254795565135","tillNumber":"","paybillNumber":"","accountReference":"CareerSasa"}'
+  '{"environment":"sandbox","phoneEnabled":true,"tillEnabled":true,"stkEnabled":false,"defaultMethod":"phone","stkMode":"paybill","phoneNumber":"254795564135","tillNumber":"","paybillNumber":"","accountReference":"CareerSasa"}'
 )
 ON CONFLICT (key) DO NOTHING;
+
+-- If an earlier revision of this migration seeded the previous number, move it.
+UPDATE public.app_settings
+SET value = replace(value, '254795565135', '254795564135'),
+    updated_at = now()
+WHERE key = 'mpesa_settings'
+  AND value LIKE '%254795565135%';
 
 -- Seed catalog. Application also upserts these on first load if the table is empty.
 INSERT INTO public.products (

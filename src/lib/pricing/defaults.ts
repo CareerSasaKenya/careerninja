@@ -1,7 +1,7 @@
 import type { CatalogProduct, MpesaPaymentSettings } from './types';
 
 /** Default till the business registers a Buy Goods till. Admin can replace this. */
-export const DEFAULT_MPESA_PHONE = '254795565135';
+export const DEFAULT_MPESA_PHONE = '254795564135';
 
 export const DEFAULT_MPESA_SETTINGS: MpesaPaymentSettings = {
   environment: 'sandbox',

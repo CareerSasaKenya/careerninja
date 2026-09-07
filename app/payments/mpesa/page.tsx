@@ -298,7 +298,7 @@ function MpesaPaymentContent() {
           )}
 
           <p className="text-xs text-center text-muted-foreground">
-            Pay with M-Pesa Send Money to +254 795 565 135, or Buy Goods and Services if a till is configured.
+            Pay with M-Pesa Send Money to +254 795 564 135, or Buy Goods and Services if a till is configured.
             Admins can switch sandbox and live Daraja credentials from the dashboard.
           </p>
         </div>
