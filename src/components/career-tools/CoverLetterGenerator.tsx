@@ -42,6 +42,11 @@ import CoverLetterDownloadDialog from '@/components/cover-letter/CoverLetterDown
 import { buildCoverLetterWordBlob, letterPlaintextForApply } from '@/lib/coverLetterExport';
 import { downloadBlob, wordFilename } from '@/lib/downloadBlob';
 import { downloadReactElementAsPdf, pdfFilename } from '@/lib/documentPdf';
+import { MpesaCheckoutDialog } from '@/components/payments/MpesaCheckoutDialog';
+import { PriceTag } from '@/components/payments/PriceTag';
+import { usePricingCatalog } from '@/hooks/usePricingCatalog';
+import { productForTemplateName, quoteProductPrice } from '@/lib/pricing';
+import { loadPurchasedSkus } from '@/lib/pricing/purchases';
 
 function templateNameForLetter(
   letter: CandidateCoverLetter,
@@ -82,9 +87,12 @@ export default function CoverLetterGenerator({
   );
   const [sourceCv, setSourceCv] = useState<CandidateCV | null>(null);
   const [usage, setUsage] = useState<SuggestUsage | null>(null);
+  const [purchasedSkus, setPurchasedSkus] = useState<Set<string>>(new Set());
+  const [checkout, setCheckout] = useState<{ sku: string; title: string; amount: number; templateName: string } | null>(null);
 
   const { toast } = useToast();
   const router = useRouter();
+  const { products, offers } = usePricingCatalog();
 
   useEffect(() => {
     loadData();
@@ -108,6 +116,7 @@ export default function CoverLetterGenerator({
         ]);
         setLetters(lettersData ?? []);
         setSourceCv(cvsData.find((cv) => cv.is_primary) || cvsData[0] || null);
+        setPurchasedSkus(await loadPurchasedSkus(user.id));
       } else {
         setLetters([]);
         setSourceCv(null);
@@ -120,6 +129,17 @@ export default function CoverLetterGenerator({
   function openEditor(templateName: string) {
     const config = getCoverLetterTemplateConfig(templateName);
     if (!config) return;
+    const product = productForTemplateName('cover_letter_template', templateName, products);
+    const quote = product ? quoteProductPrice(product, offers) : null;
+    if (quote && product && quote.amount > 0 && !purchasedSkus.has(product.sku)) {
+      setCheckout({
+        sku: product.sku,
+        title: templateName,
+        amount: quote.amount,
+        templateName,
+      });
+      return;
+    }
     setEditingId(null);
     setActiveTemplateName(templateName);
     setFormData({ ...(config.defaultData as Record<string, string>) });
@@ -239,6 +259,19 @@ export default function CoverLetterGenerator({
                 ))}
               </div>
               <p className="text-xs text-muted-foreground">{tpl.why}</p>
+              {(() => {
+                const product = productForTemplateName('cover_letter_template', tpl.name, products);
+                const quote = product ? quoteProductPrice(product, offers) : null;
+                if (!quote) return null;
+                return (
+                  <PriceTag
+                    amount={quote.amount}
+                    compareAt={quote.compareAtPrice}
+                    badge={purchasedSkus.has(product!.sku) ? 'Purchased' : quote.offer?.badge_text}
+                    className="items-start"
+                  />
+                );
+              })()}
               <span className="inline-flex text-sm font-medium text-[#0A66C2] sm:hidden">
                 Tap to use →
               </span>
@@ -489,6 +522,30 @@ export default function CoverLetterGenerator({
           templateName={downloadHydrated.templateName}
           fields={downloadHydrated.fields}
           config={getCoverLetterTemplateConfig(downloadHydrated.templateName)}
+        />
+      )}
+      {checkout && (
+        <MpesaCheckoutDialog
+          open={!!checkout}
+          onOpenChange={(open) => {
+            if (!open) setCheckout(null);
+          }}
+          title={checkout.title}
+          description="Pay with M-Pesa to unlock this cover letter template."
+          amount={checkout.amount}
+          sku={checkout.sku}
+          onSuccess={() => {
+            const name = checkout.templateName;
+            setPurchasedSkus((prev) => new Set(prev).add(checkout.sku));
+            setCheckout(null);
+            const config = getCoverLetterTemplateConfig(name);
+            if (!config) return;
+            setEditingId(null);
+            setActiveTemplateName(name);
+            setFormData({ ...(config.defaultData as Record<string, string>) });
+            setLetterTitle('');
+            setShowEditor(true);
+          }}
         />
       )}
     </div>

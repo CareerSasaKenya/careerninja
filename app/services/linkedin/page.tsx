@@ -59,6 +59,7 @@ export default function LinkedInServicesPage() {
     differentiatorsNote:
       "We optimize for how recruiters actually search, shortlist, and decide — not vanity metrics.",
     packagesTitle: "Our LinkedIn Services",
+    serviceKey: "linkedin",
     packages: [
       {
         id: "audit",

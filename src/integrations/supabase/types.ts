@@ -90,6 +90,192 @@ export type Database = {
         }
         Relationships: []
       }
+      products: {
+        Row: {
+          billing_interval: string | null
+          compare_at_price_kes: number | null
+          created_at: string
+          description: string
+          duration_days: number | null
+          id: string
+          is_active: boolean
+          kind: string
+          metadata: Json
+          name: string
+          price_kes: number
+          sku: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          billing_interval?: string | null
+          compare_at_price_kes?: number | null
+          created_at?: string
+          description?: string
+          duration_days?: number | null
+          id?: string
+          is_active?: boolean
+          kind: string
+          metadata?: Json
+          name: string
+          price_kes: number
+          sku: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          billing_interval?: string | null
+          compare_at_price_kes?: number | null
+          created_at?: string
+          description?: string
+          duration_days?: number | null
+          id?: string
+          is_active?: boolean
+          kind?: string
+          metadata?: Json
+          name?: string
+          price_kes?: number
+          sku?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      coupons: {
+        Row: {
+          applicable_skus: string[]
+          applies_to: string
+          code: string
+          created_at: string
+          description: string | null
+          discount_type: string
+          discount_value: number
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          max_discount_kes: number | null
+          min_amount_kes: number | null
+          starts_at: string | null
+          usage_limit: number | null
+          used_count: number
+          updated_at: string
+        }
+        Insert: {
+          applicable_skus?: string[]
+          applies_to?: string
+          code: string
+          created_at?: string
+          description?: string | null
+          discount_type: string
+          discount_value: number
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_discount_kes?: number | null
+          min_amount_kes?: number | null
+          starts_at?: string | null
+          usage_limit?: number | null
+          used_count?: number
+          updated_at?: string
+        }
+        Update: {
+          applicable_skus?: string[]
+          applies_to?: string
+          code?: string
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_discount_kes?: number | null
+          min_amount_kes?: number | null
+          starts_at?: string | null
+          usage_limit?: number | null
+          used_count?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      offers: {
+        Row: {
+          applicable_skus: string[]
+          applies_to: string
+          badge_text: string | null
+          created_at: string
+          description: string | null
+          discount_type: string
+          discount_value: number
+          ends_at: string | null
+          id: string
+          is_active: boolean
+          name: string
+          starts_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          applicable_skus?: string[]
+          applies_to?: string
+          badge_text?: string | null
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value: number
+          ends_at?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          starts_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          applicable_skus?: string[]
+          applies_to?: string
+          badge_text?: string | null
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          ends_at?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          starts_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      coupon_redemptions: {
+        Row: {
+          amount_kes: number | null
+          coupon_id: string
+          created_at: string
+          id: string
+          payment_id: string | null
+          product_sku: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount_kes?: number | null
+          coupon_id: string
+          created_at?: string
+          id?: string
+          payment_id?: string | null
+          product_sku?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount_kes?: number | null
+          coupon_id?: string
+          created_at?: string
+          id?: string
+          payment_id?: string | null
+          product_sku?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       application_notes: {
         Row: {
           application_id: string
@@ -1593,6 +1779,7 @@ export type Database = {
           is_premium: boolean | null
           name: string
           placeholders: Json | null
+          price_kes: number | null
           template_text: string
           updated_at: string | null
           usage_count: number | null
@@ -1606,6 +1793,7 @@ export type Database = {
           is_premium?: boolean | null
           name: string
           placeholders?: Json | null
+          price_kes?: number | null
           template_text: string
           updated_at?: string | null
           usage_count?: number | null
@@ -1619,6 +1807,7 @@ export type Database = {
           is_premium?: boolean | null
           name?: string
           placeholders?: Json | null
+          price_kes?: number | null
           template_text?: string
           updated_at?: string | null
           usage_count?: number | null
@@ -1634,6 +1823,7 @@ export type Database = {
           is_active: boolean | null
           is_premium: boolean | null
           name: string
+          price_kes: number | null
           template_data: Json
           thumbnail_url: string | null
           updated_at: string | null
@@ -1646,6 +1836,7 @@ export type Database = {
           is_active?: boolean | null
           is_premium?: boolean | null
           name: string
+          price_kes?: number | null
           template_data: Json
           thumbnail_url?: string | null
           updated_at?: string | null
@@ -1658,6 +1849,7 @@ export type Database = {
           is_active?: boolean | null
           is_premium?: boolean | null
           name?: string
+          price_kes?: number | null
           template_data?: Json
           thumbnail_url?: string | null
           updated_at?: string | null

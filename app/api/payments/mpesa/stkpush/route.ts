@@ -1,50 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
   createPendingPaymentAndStkPush,
+  getMpesaConfig,
   isMpesaConfigured,
   isValidKenyanPhone,
   requireAuthenticatedUser,
 } from '@/lib/mpesa';
-import { getPaidJobActionPricing } from '@/lib/mpesa/pricing';
+import { loadMpesaSettings } from '@/lib/pricing/catalog';
+import { resolveCheckoutQuote } from '@/lib/pricing/checkout';
+
+export const runtime = 'nodejs';
 
 /**
  * POST /api/payments/mpesa/stkpush
- * Body: { amount: number, phoneNumber: string, description?: string, jobId?: string,
- *         action?: 'promote' | 'feature', tier?: 'basic' | 'premium' | 'enterprise' }
- *
- * When `action` is provided, the amount is validated against the configured
- * pricing for that action/tier so clients cannot underpay.
+ * Body: { amount?: number, phoneNumber: string, description?: string, jobId?: string,
+ *         action?: 'promote' | 'feature', tier?: string, sku?: string, couponCode?: string }
  */
 export async function POST(request: NextRequest) {
   try {
-    if (!isMpesaConfigured()) {
-      console.error('[M-Pesa] Missing required environment variables');
-      return NextResponse.json(
-        { error: 'M-Pesa is not configured on this server' },
-        { status: 503 }
-      );
-    }
-
     const auth = await requireAuthenticatedUser(request);
     if (auth.ok === false) {
       return NextResponse.json({ error: auth.message }, { status: auth.status });
     }
 
+    const settings = await loadMpesaSettings(auth.adminClient);
+    if (!settings.stkEnabled) {
+      return NextResponse.json(
+        { error: 'STK Push is disabled. Pay via Send Money or Buy Goods, or enable STK in admin settings.' },
+        { status: 400 }
+      );
+    }
+
+    if (!isMpesaConfigured(settings)) {
+      console.error('[M-Pesa] Missing required environment variables for', settings.environment);
+      return NextResponse.json(
+        { error: `M-Pesa ${settings.environment} credentials are not configured on this server` },
+        { status: 503 }
+      );
+    }
+
     const body = await request.json();
-    const amount = Number(body.amount);
     const phoneNumber = String(body.phoneNumber || body.phone || '').trim();
     const description =
       typeof body.description === 'string' ? body.description.trim() : undefined;
     const jobId = typeof body.jobId === 'string' ? body.jobId : undefined;
-    const action = body.action;
-    const tier = typeof body.tier === 'string' ? body.tier : undefined;
-
-    if (!Number.isFinite(amount) || amount < 1) {
-      return NextResponse.json(
-        { error: 'Amount must be a number of at least 1 KES' },
-        { status: 400 }
-      );
-    }
 
     if (!phoneNumber || !isValidKenyanPhone(phoneNumber)) {
       return NextResponse.json(
@@ -53,50 +52,48 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let metadata: Record<string, unknown> | undefined;
+    const quoted = await resolveCheckoutQuote(auth.adminClient, {
+      sku: body.sku,
+      action: body.action,
+      tier: body.tier,
+      couponCode: body.couponCode,
+      jobId,
+      amount: body.amount,
+    });
 
-    if (action) {
-      if (action !== 'promote' && action !== 'feature') {
-        return NextResponse.json(
-          { error: 'action must be "promote" or "feature"' },
-          { status: 400 }
-        );
-      }
-      const pricing = getPaidJobActionPricing(action, tier);
-      if (!pricing) {
-        return NextResponse.json(
-          { error: `No pricing configured for action "${action}"${tier ? ` and tier "${tier}"` : ''}` },
-          { status: 400 }
-        );
-      }
-      if (amount !== pricing.amount) {
-        return NextResponse.json(
-          { error: `Amount must be exactly KES ${pricing.amount} for ${pricing.label}` },
-          { status: 400 }
-        );
-      }
-      if (!jobId) {
-        return NextResponse.json(
-          { error: 'jobId is required for a paid job action' },
-          { status: 400 }
-        );
-      }
-      metadata = {
-        action,
-        tier: pricing.tier || null,
-        durationDays: pricing.durationDays,
-        jobId,
-      };
+    if (quoted.amount < 1) {
+      return NextResponse.json({ error: 'Nothing to charge for this item' }, { status: 400 });
     }
 
-    const result = await createPendingPaymentAndStkPush(auth.adminClient, {
-      amount,
-      phoneNumber,
-      description,
-      userId: auth.user.id,
-      jobId,
-      metadata,
-    });
+    if (
+      quoted.sku &&
+      body.amount != null &&
+      Number.isFinite(Number(body.amount)) &&
+      Number(body.amount) !== quoted.amount
+    ) {
+      return NextResponse.json(
+        { error: `Amount must be exactly KES ${quoted.amount}` },
+        { status: 400 }
+      );
+    }
+
+    if ((quoted.metadata.action === 'promote' || quoted.metadata.action === 'feature') && !jobId) {
+      return NextResponse.json({ error: 'jobId is required for a paid job action' }, { status: 400 });
+    }
+
+    const config = getMpesaConfig(settings);
+    const result = await createPendingPaymentAndStkPush(
+      auth.adminClient,
+      {
+        amount: quoted.amount,
+        phoneNumber,
+        description: description || quoted.product?.name,
+        userId: auth.user.id,
+        jobId,
+        metadata: { ...quoted.metadata, method: 'stk', environment: settings.environment },
+      },
+      config
+    );
 
     return NextResponse.json({
       success: true,
@@ -107,6 +104,7 @@ export async function POST(request: NextRequest) {
         merchantRequestId: result.merchantRequestId,
         checkoutRequestId: result.checkoutRequestId,
         status: result.status,
+        amount: quoted.amount,
       },
     });
   } catch (error: unknown) {

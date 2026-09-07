@@ -1,10 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { Check, MessageCircle } from "lucide-react";
+import { Check, MessageCircle, Smartphone } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MpesaCheckoutDialog } from "@/components/payments/MpesaCheckoutDialog";
+import { PriceTag } from "@/components/payments/PriceTag";
+import { usePricingCatalog } from "@/hooks/usePricingCatalog";
+import { quoteProductPrice } from "@/lib/pricing";
+import { productForPackage } from "@/lib/pricing/defaults";
 
 const WHATSAPP_BASE = "https://wa.me/254795564135";
 
@@ -15,6 +21,7 @@ export type ServicePackage = {
   features: string[];
   bestFor: string;
   price: string;
+  sku?: string;
   whatsappMessage: string;
 };
 
@@ -51,6 +58,7 @@ export type ServiceLandingContent = {
   ctaLines: string[];
   ctaWhatsappMessage: string;
   ctaButtonLabel: string;
+  serviceKey?: "cv" | "cover-letter" | "linkedin";
 };
 
 function stripLeadingEmoji(title: string): string {
@@ -62,6 +70,9 @@ function waLink(message: string): string {
 }
 
 export default function ServiceLanding({ content }: { content: ServiceLandingContent }) {
+  const { products, offers } = usePricingCatalog();
+  const [checkout, setCheckout] = useState<{ sku: string; title: string; amount: number } | null>(null);
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -176,7 +187,14 @@ export default function ServiceLanding({ content }: { content: ServiceLandingCon
             {content.packagesTitle}
           </h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {content.packages.map((pkg) => (
+            {content.packages.map((pkg) => {
+              const product =
+                (pkg.sku ? products.find((p) => p.sku === pkg.sku) : undefined) ||
+                (content.serviceKey
+                  ? productForPackage(content.serviceKey, pkg.id, products)
+                  : undefined);
+              const quote = product ? quoteProductPrice(product, offers) : null;
+              return (
               <Card
                 key={pkg.id}
                 className="flex h-full min-w-0 flex-col border-border transition-shadow hover:shadow-lg"
@@ -203,20 +221,48 @@ export default function ServiceLanding({ content }: { content: ServiceLandingCon
                     {pkg.bestFor}
                   </p>
                   <div className="rounded-lg bg-muted/50 px-3 py-2 text-center">
-                    <span className="text-lg font-bold text-primary">{pkg.price}</span>
+                    {quote ? (
+                      <PriceTag
+                        amount={quote.amount}
+                        compareAt={quote.compareAtPrice}
+                        billingInterval={product?.billing_interval}
+                        badge={quote.offer?.badge_text}
+                      />
+                    ) : (
+                      <span className="text-lg font-bold text-primary">{pkg.price}</span>
+                    )}
                   </div>
-                  <Link
-                    href={waLink(pkg.whatsappMessage)}
-                    target="_blank"
-                    className="mx-auto block w-fit max-w-full"
-                  >
-                    <Button variant="secondary" className="h-10 px-4">
-                      Get Started
-                    </Button>
-                  </Link>
+                  <div className="flex flex-col items-center gap-2">
+                    {quote && quote.amount > 0 && product && (
+                      <Button
+                        variant="gradient"
+                        className="h-10 px-4"
+                        onClick={() =>
+                          setCheckout({
+                            sku: product.sku,
+                            title: pkg.title,
+                            amount: quote.amount,
+                          })
+                        }
+                      >
+                        <Smartphone className="h-4 w-4" />
+                        Pay with M-Pesa
+                      </Button>
+                    )}
+                    <Link
+                      href={waLink(pkg.whatsappMessage)}
+                      target="_blank"
+                      className="mx-auto block w-fit max-w-full"
+                    >
+                      <Button variant="secondary" className="h-10 px-4">
+                        Get Started
+                      </Button>
+                    </Link>
+                  </div>
                 </CardContent>
               </Card>
-            ))}
+              );
+            })}
           </div>
         </section>
 
@@ -326,6 +372,19 @@ export default function ServiceLanding({ content }: { content: ServiceLandingCon
           </div>
         </section>
       </main>
+      {checkout && (
+        <MpesaCheckoutDialog
+          open={!!checkout}
+          onOpenChange={(open) => {
+            if (!open) setCheckout(null);
+          }}
+          title={checkout.title}
+          description="Pay with M-Pesa Send Money or Buy Goods and Services."
+          amount={checkout.amount}
+          sku={checkout.sku}
+          onSuccess={() => setCheckout(null)}
+        />
+      )}
     </div>
   );
 }
