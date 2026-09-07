@@ -8,7 +8,8 @@ import {
   ParsedJobData 
 } from "@/lib/jobParsingOptimized";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
+export const maxDuration = 120;
 
 // Interface moved to shared library
 

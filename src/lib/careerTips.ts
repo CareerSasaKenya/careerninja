@@ -5,6 +5,9 @@
  * omit them: they are generated (not extracted), they sit last in the JSON, and
  * RULE "omit missing fields" conflicts with ALWAYS GENERATE. Detect that gap
  * and fill it with a dedicated tips call so scrape / parse / enrich stay aligned.
+ *
+ * Numbered How to Apply steps are NOT tips — require a custom <h3> plus numbered
+ * advice after it, or ingest will skip generation and the job ships apply-only.
  */
 
 import { callAI, hasAIConfigured } from './aiProviders'
@@ -35,6 +38,10 @@ function plainSnippet(html: string | null | undefined, max = 1400): string {
   return plain.length > max ? `${plain.slice(0, max)}…` : plain
 }
 
+function headingPlain(inner: string): string {
+  return inner.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+}
+
 export function stripHowToApplyBlock(html: string): string {
   return html.replace(HOW_TO_APPLY_BLOCK_RE, '').replace(/\n{3,}/g, '\n\n').trim()
 }
@@ -44,20 +51,27 @@ function countNumberedTips(html: string): number {
   return (html.match(NUMBERED_TIP_RE) || []).length
 }
 
-function hasCustomTipsHeading(html: string): boolean {
-  const headings = [...html.matchAll(/<h3\b[^>]*>([\s\S]*?)<\/h3>/gi)]
-  return headings.some((match) => {
-    const text = (match[1] || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
-    return Boolean(text) && !STOCK_SECTION_H3_RE.test(text)
-  })
+function firstCustomTipsHeadingIndex(html: string): number {
+  for (const match of html.matchAll(/<h3\b[^>]*>([\s\S]*?)<\/h3>/gi)) {
+    const text = headingPlain(match[1] || '')
+    if (text && !STOCK_SECTION_H3_RE.test(text)) {
+      return match.index ?? -1
+    }
+  }
+  return -1
+}
+
+function htmlFromCustomTipsHeading(html: string): string {
+  const idx = firstCustomTipsHeadingIndex(html)
+  return idx >= 0 ? html.slice(idx) : ''
 }
 
 /** True when additional_info already contains generated career tips (not just How to Apply). */
 export function hasGeneratedCareerTips(html: string | null | undefined): boolean {
   if (!html?.trim()) return false
-  const numbered = countNumberedTips(html)
-  if (numbered >= 4) return true
-  return hasCustomTipsHeading(html) && numbered >= 2
+  const fromHeading = htmlFromCustomTipsHeading(html)
+  if (!fromHeading) return false
+  return countNumberedTips(fromHeading) >= 2
 }
 
 export function appendCareerTips(
@@ -80,6 +94,41 @@ function extractTipsHtml(parsed: unknown): string | null {
   const fromInfo = record.additional_info
   if (typeof fromInfo === 'string' && fromInfo.trim()) return fromInfo.trim()
   return null
+}
+
+function stripFences(text: string): string {
+  return text
+    .trim()
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```$/i, '')
+}
+
+function unescapeLooseHtml(html: string): string {
+  return html
+    .replace(/\\n/g, '\n')
+    .replace(/\\"/g, '"')
+    .replace(/\\'/g, "'")
+    .replace(/\\\\/g, '\\')
+    .replace(/"\s*}\s*$/, '')
+    .trim()
+}
+
+/** Pull tips HTML from a JSON object, fence-wrapped JSON, or a raw <h3> fragment. */
+export function extractCareerTipsFromModelText(text: string): string | null {
+  const cleaned = stripFences(text)
+  if (!cleaned) return null
+
+  try {
+    const fromJson = extractTipsHtml(JSON.parse(cleaned))
+    if (fromJson?.trim()) return fromJson.trim()
+  } catch {
+    // Unescaped quotes inside HTML often break JSON.parse — fall through.
+  }
+
+  const h3 = cleaned.match(/<h3\b[\s\S]*/i)
+  if (!h3?.[0]) return null
+  const html = unescapeLooseHtml(h3[0])
+  return html || null
 }
 
 const TIPS_SYSTEM_PROMPT = `You write job-specific career advice for Kenyan job seekers on CareerSasa.
@@ -118,30 +167,47 @@ RULES:
 - Return JSON only.`
 }
 
+function cleanGeneratedTips(
+  raw: string | null | undefined,
+  jobTitle?: string | null
+): string | null {
+  if (!raw?.trim()) return null
+  const cleaned = sanitizeStockTipsCopy(stripHowToApplyBlock(raw), jobTitle)
+  if (!cleaned || !hasGeneratedCareerTips(cleaned)) return null
+  return cleaned
+}
+
 /** Dedicated tips generation. Returns HTML fragment (h3 + intro + 8 tips) or null. */
 export async function generateCareerTipsHtml(
   job: CareerTipsJobContext
 ): Promise<string | null> {
   if (!hasAIConfigured()) return null
-  try {
-    const result = await callAI(buildTipsUserPrompt(job), {
-      systemPrompt: TIPS_SYSTEM_PROMPT,
-      json: true,
-      temperature: 0.35,
-      maxTokens: 4096,
-    })
-    const raw = extractTipsHtml(result.parsed)
-    if (!raw) return null
-    const cleaned = sanitizeStockTipsCopy(stripHowToApplyBlock(raw), job.title || null)
-    if (!cleaned || !hasGeneratedCareerTips(cleaned)) return null
-    return cleaned
-  } catch (err) {
-    console.warn(
-      '[careerTips] generation failed:',
-      err instanceof Error ? err.message : err
-    )
-    return null
+
+  let lastError: unknown = null
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const result = await callAI(buildTipsUserPrompt(job), {
+        systemPrompt: TIPS_SYSTEM_PROMPT,
+        json: true,
+        temperature: 0.35,
+        maxTokens: 4096,
+        timeoutMs: 60_000,
+      })
+      const raw =
+        extractTipsHtml(result.parsed) || extractCareerTipsFromModelText(result.text)
+      const cleaned = cleanGeneratedTips(raw, job.title || null)
+      if (cleaned) return cleaned
+      lastError = 'model output did not contain numbered career tips'
+    } catch (err) {
+      lastError = err
+    }
   }
+
+  console.warn(
+    '[careerTips] generation failed:',
+    lastError instanceof Error ? lastError.message : lastError
+  )
+  return null
 }
 
 /** Append generated tips when additional_info is only How to Apply / benefits. */

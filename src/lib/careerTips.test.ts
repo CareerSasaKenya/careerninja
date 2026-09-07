@@ -4,6 +4,7 @@
 import assert from 'node:assert/strict'
 import {
   appendCareerTips,
+  extractCareerTipsFromModelText,
   hasGeneratedCareerTips,
   stripHowToApplyBlock,
 } from './careerTips'
@@ -13,6 +14,29 @@ assert.equal(hasGeneratedCareerTips(applyOnly), false)
 assert.equal(hasGeneratedCareerTips(null), false)
 assert.equal(hasGeneratedCareerTips(''), false)
 assert.equal(hasGeneratedCareerTips('<h3>Benefits</h3><p>Medical cover</p>'), false)
+
+const numberedApplySteps = `<p><strong>How to Apply:</strong></p>
+<p><strong>1. Download the form</strong> from the careers page.</p>
+<p><strong>2. Attach your CV</strong> and certificates.</p>
+<p><strong>3. Email hr@agency.go.ke</strong> before the deadline.</p>
+<p><strong>4. Quote the advert number</strong> in the subject line.</p>`
+assert.equal(
+  hasGeneratedCareerTips(numberedApplySteps),
+  false,
+  'numbered How to Apply steps are not career tips'
+)
+
+const benefitsThenApply = `<h3>Benefits</h3>
+<p>Medical cover and leave.</p>
+<p><strong>1. Send CV</strong></p>
+<p><strong>2. Include PIN</strong></p>
+<p><strong>3. Include ID</strong></p>
+<p><strong>4. Wait for shortlist</strong></p>`
+assert.equal(
+  hasGeneratedCareerTips(benefitsThenApply),
+  false,
+  'stock Benefits heading plus numbered apply steps are not career tips'
+)
 
 const fullTips = `<p><strong>How to Apply:</strong> Send your CV to hr@acme.com.</p>
 <h3>Show ISO Discipline On Paper Before You Walk Into QA</h3>
@@ -37,5 +61,15 @@ assert.ok(appended.includes('What Credit Analysts Get Probed On'))
 assert.equal(appendCareerTips(fullTips, headingPlusTwo), fullTips)
 assert.equal(appendCareerTips('', ''), '')
 assert.equal(appendCareerTips(null, headingPlusTwo), headingPlusTwo)
+
+const fromJson = extractCareerTipsFromModelText(
+  JSON.stringify({ career_tips: headingPlusTwo })
+)
+assert.equal(fromJson, headingPlusTwo)
+
+const fromBrokenJson = extractCareerTipsFromModelText(
+  `{"career_tips":"<h3>What Credit Analysts Get Probed On</h3><p>He said "spread the facility".</p><p><strong>1. Spreadsheet proof:</strong> Walk through a facility you modelled.</p><p><strong>2. Sector notes:</strong> Know this bank's SME book.</p>"}`
+)
+assert.ok(fromBrokenJson && hasGeneratedCareerTips(fromBrokenJson))
 
 console.log('careerTips.test.ts: all assertions passed')
