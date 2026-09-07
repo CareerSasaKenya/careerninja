@@ -109,7 +109,7 @@ export function quoteProductPrice(
     ? computeDiscountAmount(listPrice, offer.discount_type, offer.discount_value)
     : 0;
 
-  let remaining = Math.max(0, listPrice - offerDiscount);
+  const remaining = Math.max(0, listPrice - offerDiscount);
   let couponDiscount = 0;
   let appliedCoupon: CatalogCoupon | null = null;
 
