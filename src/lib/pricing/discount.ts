@@ -41,7 +41,7 @@ export function isWithinWindow(start: string | null, end: string | null, now = n
   return true;
 }
 
-export function isCouponCurrentlyValid(coupon: CatalogCoupon, now = new Date()): boolean | string {
+export function isCouponCurrentlyValid(coupon: CatalogCoupon, now = new Date()): true | string {
   if (!coupon.is_active) return 'This coupon is not active';
   if (!isWithinWindow(coupon.starts_at, coupon.expires_at, now)) {
     return 'This coupon is expired or not yet valid';
