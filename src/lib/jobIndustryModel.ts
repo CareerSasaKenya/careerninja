@@ -40,7 +40,10 @@ export type JobIndustryModelCategory =
   | 'community'
   | 'customer-service'
   | 'maintenance'
-  | 'real-estate';
+  | 'real-estate'
+  | 'environment'
+  | 'sales'
+  | 'telecommunications';
 
 /** Filename under /assets/job-thumbnails/ for each category */
 export const INDUSTRY_MODEL_FILENAMES: Record<JobIndustryModelCategory, string> = {
@@ -73,6 +76,9 @@ export const INDUSTRY_MODEL_FILENAMES: Record<JobIndustryModelCategory, string> 
   'customer-service': 'customer-service-professional.jpg',
   maintenance: 'maintenance-professional.jpg',
   'real-estate': 'real-estate-professional.jpg',
+  environment: 'environment-professional.jpg',
+  sales: 'sales-professional.jpg',
+  telecommunications: 'telecommunications-professional.jpg',
 };
 
 /**
@@ -94,7 +100,7 @@ export const JOB_FUNCTION_MODEL_CATEGORY: Record<
   'Driver & Transport Services': 'driver',
   'Education & Training': 'education',
   'Engineering & Technology': 'engineering',
-  'Environment, Energy & Natural Resources': 'agriculture',
+  'Environment, Energy & Natural Resources': 'environment',
   'Estate Agents & Property Management': 'real-estate',
   'Farming & Veterinary': 'veterinary',
   'Food Services & Catering': 'food-services',
@@ -110,7 +116,7 @@ export const JOB_FUNCTION_MODEL_CATEGORY: Record<
   'Product & Project Management': 'professional',
   'Quality Control & Assurance': 'manufacturing',
   'Research, Teaching & Training': 'education',
-  Sales: 'retail',
+  Sales: 'sales',
   Security: 'security',
   'Supply Chain & Procurement': 'manufacturing',
   'Trades & Services': 'maintenance',
@@ -120,7 +126,7 @@ export const JOB_FUNCTION_MODEL_CATEGORY: Record<
   'Banking, Insurance & Financial Services': 'finance',
   'Media, Advertising & PR': 'marketing',
   'Science & Laboratory': 'science',
-  Telecommunications: 'technology',
+  Telecommunications: 'telecommunications',
   'Sports, Fitness & Recreation': 'sports',
   'NGO, NPO & Charity': 'community',
   'Beauty, Wellness & Fitness': 'beauty',
@@ -368,6 +374,21 @@ const TITLE_OCCUPATION_PHRASES: Array<[JobIndustryModelCategory, readonly string
   ],
   ['construction', ['architect', 'quantity surveyor', 'foreman', 'mason', 'carpenter', 'welder']],
   [
+    'telecommunications',
+    ['telecom', 'fibre technician', 'fiber technician', 'bts engineer', 'radio technician'],
+  ],
+  [
+    'environment',
+    [
+      'environmental',
+      'renewable energy',
+      'climate officer',
+      'conservation officer',
+      'energy officer',
+      'solar technician',
+    ],
+  ],
+  [
     'maintenance',
     ['electrician', 'plumber', 'technician', 'mechanic', 'installer', 'maintenance officer'],
   ],
@@ -376,7 +397,18 @@ const TITLE_OCCUPATION_PHRASES: Array<[JobIndustryModelCategory, readonly string
   ['manufacturing', ['warehouse', 'storekeeper', 'procurement', 'supply chain', 'quality officer']],
   ['marketing', ['marketer', 'brand manager', 'content creator', 'social media manager', 'copywriter']],
   ['creative', ['graphic designer', 'ui designer', 'ux designer', 'photographer', 'videographer', 'animator', 'music producer', 'film director', 'producer']],
-  ['retail', ['sales associate', 'sales executive', 'shop attendant', 'merchandiser', 'cashier']],
+  [
+    'sales',
+    [
+      'sales executive',
+      'sales representative',
+      'sales agent',
+      'sales manager',
+      'account executive',
+      'business development executive',
+    ],
+  ],
+  ['retail', ['sales associate', 'shop attendant', 'merchandiser', 'cashier']],
   ['government', ['county administrator', 'civil servant', 'immigration officer', 'police officer', 'administrative officer', 'parliamentary', 'parliament']],
 ];
 
@@ -409,7 +441,6 @@ const FALLBACK_TEXT_PHRASES: Array<[JobIndustryModelCategory, readonly string[]]
       'software',
       'developer',
       'programmer',
-      'telecommunications',
       'data analytics',
     ],
   ],
@@ -418,10 +449,13 @@ const FALLBACK_TEXT_PHRASES: Array<[JobIndustryModelCategory, readonly string[]]
   ['maintenance', ['maintenance', 'repair', 'installation', 'trades']],
   ['real-estate', ['real estate', 'property management', 'estate agent']],
   ['agriculture', ['agriculture', 'farming', 'agribusiness', 'horticulture', 'forestry']],
+  ['environment', ['environment', 'renewable', 'climate', 'natural resources']],
+  ['telecommunications', ['telecom', 'telecommunications', 'fibre', 'fiber optic']],
   ['manufacturing', ['manufacturing', 'warehouse', 'procurement', 'supply chain', 'quality control']],
   ['marketing', ['marketing', 'communications', 'advertising', 'public relations']],
   ['creative', ['creative', 'design', 'media']],
-  ['retail', ['retail', 'sales', 'fmcg', 'supermarket']],
+  ['sales', ['sales']],
+  ['retail', ['retail', 'fmcg', 'supermarket']],
   ['government', ['government', 'public service', 'civil service', 'county government', 'ministry']],
   ['professional', ['consulting', 'strategy', 'administration', 'office']],
 ];

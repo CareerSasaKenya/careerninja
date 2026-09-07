@@ -140,6 +140,18 @@ assert.equal(
   getModelForJob('Legal Officer', 'Kaplan & Stratton', 'Legal Services'),
   'legal',
 )
+assert.equal(
+  getModelForJob('Sales Executive', 'Unilever Kenya', 'Sales'),
+  'sales',
+)
+assert.equal(
+  getModelForJob('Environmental Officer', 'NEMA', 'Environment, Energy & Natural Resources'),
+  'environment',
+)
+assert.equal(
+  getModelForJob('Fibre Technician', 'Safaricom', 'Telecommunications'),
+  'telecommunications',
+)
 
 for (const name of FALLBACK_JOB_FUNCTIONS) {
   const category = categoryFromFunctionName(name)
