@@ -13,6 +13,7 @@ import CVDesignToolbar from '@/components/cv/CVDesignToolbar';
 import CVExtraSectionsEditor from '@/components/cv/CVExtraSectionsEditor';
 import CVStudioFrame from '@/components/cv/CVStudioFrame';
 import { updateCV, type CandidateCV } from '@/lib/careerTools';
+import { deliverCvToProfile } from '@/lib/cvActivityClient';
 import { applySuggestionToList, type SuggestUsage } from '@/lib/careerSuggest';
 import { normalizeCVContent, toTemplateProps } from '@/lib/cvContent';
 import { designFromTemplateData, mergeDesign } from '@/lib/cvDesign';
@@ -215,6 +216,11 @@ export default function CVEditor({ cv, templateName, templateData, jdText = null
         ...extras,
       };
       await updateCV(cv.id, { content: updatedContent });
+      void deliverCvToProfile({
+        cvId: cv.id,
+        action: 'edited',
+        templateName: resolvedTemplateName,
+      });
       toast({ title: 'Saved', description: 'CV updated successfully' });
       onSave();
     } catch (error: any) {

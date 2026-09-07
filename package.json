@@ -20,6 +20,7 @@
     "test:company-industry": "npx tsx src/lib/companyIndustryInference.test.ts",
     "test:mpesa": "npx tsx src/lib/mpesa/mpesa.test.ts",
     "test:pricing": "npx tsx src/lib/pricing/pricing.test.ts",
+    "test:cv-buyers": "npx tsx src/lib/cvFunnel.test.ts",
     "test:social-route": "npx tsx src/lib/social/routeJobToPlatform.test.ts",
     "test:social-auto-queue": "npx tsx src/lib/social/autoQueueJobs.test.ts",
     "test:social-copy": "npx tsx src/lib/social/socialPostCopy.test.ts",

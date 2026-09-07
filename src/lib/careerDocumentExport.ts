@@ -376,3 +376,9 @@ export async function buildCvWordBlob(raw: unknown, templateName?: string): Prom
   return Packer.toBlob(doc);
 }
 
+export async function buildCvWordBuffer(raw: unknown, templateName?: string): Promise<Buffer> {
+  const blob = await buildCvWordBlob(raw, templateName);
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  return Buffer.from(bytes);
+}
+

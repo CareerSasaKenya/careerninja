@@ -148,6 +148,17 @@ export async function handleMpesaCallback(request: NextRequest): Promise<NextRes
 
       const couponId =
         typeof existing.metadata?.couponId === 'string' ? existing.metadata.couponId : null;
+      try {
+        const { deliverCvForSuccessfulPayment } = await import('@/lib/cvDelivery');
+        await deliverCvForSuccessfulPayment(admin, {
+          id: existing.id,
+          user_id: existing.user_id,
+          metadata: existing.metadata,
+        });
+      } catch (cvErr) {
+        console.error('[M-Pesa] CV delivery after payment failed:', cvErr);
+      }
+
       if (couponId) {
         const { recordCouponRedemption } = await import('@/lib/pricing/catalog');
         await recordCouponRedemption(admin, {

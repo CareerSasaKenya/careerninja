@@ -43,7 +43,14 @@ export type EmailType =
   | 'reminder'
   | 'employer_welcome'
   | 'profile_nudge'
-  | 'job_expiry';
+  | 'job_expiry'
+  | 'cv_delivery';
+
+export interface EmailAttachment {
+  filename: string;
+  content: Buffer | Uint8Array | string;
+  contentType?: string;
+}
 
 export interface SendEmailParams {
   to: string | string[];
@@ -54,6 +61,7 @@ export interface SendEmailParams {
   userId?: string;
   campaignId?: string;
   metadata?: Record<string, unknown>;
+  attachments?: EmailAttachment[];
 }
 
 export interface SendEmailResult {
@@ -77,7 +85,7 @@ export interface EmailPreferences {
  * Send an email via Resend and log it to the database.
  */
 export async function sendEmail(params: SendEmailParams): Promise<SendEmailResult> {
-  const { to, subject, html, text, emailType, userId, campaignId, metadata } = params;
+  const { to, subject, html, text, emailType, userId, campaignId, metadata, attachments } = params;
 
   try {
     const resend = getResendClient();
@@ -89,6 +97,11 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       subject,
       html,
       text: text || undefined,
+      attachments: attachments?.map((file) => ({
+        filename: file.filename,
+        content: file.content,
+        contentType: file.contentType,
+      })),
     });
 
     if (error) {
@@ -190,7 +203,7 @@ async function logEmail(params: LogEmailParams): Promise<void> {
  */
 export async function shouldSendEmail(userId: string, emailType: EmailType): Promise<boolean> {
   // Transactional emails always go
-  const alwaysSend: EmailType[] = ['transactional', 'password_reset', 'application_status', 'new_message', 'confirmation'];
+  const alwaysSend: EmailType[] = ['transactional', 'password_reset', 'application_status', 'new_message', 'confirmation', 'cv_delivery'];
   if (alwaysSend.includes(emailType)) return true;
 
   try {
@@ -754,6 +767,60 @@ export async function sendWeeklyDigest(
   `;
 
   return sendEmail({ to, subject: 'CareerSasa Weekly Digest: Top Jobs & Career Tips', html, emailType: 'weekly_digest', userId });
+}
+
+/**
+ * Email a saved CV (PDF + Word) to the buyer, with a link back to their profile.
+ */
+export async function sendCvDeliveryEmail(params: {
+  to: string;
+  name: string;
+  cvTitle: string;
+  templateName?: string | null;
+  profileUrl: string;
+  userId?: string;
+  attachments: EmailAttachment[];
+}): Promise<SendEmailResult> {
+  const siteUrl = getSiteUrl();
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+    <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;background:#f5f5f5;margin:0;padding:0;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:white;">
+        <tr><td style="background:#0A66C2;color:white;padding:30px;text-align:center;">
+          <img src="${siteUrl}/logo.png" alt="CareerSasa" style="width:60px;height:60px;margin-bottom:10px;" />
+          <h1 style="margin:0;font-size:24px;">Your CV is ready</h1>
+        </td></tr>
+        <tr><td style="padding:30px;">
+          <p>Hi ${escapeHtml(params.name || 'there')},</p>
+          <p>Your CV has been saved to your CareerSasa profile and is attached to this email.</p>
+          <div style="background:#f8f9fa;padding:20px;border-radius:8px;margin:20px 0;border-left:4px solid #0A66C2;">
+            <h3 style="margin:0 0 8px;">${escapeHtml(params.cvTitle)}</h3>
+            ${params.templateName ? `<p style="margin:0;color:#666;">Template: ${escapeHtml(params.templateName)}</p>` : ''}
+          </div>
+          <p>You can download it anytime from your profile, edit it in Career Tools, and use it when you apply for jobs.</p>
+          <p style="text-align:center;margin:30px 0;">
+            <a href="${params.profileUrl}" style="display:inline-block;padding:12px 30px;background:#0A66C2;color:white;text-decoration:none;border-radius:6px;font-weight:bold;">View on my profile</a>
+          </p>
+        </td></tr>
+        <tr><td style="padding:20px;text-align:center;font-size:12px;color:#666;border-top:1px solid #eee;">
+          <p>&copy; ${new Date().getFullYear()} CareerSasa. All rights reserved.</p>
+        </td></tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  return sendEmail({
+    to: params.to,
+    subject: `Your CareerSasa CV: ${params.cvTitle}`,
+    html,
+    emailType: 'cv_delivery',
+    userId: params.userId,
+    attachments: params.attachments,
+    metadata: { cvTitle: params.cvTitle, templateName: params.templateName },
+  });
 }
 
 // =====================================================

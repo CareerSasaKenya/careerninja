@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export default function ProfilePage() {
-  const { profile, workExperience, education, skills, documents, isLoading, completeness, refetch } = useProfile();
+  const { profile, workExperience, education, skills, documents, careerCvs, isLoading, completeness, refetch } = useProfile();
   const { toast } = useToast();
 
   const handleCVParsed = async (parsedData: any) => {
@@ -175,6 +175,7 @@ export default function ProfilePage() {
               <DocumentsSection
                 candidateId={profile.id}
                 documents={documents}
+                careerCvs={careerCvs}
                 onUpdate={refetch}
                 onCVParsed={handleCVParsed}
               />

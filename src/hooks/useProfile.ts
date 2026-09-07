@@ -88,6 +88,15 @@ export interface Document {
   is_primary: boolean;
   is_active: boolean;
   uploaded_at: string;
+  candidate_cv_id?: string | null;
+}
+
+export interface ProfileCareerCv {
+  id: string;
+  title: string;
+  file_url: string | null;
+  is_primary: boolean | null;
+  updated_at: string | null;
 }
 
 export function useProfile() {
@@ -96,6 +105,7 @@ export function useProfile() {
   const [education, setEducation] = useState<Education[]>([]);
   const [skills, setSkills] = useState<Skill[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
+  const [careerCvs, setCareerCvs] = useState<ProfileCareerCv[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [completeness, setCompleteness] = useState(0);
 
@@ -109,7 +119,7 @@ export function useProfile() {
       calculateCompleteness();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile, workExperience, education, skills, documents]);
+  }, [profile, workExperience, education, skills, documents, careerCvs]);
 
   const fetchProfile = async () => {
     try {
@@ -128,6 +138,7 @@ export function useProfile() {
         await fetchEducation(profileData.id);
         await fetchSkills(profileData.id);
         await fetchDocuments(profileData.id);
+        await fetchCareerCvs(user.id);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -177,6 +188,16 @@ export function useProfile() {
     if (data) setDocuments(data);
   };
 
+  const fetchCareerCvs = async (userId: string) => {
+    const { data } = await (supabase as any)
+      .from('candidate_cvs')
+      .select('id, title, file_url, is_primary, updated_at')
+      .eq('user_id', userId)
+      .order('is_primary', { ascending: false })
+      .order('updated_at', { ascending: false });
+    if (data) setCareerCvs(data);
+  };
+
   const calculateCompleteness = () => {
     let score = 0;
 
@@ -220,7 +241,10 @@ export function useProfile() {
     if (skills.length >= 10) score += 3;
 
     // Bonus for CV upload (3%)
-    if (documents.some(doc => (doc.document_type === 'cv' || doc.document_type === 'resume') && doc.is_primary)) {
+    if (
+      documents.some(doc => (doc.document_type === 'cv' || doc.document_type === 'resume') && doc.is_primary) ||
+      careerCvs.some(cv => cv.is_primary || Boolean(cv.file_url))
+    ) {
       score += 3;
     }
 
@@ -233,6 +257,7 @@ export function useProfile() {
     education,
     skills,
     documents,
+    careerCvs,
     isLoading,
     completeness,
     refetch: fetchProfile,

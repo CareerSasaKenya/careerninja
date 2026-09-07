@@ -68,6 +68,16 @@ export async function PATCH(
       metadata,
       userId: existing.user_id,
     });
+    try {
+      const { deliverCvForSuccessfulPayment } = await import('@/lib/cvDelivery');
+      await deliverCvForSuccessfulPayment(auth.adminClient, {
+        id: existing.id,
+        user_id: existing.user_id,
+        metadata,
+      });
+    } catch (cvErr) {
+      console.error('[admin/payments] CV delivery after confirm failed:', cvErr);
+    }
     if (typeof metadata.couponId === 'string') {
       await recordCouponRedemption(auth.adminClient, {
         couponId: metadata.couponId,
