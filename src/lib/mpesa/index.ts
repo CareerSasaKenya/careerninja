@@ -1,4 +1,4 @@
-export { getMpesaConfig, isMpesaConfigured } from './config';
+export { getMpesaConfig, isMpesaConfigured, resolveMpesaEnvironment, resolveStkShortCode } from './config';
 export {
   buildPassword,
   buildTimestamp,

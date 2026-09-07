@@ -31,6 +31,11 @@ import {
 import { targetingHeadline } from '@/lib/jobTargeting';
 import { getTemplateDefaultContent } from '@/data/templateDefaultContent';
 import { designFromTemplateData } from '@/lib/cvDesign';
+import { MpesaCheckoutDialog } from '@/components/payments/MpesaCheckoutDialog';
+import { PriceTag } from '@/components/payments/PriceTag';
+import { usePricingCatalog } from '@/hooks/usePricingCatalog';
+import { productForTemplateName, quoteProductPrice } from '@/lib/pricing';
+import { loadPurchasedSkus } from '@/lib/pricing/purchases';
 
 const TEMPLATE_SECTIONS = [
   {
@@ -74,9 +79,17 @@ export default function CVBuilder({
   const [switchTemplateCV, setSwitchTemplateCV] = useState<CandidateCV | null>(null);
   const [isSwitchingTemplate, setIsSwitchingTemplate] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [purchasedSkus, setPurchasedSkus] = useState<Set<string>>(new Set());
+  const [checkout, setCheckout] = useState<{
+    sku: string;
+    title: string;
+    amount: number;
+    template: CVTemplate;
+  } | null>(null);
   const autoOpenedRef = useRef(false);
   const { toast } = useToast();
   const router = useRouter();
+  const { products, offers } = usePricingCatalog();
 
   useEffect(() => {
     loadData();
@@ -122,6 +135,7 @@ export default function CVBuilder({
       if (user) {
         const cvsData = await getUserCVs(user.id);
         setCvs(cvsData);
+        setPurchasedSkus(await loadPurchasedSkus(user.id));
       } else {
         setCvs([]);
       }
@@ -292,6 +306,17 @@ export default function CVBuilder({
   }
 
   function handleTemplateClick(template: CVTemplate) {
+    const product = productForTemplateName('cv_template', template.name, products);
+    const quote = product ? quoteProductPrice(product, offers) : null;
+    if (quote && product && quote.amount > 0 && !purchasedSkus.has(product.sku)) {
+      setCheckout({
+        sku: product.sku,
+        title: template.name,
+        amount: quote.amount,
+        template,
+      });
+      return;
+    }
     setSelectedTemplate(template);
     setShowTemplateDialog(true);
   }
@@ -430,6 +455,19 @@ export default function CVBuilder({
             )}
           </div>
           <CVTemplatePreview templateName={template.name} showDescription={true} descriptionOnly={true} />
+          {(() => {
+            const product = productForTemplateName('cv_template', template.name, products);
+            const quote = product ? quoteProductPrice(product, offers) : null;
+            if (!quote) return null;
+            return (
+              <PriceTag
+                amount={quote.amount}
+                compareAt={quote.compareAtPrice}
+                badge={purchasedSkus.has(product!.sku) ? 'Purchased' : quote.offer?.badge_text}
+                className="items-start"
+              />
+            );
+          })()}
           <span className="inline-flex text-sm font-medium text-[#0A66C2] sm:hidden">
             Tap to use →
           </span>
@@ -710,6 +748,26 @@ export default function CVBuilder({
           </div>
         </DialogContent>
       </Dialog>
+
+      {checkout && (
+        <MpesaCheckoutDialog
+          open={!!checkout}
+          onOpenChange={(open) => {
+            if (!open) setCheckout(null);
+          }}
+          title={checkout.title}
+          description="Pay with M-Pesa to unlock this CV template."
+          amount={checkout.amount}
+          sku={checkout.sku}
+          onSuccess={async () => {
+            const template = checkout.template;
+            setPurchasedSkus((prev) => new Set(prev).add(checkout.sku));
+            setCheckout(null);
+            setSelectedTemplate(template);
+            setShowTemplateDialog(true);
+          }}
+        />
+      )}
     </div>
   );
 }

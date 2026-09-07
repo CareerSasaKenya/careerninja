@@ -1,9 +1,12 @@
 /**
  * Pricing for paid job actions (M-Pesa STK Push).
  *
- * Prices are in KES and can be adjusted here — they are the single source of
- * truth for what the checkout dialog charges and what the server validates.
+ * Amounts come from the shared pricing catalog (admin-editable). This module
+ * stays a synchronous fallback for client components before the catalog loads.
  */
+
+import { DEFAULT_PRODUCTS, jobActionSku } from '@/lib/pricing/defaults';
+import type { CatalogProduct } from '@/lib/pricing/types';
 
 export type PaidJobAction = 'promote' | 'feature';
 
@@ -14,39 +17,42 @@ export interface PaidJobActionPricing {
   durationDays: number;
   label: string;
   description: string;
+  sku: string;
 }
 
-export const PAID_JOB_ACTIONS: PaidJobActionPricing[] = [
-  {
-    action: 'promote',
-    tier: 'basic',
-    amount: 1000,
-    durationDays: 7,
-    label: 'Promote job (7 days)',
-    description: 'Boosts the job above organic results for 7 days.',
-  },
-  {
-    action: 'promote',
-    tier: 'premium',
-    amount: 2500,
-    durationDays: 14,
-    label: 'Promote job (14 days)',
-    description: 'Boosts the job above organic results for 14 days.',
-  },
-  {
-    action: 'feature',
-    amount: 2000,
-    durationDays: 7,
-    label: 'Feature job (7 days)',
-    description: 'Places the job in the featured section for 7 days.',
-  },
-];
+function toPaidJobPricing(product: CatalogProduct): PaidJobActionPricing | undefined {
+  const action = product.metadata?.action;
+  if (action !== 'promote' && action !== 'feature') return undefined;
+  const tier = product.metadata?.tier;
+  return {
+    action,
+    tier: tier === 'premium' || tier === 'enterprise' || tier === 'basic' ? tier : undefined,
+    amount: Math.round(Number(product.price_kes) || 0),
+    durationDays: Math.max(1, Number(product.duration_days) || 7),
+    label: product.name,
+    description: product.description,
+    sku: product.sku,
+  };
+}
+
+export const PAID_JOB_ACTIONS: PaidJobActionPricing[] = DEFAULT_PRODUCTS.map(toPaidJobPricing).filter(
+  (p): p is PaidJobActionPricing => Boolean(p)
+);
 
 export function getPaidJobActionPricing(
   action: PaidJobAction,
-  tier?: string
+  tier?: string,
+  products: CatalogProduct[] = DEFAULT_PRODUCTS
 ): PaidJobActionPricing | undefined {
-  return PAID_JOB_ACTIONS.find(
-    (p) => p.action === action && (tier ? p.tier === tier : !p.tier)
-  );
+  if (action === 'feature' && tier) return undefined;
+  if (action === 'promote' && tier && tier !== 'basic' && tier !== 'premium') return undefined;
+  const sku = jobActionSku(action, tier);
+  const product = products.find((p) => p.sku === sku && p.is_active);
+  return product ? toPaidJobPricing(product) : undefined;
+}
+
+export function paidJobPricingFromCatalog(
+  products: CatalogProduct[]
+): PaidJobActionPricing[] {
+  return products.map(toPaidJobPricing).filter((p): p is PaidJobActionPricing => Boolean(p));
 }

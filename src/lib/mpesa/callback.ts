@@ -145,6 +145,19 @@ export async function handleMpesaCallback(request: NextRequest): Promise<NextRes
       if (benefit.applied) {
         console.info('[M-Pesa] Benefit applied from callback', benefit);
       }
+
+      const couponId =
+        typeof existing.metadata?.couponId === 'string' ? existing.metadata.couponId : null;
+      if (couponId) {
+        const { recordCouponRedemption } = await import('@/lib/pricing/catalog');
+        await recordCouponRedemption(admin, {
+          couponId,
+          userId: existing.user_id,
+          paymentId: existing.id,
+          sku: typeof existing.metadata?.sku === 'string' ? existing.metadata.sku : null,
+          amountKes: Number(existing.amount),
+        });
+      }
     }
 
     return NextResponse.json({ ResultCode: 0, ResultDesc: 'Accepted' });

@@ -4,6 +4,8 @@
 
 export type MpesaEnvironment = 'sandbox' | 'production';
 
+export type MpesaTransactionType = 'CustomerPayBillOnline' | 'CustomerBuyGoodsOnline';
+
 export type PaymentStatus = 'PENDING' | 'SUCCESS' | 'FAILED' | 'CANCELLED';
 
 export interface MpesaConfig {
@@ -14,6 +16,8 @@ export interface MpesaConfig {
   callbackUrl: string;
   environment: MpesaEnvironment;
   baseUrl: string;
+  stkMode?: 'paybill' | 'till';
+  transactionType?: MpesaTransactionType;
 }
 
 export interface StkPushRequest {

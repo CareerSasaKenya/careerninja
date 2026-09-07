@@ -1,12 +1,13 @@
 import { getMpesaConfig } from './config';
 import type {
+  MpesaConfig,
   OAuthTokenResponse,
   StkPushApiResponse,
   StkPushRequest,
   StkPushSuccessResponse,
 } from './types';
 
-let cachedToken: { accessToken: string; expiresAt: number } | null = null;
+let cachedToken: { key: string; accessToken: string; expiresAt: number } | null = null;
 
 function isStkPushSuccess(data: StkPushApiResponse): data is StkPushSuccessResponse {
   return 'CheckoutRequestID' in data && 'MerchantRequestID' in data;
@@ -25,13 +26,13 @@ export function buildPassword(shortCode: string, passkey: string, timestamp: str
   return Buffer.from(`${shortCode}${passkey}${timestamp}`).toString('base64');
 }
 
-export async function getAccessToken(): Promise<string> {
+export async function getAccessToken(config = getMpesaConfig()): Promise<string> {
   const now = Date.now();
-  if (cachedToken && cachedToken.expiresAt > now + 30_000) {
+  const cacheKey = `${config.environment}:${config.consumerKey}`;
+  if (cachedToken && cachedToken.key === cacheKey && cachedToken.expiresAt > now + 30_000) {
     return cachedToken.accessToken;
   }
 
-  const config = getMpesaConfig();
   const credentials = Buffer.from(`${config.consumerKey}:${config.consumerSecret}`).toString(
     'base64'
   );
@@ -59,6 +60,7 @@ export async function getAccessToken(): Promise<string> {
 
   const expiresInSec = Number.parseInt(data.expires_in || '3599', 10);
   cachedToken = {
+    key: cacheKey,
     accessToken: data.access_token,
     expiresAt: now + expiresInSec * 1000,
   };
@@ -67,10 +69,10 @@ export async function getAccessToken(): Promise<string> {
 }
 
 export async function initiateStkPush(
-  request: StkPushRequest
+  request: StkPushRequest,
+  config = getMpesaConfig()
 ): Promise<StkPushSuccessResponse> {
-  const config = getMpesaConfig();
-  const accessToken = await getAccessToken();
+  const accessToken = await getAccessToken(config);
   const timestamp = buildTimestamp();
   const password = buildPassword(config.businessShortCode, config.passkey, timestamp);
 
@@ -79,11 +81,13 @@ export async function initiateStkPush(
     throw new Error('Amount must be at least 1 KES');
   }
 
+  const transactionType = config.transactionType || 'CustomerPayBillOnline';
+
   const payload = {
     BusinessShortCode: config.businessShortCode,
     Password: password,
     Timestamp: timestamp,
-    TransactionType: 'CustomerPayBillOnline',
+    TransactionType: transactionType,
     Amount: amount,
     PartyA: request.phoneNumber,
     PartyB: config.businessShortCode,
@@ -99,6 +103,8 @@ export async function initiateStkPush(
     phone: request.phoneNumber,
     accountReference: payload.AccountReference,
     env: config.environment,
+    transactionType,
+    shortCode: config.businessShortCode,
   });
 
   const response = await fetch(url, {
