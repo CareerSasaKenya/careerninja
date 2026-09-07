@@ -1,39 +1,12 @@
 import { useState, useCallback } from 'react';
 import { JobThumbnailData } from '@/lib/thumbnailUtils';
-import { getModelForJob } from '@/lib/jobIndustryModel';
-import healthcareImg from '@/assets/job-thumbnails/healthcare-professional.jpg';
-import technologyImg from '@/assets/job-thumbnails/technology-professional.jpg';
-import educationImg from '@/assets/job-thumbnails/education-professional.jpg';
-import financeImg from '@/assets/job-thumbnails/finance-professional.jpg';
-import hospitalityImg from '@/assets/job-thumbnails/hospitality-professional.jpg';
-import agricultureImg from '@/assets/job-thumbnails/agriculture-professional.jpg';
-import constructionImg from '@/assets/job-thumbnails/construction-professional.jpg';
-import retailImg from '@/assets/job-thumbnails/retail-professional.jpg';
-import governmentImg from '@/assets/job-thumbnails/government-professional.jpg';
-import creativeImg from '@/assets/job-thumbnails/creative-professional.jpg';
-import professionalImg from '@/assets/job-thumbnails/professional-default.jpg';
+import { getIndustryModelPublicPath, getModelForJob } from '@/lib/jobIndustryModel';
 
 interface UseJobThumbnailReturn {
   generateThumbnail: (data: JobThumbnailData) => Promise<Blob | null>;
   isGenerating: boolean;
   error: string | null;
 }
-
-// Bundled for client canvas generation only — OG route fetches from /public instead.
-// Next image imports are StaticImageData (or string URL depending on config).
-const MODEL_IMAGES: Record<string, string | { src: string }> = {
-  healthcare: healthcareImg,
-  technology: technologyImg,
-  education: educationImg,
-  finance: financeImg,
-  hospitality: hospitalityImg,
-  agriculture: agricultureImg,
-  construction: constructionImg,
-  retail: retailImg,
-  government: governmentImg,
-  creative: creativeImg,
-  professional: professionalImg,
-};
 
 /** Re-export for existing imports (thumbnailTest, etc.) */
 export { getModelForJob };
@@ -254,8 +227,7 @@ export const useJobThumbnail = (): UseJobThumbnailReturn => {
       
       // Load and draw professional image based on industry
       const category = getModelForJob(data.jobTitle, data.company);
-      const imageAsset = MODEL_IMAGES[category];
-      const imageUrl = typeof imageAsset === 'string' ? imageAsset : imageAsset?.src;
+      const imageUrl = getIndustryModelPublicPath(category);
       
       try {
         if (!imageUrl) throw new Error('Missing industry model image');

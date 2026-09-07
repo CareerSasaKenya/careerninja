@@ -19,7 +19,7 @@ const testCases = [
   // Education jobs
   { title: 'High School Teacher', company: 'Kenya High School', expected: 'education' },
   { title: 'University Professor', company: 'University of Nairobi', expected: 'education' },
-  { title: 'Research Scientist', company: 'KARI', expected: 'education' },
+  { title: 'Research Scientist', company: 'KARI', expected: 'science' },
   
   // Finance jobs
   { title: 'Accountant', company: 'KPMG Kenya', expected: 'finance' },
@@ -32,19 +32,19 @@ const testCases = [
   { title: 'Fisheries Officer', company: 'Lake Victoria Fisheries', expected: 'agriculture' },
   
   // Construction jobs
-  { title: 'Civil Engineer', company: 'Bamburi Cement', expected: 'construction' },
+  { title: 'Civil Engineer', company: 'Bamburi Cement', expected: 'engineering' },
   { title: 'Architect', company: 'Design Studio Kenya', expected: 'construction' },
   { title: 'Carpenter', company: 'Home Builders Ltd', expected: 'construction' },
   
   // Hospitality jobs
   { title: 'Hotel Manager', company: 'Serena Hotel', expected: 'hospitality' },
-  { title: 'Chef', company: 'Carnivore Restaurant', expected: 'hospitality' },
-  { title: 'Tour Guide', company: 'Kenya Wildlife Service', expected: 'hospitality' },
+  { title: 'Chef', company: 'Carnivore Restaurant', expected: 'food-services' },
+  { title: 'Tour Guide', company: 'Kenya Wildlife Service', expected: 'tourism' },
   
   // Retail jobs
   { title: 'Sales Associate', company: 'Nakumatt', expected: 'retail' },
   { title: 'Store Manager', company: 'Uchumi Supermarket', expected: 'retail' },
-  { title: 'Customer Service Rep', company: 'Shopmart', expected: 'retail' },
+  { title: 'Customer Service Rep', company: 'Shopmart', expected: 'customer-service' },
   
   // Government jobs
   { title: 'County Administrator', company: 'Nairobi County', expected: 'government' },
@@ -58,8 +58,8 @@ const testCases = [
   
   // NGO jobs
   { title: 'Program Manager', company: 'Amref Health Africa', expected: 'professional' },
-  { title: 'Community Development Officer', company: 'World Vision Kenya', expected: 'professional' },
-  { title: 'Humanitarian Coordinator', company: 'UNICEF Kenya', expected: 'professional' },
+  { title: 'Community Development Officer', company: 'World Vision Kenya', expected: 'community' },
+  { title: 'Humanitarian Coordinator', company: 'UNICEF Kenya', expected: 'community' },
   
   // Default professional
   { title: 'Operations Manager', company: 'Generic Company', expected: 'professional' },

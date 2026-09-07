@@ -1,283 +1,483 @@
 /**
- * Industry → professional model image mapping for job share cards / OG images.
+ * Job-function → professional model image mapping for share cards / OG images.
  * Images live in public/assets/job-thumbnails/ and are fetched at runtime
  * (not imported into the Edge OG bundle) to stay under Vercel's ~500KB limit.
+ *
+ * All portraits are Black / Kenyan professionals. Matching is function-first
+ * with word-boundary title fallback so "Hospitality" never resolves as
+ * "hospital" (nurse) and "Nairobi" never resolves as "AI".
  */
 
 import { OG_FETCH_TIMEOUT_MS, fetchWithTimeout } from '@/lib/ogFetch';
+import { FALLBACK_JOB_FUNCTIONS } from '@/lib/jobParseNormalization';
 
 export type JobIndustryModelCategory =
   | 'healthcare'
+  | 'health-safety'
   | 'technology'
   | 'education'
   | 'finance'
+  | 'food-services'
   | 'hospitality'
+  | 'tourism'
   | 'agriculture'
+  | 'veterinary'
   | 'construction'
+  | 'engineering'
   | 'retail'
   | 'government'
   | 'creative'
-  | 'professional';
+  | 'marketing'
+  | 'professional'
+  | 'driver'
+  | 'security'
+  | 'legal'
+  | 'hr'
+  | 'science'
+  | 'beauty'
+  | 'sports'
+  | 'manufacturing'
+  | 'community'
+  | 'customer-service'
+  | 'maintenance'
+  | 'real-estate';
 
 /** Filename under /assets/job-thumbnails/ for each category */
 export const INDUSTRY_MODEL_FILENAMES: Record<JobIndustryModelCategory, string> = {
   healthcare: 'healthcare-professional.jpg',
+  'health-safety': 'health-safety-professional.jpg',
   technology: 'technology-professional.jpg',
   education: 'education-professional.jpg',
   finance: 'finance-professional.jpg',
+  'food-services': 'food-services-professional.jpg',
   hospitality: 'hospitality-professional.jpg',
+  tourism: 'tourism-professional.jpg',
   agriculture: 'agriculture-professional.jpg',
+  veterinary: 'veterinary-professional.jpg',
   construction: 'construction-professional.jpg',
+  engineering: 'engineering-professional.jpg',
   retail: 'retail-professional.jpg',
   government: 'government-professional.jpg',
   creative: 'creative-professional.jpg',
+  marketing: 'marketing-professional.jpg',
   professional: 'professional-default.jpg',
+  driver: 'driver-professional.jpg',
+  security: 'security-professional.jpg',
+  legal: 'legal-professional.jpg',
+  hr: 'hr-professional.jpg',
+  science: 'science-professional.jpg',
+  beauty: 'beauty-professional.jpg',
+  sports: 'sports-professional.jpg',
+  manufacturing: 'manufacturing-professional.jpg',
+  community: 'community-professional.jpg',
+  'customer-service': 'customer-service-professional.jpg',
+  maintenance: 'maintenance-professional.jpg',
+  'real-estate': 'real-estate-professional.jpg',
 };
 
 /**
- * Pick a model category from job title + company (and optional function/industry text).
- * All mapped images feature Black/African professionals.
+ * Canonical Careersasa job function → portrait category.
+ * Every FALLBACK_JOB_FUNCTIONS entry must appear here.
  */
-export function getModelForJob(jobTitle: string, company: string): JobIndustryModelCategory {
-  const combined = `${jobTitle} ${company}`.toLowerCase();
+export const JOB_FUNCTION_MODEL_CATEGORY: Record<
+  (typeof FALLBACK_JOB_FUNCTIONS)[number],
+  JobIndustryModelCategory
+> = {
+  'Accounting, Auditing & Finance': 'finance',
+  'Admin & Office': 'professional',
+  'Agriculture, Food & Natural Resources': 'agriculture',
+  'Building & Architecture': 'construction',
+  'Community & Social Services': 'community',
+  'Consulting & Strategy': 'professional',
+  'Creative & Design': 'creative',
+  'Customer Service & Support': 'customer-service',
+  'Driver & Transport Services': 'driver',
+  'Education & Training': 'education',
+  'Engineering & Technology': 'engineering',
+  'Environment, Energy & Natural Resources': 'agriculture',
+  'Estate Agents & Property Management': 'real-estate',
+  'Farming & Veterinary': 'veterinary',
+  'Food Services & Catering': 'food-services',
+  'Health & Safety': 'health-safety',
+  'Healthcare & Medical': 'healthcare',
+  'Hospitality & Leisure': 'hospitality',
+  'Human Resources & Recruitment': 'hr',
+  'IT & Software': 'technology',
+  'Legal Services': 'legal',
+  'Management & Business Development': 'professional',
+  'Manufacturing & Warehousing': 'manufacturing',
+  'Marketing & Communications': 'marketing',
+  'Product & Project Management': 'professional',
+  'Quality Control & Assurance': 'manufacturing',
+  'Research, Teaching & Training': 'education',
+  Sales: 'retail',
+  Security: 'security',
+  'Supply Chain & Procurement': 'manufacturing',
+  'Trades & Services': 'maintenance',
+  'Travel, Tourism & Leisure': 'tourism',
+  'Volunteer & NGO Work': 'community',
+  'Government & Public Service': 'government',
+  'Banking, Insurance & Financial Services': 'finance',
+  'Media, Advertising & PR': 'marketing',
+  'Science & Laboratory': 'science',
+  Telecommunications: 'technology',
+  'Sports, Fitness & Recreation': 'sports',
+  'NGO, NPO & Charity': 'community',
+  'Beauty, Wellness & Fitness': 'beauty',
+  'Real Estate & Construction': 'construction',
+  'Logistics & Transportation': 'driver',
+  'Retail, Fashion & FMCG': 'retail',
+  'Maintenance, Repair & Installation': 'maintenance',
+  'Data, Analytics & AI': 'technology',
+  'Other / Miscellaneous': 'professional',
+};
 
-  // NGO/Non-profit sector - common in Kenya (check first to avoid conflicts)
-  if (
-    combined.includes('ngo') ||
-    combined.includes('non profit') ||
-    combined.includes('charity') ||
-    combined.includes('foundation') ||
-    combined.includes('humanitarian') ||
-    combined.includes('community') ||
-    combined.includes('development') ||
-    combined.includes('advocacy') ||
-    combined.includes('social work')
-  ) {
-    return 'professional';
+const FUNCTION_CATEGORY_BY_LOWER = new Map<string, JobIndustryModelCategory>(
+  Object.entries(JOB_FUNCTION_MODEL_CATEGORY).map(([name, category]) => [
+    name.toLowerCase(),
+    category,
+  ]),
+);
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/** Whole-phrase match so "hospital" does not hit "hospitality" and "ai" does not hit "Nairobi". */
+export function hasPhrase(text: string, phrase: string): boolean {
+  const trimmed = phrase.trim();
+  if (!trimmed) return false;
+  const pattern = escapeRegExp(trimmed).replace(/\s+/g, '\\s+');
+  return new RegExp(`(?:^|[^a-z0-9])${pattern}(?:[^a-z0-9]|$)`, 'i').test(text);
+}
+
+function hasAnyPhrase(text: string, phrases: readonly string[]): boolean {
+  return phrases.some((phrase) => hasPhrase(text, phrase));
+}
+
+/** Title-only occupations — specific job titles beat a generic function label. */
+const TITLE_OCCUPATION_PHRASES: Array<[JobIndustryModelCategory, readonly string[]]> = [
+  [
+    'food-services',
+    [
+      'chef',
+      'sous chef',
+      'chef de partie',
+      'chef de party',
+      'pastry',
+      'cook',
+      'waiter',
+      'waitress',
+      'bartender',
+      'barista',
+      'baker',
+      'catering',
+      'kitchen steward',
+      'kitchen assistant',
+      'sommelier',
+      'dishwasher',
+      'commis',
+    ],
+  ],
+  [
+    'health-safety',
+    [
+      'health and safety',
+      'health & safety',
+      'safety officer',
+      'safety manager',
+      'hse officer',
+      'hse manager',
+      'ehs officer',
+      'occupational safety',
+    ],
+  ],
+  [
+    'veterinary',
+    ['veterinarian', 'veterinary', 'vet officer', 'animal health', 'livestock officer'],
+  ],
+  [
+    'healthcare',
+    [
+      'nurse',
+      'nursing',
+      'doctor',
+      'physician',
+      'surgeon',
+      'pharmacist',
+      'dentist',
+      'clinician',
+      'clinical officer',
+      'medical officer',
+      'physiotherapist',
+      'radiographer',
+      'midwife',
+      'paramedic',
+      'optometrist',
+      'clinical nurse',
+    ],
+  ],
+  [
+    'tourism',
+    ['tour guide', 'safari guide', 'tour operator', 'park ranger', 'wildlife'],
+  ],
+  [
+    'hospitality',
+    [
+      'hotel',
+      'concierge',
+      'front office',
+      'guest relations',
+      'housekeeper',
+      'housekeeping',
+      'bellhop',
+      'reservations agent',
+    ],
+  ],
+  [
+    'driver',
+    [
+      'driver',
+      'chauffeur',
+      'courier',
+      'truck driver',
+      'bus driver',
+      'taxi',
+      'matatu',
+      'fleet officer',
+    ],
+  ],
+  ['security', ['security guard', 'security officer', 'watchman', 'bouncer', 'loss prevention']],
+  [
+    'legal',
+    [
+      'lawyer',
+      'advocate',
+      'attorney',
+      'magistrate',
+      'legal officer',
+      'legal assistant',
+      'barrister',
+      'counsel',
+    ],
+  ],
+  [
+    'hr',
+    [
+      'human resource',
+      'human resources',
+      'hr officer',
+      'hr manager',
+      'recruiter',
+      'talent acquisition',
+      'people partner',
+    ],
+  ],
+  [
+    'science',
+    ['laboratory', 'lab scientist', 'research scientist', 'chemist', 'biologist', 'microbiologist'],
+  ],
+  [
+    'beauty',
+    ['beautician', 'hairstylist', 'hair dresser', 'hairdresser', 'cosmetologist', 'makeup artist', 'barber', 'spa therapist'],
+  ],
+  [
+    'sports',
+    ['fitness trainer', 'personal trainer', 'gym instructor', 'coach', 'physiotherapist sports'],
+  ],
+  [
+    'customer-service',
+    ['customer service', 'call centre', 'call center', 'contact centre', 'helpdesk', 'help desk'],
+  ],
+  [
+    'community',
+    [
+      'social worker',
+      'community officer',
+      'community development',
+      'humanitarian',
+      'ngo',
+      'programme officer',
+      'program officer',
+    ],
+  ],
+  [
+    'education',
+    [
+      'teacher',
+      'lecturer',
+      'professor',
+      'tutor',
+      'educator',
+      'instructor',
+      'headteacher',
+      'head teacher',
+    ],
+  ],
+  [
+    'finance',
+    [
+      'accountant',
+      'auditor',
+      'banker',
+      'teller',
+      'credit officer',
+      'loan officer',
+      'finance officer',
+      'financial analyst',
+      'tax officer',
+      'stock broker',
+      'broker',
+    ],
+  ],
+  [
+    'technology',
+    [
+      'software',
+      'developer',
+      'programmer',
+      'fullstack',
+      'full stack',
+      'frontend',
+      'front end',
+      'backend',
+      'back end',
+      'devops',
+      'data scientist',
+      'data analyst',
+      'data engineer',
+      'cyber security',
+      'cybersecurity',
+      'it officer',
+      'system administrator',
+      'systems administrator',
+      'network administrator',
+      'network engineer',
+    ],
+  ],
+  [
+    'engineering',
+    [
+      'civil engineer',
+      'mechanical engineer',
+      'electrical engineer',
+      'structural engineer',
+      'site engineer',
+      'project engineer',
+    ],
+  ],
+  ['construction', ['architect', 'quantity surveyor', 'foreman', 'mason', 'carpenter', 'welder']],
+  [
+    'maintenance',
+    ['electrician', 'plumber', 'technician', 'mechanic', 'installer', 'maintenance officer'],
+  ],
+  ['real-estate', ['estate agent', 'real estate', 'property manager', 'property officer']],
+  ['agriculture', ['farmer', 'agronomist', 'horticultur', 'agricultural officer', 'extension officer', 'fisheries', 'plantation', 'tea', 'coffee']],
+  ['manufacturing', ['warehouse', 'storekeeper', 'procurement', 'supply chain', 'quality officer']],
+  ['marketing', ['marketer', 'brand manager', 'content creator', 'social media manager', 'copywriter']],
+  ['creative', ['graphic designer', 'ui designer', 'ux designer', 'photographer', 'videographer', 'animator', 'music producer', 'film director', 'producer']],
+  ['retail', ['sales associate', 'sales executive', 'shop attendant', 'merchandiser', 'cashier']],
+  ['government', ['county administrator', 'civil servant', 'immigration officer', 'police officer', 'administrative officer', 'parliamentary', 'parliament']],
+];
+
+/** Weaker combined-text phrases, still word-bounded. Checked after title + function. */
+const FALLBACK_TEXT_PHRASES: Array<[JobIndustryModelCategory, readonly string[]]> = [
+  ['food-services', ['food services', 'catering', 'restaurant', 'kitchen']],
+  ['health-safety', ['health and safety', 'health & safety', 'occupational safety']],
+  ['veterinary', ['veterinary', 'veterinarian', 'animal health']],
+  [
+    'healthcare',
+    ['healthcare', 'medical', 'clinic', 'hospital', 'pharmacy', 'nursing', 'clinical'],
+  ],
+  ['tourism', ['tourism', 'safari', 'tour guide']],
+  ['hospitality', ['hospitality', 'hotel', 'resort', 'lodging']],
+  ['community', ['non profit', 'non-profit', 'charity', 'humanitarian', 'ngo', 'npo', 'social work']],
+  ['driver', ['logistics', 'transport', 'fleet', 'courier']],
+  ['security', ['security']],
+  ['legal', ['legal', 'law firm', 'advocate']],
+  ['hr', ['human resource', 'recruitment', 'talent']],
+  ['science', ['laboratory', 'science']],
+  ['beauty', ['beauty', 'salon', 'spa', 'wellness']],
+  ['sports', ['fitness', 'recreation', 'gym']],
+  ['customer-service', ['customer service', 'call centre', 'call center']],
+  ['education', ['education', 'teaching', 'university', 'college', 'school', 'lecturer']],
+  ['finance', ['finance', 'accounting', 'audit', 'banking', 'insurance', 'investment']],
+  [
+    'technology',
+    [
+      'information technology',
+      'software',
+      'developer',
+      'programmer',
+      'telecommunications',
+      'data analytics',
+    ],
+  ],
+  ['engineering', ['engineering']],
+  ['construction', ['construction', 'architecture', 'building']],
+  ['maintenance', ['maintenance', 'repair', 'installation', 'trades']],
+  ['real-estate', ['real estate', 'property management', 'estate agent']],
+  ['agriculture', ['agriculture', 'farming', 'agribusiness', 'horticulture', 'forestry']],
+  ['manufacturing', ['manufacturing', 'warehouse', 'procurement', 'supply chain', 'quality control']],
+  ['marketing', ['marketing', 'communications', 'advertising', 'public relations']],
+  ['creative', ['creative', 'design', 'media']],
+  ['retail', ['retail', 'sales', 'fmcg', 'supermarket']],
+  ['government', ['government', 'public service', 'civil service', 'county government', 'ministry']],
+  ['professional', ['consulting', 'strategy', 'administration', 'office']],
+];
+
+export function categoryFromFunctionName(
+  jobFunction?: string | null,
+): JobIndustryModelCategory | null {
+  const name = (jobFunction || '').trim();
+  if (!name) return null;
+  return FUNCTION_CATEGORY_BY_LOWER.get(name.toLowerCase()) ?? null;
+}
+
+function categoryFromPhraseTable(
+  text: string,
+  table: Array<[JobIndustryModelCategory, readonly string[]]>,
+): JobIndustryModelCategory | null {
+  if (!text.trim()) return null;
+  for (const [category, phrases] of table) {
+    if (hasAnyPhrase(text, phrases)) return category;
+  }
+  return null;
+}
+
+/**
+ * Pick a portrait category for a job.
+ * 1. Strong occupation words in the job title (Chef stays a chef even if tagged Hospitality)
+ * 2. Canonical job_function / job_functions
+ * 3. Word-bounded keywords in title + company + function text
+ * 4. Professional default
+ */
+export function getModelForJob(
+  jobTitle: string,
+  company: string = '',
+  jobFunction?: string | string[] | null,
+): JobIndustryModelCategory {
+  const title = jobTitle || '';
+  const companyName = company || '';
+  const functions = (Array.isArray(jobFunction)
+    ? jobFunction
+    : jobFunction
+      ? [jobFunction]
+      : []
+  )
+    .map((value) => String(value || '').trim())
+    .filter(Boolean);
+
+  const fromTitle = categoryFromPhraseTable(title, TITLE_OCCUPATION_PHRASES);
+  if (fromTitle) return fromTitle;
+
+  for (const fn of functions) {
+    const fromFunction = categoryFromFunctionName(fn);
+    if (fromFunction) return fromFunction;
   }
 
-  // Government/Public Service
-  if (
-    combined.includes('government') ||
-    combined.includes('county') ||
-    combined.includes('public') ||
-    combined.includes('civil service') ||
-    combined.includes('ministry') ||
-    combined.includes('military') ||
-    combined.includes('police') ||
-    combined.includes('firefighter') ||
-    combined.includes('officer') ||
-    combined.includes('administration') ||
-    combined.includes('parliament') ||
-    combined.includes('judiciary') ||
-    combined.includes('senate') ||
-    combined.includes('assembly')
-  ) {
-    return 'government';
-  }
-
-  // Education
-  if (
-    combined.includes('teacher') ||
-    combined.includes('educator') ||
-    combined.includes('school') ||
-    combined.includes('professor') ||
-    combined.includes('academic') ||
-    combined.includes('lecturer') ||
-    combined.includes('tutor') ||
-    combined.includes('trainer') ||
-    combined.includes('instruction') ||
-    combined.includes('research') ||
-    combined.includes('university') ||
-    combined.includes('college') ||
-    combined.includes('kindergarten') ||
-    combined.includes('tuition')
-  ) {
-    return 'education';
-  }
-
-  // Healthcare
-  if (
-    combined.includes('doctor') ||
-    combined.includes('nurse') ||
-    combined.includes('medical') ||
-    combined.includes('health') ||
-    combined.includes('clinical') ||
-    combined.includes('physician') ||
-    combined.includes('surgeon') ||
-    combined.includes('pharmacist') ||
-    combined.includes('therapy') ||
-    combined.includes('hospital') ||
-    combined.includes('clinic') ||
-    combined.includes('dentist') ||
-    combined.includes('veterinary') ||
-    combined.includes('optometrist')
-  ) {
-    return 'healthcare';
-  }
-
-  // Technology
-  if (
-    combined.includes('developer') ||
-    combined.includes('engineer') ||
-    combined.includes('software') ||
-    combined.includes('tech') ||
-    combined.includes('programmer') ||
-    combined.includes('it ') ||
-    combined.includes('data') ||
-    combined.includes('analyst') ||
-    combined.includes('cyber') ||
-    combined.includes('web') ||
-    combined.includes('frontend') ||
-    combined.includes('backend') ||
-    combined.includes('fullstack') ||
-    combined.includes('devops') ||
-    combined.includes('cloud') ||
-    combined.includes('ai') ||
-    combined.includes('machine learning') ||
-    combined.includes('blockchain') ||
-    combined.includes('network') ||
-    combined.includes('database') ||
-    combined.includes('systems')
-  ) {
-    return 'technology';
-  }
-
-  // Finance
-  if (
-    (combined.includes('finance') ||
-      combined.includes('accountant') ||
-      combined.includes('bank') ||
-      combined.includes('auditor') ||
-      combined.includes('investment') ||
-      combined.includes('financial') ||
-      combined.includes('insurance') ||
-      combined.includes('tax') ||
-      combined.includes('wealth') ||
-      combined.includes('credit') ||
-      combined.includes('loan') ||
-      combined.includes('broker') ||
-      combined.includes('trading') ||
-      combined.includes('stock')) &&
-    !combined.includes('data analyst')
-  ) {
-    return 'finance';
-  }
-
-  // Hospitality
-  if (
-    (combined.includes('hotel') ||
-      combined.includes('restaurant') ||
-      combined.includes('chef') ||
-      combined.includes('hospitality') ||
-      combined.includes('tourism') ||
-      combined.includes('catering') ||
-      combined.includes('waiter') ||
-      combined.includes('bartender') ||
-      combined.includes('cook') ||
-      combined.includes('barista') ||
-      combined.includes('lodging') ||
-      combined.includes('travel') ||
-      combined.includes('resort') ||
-      combined.includes('cafe')) &&
-    !combined.includes('tour guide') &&
-    !combined.includes('kenya wildlife service')
-  ) {
-    return 'hospitality';
-  }
-
-  // Agriculture
-  if (
-    (combined.includes('farm') ||
-      combined.includes('agriculture') ||
-      combined.includes('crop') ||
-      combined.includes('livestock') ||
-      combined.includes('agri') ||
-      combined.includes('farming') ||
-      combined.includes('ranch') ||
-      combined.includes('agronomist') ||
-      combined.includes('horticulture') ||
-      combined.includes('fisheries') ||
-      combined.includes('forestry') ||
-      combined.includes('dairy') ||
-      combined.includes('tea') ||
-      combined.includes('coffee') ||
-      combined.includes('maize') ||
-      combined.includes('wheat') ||
-      combined.includes('sugarcane')) &&
-    !combined.includes('ministry of agriculture') &&
-    !combined.includes('fisheries officer')
-  ) {
-    return 'agriculture';
-  }
-
-  // Construction
-  if (
-    (combined.includes('construction') ||
-      combined.includes('architect') ||
-      combined.includes('civil') ||
-      combined.includes('builder') ||
-      combined.includes('contractor') ||
-      combined.includes('surveyor') ||
-      combined.includes('foreman') ||
-      combined.includes('welding') ||
-      combined.includes('mechanical') ||
-      combined.includes('electrician') ||
-      combined.includes('plumber') ||
-      combined.includes('carpenter') ||
-      combined.includes('mason') ||
-      combined.includes('painter') ||
-      combined.includes('roofer') ||
-      combined.includes('tiler')) &&
-    !combined.includes('civil engineer') &&
-    !combined.includes('data')
-  ) {
-    return 'construction';
-  }
-
-  // Retail
-  if (
-    combined.includes('sales') ||
-    combined.includes('retail') ||
-    combined.includes('shop') ||
-    combined.includes('store') ||
-    combined.includes('customer service') ||
-    combined.includes('cashier') ||
-    combined.includes('merchandiser') ||
-    combined.includes('clerk') ||
-    combined.includes('associate') ||
-    combined.includes('market') ||
-    combined.includes('mall') ||
-    combined.includes('boutique')
-  ) {
-    return 'retail';
-  }
-
-  // Creative/Design
-  if (
-    combined.includes('designer') ||
-    combined.includes('creative') ||
-    combined.includes('artist') ||
-    combined.includes('graphic') ||
-    combined.includes('marketing') ||
-    combined.includes('brand') ||
-    combined.includes('ui') ||
-    combined.includes('ux') ||
-    combined.includes('media') ||
-    combined.includes('content') ||
-    combined.includes('writer') ||
-    combined.includes('photographer') ||
-    combined.includes('music') ||
-    combined.includes('film') ||
-    combined.includes('video') ||
-    combined.includes('advertising') ||
-    combined.includes('pr ') ||
-    combined.includes('public relations')
-  ) {
-    return 'creative';
-  }
-
-  return 'professional';
+  const combined = `${title} ${companyName} ${functions.join(' ')}`;
+  return categoryFromPhraseTable(combined, FALLBACK_TEXT_PHRASES) || 'professional';
 }
 
 export function getIndustryModelPublicPath(category: JobIndustryModelCategory): string {

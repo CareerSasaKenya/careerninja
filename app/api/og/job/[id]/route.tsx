@@ -105,6 +105,7 @@ export async function GET(
       salary_currency,
       salary_period,
       job_function,
+      job_functions,
       employment_type,
       hiring_organization_logo,
       companies (
@@ -148,10 +149,15 @@ export async function GET(
     const jobTitle = job.title || 'Job Opening';
     const location = job.location || null;
     const jobFunction = job.job_function || null;
+    const jobFunctions = Array.isArray(job.job_functions)
+      ? (job.job_functions as string[])
+      : jobFunction
+        ? [jobFunction]
+        : [];
     const employmentType = formatEmploymentType(job.employment_type);
 
     const assetOrigin = request.nextUrl?.origin || SITE_URL;
-    const modelCategory = getModelForJob(jobTitle, `${companyName} ${jobFunction || ''}`);
+    const modelCategory = getModelForJob(jobTitle, companyName, jobFunctions);
     const jobUrl = `${SITE_URL}/jobs/${id}`;
 
     const [personImageSrc, brandLogoSrc, companyLogoSrc, fonts] = await Promise.all([
