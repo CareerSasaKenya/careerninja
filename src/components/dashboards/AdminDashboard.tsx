@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Briefcase, Users, Trash2, FileText, Edit, BarChart, FileEdit, Search, Settings, UserCircle, Mail, MessageSquare, CheckCircle, ChevronLeft, ChevronRight, Star, TrendingUp, Rss, ImageIcon, Share2 } from "lucide-react";
+import { Plus, Briefcase, Users, Trash2, FileText, Edit, BarChart, FileEdit, Search, Settings, UserCircle, Mail, MessageSquare, CheckCircle, ChevronLeft, ChevronRight, Star, TrendingUp, Rss, ImageIcon, Share2, Banknote } from "lucide-react";
 import { toast } from "sonner";
 import { useAppSetting, setAppSetting } from "@/hooks/useAppSettings";
 
@@ -379,6 +379,12 @@ const AdminDashboard = () => {
             <Button variant="outline" className="w-full sm:w-auto">
               <Share2 className="mr-2 h-4 w-4" />
               Social Publishing
+            </Button>
+          </Link>
+          <Link href="/dashboard/admin/pricing">
+            <Button variant="outline" className="w-full sm:w-auto">
+              <Banknote className="mr-2 h-4 w-4" />
+              Pricing & M-Pesa
             </Button>
           </Link>
           <Link href="/dashboard/admin/image-templates">

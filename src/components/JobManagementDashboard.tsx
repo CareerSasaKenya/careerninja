@@ -47,6 +47,7 @@ export function JobManagementDashboard() {
     amount: number;
     label: string;
     description: string;
+    sku?: string;
   } | null>(null);
   const { toast } = useToast();
 
@@ -139,7 +140,8 @@ export function JobManagementDashboard() {
       tier: pricing.tier,
       amount: pricing.amount,
       label: pricing.label,
-      description: pricing.description
+      description: pricing.description,
+      sku: pricing.sku,
     });
   }
 
@@ -159,7 +161,8 @@ export function JobManagementDashboard() {
       action: 'feature',
       amount: pricing.amount,
       label: pricing.label,
-      description: pricing.description
+      description: pricing.description,
+      sku: pricing.sku,
     });
   }
 
@@ -423,6 +426,7 @@ export function JobManagementDashboard() {
           jobId={checkout.jobId}
           action={checkout.action}
           tier={checkout.tier}
+          sku={checkout.sku}
           onSuccess={() => {
             setCheckout(null);
             loadJobs();

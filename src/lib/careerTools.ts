@@ -19,6 +19,7 @@ export interface CVTemplate {
   thumbnail_url: string | null;
   template_data: any;
   is_premium: boolean;
+  price_kes?: number | null;
 }
 
 export interface CandidateCV {
@@ -50,6 +51,7 @@ export interface CoverLetterTemplate {
   placeholders: any;
   is_premium: boolean;
   usage_count: number;
+  price_kes?: number | null;
 }
 
 export interface CandidateCoverLetter {

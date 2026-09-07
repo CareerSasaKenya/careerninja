@@ -60,6 +60,7 @@ export default function CoverLetterServicesPage() {
     differentiatorsNote:
       "We write letters that feel personal, specific, and credible — not copy-paste applications.",
     packagesTitle: "Our Cover Letter Services",
+    serviceKey: "cover-letter",
     packages: [
       {
         id: "professional",

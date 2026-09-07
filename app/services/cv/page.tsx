@@ -60,6 +60,7 @@ export default function CVServicesPage() {
     differentiatorsNote:
       "We don't stuff keywords. We tell your professional story clearly and credibly.",
     packagesTitle: "Our CV & Resume Services",
+    serviceKey: "cv",
     packages: [
       {
         id: "writing",

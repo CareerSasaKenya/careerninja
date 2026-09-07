@@ -3,6 +3,7 @@ import { NextRequest } from 'next/server';
 import { getAdminServiceClient } from '@/lib/adminAuth';
 import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabaseEnv';
 import { initiateStkPush } from './client';
+import type { MpesaConfig } from './types';
 import { normalizeKenyanPhone } from './phone';
 import { generateTransactionReference } from './utils';
 import type { InitiateStkPushInput, InitiateStkPushResult } from './types';
@@ -137,7 +138,8 @@ export async function requireAuthenticatedUser(
  */
 export async function createPendingPaymentAndStkPush(
   adminClient: SupabaseClient,
-  input: InitiateStkPushInput
+  input: InitiateStkPushInput,
+  config?: MpesaConfig
 ): Promise<InitiateStkPushResult> {
   const phoneNumber = normalizeKenyanPhone(input.phoneNumber);
   const amount = Math.round(Number(input.amount));
@@ -171,12 +173,15 @@ export async function createPendingPaymentAndStkPush(
   }
 
   try {
-    const stk = await initiateStkPush({
-      amount,
-      phoneNumber,
-      accountReference: transactionReference,
-      transactionDesc: description,
-    });
+    const stk = await initiateStkPush(
+      {
+        amount,
+        phoneNumber,
+        accountReference: transactionReference,
+        transactionDesc: description,
+      },
+      config
+    );
 
     const { error: updateError } = await adminClient
       .from('payments')
