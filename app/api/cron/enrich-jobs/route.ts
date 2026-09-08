@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import {
-  backfillCareerTipsForRecentJobs,
-  enrichJobsNeedingEnrichment,
-} from '@/lib/enrichJobById'
+import { enrichJobsNeedingEnrichment } from '@/lib/enrichJobById'
 import { createServiceRoleClient } from '@/lib/supabaseServiceClient'
 
-/** Pro plan: AI-enrich sparse active jobs, or backfill career tips. */
+/** Pro plan: AI-enrich sparse active jobs. Career tips backfill is disabled. */
 export const maxDuration = 300
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -40,25 +37,22 @@ async function handle(request: NextRequest) {
     const modeRaw = String(body.mode ?? url.searchParams.get('mode') ?? 'sparse')
       .trim()
       .toLowerCase()
-    const mode = modeRaw === 'tips' ? 'tips' : 'sparse'
-    const dryRun = body.dryRun === true || url.searchParams.get('dryRun') === '1'
-    const supabase = createServiceRoleClient()
-
-    if (mode === 'tips') {
-      const batch = await backfillCareerTipsForRecentJobs(supabase, {
-        days: intParam(body.days ?? url.searchParams.get('days'), 7, 1, 30),
-        limit: intParam(body.limit ?? url.searchParams.get('limit'), 20, 1, 40),
-        apply: !dryRun,
-        concurrency: 2,
-        budgetMs: 270_000,
-      })
+    if (modeRaw === 'tips') {
       return NextResponse.json({
         success: true,
         mode: 'tips',
-        ...batch,
+        disabled: true,
+        scanned: 0,
+        missing: 0,
+        examined: 0,
+        updated: 0,
+        failed: 0,
+        remaining: 0,
         timestamp: new Date().toISOString(),
       })
     }
+    const dryRun = body.dryRun === true || url.searchParams.get('dryRun') === '1'
+    const supabase = createServiceRoleClient()
 
     const limit = intParam(body.limit ?? url.searchParams.get('limit'), 10, 1, 25)
     const batch = await enrichJobsNeedingEnrichment(supabase, {

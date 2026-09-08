@@ -1,9 +1,6 @@
 import { runScrapeDiscover } from '../../src/lib/scrapeDiscover'
 import { runScrapeProcessBatch } from '../../src/lib/scrapeProcess'
-import {
-  backfillCareerTipsForRecentJobs,
-  enrichJobsNeedingEnrichment,
-} from '../../src/lib/enrichJobById'
+import { enrichJobsNeedingEnrichment } from '../../src/lib/enrichJobById'
 import { runReenrichScrapedJobs } from '../../src/lib/reenrichScrapedJobs'
 import { autoQueueDailyPosts } from '../../src/lib/social/autoQueueJobs'
 import { createServiceRoleClient } from '../../src/lib/supabaseServiceClient'
@@ -42,7 +39,7 @@ export async function runProcess(batch = 10) {
  * Enrich jobs with AI normalize.
  * - mode 'sparse': active jobs missing fields from ANY intake path (the old
  *   Vercel enrich-jobs cron behavior).
- * - mode 'tips': backfill career tips on jobs posted in the last `days`.
+ * - mode 'tips': disabled — dedicated career tips backfill is off.
  * - mode 'scraped': re-normalize published scraped jobs from stored raw_data,
  *   optionally limited to one source (the admin "Enrich scraped" behavior).
  */
@@ -54,22 +51,29 @@ export async function runEnrich(
     days?: number
   } = {}
 ) {
-  const { mode = 'scraped', limit = 10, sourceId, days = 7 } = options
+  const { mode = 'scraped', limit = 10, sourceId } = options
+
+  if (mode === 'tips') {
+    return {
+      days: options.days ?? 7,
+      scanned: 0,
+      missing: 0,
+      examined: 0,
+      updated: 0,
+      failed: 0,
+      skipped: 0,
+      remaining: 0,
+      timed_out: false,
+      scan_capped: false,
+      disabled: true,
+      results: [],
+    }
+  }
+
   const supabase = createServiceRoleClient()
 
   if (mode === 'sparse') {
     return enrichJobsNeedingEnrichment(supabase, { limit, apply: true })
-  }
-
-  if (mode === 'tips') {
-    return backfillCareerTipsForRecentJobs(supabase, {
-      limit,
-      days,
-      apply: true,
-      concurrency: 3,
-      // GitHub Actions enrich job is 45 minutes; leave a small reserve.
-      budgetMs: 40 * 60 * 1000,
-    })
   }
 
   return runReenrichScrapedJobs(supabase, {

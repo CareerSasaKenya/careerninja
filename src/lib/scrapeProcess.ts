@@ -81,6 +81,7 @@ import { ensureCompanyForJob } from '@/lib/ensureCompanyForJob'
 import { inferCompanyIndustry } from '@/lib/companyIndustryInference'
 import { isJobBoardSource, rewriteJobBoardDescriptionLinks } from '@/lib/jobBoardApply'
 import { sanitizeAdditionalInfoApplyCopy } from '@/lib/applyInstructionsCopy'
+import { ensureCareerTipsHtml } from '@/lib/careerTips'
 import { isMissingOrLabelOnlyQualifications } from '@/lib/experienceLevelLabel'
 import { applyKenyanSalaryEstimateIfMissing, isMissingSalaryEstimatedColumnError, withoutSalaryEstimatedFlag } from '@/lib/kenyanSalaryEstimate'
 import { revalidatePublicJobSurfaces } from '@/lib/revalidatePublic'
@@ -711,16 +712,26 @@ export async function runScrapeProcessOne(
     }
 
     const rawDescription = parsed.description || normalized.description
-    const rawAdditionalInfo = sanitizeAdditionalInfoApplyCopy(
-      parsed.additional_info || null,
+    const rawAdditionalInfo = await ensureCareerTipsHtml(
+      sanitizeAdditionalInfoApplyCopy(
+        parsed.additional_info || null,
+        {
+          apply_email: boardApplyEmail || parsed.apply_email || null,
+          apply_link: jobBoard
+            ? normalized.apply_link?.trim() || null
+            : parsed.apply_link || normalized.apply_link || null,
+          application_url: applicationUrl,
+        },
+        normalized.title || null
+      ),
       {
-        apply_email: boardApplyEmail || parsed.apply_email || null,
-        apply_link: jobBoard
-          ? normalized.apply_link?.trim() || null
-          : parsed.apply_link || normalized.apply_link || null,
-        application_url: applicationUrl,
-      },
-      normalized.title || null
+        title: normalized.title,
+        company: dedupCompany,
+        description: rawDescription,
+        responsibilities: parsed.responsibilities || normalized.responsibilities,
+        qualifications:
+          parsed.required_qualifications || normalized.required_qualifications,
+      }
     )
 
     // date_posted: keep the source board's original publication date when the

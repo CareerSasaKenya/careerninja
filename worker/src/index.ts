@@ -33,7 +33,7 @@ async function main() {
     }
 
     case 'enrich': {
-      // tsx worker/src/index.ts enrich [scraped|sparse|tips] [limit] [source_id|days]
+      // tsx worker/src/index.ts enrich [scraped|sparse] [limit] [source_id]
       const enrichMode =
         extra === 'sparse' ? 'sparse' : extra === 'tips' ? 'tips' : 'scraped'
       const limit =
@@ -93,7 +93,7 @@ async function main() {
 
     default:
       console.error(
-        'Usage: tsx src/index.ts <discover|process [batch]|enrich [scraped|sparse|tips] [limit] [source_id|days]|social [--dry-run]|schedule|server>'
+        'Usage: tsx src/index.ts <discover|process [batch]|enrich [scraped|sparse] [limit] [source_id]|social [--dry-run]|schedule|server>'
       )
       process.exit(1)
   }

@@ -21,6 +21,8 @@ export interface AIOptions {
   temperature?: number;
   /** If true, parse response as JSON and return the object */
   json?: boolean;
+  /** Per-request abort timeout. Defaults: DeepSeek 45s, Gemini 20s. */
+  timeoutMs?: number;
 }
 
 export interface AIResult {
@@ -66,7 +68,7 @@ async function callDeepSeek(
   opts: AIOptions
 ): Promise<AIResult> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 45000);
+  const timeout = setTimeout(() => controller.abort(), opts.timeoutMs ?? 45000);
   const model = deepseekModel();
 
   const systemParts: string[] = [];
@@ -130,7 +132,7 @@ async function callGemini(
   opts: AIOptions
 ): Promise<AIResult> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 20000);
+  const timeout = setTimeout(() => controller.abort(), opts.timeoutMs ?? 20000);
 
   const body: any = {
     contents: [
@@ -147,6 +149,7 @@ async function callGemini(
     generationConfig: {
       temperature: opts.temperature ?? 0.2,
       maxOutputTokens: opts.maxTokens ?? 2000,
+      ...(opts.json ? { responseMimeType: 'application/json' } : {}),
     },
   };
 
@@ -204,8 +207,7 @@ export async function callAI(
     try {
       const result = await callDeepSeek(key, prompt, opts);
       if (opts.json) {
-        const cleaned = stripFences(result.text);
-        result.parsed = JSON.parse(cleaned);
+        result.parsed = tryParseJson(result.text);
       }
       return result;
     } catch (err: any) {
@@ -218,8 +220,7 @@ export async function callAI(
     try {
       const result = await callGemini(key, prompt, opts);
       if (opts.json) {
-        const cleaned = stripFences(result.text);
-        result.parsed = JSON.parse(cleaned);
+        result.parsed = tryParseJson(result.text);
       }
       return result;
     } catch (err: any) {
@@ -253,4 +254,12 @@ function stripFences(text: string): string {
     .trim()
     .replace(/^```(?:json)?\s*/i, '')
     .replace(/\s*```$/i, '');
+}
+
+function tryParseJson(text: string): unknown {
+  try {
+    return JSON.parse(stripFences(text));
+  } catch {
+    return undefined;
+  }
 }
