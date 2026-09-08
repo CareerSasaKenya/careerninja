@@ -81,7 +81,7 @@ import { ensureCompanyForJob } from '@/lib/ensureCompanyForJob'
 import { inferCompanyIndustry } from '@/lib/companyIndustryInference'
 import { isJobBoardSource, rewriteJobBoardDescriptionLinks } from '@/lib/jobBoardApply'
 import { sanitizeAdditionalInfoApplyCopy } from '@/lib/applyInstructionsCopy'
-import { ensureCareerTipsHtml } from '@/lib/careerTips'
+import { requireCareerTipsHtml, hasGeneratedCareerTips } from '@/lib/careerTips'
 import { isMissingOrLabelOnlyQualifications } from '@/lib/experienceLevelLabel'
 import { applyKenyanSalaryEstimateIfMissing, isMissingSalaryEstimatedColumnError, withoutSalaryEstimatedFlag } from '@/lib/kenyanSalaryEstimate'
 import { revalidatePublicJobSurfaces } from '@/lib/revalidatePublic'
@@ -587,6 +587,7 @@ export async function runScrapeProcessOne(
     const parsed = await parseScrapedJobContent(parseInput, {
       industryNames,
       jobFunctionNames,
+      attachCareerTips: true,
     })
 
     const deadline = resolveScrapedDeadline(
@@ -716,10 +717,15 @@ export async function runScrapeProcessOne(
     }
 
     const rawDescription = parsed.description || normalized.description
-    // Best-effort tips: never bounce the queue item if generation fails.
-    // requireCareerTipsHtml was sending jobs back to pending (then reclaim
-    // stole in-flight rows), so Process looked hung and published nothing.
-    const rawAdditionalInfo = await ensureCareerTipsHtml(
+    await supabase
+      .from('scrape_queue')
+      .update({ processed_at: new Date().toISOString() })
+      .eq('id', queueItem.id)
+      .eq('status', 'processing')
+
+    // Never insert How to Apply only. Tips were started in parallel with parse;
+    // this call is a no-op when they already landed, or one more dedicated try.
+    const rawAdditionalInfo = await requireCareerTipsHtml(
       sanitizeAdditionalInfoApplyCopy(
         parsed.additional_info || null,
         {
@@ -740,6 +746,9 @@ export async function runScrapeProcessOne(
           parsed.required_qualifications || normalized.required_qualifications,
       }
     )
+    if (!hasGeneratedCareerTips(rawAdditionalInfo)) {
+      throw new Error('Career tips generation failed; will retry')
+    }
 
     // date_posted: keep the source board's original publication date when the
     // adapter parsed one (Google requires the original employer posting date).

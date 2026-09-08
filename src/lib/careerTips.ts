@@ -7,7 +7,7 @@
  * and fill it with a dedicated tips call so scrape / parse / enrich stay aligned.
  *
  * Numbered How to Apply steps are NOT tips — require a custom <h3> plus numbered
- * advice after it, or ingest will skip generation and the job ships apply-only.
+ * advice after it. Scrape publish must not insert until that HTML exists.
  */
 
 import { callAI, hasAIConfigured } from './aiProviders'
@@ -167,14 +167,40 @@ RULES:
 - Return JSON only.`
 }
 
-function cleanGeneratedTips(
+function defaultTipsHeading(jobTitle?: string | null): string {
+  const role =
+    (jobTitle || 'This role').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() ||
+    'This role'
+  return `${role}: What Hiring Teams Probe Before They Shortlist`
+}
+
+/**
+ * Accept model tips HTML even when the custom <h3> was omitted — wrap
+ * numbered tips so hasGeneratedCareerTips passes instead of dropping them.
+ */
+export function normalizeCareerTipsHtml(
   raw: string | null | undefined,
   jobTitle?: string | null
 ): string | null {
   if (!raw?.trim()) return null
-  const cleaned = sanitizeStockTipsCopy(stripHowToApplyBlock(raw), jobTitle)
-  if (!cleaned || !hasGeneratedCareerTips(cleaned)) return null
-  return cleaned
+  const stripped = stripHowToApplyBlock(raw)
+  const sanitized = sanitizeStockTipsCopy(stripped, jobTitle)
+  if (!sanitized) return null
+  if (hasGeneratedCareerTips(sanitized)) return sanitized
+  if (countNumberedTips(sanitized) >= 2 && firstCustomTipsHeadingIndex(sanitized) < 0) {
+    const wrapped = `<h3>${defaultTipsHeading(jobTitle)}</h3>\n${sanitized}`
+    if (hasGeneratedCareerTips(wrapped)) return wrapped
+  }
+  return null
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+function isRateLimitError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err || '')
+  return /(?:\b429\b|rate.?limit|too many requests|resource.?exhausted|quota)/i.test(msg)
 }
 
 /** Dedicated tips generation. Returns HTML fragment (h3 + intro + 8 tips) or null. */
@@ -183,26 +209,36 @@ export async function generateCareerTipsHtml(
 ): Promise<string | null> {
   if (!hasAIConfigured()) return null
 
-  try {
-    const result = await callAI(buildTipsUserPrompt(job), {
-      systemPrompt: TIPS_SYSTEM_PROMPT,
-      json: true,
-      temperature: 0.35,
-      maxTokens: 4096,
-      timeoutMs: 15_000,
-      maxKeyTries: 2,
-    })
-    const raw =
-      extractTipsHtml(result.parsed) || extractCareerTipsFromModelText(result.text)
-    const cleaned = cleanGeneratedTips(raw, job.title || null)
-    if (cleaned) return cleaned
-    console.warn('[careerTips] generation failed: model output did not contain numbered career tips')
-  } catch (err) {
-    console.warn(
-      '[careerTips] generation failed:',
-      err instanceof Error ? err.message : err
-    )
+  let lastError: unknown = null
+  // Two tries, 40s, two keys. 15s was aborting 8-tip completions; 3×60s
+  // across every key hung Process. Parallel with parse so wall-clock stays ~1 job parse.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    if (attempt > 0) {
+      await sleep(isRateLimitError(lastError) ? 1200 : 400)
+    }
+    try {
+      const result = await callAI(buildTipsUserPrompt(job), {
+        systemPrompt: TIPS_SYSTEM_PROMPT,
+        json: true,
+        temperature: 0.35,
+        maxTokens: 4096,
+        timeoutMs: 40_000,
+        maxKeyTries: 2,
+      })
+      const raw =
+        extractTipsHtml(result.parsed) || extractCareerTipsFromModelText(result.text)
+      const cleaned = normalizeCareerTipsHtml(raw, job.title || null)
+      if (cleaned) return cleaned
+      lastError = 'model output did not contain numbered career tips'
+    } catch (err) {
+      lastError = err
+    }
   }
+
+  console.warn(
+    '[careerTips] generation failed:',
+    lastError instanceof Error ? lastError.message : lastError
+  )
   return null
 }
 
@@ -219,8 +255,7 @@ export async function ensureCareerTipsHtml(
 
 /**
  * Generate tips if missing. Throws when the output still has no career tips.
- * Scrape publish uses ensureCareerTipsHtml instead — a throw here used to
- * bounce queue items back to pending until Process looked hung.
+ * Scrape publish must call this — a job is not posted until tips exist.
  */
 export async function requireCareerTipsHtml(
   existing: string | null | undefined,

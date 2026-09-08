@@ -7,6 +7,7 @@ import {
   ensureCareerTipsHtml,
   extractCareerTipsFromModelText,
   hasGeneratedCareerTips,
+  normalizeCareerTipsHtml,
   requireCareerTipsHtml,
   stripHowToApplyBlock,
 } from './careerTips'
@@ -53,6 +54,12 @@ const headingPlusTwo = `<h3>What Credit Analysts Get Probed On</h3>
 <p><strong>1. Spreadsheet proof:</strong> Walk through a facility you modelled.</p>
 <p><strong>2. Sector notes:</strong> Know this bank's SME book.</p>`
 assert.equal(hasGeneratedCareerTips(headingPlusTwo), true)
+
+const numberedNoHeading = `<p><strong>1. Name the standard:</strong> Put ISO 9001 on the CV with a batch you audited.</p>
+<p><strong>2. Bring a finding:</strong> Prepare one non-conformance story.</p>`
+const coerced = normalizeCareerTipsHtml(numberedNoHeading, 'QA Analyst')
+assert.ok(coerced && hasGeneratedCareerTips(coerced), 'numbered tips without h3 still count after wrap')
+assert.ok(coerced && /QA Analyst/i.test(coerced))
 
 assert.ok(stripHowToApplyBlock(fullTips).startsWith('<h3>'))
 assert.ok(!/How to Apply/i.test(stripHowToApplyBlock(fullTips)))

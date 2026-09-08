@@ -35,11 +35,10 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Default 8 / cap 12 — each job now waits for career tips (extra AI call).
-    // Larger bursts 429 DeepSeek and used to publish How to Apply only.
-    const maxJobs = parseInt(request.nextUrl.searchParams.get('max') || '8', 10)
+    // Default 6 / cap 8 — each posted job waits for career tips (parse + tips in parallel).
+    const maxJobs = parseInt(request.nextUrl.searchParams.get('max') || '6', 10)
     const { processed, results, stopped_early } = await runScrapeProcessBatch(supabase, {
-      maxJobs: Math.min(Math.max(1, maxJobs), 12),
+      maxJobs: Math.min(Math.max(1, maxJobs), 8),
       budgetMs: 270_000,
     })
 

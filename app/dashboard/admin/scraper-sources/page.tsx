@@ -156,7 +156,7 @@ export default function AdminScraperSourcesPage() {
     }
   };
 
-  const runProcess = async (max = 10) => {
+  const runProcess = async (max = 6) => {
     try {
       setProcessingQueue(true);
 
@@ -433,7 +433,7 @@ export default function AdminScraperSourcesPage() {
           </Button>
           <Button
             variant="secondary"
-            onClick={() => runProcess(10)}
+            onClick={() => runProcess(6)}
             disabled={
               busy ||
               ((data?.totals.pending ?? 0) === 0 &&
@@ -441,7 +441,7 @@ export default function AdminScraperSourcesPage() {
             }
             title={
               (data?.totals.pending ?? 0) > 0
-                ? `Process up to 10 of ${data?.totals.pending} pending queue items`
+                ? `Process up to 6 of ${data?.totals.pending} pending queue items`
                 : (data?.totals.processing ?? 0) > 0
                   ? `${data?.totals.processing} item(s) stuck in processing — click to reclaim & process`
                   : "Queue is empty — run Discover first (scanned ≠ queued)"
@@ -452,7 +452,7 @@ export default function AdminScraperSourcesPage() {
             ) : (
               <Send className="h-4 w-4 mr-2" />
             )}
-            Process queue (10)
+            Process queue (6)
             {(data?.totals.pending ?? 0) > 0
               ? ` · ${data?.totals.pending}`
               : (data?.totals.processing ?? 0) > 0

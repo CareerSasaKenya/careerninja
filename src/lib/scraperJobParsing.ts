@@ -23,6 +23,7 @@ import {
   htmlContainsTable,
 } from './htmlTablesToBullets'
 import { isExperienceLevelOnlyText, isMissingOrLabelOnlyQualifications } from './experienceLevelLabel'
+import { appendCareerTips, generateCareerTipsHtml } from './careerTips'
 
 export interface ScrapedJobInput {
   title: string
@@ -965,7 +966,12 @@ export function matchJobFunctionName(
  */
 export async function parseScrapedJobContent(
   input: ScrapedJobInput,
-  options?: { industryNames?: string[]; jobFunctionNames?: string[] }
+  options?: {
+    industryNames?: string[]
+    jobFunctionNames?: string[]
+    /** When true, generate career tips in parallel with the parse JSON call. */
+    attachCareerTips?: boolean
+  }
 ): Promise<ParsedScrapedJobContent> {
   const hadTables = htmlContainsTable(
     [input.descriptionSection, input.requirementsSection, input.rawContent]
@@ -997,6 +1003,17 @@ export async function parseScrapedJobContent(
   ].some(Boolean)
 
   let parsed = fallback
+
+  const tipsPromise =
+    hasAIKeys && options?.attachCareerTips
+      ? generateCareerTipsHtml({
+          title: input.title,
+          company: input.company,
+          description: fallback.description,
+          responsibilities: fallback.responsibilities,
+          qualifications: fallback.required_qualifications,
+        })
+      : Promise.resolve(null)
 
   if (hasAIKeys) {
     try {
@@ -1047,6 +1064,11 @@ export async function parseScrapedJobContent(
       salary_currency: meta.salary_currency ?? fallback.salary_currency,
       salary_period: meta.salary_period ?? fallback.salary_period,
     }
+  }
+
+  const earlyTips = await tipsPromise
+  if (earlyTips) {
+    parsed.additional_info = appendCareerTips(parsed.additional_info, earlyTips)
   }
 
   // When the ATS blob had no overview (common for Oracle Cloud / KCB), keep a
