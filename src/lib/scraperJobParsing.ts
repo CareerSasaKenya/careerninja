@@ -1005,9 +1005,8 @@ export async function parseScrapedJobContent(
         aiText,
         buildJobParseSystemPrompt(industryNames, jobFunctionNames),
         2,
-        // Dedicated tips run once at publish (scrapeProcess/scrapePublish),
-        // not during parse — a burst of parse+tips calls rate-limits DeepSeek
-        // and the leftover jobs used to ship How to Apply only.
+        // Parse JSON can include the 8 tips. If it omits them, publish still
+        // runs one short dedicated tips call (20s) — not a 3×60s key walk.
         { attachCareerTips: false }
       )
       parsed = mergeManualParseResult(fallback, response)

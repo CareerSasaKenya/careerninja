@@ -23,6 +23,8 @@ export interface AIOptions {
   json?: boolean;
   /** Per-request abort timeout. Defaults: DeepSeek 45s, Gemini 20s. */
   timeoutMs?: number;
+  /** Stop after this many key tries across DeepSeek then Gemini. Default: all keys. */
+  maxKeyTries?: number;
 }
 
 export interface AIResult {
@@ -211,9 +213,13 @@ export async function callAI(
   }
 
   const errors: string[] = [];
+  const maxTries = Math.max(1, opts.maxKeyTries ?? dsKeys.length + gKeys.length);
+  let tries = 0;
 
   // 1. DeepSeek primary (~95% of traffic)
   for (const key of dsKeys) {
+    if (tries >= maxTries) break;
+    tries += 1;
     try {
       const result = await callDeepSeek(key, prompt, opts);
       if (opts.json) {
@@ -223,13 +229,15 @@ export async function callAI(
     } catch (err: any) {
       errors.push(err.message);
       if (isRateLimitMessage(String(err?.message || ''))) {
-        await sleep(2000);
+        await sleep(500);
       }
     }
   }
 
   // 2. Gemini backup
   for (const key of gKeys) {
+    if (tries >= maxTries) break;
+    tries += 1;
     try {
       const result = await callGemini(key, prompt, opts);
       if (opts.json) {
@@ -239,7 +247,7 @@ export async function callAI(
     } catch (err: any) {
       errors.push(err.message);
       if (isRateLimitMessage(String(err?.message || ''))) {
-        await sleep(2000);
+        await sleep(500);
       }
     }
   }

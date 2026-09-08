@@ -188,10 +188,11 @@ export async function generateCareerTipsHtml(
   if (!hasAIConfigured()) return null
 
   let lastError: unknown = null
-  for (let attempt = 0; attempt < 3; attempt++) {
+  // One try, 20s, two keys max. A 3×60s walk across every key was hanging the
+  // admin Process queue until Vercel killed the invocation with 0 publishes.
+  for (let attempt = 0; attempt < 2; attempt++) {
     if (attempt > 0) {
-      const delayMs = isRateLimitError(lastError) ? 4000 * attempt : 1500 * attempt
-      await sleep(delayMs)
+      await sleep(isRateLimitError(lastError) ? 1500 : 400)
     }
     try {
       const result = await callAI(buildTipsUserPrompt(job), {
@@ -199,7 +200,8 @@ export async function generateCareerTipsHtml(
         json: true,
         temperature: 0.35,
         maxTokens: 4096,
-        timeoutMs: 60_000,
+        timeoutMs: 20_000,
+        maxKeyTries: 2,
       })
       const raw =
         extractTipsHtml(result.parsed) || extractCareerTipsFromModelText(result.text)

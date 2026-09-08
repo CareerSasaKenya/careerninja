@@ -273,7 +273,7 @@ async function callDeepSeekAPI(
   model: string
 ): Promise<ParsedJobData> {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 45000);
+  const timeoutId = setTimeout(() => controller.abort(), 60000);
 
   try {
     const response = await fetch('https://api.deepseek.com/chat/completions', {
@@ -327,7 +327,7 @@ async function callDeepSeekAPI(
 // Gemini backup
 async function callGeminiAPI(apiKey: string, jobText: string, systemPrompt: string): Promise<ParsedJobData> {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 45000);
+  const timeoutId = setTimeout(() => controller.abort(), 60000);
 
   try {
     const response = await fetch(
