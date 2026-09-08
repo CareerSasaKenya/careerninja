@@ -6,24 +6,39 @@ import { SupabaseClient } from '@supabase/supabase-js'
  */
 export async function reclaimStuckScrapeQueueItems(
   supabase: SupabaseClient,
-  olderThanMs: number = 30 * 60 * 1000
+  olderThanMs: number = 2 * 60 * 1000
 ): Promise<number> {
   const cutoff = new Date(Date.now() - olderThanMs).toISOString()
-  const { data, error } = await supabase
+  const { data: stamped, error: stampedError } = await supabase
     .from('scrape_queue')
     .update({
       status: 'pending',
       error_message: 'Reclaimed from stuck processing',
     })
     .eq('status', 'processing')
-    .lt('queued_at', cutoff)
+    .lt('processed_at', cutoff)
     .select('id')
 
-  if (error) {
-    console.error('[scrape-queue] Failed to reclaim stuck items:', error.message)
-    return 0
+  if (stampedError) {
+    console.error('[scrape-queue] Failed to reclaim stuck items:', stampedError.message)
   }
-  return data?.length || 0
+
+  // Rows killed before processed_at was stamped on pick.
+  const { data: unstamped, error: unstampedError } = await supabase
+    .from('scrape_queue')
+    .update({
+      status: 'pending',
+      error_message: 'Reclaimed from stuck processing',
+    })
+    .eq('status', 'processing')
+    .is('processed_at', null)
+    .select('id')
+
+  if (unstampedError) {
+    console.error('[scrape-queue] Failed to reclaim unstamped items:', unstampedError.message)
+  }
+
+  return (stamped?.length || 0) + (unstamped?.length || 0)
 }
 
 export interface QueueStatusCounts {

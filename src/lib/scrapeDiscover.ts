@@ -197,7 +197,7 @@ export async function runScrapeDiscover(
 
   // Kill zombie "processing" rows left by timed-out Vercel invokes so Discover
   // can treat them as pending again and the admin Process button re-enables.
-  const reclaimed = await reclaimStuckScrapeQueueItems(supabase, 10 * 60 * 1000)
+  const reclaimed = await reclaimStuckScrapeQueueItems(supabase, 2 * 60 * 1000)
   if (reclaimed > 0) {
     console.warn(`[discover] Reclaimed ${reclaimed} stuck processing queue item(s)`)
   }

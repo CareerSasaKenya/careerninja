@@ -118,7 +118,11 @@ export async function runScrapeProcessOne(
 
   await supabase
     .from('scrape_queue')
-    .update({ status: 'processing', attempts: (queueItem.attempts || 0) + 1 })
+    .update({
+      status: 'processing',
+      attempts: (queueItem.attempts || 0) + 1,
+      processed_at: new Date().toISOString(),
+    })
     .eq('id', queueItem.id)
 
   const source = queueItem.scraper_sources
@@ -927,7 +931,7 @@ export async function runScrapeProcessBatch(
   const budgetMs = options.budgetMs ?? 270_000
   const startedAt = Date.now()
 
-  const reclaimed = await reclaimStuckScrapeQueueItems(supabase, 10 * 60 * 1000)
+  const reclaimed = await reclaimStuckScrapeQueueItems(supabase, 2 * 60 * 1000)
   if (reclaimed > 0) {
     console.log(`[scrape-process] Reclaimed ${reclaimed} stuck processing item(s)`)
   }
