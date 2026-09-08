@@ -183,6 +183,16 @@ async function callGemini(
 // Unified entry point
 // ---------------------------------------------------------------------------
 
+function isRateLimitMessage(msg: string): boolean {
+  return /(?:\b429\b|rate.?limit|too many requests|resource.?exhausted|quota)/i.test(
+    msg
+  )
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
 /**
  * Call AI with automatic provider fallback.
  * Priority: DeepSeek → Gemini
@@ -212,6 +222,9 @@ export async function callAI(
       return result;
     } catch (err: any) {
       errors.push(err.message);
+      if (isRateLimitMessage(String(err?.message || ''))) {
+        await sleep(2000);
+      }
     }
   }
 
@@ -225,6 +238,9 @@ export async function callAI(
       return result;
     } catch (err: any) {
       errors.push(err.message);
+      if (isRateLimitMessage(String(err?.message || ''))) {
+        await sleep(2000);
+      }
     }
   }
 

@@ -177,7 +177,8 @@ function providerFailure(result: ProviderAttempt): unknown {
 async function tryProviderWithRetries(
   label: string,
   call: () => Promise<ParsedJobData>,
-  maxRetries: number
+  maxRetries: number,
+  finalizeOptions?: { attachCareerTips?: boolean }
 ): Promise<ProviderAttempt> {
   let lastError: unknown = null
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -186,7 +187,7 @@ async function tryProviderWithRetries(
       console.info(`[callAIWithRetry] success via ${label}`)
       return {
         ok: true,
-        response: await finalizeParsedJobData(response),
+        response: await finalizeParsedJobData(response, finalizeOptions),
         modelUsed: label,
       }
     } catch (error) {
@@ -212,7 +213,8 @@ async function tryProviderWithRetries(
 export async function callAIWithRetry(
   jobText: string,
   systemPrompt: string,
-  maxRetries: number = 2
+  maxRetries: number = 2,
+  finalizeOptions?: { attachCareerTips?: boolean }
 ): Promise<{ response: ParsedJobData; modelUsed: string }> {
   const deepseekKeys = nonEmptyEnv(
     process.env.DEEPSEEK_API_KEY,
@@ -233,7 +235,8 @@ export async function callAIWithRetry(
     const result = await tryProviderWithRetries(
       `${deepseekModel}#${i + 1}`,
       () => callDeepSeekAPI(deepseekKeys[i], jobText, systemPrompt, deepseekModel),
-      maxRetries
+      maxRetries,
+      finalizeOptions
     )
     if (result.ok) {
       return { response: result.response, modelUsed: deepseekModel }
@@ -250,7 +253,8 @@ export async function callAIWithRetry(
     const result = await tryProviderWithRetries(
       `gemini-2.5-flash#${i + 1}`,
       () => callGeminiAPI(geminiApiKeys[i], jobText, systemPrompt),
-      maxRetries
+      maxRetries,
+      finalizeOptions
     )
     if (result.ok) {
       return { response: result.response, modelUsed: 'gemini-2.5-flash' }
@@ -412,7 +416,8 @@ export async function getJobParseSystemPrompt(): Promise<string> {
 }
 
 export async function finalizeParsedJobData(
-  data: ParsedJobData & { status?: string; job_status?: string; direct_apply?: boolean; education_requirements?: string }
+  data: ParsedJobData & { status?: string; job_status?: string; direct_apply?: boolean; education_requirements?: string },
+  options?: { attachCareerTips?: boolean }
 ): Promise<ParsedJobData> {
   const { industries, jobFunctions } = await getLookupOptions();
   const stripped = stripParsedMetaFields(data);
@@ -424,6 +429,9 @@ export async function finalizeParsedJobData(
     );
     if (cleaned) normalized.additional_info = cleaned;
     else delete normalized.additional_info;
+  }
+  if (options?.attachCareerTips === false) {
+    return normalized;
   }
   const withTips = await ensureCareerTipsHtml(normalized.additional_info || '', {
     title: normalized.title,

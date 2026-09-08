@@ -35,12 +35,11 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Default 20 / cap 25 — denser batches + every-30m cron drain Discover waves
-    // faster (e.g. MyJobMag Mon/Tue spikes). Soft budget still stops before the
-    // Vercel 300s hard kill.
-    const maxJobs = parseInt(request.nextUrl.searchParams.get('max') || '20', 10)
+    // Default 8 / cap 12 — each job now waits for career tips (extra AI call).
+    // Larger bursts 429 DeepSeek and used to publish How to Apply only.
+    const maxJobs = parseInt(request.nextUrl.searchParams.get('max') || '8', 10)
     const { processed, results, stopped_early } = await runScrapeProcessBatch(supabase, {
-      maxJobs: Math.min(Math.max(1, maxJobs), 25),
+      maxJobs: Math.min(Math.max(1, maxJobs), 12),
       budgetMs: 270_000,
     })
 
