@@ -1,12 +1,22 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 
 /**
+ * Vercel process maxDuration is 300s. A healthy item can take a fetch + 60s
+ * parse + a short tips call. Reclaiming at 2 minutes stole live work: the
+ * next Process/Discover click put the row back to `pending` while the first
+ * worker was still running (or about to publish).
+ *
+ * Only reclaim after an isolate is almost certainly dead.
+ */
+export const STALE_PROCESSING_MS = 5 * 60 * 1000
+
+/**
  * Items left in `processing` after a killed Vercel invocation never get
  * picked again (picker only reads `pending`). Reclaim stale ones.
  */
 export async function reclaimStuckScrapeQueueItems(
   supabase: SupabaseClient,
-  olderThanMs: number = 2 * 60 * 1000
+  olderThanMs: number = STALE_PROCESSING_MS
 ): Promise<number> {
   const cutoff = new Date(Date.now() - olderThanMs).toISOString()
   const { data: stamped, error: stampedError } = await supabase

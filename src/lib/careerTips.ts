@@ -177,52 +177,33 @@ function cleanGeneratedTips(
   return cleaned
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
 /** Dedicated tips generation. Returns HTML fragment (h3 + intro + 8 tips) or null. */
 export async function generateCareerTipsHtml(
   job: CareerTipsJobContext
 ): Promise<string | null> {
   if (!hasAIConfigured()) return null
 
-  let lastError: unknown = null
-  // One try, 20s, two keys max. A 3×60s walk across every key was hanging the
-  // admin Process queue until Vercel killed the invocation with 0 publishes.
-  for (let attempt = 0; attempt < 2; attempt++) {
-    if (attempt > 0) {
-      await sleep(isRateLimitError(lastError) ? 1500 : 400)
-    }
-    try {
-      const result = await callAI(buildTipsUserPrompt(job), {
-        systemPrompt: TIPS_SYSTEM_PROMPT,
-        json: true,
-        temperature: 0.35,
-        maxTokens: 4096,
-        timeoutMs: 20_000,
-        maxKeyTries: 2,
-      })
-      const raw =
-        extractTipsHtml(result.parsed) || extractCareerTipsFromModelText(result.text)
-      const cleaned = cleanGeneratedTips(raw, job.title || null)
-      if (cleaned) return cleaned
-      lastError = 'model output did not contain numbered career tips'
-    } catch (err) {
-      lastError = err
-    }
+  try {
+    const result = await callAI(buildTipsUserPrompt(job), {
+      systemPrompt: TIPS_SYSTEM_PROMPT,
+      json: true,
+      temperature: 0.35,
+      maxTokens: 4096,
+      timeoutMs: 15_000,
+      maxKeyTries: 2,
+    })
+    const raw =
+      extractTipsHtml(result.parsed) || extractCareerTipsFromModelText(result.text)
+    const cleaned = cleanGeneratedTips(raw, job.title || null)
+    if (cleaned) return cleaned
+    console.warn('[careerTips] generation failed: model output did not contain numbered career tips')
+  } catch (err) {
+    console.warn(
+      '[careerTips] generation failed:',
+      err instanceof Error ? err.message : err
+    )
   }
-
-  console.warn(
-    '[careerTips] generation failed:',
-    lastError instanceof Error ? lastError.message : lastError
-  )
   return null
-}
-
-function isRateLimitError(err: unknown): boolean {
-  const msg = err instanceof Error ? err.message : String(err || '')
-  return /(?:\b429\b|rate.?limit|too many requests|resource.?exhausted|quota)/i.test(msg)
 }
 
 /** Append generated tips when additional_info is only How to Apply / benefits. */
@@ -237,9 +218,9 @@ export async function ensureCareerTipsHtml(
 }
 
 /**
- * Generate tips if missing. Throws when AI is configured but the output still
- * has no career tips — callers should retry the job instead of publishing
- * How to Apply only.
+ * Generate tips if missing. Throws when the output still has no career tips.
+ * Scrape publish uses ensureCareerTipsHtml instead — a throw here used to
+ * bounce queue items back to pending until Process looked hung.
  */
 export async function requireCareerTipsHtml(
   existing: string | null | undefined,

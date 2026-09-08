@@ -81,12 +81,12 @@ import { ensureCompanyForJob } from '@/lib/ensureCompanyForJob'
 import { inferCompanyIndustry } from '@/lib/companyIndustryInference'
 import { isJobBoardSource, rewriteJobBoardDescriptionLinks } from '@/lib/jobBoardApply'
 import { sanitizeAdditionalInfoApplyCopy } from '@/lib/applyInstructionsCopy'
-import { requireCareerTipsHtml } from '@/lib/careerTips'
+import { ensureCareerTipsHtml } from '@/lib/careerTips'
 import { isMissingOrLabelOnlyQualifications } from '@/lib/experienceLevelLabel'
 import { applyKenyanSalaryEstimateIfMissing, isMissingSalaryEstimatedColumnError, withoutSalaryEstimatedFlag } from '@/lib/kenyanSalaryEstimate'
 import { revalidatePublicJobSurfaces } from '@/lib/revalidatePublic'
 import type { WorkableJobDetail } from '@/lib/workable-adapter'
-import { reclaimStuckScrapeQueueItems } from '@/lib/scrapeQueueStats'
+import { reclaimStuckScrapeQueueItems, STALE_PROCESSING_MS } from '@/lib/scrapeQueueStats'
 
 export { reclaimStuckScrapeQueueItems }
 
@@ -716,7 +716,10 @@ export async function runScrapeProcessOne(
     }
 
     const rawDescription = parsed.description || normalized.description
-    const rawAdditionalInfo = await requireCareerTipsHtml(
+    // Best-effort tips: never bounce the queue item if generation fails.
+    // requireCareerTipsHtml was sending jobs back to pending (then reclaim
+    // stole in-flight rows), so Process looked hung and published nothing.
+    const rawAdditionalInfo = await ensureCareerTipsHtml(
       sanitizeAdditionalInfoApplyCopy(
         parsed.additional_info || null,
         {
@@ -862,6 +865,7 @@ export async function runScrapeProcessOne(
       .from('scrape_queue')
       .update({ status: 'done', processed_at: new Date().toISOString() })
       .eq('id', queueItem.id)
+      .eq('status', 'processing')
 
     return {
       success: true,
@@ -899,6 +903,7 @@ export async function runScrapeProcessOne(
       .from('scrape_queue')
       .update({ status: newStatus, error_message: message, attempts })
       .eq('id', queueItem.id)
+      .eq('status', 'processing')
 
     return {
       error: message,
@@ -931,7 +936,7 @@ export async function runScrapeProcessBatch(
   const budgetMs = options.budgetMs ?? 270_000
   const startedAt = Date.now()
 
-  const reclaimed = await reclaimStuckScrapeQueueItems(supabase, 2 * 60 * 1000)
+  const reclaimed = await reclaimStuckScrapeQueueItems(supabase, STALE_PROCESSING_MS)
   if (reclaimed > 0) {
     console.log(`[scrape-process] Reclaimed ${reclaimed} stuck processing item(s)`)
   }

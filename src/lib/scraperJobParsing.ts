@@ -1004,10 +1004,10 @@ export async function parseScrapedJobContent(
       const { response } = await callAIWithRetry(
         aiText,
         buildJobParseSystemPrompt(industryNames, jobFunctionNames),
-        2,
-        // Parse JSON can include the 8 tips. If it omits them, publish still
-        // runs one short dedicated tips call (20s) — not a 3×60s key walk.
-        { attachCareerTips: false }
+        0,
+        // One try per key, two keys max (DeepSeek then Gemini). Walking every
+        // key with 60s timeouts was longer than reclaim, so jobs bounced.
+        { attachCareerTips: false, maxKeyTries: 2 }
       )
       parsed = mergeManualParseResult(fallback, response)
       // Keep deterministic table→bullet requirements so AI cannot paraphrase facts.

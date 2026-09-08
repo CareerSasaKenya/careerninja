@@ -1,5 +1,16 @@
 import assert from 'node:assert/strict'
-import { aggregateQueueStats, emptyQueueStats, sumQueueStats } from './scrapeQueueStats'
+import {
+  aggregateQueueStats,
+  emptyQueueStats,
+  STALE_PROCESSING_MS,
+  sumQueueStats,
+} from './scrapeQueueStats'
+
+assert.equal(
+  STALE_PROCESSING_MS,
+  5 * 60 * 1000,
+  'reclaim must wait out a full Vercel process isolate, not steal live work at 2 min'
+)
 
 const bySource = aggregateQueueStats([
   { source_id: 'a', status: 'pending' },
