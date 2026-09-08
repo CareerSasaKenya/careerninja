@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/adminAuth'
 import { runScrapeProcessBatch } from '@/lib/scrapeProcess'
+import { resolveProcessQueueBatch } from '@/lib/scrapeProcessBatch'
 
 export const runtime = 'nodejs'
 /** Pro plan: process a batch of queue items in one admin action. */
@@ -9,7 +10,7 @@ export const maxDuration = 300
 /**
  * POST /api/admin/scraper-sources/process
  * Admin-only: process up to max pending queue items in-process.
- * Body: { max?: number } — default 10, capped at 15
+ * Body: { max?: number } — at least 10, capped at 15 (stale `{ max: 6 }` still runs 10).
  *
  * Sequential + soft time budget so Vercel returns JSON instead of a hard timeout.
  */
@@ -21,8 +22,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json().catch(() => ({}))
-    const requested = typeof body.max === 'number' ? body.max : 10
-    const maxJobs = Math.min(Math.max(1, Math.floor(requested)), 15)
+    const maxJobs = resolveProcessQueueBatch(body.max)
 
     const { processed, results, stopped_early } = await runScrapeProcessBatch(auth.adminClient, {
       maxJobs,
@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
       published: published + pdfPublished,
       skipped,
       errors,
+      max_jobs: maxJobs,
       stopped_early: stopped_early || null,
       results,
     })

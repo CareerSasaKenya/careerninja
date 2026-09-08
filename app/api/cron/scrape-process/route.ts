@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { runScrapeProcessBatch } from '@/lib/scrapeProcess'
 import { createServiceRoleClient } from '@/lib/supabaseServiceClient'
+import { PROCESS_QUEUE_BATCH, resolveProcessQueueBatch } from '@/lib/scrapeProcessBatch'
 
 /** Pro plan: up to 300s for heavy PDF/AI scrape processing. */
 export const maxDuration = 300
@@ -35,10 +36,11 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Default 10 / cap 12 — same batch the admin Process queue button uses.
-    const maxJobs = parseInt(request.nextUrl.searchParams.get('max') || '10', 10)
+    const maxJobs = resolveProcessQueueBatch(
+      parseInt(request.nextUrl.searchParams.get('max') || String(PROCESS_QUEUE_BATCH), 10)
+    )
     const { processed, results, stopped_early } = await runScrapeProcessBatch(supabase, {
-      maxJobs: Math.min(Math.max(1, maxJobs), 12),
+      maxJobs,
       budgetMs: 270_000,
     })
 

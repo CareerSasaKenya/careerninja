@@ -97,15 +97,11 @@ const nextConfig = {
         ],
       },
       {
-        source: '/jobs/:slug*',
+        source: '/dashboard/admin/:path*',
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, s-maxage=3600, stale-while-revalidate=86400',
-          },
-          {
-            key: 'Vary',
-            value: 'User-Agent',
+            value: 'private, no-store, must-revalidate',
           },
         ],
       },
