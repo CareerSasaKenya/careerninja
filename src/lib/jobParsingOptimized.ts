@@ -174,6 +174,12 @@ function providerFailure(result: ProviderAttempt): unknown {
   return 'error' in result ? result.error : null
 }
 
+export type CallAIRetryOptions = {
+  attachCareerTips?: boolean
+  /** Stop after this many provider keys (DeepSeek then Gemini). Default: all keys. */
+  maxKeyTries?: number
+}
+
 async function tryProviderWithRetries(
   label: string,
   call: () => Promise<ParsedJobData>,
@@ -214,7 +220,7 @@ export async function callAIWithRetry(
   jobText: string,
   systemPrompt: string,
   maxRetries: number = 2,
-  finalizeOptions?: { attachCareerTips?: boolean }
+  finalizeOptions?: CallAIRetryOptions
 ): Promise<{ response: ParsedJobData; modelUsed: string }> {
   const deepseekKeys = nonEmptyEnv(
     process.env.DEEPSEEK_API_KEY,
@@ -227,16 +233,22 @@ export async function callAIWithRetry(
   )
   const deepseekModel =
     process.env.DEEPSEEK_MODEL?.trim() || 'deepseek-v4-flash'
+  const maxKeyTries = finalizeOptions?.maxKeyTries
+  const finalizeOnly = { attachCareerTips: finalizeOptions?.attachCareerTips }
+  let keysTried = 0
+  const canTryKey = () => maxKeyTries == null || keysTried < maxKeyTries
 
   let lastError: unknown = null
 
   // 1. DeepSeek primary
   for (let i = 0; i < deepseekKeys.length; i++) {
+    if (!canTryKey()) break
+    keysTried++
     const result = await tryProviderWithRetries(
       `${deepseekModel}#${i + 1}`,
       () => callDeepSeekAPI(deepseekKeys[i], jobText, systemPrompt, deepseekModel),
       maxRetries,
-      finalizeOptions
+      finalizeOnly
     )
     if (result.ok) {
       return { response: result.response, modelUsed: deepseekModel }
@@ -250,11 +262,13 @@ export async function callAIWithRetry(
 
   // 2. Gemini backup
   for (let i = 0; i < geminiApiKeys.length; i++) {
+    if (!canTryKey()) break
+    keysTried++
     const result = await tryProviderWithRetries(
       `gemini-2.5-flash#${i + 1}`,
       () => callGeminiAPI(geminiApiKeys[i], jobText, systemPrompt),
       maxRetries,
-      finalizeOptions
+      finalizeOnly
     )
     if (result.ok) {
       return { response: result.response, modelUsed: 'gemini-2.5-flash' }

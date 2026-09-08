@@ -18,7 +18,7 @@ import {
 import { discoverFuzuJobs, FuzuSourceConfig } from './fuzu-adapter'
 import { discoverMyJobMagJobs, MyJobMagSourceConfig } from './myjobmag-adapter'
 import { normalizeJobUrl } from './scraperDeadline'
-import { reclaimStuckScrapeQueueItems } from './scrapeQueueStats'
+import { reclaimStuckScrapeQueueItems, STALE_PROCESSING_MS } from './scrapeQueueStats'
 
 export interface DiscoverSourceResult {
   source_id: string
@@ -197,7 +197,7 @@ export async function runScrapeDiscover(
 
   // Kill zombie "processing" rows left by timed-out Vercel invokes so Discover
   // can treat them as pending again and the admin Process button re-enables.
-  const reclaimed = await reclaimStuckScrapeQueueItems(supabase, 2 * 60 * 1000)
+  const reclaimed = await reclaimStuckScrapeQueueItems(supabase, STALE_PROCESSING_MS)
   if (reclaimed > 0) {
     console.warn(`[discover] Reclaimed ${reclaimed} stuck processing queue item(s)`)
   }

@@ -4,6 +4,7 @@
 import assert from 'node:assert/strict'
 import {
   appendCareerTips,
+  ensureCareerTipsHtml,
   extractCareerTipsFromModelText,
   hasGeneratedCareerTips,
   requireCareerTipsHtml,
@@ -62,6 +63,9 @@ assert.ok(appended.includes('What Credit Analysts Get Probed On'))
 assert.equal(appendCareerTips(fullTips, headingPlusTwo), fullTips)
 assert.equal(appendCareerTips('', ''), '')
 assert.equal(appendCareerTips(null, headingPlusTwo), headingPlusTwo)
+
+const alreadyTips = await ensureCareerTipsHtml(fullTips, { title: 'Analyst', company: 'KCB' })
+assert.ok(hasGeneratedCareerTips(alreadyTips))
 
 try {
   await requireCareerTipsHtml(applyOnly, { title: 'Analyst', company: 'KCB' })
