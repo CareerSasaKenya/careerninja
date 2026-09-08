@@ -9,10 +9,9 @@ export const maxDuration = 300
 /**
  * POST /api/admin/scraper-sources/process
  * Admin-only: process up to max pending queue items in-process.
- * Body: { max?: number } — default 6, capped at 10
+ * Body: { max?: number } — default 10, capped at 15
  *
- * Sequential + soft time budget so each job can finish parse + career tips
- * and Vercel returns JSON instead of a hard timeout.
+ * Sequential + soft time budget so Vercel returns JSON instead of a hard timeout.
  */
 export async function POST(request: NextRequest) {
   const auth = await requireAdmin(request)
@@ -22,8 +21,8 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json().catch(() => ({}))
-    const requested = typeof body.max === 'number' ? body.max : 6
-    const maxJobs = Math.min(Math.max(1, Math.floor(requested)), 10)
+    const requested = typeof body.max === 'number' ? body.max : 10
+    const maxJobs = Math.min(Math.max(1, Math.floor(requested)), 15)
 
     const { processed, results, stopped_early } = await runScrapeProcessBatch(auth.adminClient, {
       maxJobs,

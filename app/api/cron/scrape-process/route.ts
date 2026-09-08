@@ -35,10 +35,10 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Default 6 / cap 8 — each posted job waits for career tips (parse + tips in parallel).
-    const maxJobs = parseInt(request.nextUrl.searchParams.get('max') || '6', 10)
+    // Default 10 / cap 12 — same batch the admin Process queue button uses.
+    const maxJobs = parseInt(request.nextUrl.searchParams.get('max') || '10', 10)
     const { processed, results, stopped_early } = await runScrapeProcessBatch(supabase, {
-      maxJobs: Math.min(Math.max(1, maxJobs), 8),
+      maxJobs: Math.min(Math.max(1, maxJobs), 12),
       budgetMs: 270_000,
     })
 
