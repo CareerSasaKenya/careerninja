@@ -177,6 +177,10 @@ function cleanGeneratedTips(
   return cleaned
 }
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
 /** Dedicated tips generation. Returns HTML fragment (h3 + intro + 8 tips) or null. */
 export async function generateCareerTipsHtml(
   job: CareerTipsJobContext
@@ -184,7 +188,11 @@ export async function generateCareerTipsHtml(
   if (!hasAIConfigured()) return null
 
   let lastError: unknown = null
-  for (let attempt = 0; attempt < 2; attempt++) {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt > 0) {
+      const delayMs = isRateLimitError(lastError) ? 4000 * attempt : 1500 * attempt
+      await sleep(delayMs)
+    }
     try {
       const result = await callAI(buildTipsUserPrompt(job), {
         systemPrompt: TIPS_SYSTEM_PROMPT,
@@ -210,6 +218,11 @@ export async function generateCareerTipsHtml(
   return null
 }
 
+function isRateLimitError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err || '')
+  return /(?:\b429\b|rate.?limit|too many requests|resource.?exhausted|quota)/i.test(msg)
+}
+
 /** Append generated tips when additional_info is only How to Apply / benefits. */
 export async function ensureCareerTipsHtml(
   existing: string | null | undefined,
@@ -219,4 +232,21 @@ export async function ensureCareerTipsHtml(
   if (hasGeneratedCareerTips(current)) return current
   const generated = await generateCareerTipsHtml(job)
   return appendCareerTips(current, generated)
+}
+
+/**
+ * Generate tips if missing. Throws when AI is configured but the output still
+ * has no career tips — callers should retry the job instead of publishing
+ * How to Apply only.
+ */
+export async function requireCareerTipsHtml(
+  existing: string | null | undefined,
+  job: CareerTipsJobContext
+): Promise<string> {
+  const next = await ensureCareerTipsHtml(existing, job)
+  if (hasGeneratedCareerTips(next)) return next
+  if (!hasAIConfigured()) {
+    throw new Error('Career tips generation failed: no AI API keys configured')
+  }
+  throw new Error('Career tips generation failed; will retry')
 }

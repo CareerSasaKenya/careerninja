@@ -22,7 +22,7 @@ import { ensureCompanyForJob } from './ensureCompanyForJob'
 import { inferCompanyIndustry } from './companyIndustryInference'
 import { companyProfileToEnsureInput, type JobBoardCompanyProfile } from './jobBoardCompany'
 import { sanitizeAdditionalInfoApplyCopy } from './applyInstructionsCopy'
-import { ensureCareerTipsHtml } from './careerTips'
+import { requireCareerTipsHtml } from './careerTips'
 import { isMissingOrLabelOnlyQualifications } from './experienceLevelLabel'
 import { applyKenyanSalaryEstimateIfMissing, isMissingSalaryEstimatedColumnError, withoutSalaryEstimatedFlag } from './kenyanSalaryEstimate'
 import { revalidatePublicJobSurfaces } from './revalidatePublic'
@@ -276,7 +276,7 @@ export async function publishScrapedJob(
         if (normQ && !isMissingOrLabelOnlyQualifications(normQ)) return normQ
         return null
       })(),
-      additional_info: await ensureCareerTipsHtml(
+      additional_info: await requireCareerTipsHtml(
         sanitizeAdditionalInfoApplyCopy(parsed.additional_info || null, {
           apply_email: normalized.apply_email || parsed.apply_email || null,
           apply_link: normalized.apply_link?.trim() || parsed.apply_link || null,

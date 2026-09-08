@@ -23,7 +23,6 @@ import {
   htmlContainsTable,
 } from './htmlTablesToBullets'
 import { isExperienceLevelOnlyText, isMissingOrLabelOnlyQualifications } from './experienceLevelLabel'
-import { ensureCareerTipsHtml, hasGeneratedCareerTips } from './careerTips'
 
 export interface ScrapedJobInput {
   title: string
@@ -1004,7 +1003,12 @@ export async function parseScrapedJobContent(
       // Same path as /api/parse-job: full schema + finalizeParsedJobData normalization
       const { response } = await callAIWithRetry(
         aiText,
-        buildJobParseSystemPrompt(industryNames, jobFunctionNames)
+        buildJobParseSystemPrompt(industryNames, jobFunctionNames),
+        2,
+        // Dedicated tips run once at publish (scrapeProcess/scrapePublish),
+        // not during parse — a burst of parse+tips calls rate-limits DeepSeek
+        // and the leftover jobs used to ship How to Apply only.
+        { attachCareerTips: false }
       )
       parsed = mergeManualParseResult(fallback, response)
       // Keep deterministic table→bullet requirements so AI cannot paraphrase facts.
@@ -1056,16 +1060,6 @@ export async function parseScrapedJobContent(
     parsed.description = `<p>${escapeHtmlText(input.title)} at ${escapeHtmlText(input.company)}${
       loc ? ` — ${escapeHtmlText(loc)}` : ''
     }.</p>`
-  }
-
-  if (!hasGeneratedCareerTips(parsed.additional_info)) {
-    parsed.additional_info = await ensureCareerTipsHtml(parsed.additional_info, {
-      title: input.title,
-      company: input.company,
-      description: parsed.description,
-      responsibilities: parsed.responsibilities,
-      qualifications: parsed.required_qualifications,
-    })
   }
 
   // Prefer known-employer industry, then AI/meta, then ATS hints.

@@ -6,6 +6,7 @@ import {
   appendCareerTips,
   extractCareerTipsFromModelText,
   hasGeneratedCareerTips,
+  requireCareerTipsHtml,
   stripHowToApplyBlock,
 } from './careerTips'
 
@@ -61,6 +62,13 @@ assert.ok(appended.includes('What Credit Analysts Get Probed On'))
 assert.equal(appendCareerTips(fullTips, headingPlusTwo), fullTips)
 assert.equal(appendCareerTips('', ''), '')
 assert.equal(appendCareerTips(null, headingPlusTwo), headingPlusTwo)
+
+try {
+  await requireCareerTipsHtml(applyOnly, { title: 'Analyst', company: 'KCB' })
+  assert.fail('requireCareerTipsHtml must not publish How to Apply only')
+} catch (err) {
+  assert.match(String(err), /Career tips generation failed/)
+}
 
 const fromJson = extractCareerTipsFromModelText(
   JSON.stringify({ career_tips: headingPlusTwo })

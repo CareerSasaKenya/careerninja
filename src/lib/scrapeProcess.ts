@@ -81,7 +81,7 @@ import { ensureCompanyForJob } from '@/lib/ensureCompanyForJob'
 import { inferCompanyIndustry } from '@/lib/companyIndustryInference'
 import { isJobBoardSource, rewriteJobBoardDescriptionLinks } from '@/lib/jobBoardApply'
 import { sanitizeAdditionalInfoApplyCopy } from '@/lib/applyInstructionsCopy'
-import { ensureCareerTipsHtml } from '@/lib/careerTips'
+import { requireCareerTipsHtml } from '@/lib/careerTips'
 import { isMissingOrLabelOnlyQualifications } from '@/lib/experienceLevelLabel'
 import { applyKenyanSalaryEstimateIfMissing, isMissingSalaryEstimatedColumnError, withoutSalaryEstimatedFlag } from '@/lib/kenyanSalaryEstimate'
 import { revalidatePublicJobSurfaces } from '@/lib/revalidatePublic'
@@ -712,7 +712,7 @@ export async function runScrapeProcessOne(
     }
 
     const rawDescription = parsed.description || normalized.description
-    const rawAdditionalInfo = await ensureCareerTipsHtml(
+    const rawAdditionalInfo = await requireCareerTipsHtml(
       sanitizeAdditionalInfoApplyCopy(
         parsed.additional_info || null,
         {
