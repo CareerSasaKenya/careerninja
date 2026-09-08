@@ -264,7 +264,7 @@ RULES:
 6. salary_period: HOUR, DAY, WEEK, MONTH, YEAR
 7. salary_currency: KES, USD
 8. Extract salary as numbers only (e.g., 80000 not "80,000")
-9. If a field is not found in the text, OMIT it — EXCEPT additional_info, which is REQUIRED even though the career tips are generated advice (not copied from the posting). Never omit additional_info or the 8 tips to save tokens.
+9. If a field is not found in the text, OMIT it — EXCEPT additional_info, which is REQUIRED even though the career tips are generated advice (not copied from the posting). Never omit additional_info or the 8 tips to save tokens. Write additional_info as the FIRST key in the JSON object so the 8 tips cannot be truncated.
 10. Put all education/degree requirements inside required_qualifications only — do NOT output education_requirements
 11. industries: ONLY exact names from ALLOWED_INDUSTRIES (max 3, no duplicates). NEVER invent values.
 12. job_functions: ONLY exact names from ALLOWED_JOB_FUNCTIONS (max 3, no duplicates). NEVER invent values.
@@ -315,12 +315,12 @@ ADDITIONAL_INFO (HTML only — How to Apply + tips):
 
 Return JSON structure:
 {
+  "additional_info": "<p><strong>How to Apply:</strong> Send your CV to careers@company.com.</p><h3>Show ISO Discipline On Paper Before You Walk Into QA</h3><p>Quality roles get flooded with vague 'attention to detail' claims. Hiring teams for this kind of post want proof you can catch defects, document findings, and hold a line under production pressure.</p><p><strong>1. Short tip title:</strong> Three to five meaty sentences customized to this role…</p>",
   "title": "Job Title",
   "company": "Company Name",
   "description": "<p>Job description</p>",
   "responsibilities": "<ul><li>Task 1</li></ul>",
   "required_qualifications": "<ul><li>Qual 1</li></ul>",
-  "additional_info": "<p><strong>How to Apply:</strong> Send your CV to careers@company.com.</p><h3>Show ISO Discipline On Paper Before You Walk Into QA</h3><p>Quality roles get flooded with vague 'attention to detail' claims. Hiring teams for this kind of post want proof you can catch defects, document findings, and hold a line under production pressure.</p><p><strong>1. Short tip title:</strong> Three to five meaty sentences customized to this role…</p>",
   "employment_types": ["FULL_TIME"],
   "job_location_types": ["ON_SITE"],
   "job_location_country": "Kenya",

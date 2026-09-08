@@ -156,7 +156,7 @@ const tatuParsed = await parseScrapedJobContent(
     tagsHint: 'City Management Department',
     jobFunctionHint: 'City Management Department',
   },
-  { industryNames: industryList, jobFunctionNames: functions }
+  { industryNames: industryList, jobFunctionNames: functions, attachCareerTips: false }
 )
 assert.equal(tatuParsed.industry, 'Building, Construction & Real Estate')
 assert.equal(tatuParsed.job_function, 'Community & Social Services')

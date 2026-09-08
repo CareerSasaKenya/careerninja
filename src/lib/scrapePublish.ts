@@ -22,7 +22,7 @@ import { ensureCompanyForJob } from './ensureCompanyForJob'
 import { inferCompanyIndustry } from './companyIndustryInference'
 import { companyProfileToEnsureInput, type JobBoardCompanyProfile } from './jobBoardCompany'
 import { sanitizeAdditionalInfoApplyCopy } from './applyInstructionsCopy'
-import { ensureCareerTipsHtml } from './careerTips'
+import { requireCareerTipsHtml, hasGeneratedCareerTips } from './careerTips'
 import { isMissingOrLabelOnlyQualifications } from './experienceLevelLabel'
 import { applyKenyanSalaryEstimateIfMissing, isMissingSalaryEstimatedColumnError, withoutSalaryEstimatedFlag } from './kenyanSalaryEstimate'
 import { revalidatePublicJobSurfaces } from './revalidatePublic'
@@ -183,6 +183,7 @@ export async function publishScrapedJob(
       : await parseScrapedJobContent(parseInput, {
           industryNames,
           jobFunctionNames,
+          attachCareerTips: true,
         })
 
     const deadline = resolveScrapedDeadline(
@@ -276,21 +277,27 @@ export async function publishScrapedJob(
         if (normQ && !isMissingOrLabelOnlyQualifications(normQ)) return normQ
         return null
       })(),
-      additional_info: await ensureCareerTipsHtml(
-        sanitizeAdditionalInfoApplyCopy(parsed.additional_info || null, {
-          apply_email: normalized.apply_email || parsed.apply_email || null,
-          apply_link: normalized.apply_link?.trim() || parsed.apply_link || null,
-          application_url: applicationUrl,
-        }),
-        {
-          title: normalized.title,
-          company: dedupCompany,
-          description: parsed.description || normalized.description,
-          responsibilities: parsed.responsibilities || normalized.responsibilities,
-          qualifications:
-            parsed.required_qualifications || normalized.required_qualifications,
+      additional_info: await (async () => {
+        const withTips = await requireCareerTipsHtml(
+          sanitizeAdditionalInfoApplyCopy(parsed.additional_info || null, {
+            apply_email: normalized.apply_email || parsed.apply_email || null,
+            apply_link: normalized.apply_link?.trim() || parsed.apply_link || null,
+            application_url: applicationUrl,
+          }),
+          {
+            title: normalized.title,
+            company: dedupCompany,
+            description: parsed.description || normalized.description,
+            responsibilities: parsed.responsibilities || normalized.responsibilities,
+            qualifications:
+              parsed.required_qualifications || normalized.required_qualifications,
+          }
+        )
+        if (!hasGeneratedCareerTips(withTips)) {
+          throw new Error('Career tips generation failed; will retry')
         }
-      ),
+        return withTips
+      })(),
       company_id: companyId,
       user_id: scraperUserId,
       hiring_organization_name: dedupCompany,
