@@ -10,15 +10,101 @@ import { SupabaseClient } from '@supabase/supabase-js'
  */
 export const STALE_PROCESSING_MS = 5 * 60 * 1000
 
+/** Process tries per scrape_queue row before it is moved to `failed`. */
+export const MAX_SCRAPE_ATTEMPTS = 3
+
+export const EXHAUSTED_SCRAPE_ATTEMPTS_MESSAGE = `Failed after ${MAX_SCRAPE_ATTEMPTS} publish attempts`
+
+export function isScrapeAttemptsExhausted(attempts: number | null | undefined): boolean {
+  return (attempts || 0) >= MAX_SCRAPE_ATTEMPTS
+}
+
+/**
+ * Status after a process try fails. Attempts are incremented on pick, so
+ * `previousAttempts` is the value before that increment.
+ */
+export function nextStatusAfterFailedScrapeAttempt(
+  previousAttempts: number | null | undefined,
+  permanent = false
+): { attempts: number; status: 'pending' | 'failed' } {
+  const attempts = (previousAttempts || 0) + 1
+  return {
+    attempts,
+    status: permanent || attempts >= MAX_SCRAPE_ATTEMPTS ? 'failed' : 'pending',
+  }
+}
+
+/** Stuck `processing` rows that already used their 3 tries go to `failed`. */
+export function reclaimStuckItemStatus(
+  attempts: number | null | undefined
+): 'pending' | 'failed' {
+  return isScrapeAttemptsExhausted(attempts) ? 'failed' : 'pending'
+}
+
 /**
  * Items left in `processing` after a killed Vercel invocation never get
- * picked again (picker only reads `pending`). Reclaim stale ones.
+ * picked again (picker only reads `pending`). Reclaim stale ones that still
+ * have tries left; rows that already hit MAX_SCRAPE_ATTEMPTS go to `failed`.
  */
 export async function reclaimStuckScrapeQueueItems(
   supabase: SupabaseClient,
   olderThanMs: number = STALE_PROCESSING_MS
 ): Promise<number> {
   const cutoff = new Date(Date.now() - olderThanMs).toISOString()
+
+  const { data: exhaustedStamped, error: exhaustedStampedError } = await supabase
+    .from('scrape_queue')
+    .update({
+      status: 'failed',
+      error_message: EXHAUSTED_SCRAPE_ATTEMPTS_MESSAGE,
+    })
+    .eq('status', 'processing')
+    .gte('attempts', MAX_SCRAPE_ATTEMPTS)
+    .lt('processed_at', cutoff)
+    .select('id')
+
+  if (exhaustedStampedError) {
+    console.error(
+      '[scrape-queue] Failed to fail exhausted stuck items:',
+      exhaustedStampedError.message
+    )
+  }
+
+  const { data: exhaustedUnstamped, error: exhaustedUnstampedError } = await supabase
+    .from('scrape_queue')
+    .update({
+      status: 'failed',
+      error_message: EXHAUSTED_SCRAPE_ATTEMPTS_MESSAGE,
+    })
+    .eq('status', 'processing')
+    .gte('attempts', MAX_SCRAPE_ATTEMPTS)
+    .is('processed_at', null)
+    .select('id')
+
+  if (exhaustedUnstampedError) {
+    console.error(
+      '[scrape-queue] Failed to fail exhausted unstamped items:',
+      exhaustedUnstampedError.message
+    )
+  }
+
+  const { data: exhaustedPending, error: exhaustedPendingError } = await supabase
+    .from('scrape_queue')
+    .update({
+      status: 'failed',
+      error_message: EXHAUSTED_SCRAPE_ATTEMPTS_MESSAGE,
+    })
+    .eq('status', 'pending')
+    .gte('attempts', MAX_SCRAPE_ATTEMPTS)
+    .select('id')
+
+  if (exhaustedPendingError) {
+    console.error(
+      '[scrape-queue] Failed to fail exhausted pending items:',
+      exhaustedPendingError.message
+    )
+  }
+
   const { data: stamped, error: stampedError } = await supabase
     .from('scrape_queue')
     .update({
@@ -48,7 +134,13 @@ export async function reclaimStuckScrapeQueueItems(
     console.error('[scrape-queue] Failed to reclaim unstamped items:', unstampedError.message)
   }
 
-  return (stamped?.length || 0) + (unstamped?.length || 0)
+  return (
+    (exhaustedStamped?.length || 0) +
+    (exhaustedUnstamped?.length || 0) +
+    (exhaustedPending?.length || 0) +
+    (stamped?.length || 0) +
+    (unstamped?.length || 0)
+  )
 }
 
 export interface QueueStatusCounts {

@@ -86,9 +86,16 @@ import { isMissingOrLabelOnlyQualifications } from '@/lib/experienceLevelLabel'
 import { applyKenyanSalaryEstimateIfMissing, isMissingSalaryEstimatedColumnError, withoutSalaryEstimatedFlag } from '@/lib/kenyanSalaryEstimate'
 import { revalidatePublicJobSurfaces } from '@/lib/revalidatePublic'
 import type { WorkableJobDetail } from '@/lib/workable-adapter'
-import { reclaimStuckScrapeQueueItems, STALE_PROCESSING_MS } from '@/lib/scrapeQueueStats'
+import {
+  EXHAUSTED_SCRAPE_ATTEMPTS_MESSAGE,
+  isScrapeAttemptsExhausted,
+  MAX_SCRAPE_ATTEMPTS,
+  nextStatusAfterFailedScrapeAttempt,
+  reclaimStuckScrapeQueueItems,
+  STALE_PROCESSING_MS,
+} from '@/lib/scrapeQueueStats'
 
-export { reclaimStuckScrapeQueueItems }
+export { reclaimStuckScrapeQueueItems, MAX_SCRAPE_ATTEMPTS }
 
 export type ScrapeProcessResult = Record<string, unknown>
 
@@ -114,6 +121,24 @@ export async function runScrapeProcessOne(
 
   if (!queueItem) {
     return { message: 'No pending jobs in queue', processed: 0 }
+  }
+
+  if (isScrapeAttemptsExhausted(queueItem.attempts)) {
+    await supabase
+      .from('scrape_queue')
+      .update({
+        status: 'failed',
+        processed_at: new Date().toISOString(),
+        error_message: queueItem.error_message || EXHAUSTED_SCRAPE_ATTEMPTS_MESSAGE,
+      })
+      .eq('id', queueItem.id)
+    return {
+      success: false,
+      processed: 1,
+      error: EXHAUSTED_SCRAPE_ATTEMPTS_MESSAGE,
+      failed_permanent: true,
+      job_url: queueItem.job_url,
+    }
   }
 
   await supabase
@@ -893,7 +918,6 @@ export async function runScrapeProcessOne(
           : String(err)
     console.error('[process] Error:', queueItem.job_url, message)
 
-    const attempts = (queueItem.attempts || 0) + 1
     // Permanent failures (gone postings, unparseable URLs, missing PDF worker
     // on the runtime) — don't retry and don't block the rest of the queue.
     const permanent =
@@ -906,7 +930,10 @@ export async function runScrapeProcessOne(
       /Cannot find module.*pdfjs/i.test(message) ||
       /returned HTML, not a PDF/i.test(message) ||
       /did not return PDF bytes/i.test(message)
-    const newStatus = permanent || attempts >= 3 ? 'failed' : 'pending'
+    const { attempts, status: newStatus } = nextStatusAfterFailedScrapeAttempt(
+      queueItem.attempts,
+      permanent
+    )
 
     await supabase
       .from('scrape_queue')
@@ -917,7 +944,7 @@ export async function runScrapeProcessOne(
     return {
       error: message,
       processed: 1,
-      failed_permanent: permanent || attempts >= 3,
+      failed_permanent: newStatus === 'failed',
       job_url: queueItem.job_url,
     }
   }
