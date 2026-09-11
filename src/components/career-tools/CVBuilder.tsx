@@ -36,6 +36,7 @@ import { PriceTag } from '@/components/payments/PriceTag';
 import { usePricingCatalog } from '@/hooks/usePricingCatalog';
 import { productForTemplateName, quoteProductPrice } from '@/lib/pricing';
 import { loadPurchasedSkus } from '@/lib/pricing/purchases';
+import { deliverCvToProfile, postCvActivity } from '@/lib/cvActivityClient';
 
 const TEMPLATE_SECTIONS = [
   {
@@ -175,6 +176,8 @@ export default function CVBuilder({
         is_primary: cvs.length === 0
       });
 
+      void deliverCvToProfile({ cvId: newCV.id, action: 'chosen' });
+
       setCvs([newCV, ...cvs]);
       setIsCreating(false);
       toast({
@@ -243,6 +246,7 @@ export default function CVBuilder({
       });
 
       setCvs([newCV, ...cvs]);
+      void deliverCvToProfile({ cvId: newCV.id, action: 'chosen' });
       toast({
         title: 'Success',
         description: 'CV duplicated successfully'
@@ -308,6 +312,12 @@ export default function CVBuilder({
   function handleTemplateClick(template: CVTemplate) {
     const product = productForTemplateName('cv_template', template.name, products);
     const quote = product ? quoteProductPrice(product, offers) : null;
+    void postCvActivity({
+      action: 'chosen',
+      sku: product?.sku,
+      templateId: template.id,
+      templateName: template.name,
+    });
     if (quote && product && quote.amount > 0 && !purchasedSkus.has(product.sku)) {
       setCheckout({
         sku: product.sku,
@@ -345,6 +355,12 @@ export default function CVBuilder({
       setCvs([newCV, ...cvs]);
       setSelectedCV(newCV);
       setIsEditing(true);
+      void deliverCvToProfile({
+        cvId: newCV.id,
+        action: 'chosen',
+        sku: productForTemplateName('cv_template', selectedTemplate.name, products)?.sku,
+        templateName: selectedTemplate.name,
+      });
       
       toast({
         title: 'Success',
@@ -411,6 +427,12 @@ export default function CVBuilder({
       setCvs([newCV, ...cvs]);
       setSelectedCV(newCV);
       setIsEditing(true);
+      void deliverCvToProfile({
+        cvId: newCV.id,
+        action: 'uploaded',
+        sku: productForTemplateName('cv_template', selectedTemplate.name, products)?.sku,
+        templateName: selectedTemplate.name,
+      });
       
       toast({
         title: 'Success',

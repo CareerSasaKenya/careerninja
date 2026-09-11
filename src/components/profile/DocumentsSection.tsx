@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { FileText, Upload, Trash2, Download, Star, Loader2, CheckCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import CVParseDialog from './CVParseDialog';
+import type { ProfileCareerCv } from '@/hooks/useProfile';
 
 interface Document {
   id: string;
@@ -22,16 +24,18 @@ interface Document {
   is_primary: boolean;
   is_active: boolean;
   uploaded_at: string;
+  candidate_cv_id?: string | null;
 }
 
 interface DocumentsSectionProps {
   candidateId: string;
   documents: Document[];
+  careerCvs?: ProfileCareerCv[];
   onUpdate: () => void;
   onCVParsed?: (parsedData: any) => void;
 }
 
-export default function DocumentsSection({ candidateId, documents, onUpdate, onCVParsed }: DocumentsSectionProps) {
+export default function DocumentsSection({ candidateId, documents, careerCvs = [], onUpdate, onCVParsed }: DocumentsSectionProps) {
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -425,6 +429,9 @@ export default function DocumentsSection({ candidateId, documents, onUpdate, onC
                             Primary
                           </Badge>
                         )}
+                        {doc.candidate_cv_id && (
+                          <Badge variant="outline">Career Tools</Badge>
+                        )}
                       </div>
                       <div className="flex items-center gap-3 text-xs text-muted-foreground">
                         <span className="capitalize">{doc.document_type.replace('_', ' ')}</span>
@@ -469,6 +476,55 @@ export default function DocumentsSection({ candidateId, documents, onUpdate, onC
             </div>
           )}
         </div>
+
+        {careerCvs.length > 0 && (
+          <div className="space-y-3 pt-4 border-t">
+            <h3 className="font-medium">Career Tools CVs</h3>
+            <p className="text-sm text-muted-foreground">
+              CVs you built or uploaded in Career Tools are stored on your profile and emailed to you after purchase.
+            </p>
+            <div className="space-y-2">
+              {careerCvs.map((cv) => (
+                <div
+                  key={cv.id}
+                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <FileText className="h-5 w-5 text-primary" />
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium truncate">{cv.title}</p>
+                        {cv.is_primary && (
+                          <Badge variant="secondary">Primary</Badge>
+                        )}
+                      </div>
+                      {cv.updated_at && (
+                        <p className="text-xs text-muted-foreground">
+                          Updated {formatDate(cv.updated_at)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {cv.file_url && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => window.open(cv.file_url as string, '_blank')}
+                        title="Download"
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href={`/dashboard/career-tools?cvId=${cv.id}`}>Edit</Link>
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
     </>
