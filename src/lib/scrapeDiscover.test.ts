@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import {
   summarizeDiscoverResults,
   shouldAbortAfterConsecutiveFailures,
+  scrapeQueueRowIsKnownToDiscover,
   DiscoverSourceResult,
 } from './scrapeDiscover'
 
@@ -88,5 +89,14 @@ assert.equal(shouldAbortAfterConsecutiveFailures(10, 0, 0), false) // disabled
   ])
   assert.match(summary.error_summary || '', /\+1 more/)
 }
+
+assert.equal(
+  scrapeQueueRowIsKnownToDiscover('failed'),
+  true,
+  'failed jobs stay failed — Discover must not reset attempts and retry'
+)
+assert.equal(scrapeQueueRowIsKnownToDiscover('pending'), true)
+assert.equal(scrapeQueueRowIsKnownToDiscover('processing'), true)
+assert.equal(scrapeQueueRowIsKnownToDiscover('done'), true)
 
 console.log('scrapeDiscover.test.ts: all assertions passed')
