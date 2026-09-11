@@ -7,6 +7,7 @@ import {
   quoteProductPrice,
 } from './discount';
 import { mergeProductsWithDefaults, parseMpesaSettings, toPublicMpesaSettings } from './catalog';
+import { unpaidTemplateUnlock, templateUnlockDescription } from './templateAccess';
 import type { CatalogCoupon, CatalogOffer, CatalogProduct } from './types';
 
 function testDefaultCatalogCoverage() {
@@ -141,12 +142,65 @@ function testMpesaSettingsParse() {
   console.log('✓ mpesa settings parse');
 }
 
+function testUnpaidTemplateUnlock() {
+  const empty = new Set<string>();
+  const classic = unpaidTemplateUnlock(
+    'cv_template',
+    'Classic Professional',
+    DEFAULT_PRODUCTS,
+    [],
+    empty,
+  );
+  assert.ok(classic, 'priced CV template should require payment until purchased');
+  assert.equal(classic.sku, 'template.cv.classic-professional');
+  assert.ok(classic.amount > 0);
+
+  const owned = unpaidTemplateUnlock(
+    'cv_template',
+    'Classic Professional',
+    DEFAULT_PRODUCTS,
+    [],
+    new Set(['template.cv.classic-professional']),
+  );
+  assert.equal(owned, null);
+
+  const letter = unpaidTemplateUnlock(
+    'cover_letter_template',
+    'Classic Professional Cover Letter',
+    DEFAULT_PRODUCTS,
+    [],
+    empty,
+  );
+  assert.ok(letter, 'priced cover letter should require payment until purchased');
+  assert.equal(letter.kind, 'cover_letter_template');
+
+  const unknown = unpaidTemplateUnlock('cv_template', 'Not A Real Template', DEFAULT_PRODUCTS, [], empty);
+  assert.equal(unknown, null);
+
+  const freeProduct: CatalogProduct = {
+    ...DEFAULT_PRODUCTS[0],
+    sku: 'template.cv.free-preview',
+    kind: 'cv_template',
+    name: 'Free Preview',
+    price_kes: 0,
+    metadata: { templateName: 'Free Preview' },
+  };
+  assert.equal(
+    unpaidTemplateUnlock('cv_template', 'Free Preview', [freeProduct], [], empty),
+    null,
+  );
+  assert.match(templateUnlockDescription('cv_template'), /download, share, or apply/i);
+  assert.match(templateUnlockDescription('cover_letter_template'), /download or use/i);
+  console.log('✓ unpaid template unlock is delayed until download/use');
+}
+
 function main() {
   testDefaultCatalogCoverage();
   testDiscountMath();
   testQuoteWithOfferAndCoupon();
   testMergeOverlay();
   testMpesaSettingsParse();
+  testUnpaidTemplateUnlock();
   console.log('All pricing unit tests passed');
 }
 

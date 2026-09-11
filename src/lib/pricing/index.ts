@@ -54,3 +54,9 @@ export {
   recordCouponRedemption,
   ensureProductsSeeded,
 } from './catalog';
+
+export {
+  unpaidTemplateUnlock,
+  templateUnlockDescription,
+} from './templateAccess';
+export type { TemplateProductKind, TemplateUnlock } from './templateAccess';

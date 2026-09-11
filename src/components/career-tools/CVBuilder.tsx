@@ -31,11 +31,9 @@ import {
 import { targetingHeadline } from '@/lib/jobTargeting';
 import { getTemplateDefaultContent } from '@/data/templateDefaultContent';
 import { designFromTemplateData } from '@/lib/cvDesign';
-import { MpesaCheckoutDialog } from '@/components/payments/MpesaCheckoutDialog';
 import { PriceTag } from '@/components/payments/PriceTag';
-import { usePricingCatalog } from '@/hooks/usePricingCatalog';
 import { productForTemplateName, quoteProductPrice } from '@/lib/pricing';
-import { loadPurchasedSkus } from '@/lib/pricing/purchases';
+import { TemplateUnlockDialog, useTemplateUnlock } from '@/hooks/useTemplateUnlock';
 
 const TEMPLATE_SECTIONS = [
   {
@@ -79,17 +77,19 @@ export default function CVBuilder({
   const [switchTemplateCV, setSwitchTemplateCV] = useState<CandidateCV | null>(null);
   const [isSwitchingTemplate, setIsSwitchingTemplate] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [purchasedSkus, setPurchasedSkus] = useState<Set<string>>(new Set());
-  const [checkout, setCheckout] = useState<{
-    sku: string;
-    title: string;
-    amount: number;
-    template: CVTemplate;
-  } | null>(null);
   const autoOpenedRef = useRef(false);
   const { toast } = useToast();
   const router = useRouter();
-  const { products, offers } = usePricingCatalog();
+  const {
+    products,
+    offers,
+    purchasedSkus,
+    refreshPurchases,
+    requireUnlock,
+    checkout,
+    setCheckout,
+    handlePaid,
+  } = useTemplateUnlock();
 
   useEffect(() => {
     loadData();
@@ -135,7 +135,7 @@ export default function CVBuilder({
       if (user) {
         const cvsData = await getUserCVs(user.id);
         setCvs(cvsData);
-        setPurchasedSkus(await loadPurchasedSkus(user.id));
+        await refreshPurchases(user.id);
       } else {
         setCvs([]);
       }
@@ -281,6 +281,8 @@ export default function CVBuilder({
   }
 
   function handleDownload(cv: CandidateCV) {
+    const templateName = getTemplateName(cv.template_id);
+    if (requireUnlock('cv_template', templateName, () => handleDownload(cv))) return;
     setDownloadCV(cv);
     setIsDownloading(true);
   }
@@ -306,17 +308,6 @@ export default function CVBuilder({
   }
 
   function handleTemplateClick(template: CVTemplate) {
-    const product = productForTemplateName('cv_template', template.name, products);
-    const quote = product ? quoteProductPrice(product, offers) : null;
-    if (quote && product && quote.amount > 0 && !purchasedSkus.has(product.sku)) {
-      setCheckout({
-        sku: product.sku,
-        title: template.name,
-        amount: quote.amount,
-        template,
-      });
-      return;
-    }
     setSelectedTemplate(template);
     setShowTemplateDialog(true);
   }
@@ -463,7 +454,7 @@ export default function CVBuilder({
               <PriceTag
                 amount={quote.amount}
                 compareAt={quote.compareAtPrice}
-                badge={purchasedSkus.has(product!.sku) ? 'Purchased' : quote.offer?.badge_text}
+                badge={purchasedSkus.has(product!.sku) ? 'Purchased' : quote.offer?.badge_text || 'Pay to download'}
                 className="items-start"
               />
             );
@@ -497,7 +488,7 @@ export default function CVBuilder({
           CV Templates
         </h2>
         <p className="text-sm text-muted-foreground max-w-2xl">
-          ATS-friendly designs for the Kenyan job market. Pick a template to start building.
+          ATS-friendly designs for the Kenyan job market. Build and preview for free — pay when you download, share, or apply.
         </p>
       </div>
 
@@ -614,7 +605,14 @@ export default function CVBuilder({
                       <Copy className="h-4 w-4 mr-1" />
                       Copy
                     </Button>
-                    <CVShareControls cv={cv} onUpdated={handleCvUpdated} />
+                    <CVShareControls
+                      cv={cv}
+                      onUpdated={handleCvUpdated}
+                      onBeforeShare={(proceed) => {
+                        const templateName = getTemplateName(cv.template_id);
+                        return !requireUnlock('cv_template', templateName, proceed);
+                      }}
+                    />
                     <Button size="sm" variant="destructive" onClick={() => handleDeleteCV(cv.id)}>
                       <Trash2 className="h-4 w-4 mr-1" />
                       Delete
@@ -749,25 +747,13 @@ export default function CVBuilder({
         </DialogContent>
       </Dialog>
 
-      {checkout && (
-        <MpesaCheckoutDialog
-          open={!!checkout}
-          onOpenChange={(open) => {
-            if (!open) setCheckout(null);
-          }}
-          title={checkout.title}
-          description="Pay with M-Pesa to unlock this CV template."
-          amount={checkout.amount}
-          sku={checkout.sku}
-          onSuccess={async () => {
-            const template = checkout.template;
-            setPurchasedSkus((prev) => new Set(prev).add(checkout.sku));
-            setCheckout(null);
-            setSelectedTemplate(template);
-            setShowTemplateDialog(true);
-          }}
-        />
-      )}
+      <TemplateUnlockDialog
+        checkout={checkout}
+        onOpenChange={(open) => {
+          if (!open) setCheckout(null);
+        }}
+        onSuccess={handlePaid}
+      />
     </div>
   );
 }

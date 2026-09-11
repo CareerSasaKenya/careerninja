@@ -11,9 +11,12 @@ import type { CandidateCV } from '@/lib/careerTools';
 export default function CVShareControls({
   cv,
   onUpdated,
+  onBeforeShare,
 }: {
   cv: CandidateCV;
   onUpdated: (cv: CandidateCV) => void;
+  /** Return false to delay sharing (e.g. wait for payment). Call proceed after unlock. */
+  onBeforeShare?: (proceed: () => void) => boolean;
 }) {
   const { toast } = useToast();
   const [busy, setBusy] = useState(false);
@@ -28,17 +31,22 @@ export default function CVShareControls({
   };
 
   const handleShare = async () => {
-    try {
-      setBusy(true);
-      const updated = await enableCvSharing(cv.id, cv.share_token);
-      onUpdated(updated);
-      if (updated.share_token) await copyLink(updated.share_token);
-      toast({ title: 'Link copied', description: 'Anyone with the link can view this CV.' });
-    } catch (error: any) {
-      toast({ title: 'Could not share', description: error.message, variant: 'destructive' });
-    } finally {
-      setBusy(false);
-    }
+    const proceed = async () => {
+      try {
+        setBusy(true);
+        const updated = await enableCvSharing(cv.id, cv.share_token);
+        onUpdated(updated);
+        if (updated.share_token) await copyLink(updated.share_token);
+        toast({ title: 'Link copied', description: 'Anyone with the link can view this CV.' });
+      } catch (error: any) {
+        toast({ title: 'Could not share', description: error.message, variant: 'destructive' });
+      } finally {
+        setBusy(false);
+      }
+    };
+
+    if (onBeforeShare && !onBeforeShare(() => { void proceed(); })) return;
+    await proceed();
   };
 
   const handleStop = async () => {
