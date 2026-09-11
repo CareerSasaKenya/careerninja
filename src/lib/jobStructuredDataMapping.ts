@@ -277,21 +277,29 @@ export function resolveApplicantLocationRequirements(job: JobForSchema) {
   }
 }
 
-/** A valid ISO date only when we actually know it — never fabricate. */
-export function resolveDatePosted(job: JobForSchema): string | undefined {
-  if (!job.date_posted) return undefined
-  const d = new Date(job.date_posted)
+function parseIsoDate(value?: string | null): string | undefined {
+  if (!value?.trim()) return undefined
+  const d = new Date(value)
   if (Number.isNaN(d.getTime())) return undefined
   return d.toISOString()
 }
 
+/**
+ * Google requires JobPosting.datePosted. Prefer the employer/board posting
+ * date; fall back to created_at (when CareerSasa published the listing) and
+ * then posted_date. Never invent the current time at render.
+ */
+export function resolveDatePosted(job: JobForSchema): string | undefined {
+  return (
+    parseIsoDate(job.date_posted) ||
+    parseIsoDate(job.created_at) ||
+    parseIsoDate(job.posted_date)
+  )
+}
+
 /** Emit validThrough only when the job has a real deadline. */
 export function resolveValidThrough(job: JobForSchema): string | undefined {
-  const source = job.valid_through || job.expires_at
-  if (!source) return undefined
-  const d = new Date(source)
-  if (Number.isNaN(d.getTime())) return undefined
-  return d.toISOString()
+  return parseIsoDate(job.valid_through) || parseIsoDate(job.expires_at)
 }
 
 /**

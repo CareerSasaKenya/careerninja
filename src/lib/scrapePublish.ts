@@ -3,7 +3,7 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js'
-import { NormalizedJob, generateContentHash } from './scraper'
+import { NormalizedJob, generateContentHash, datePostedForInsert } from './scraper'
 import { mapEducationLevel } from './jobMetadataExtraction'
 import { limitTags } from './jobParseNormalization'
 import {
@@ -262,12 +262,11 @@ export async function publishScrapedJob(
 
     // date_posted: keep the source board's original publication date when the
     // adapter parsed one (Google requires the original employer posting date).
-    // When the board date is missing, fall back to the DB default (created_at).
+    // When the board date is missing, write publish time — never NULL. Spreading
+    // `date_posted: null` from adapters would skip the column DEFAULT.
     const jobPayload = {
       ...normalized,
-      ...(normalized.date_posted
-        ? { date_posted: normalized.date_posted }
-        : {}),
+      date_posted: datePostedForInsert(normalized.date_posted),
       description: parsed.description || normalized.description,
       responsibilities: parsed.responsibilities || normalized.responsibilities || null,
       required_qualifications: (() => {

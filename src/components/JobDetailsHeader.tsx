@@ -26,6 +26,7 @@ type JobDetailsHeaderProps = {
     company: string | null;
     location: string | null;
     date_posted?: string | null;
+    created_at?: string | null;
     valid_through?: string | null;
     is_featured?: boolean | null;
     is_promoted?: boolean | null;
@@ -103,12 +104,11 @@ export default function JobDetailsHeader({
     isRemote: !!isRemote,
   });
 
-  const postedRel = jobPostedLabel(job.date_posted);
+  const postedAt = job.date_posted || job.created_at;
+  const postedRel = jobPostedLabel(postedAt);
   const postedValue =
     postedRel ||
-    (job.date_posted
-      ? formatDeadlineDate(job.date_posted)
-      : null);
+    (postedAt ? formatDeadlineDate(postedAt) : null);
   const deadlineValue = formatDeadlineDate(job.valid_through);
   const deadlineDate = job.valid_through ? new Date(job.valid_through) : null;
   const isExpired = deadlineDate ? deadlineDate.getTime() < Date.now() : false;
