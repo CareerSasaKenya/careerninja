@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,6 +34,7 @@ import {
 } from "@/lib/applyDocuments";
 import { letterPlaintextForApply } from "@/lib/coverLetterExport";
 import { ensureCareerCvApplicationFile } from "@/lib/exportCareerCv";
+import { TemplateUnlockDialog, useTemplateUnlock } from "@/hooks/useTemplateUnlock";
 
 interface ApplySectionProps {
   job: any;
@@ -67,6 +68,14 @@ export default function ApplySection({
   const [selectedLetterId, setSelectedLetterId] = useState('none');
   const [loadingBuilderDocs, setLoadingBuilderDocs] = useState(true);
   const [builderSignedIn, setBuilderSignedIn] = useState(false);
+  const applyFormRef = useRef<HTMLFormElement>(null);
+  const {
+    refreshPurchases,
+    requireUnlock,
+    checkout,
+    setCheckout,
+    handlePaid,
+  } = useTemplateUnlock();
 
   useEffect(() => {
     let cancelled = false;
@@ -89,6 +98,7 @@ export default function ApplySection({
           getUserCVs(user.id),
           getUserCoverLetters(user.id),
         ]);
+        await refreshPurchases(user.id);
         if (cancelled) return;
         setBuilderCvs(cvs);
         setBuilderLetters(sortLettersForJob(letters, job.id));
@@ -208,6 +218,17 @@ export default function ApplySection({
         }
         const templateName = cvTemplates.find((t) => t.id === selectedCv.template_id)?.name
           || 'Classic Professional';
+        const resumeApply = () => applyFormRef.current?.requestSubmit();
+        if (requireUnlock('cv_template', templateName, resumeApply)) return;
+
+        if (selectedLetterId !== 'none') {
+          const selectedLetter = builderLetters.find((l) => l.id === selectedLetterId);
+          const letterTemplateName = selectedLetter?.content_json?.templateName;
+          if (letterTemplateName && requireUnlock('cover_letter_template', letterTemplateName, resumeApply)) {
+            return;
+          }
+        }
+
         const exported = await ensureCareerCvApplicationFile(user.id, selectedCv, templateName);
         cvFileUrl = exported.url;
         cvFileName = exported.name;
@@ -463,7 +484,7 @@ export default function ApplySection({
               <div className="h-px flex-1 bg-border" />
             </div>
             
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form ref={applyFormRef} onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="yearsExp">Years of experience</Label>
                 <Input 
@@ -561,6 +582,9 @@ export default function ApplySection({
                     </div>
                   ) : (
                     <>
+                      <p className="text-xs text-muted-foreground">
+                        Build and preview templates for free. You&apos;ll be asked to pay only when you apply with one you haven&apos;t unlocked.
+                      </p>
                       <div className="space-y-2">
                         <Label>Career Tools CV</Label>
                         <Select value={selectedCvId} onValueChange={setSelectedCvId}>
@@ -720,14 +744,27 @@ export default function ApplySection({
     </div>
   );
 
-  if (embedded) return formBody;
+  const applyChrome = (
+    <>
+      {formBody}
+      <TemplateUnlockDialog
+        checkout={checkout}
+        onOpenChange={(open) => {
+          if (!open) setCheckout(null);
+        }}
+        onSuccess={handlePaid}
+      />
+    </>
+  );
+
+  if (embedded) return applyChrome;
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-lg text-[#0A66C2]">Apply for this Job</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">{formBody}</CardContent>
+      <CardContent className="space-y-4">{applyChrome}</CardContent>
     </Card>
   );
 }
