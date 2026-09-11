@@ -5,7 +5,7 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js'
-import { fetchHtml, extractJobDetails, normalizeJob, ScraperSelectors } from '@/lib/scraper'
+import { fetchHtml, extractJobDetails, normalizeJob, ScraperSelectors, datePostedForInsert } from '@/lib/scraper'
 import {
   fetchWorkableJobDetails,
   normalizeWorkableJob,
@@ -777,12 +777,11 @@ export async function runScrapeProcessOne(
 
     // date_posted: keep the source board's original publication date when the
     // adapter parsed one (Google requires the original employer posting date).
-    // When the board date is missing, fall back to the DB default (created_at).
+    // When the board date is missing, write publish time — never NULL. Spreading
+    // `date_posted: null` from adapters would skip the column DEFAULT.
     const jobPayload = {
       ...normalized,
-      ...(normalized.date_posted
-        ? { date_posted: normalized.date_posted }
-        : {}),
+      date_posted: datePostedForInsert(normalized.date_posted),
       description: rewriteBoardHtml(rawDescription) || rawDescription,
       responsibilities: rewriteBoardHtml(
         parsed.responsibilities || normalized.responsibilities || null

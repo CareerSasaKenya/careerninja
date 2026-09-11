@@ -64,9 +64,9 @@ export interface NormalizedJob {
   apply_email?: string | null
   valid_through: string | null
   /**
-   * Source board publish time (ISO). Retained on the normalized payload for
-   * reference/diagnostics only — it is NOT written to jobs.date_posted, which
-   * stays at the CareerSasa add/publish time (DB default now()).
+   * Source board publish time (ISO). Written to jobs.date_posted when present.
+   * When missing, publish uses the CareerSasa insert time — never NULL, because
+   * Google JobPosting requires datePosted.
    */
   date_posted?: string | null
   salary_min: number | null
@@ -90,6 +90,19 @@ export function coerceDatePosted(value: string | null | undefined): string | nul
   if (!Number.isNaN(parsed.getTime())) return parsed.toISOString()
   const day = trimmed.match(/^(\d{4}-\d{2}-\d{2})/)
   return day ? `${day[1]}T00:00:00.000Z` : null
+}
+
+/**
+ * Value to write to jobs.date_posted on insert.
+ * Prefer the source board's original datePosted. If that is missing, use the
+ * publish timestamp so we never insert NULL — spreading `date_posted: null`
+ * from adapters skips the column DEFAULT and omits Google's required field.
+ */
+export function datePostedForInsert(
+  boardDate?: string | null,
+  publishedAt: Date = new Date()
+): string {
+  return coerceDatePosted(boardDate) || publishedAt.toISOString()
 }
 
 // ─── Fetch HTML ───────────────────────────────────────────────────────────────

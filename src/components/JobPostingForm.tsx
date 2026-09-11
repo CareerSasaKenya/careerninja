@@ -816,6 +816,12 @@ const JobPostingForm = ({ jobId, isEdit = false, initialData, isParsedData = fal
 
       let savedJobId = jobId || null;
 
+      if (!jobId) {
+        // Google JobPosting requires datePosted. Set it on create so the DB
+        // default is never skipped by a later explicit-null insert path.
+        jobData.date_posted = new Date().toISOString();
+      }
+
       if (jobId) {
         // Update existing job
         const { error } = await supabase

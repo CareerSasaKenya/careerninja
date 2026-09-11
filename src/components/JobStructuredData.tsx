@@ -56,7 +56,14 @@ function resolveBaseSalary(job: JobStructuredDataProps['job']) {
   };
 }
 
-export default function JobStructuredData({ job }: JobStructuredDataProps) {
+export function buildJobPostingJsonLd(
+  job: JobStructuredDataProps['job']
+): Record<string, unknown> | null {
+  const datePosted = resolveDatePosted(job);
+  // datePosted is required by Google JobPosting. Omit the whole block rather
+  // than emit invalid markup (GSC: "Missing field datePosted").
+  if (!datePosted) return null;
+
   const orgName = job.companies?.name || job.company;
   const orgWebsite = resolveCompanyWebsite(
     orgName,
@@ -77,8 +84,8 @@ export default function JobStructuredData({ job }: JobStructuredDataProps) {
       ? job.employment_type
       : undefined;
 
-  // Fail-safe: never fabricate dates/types that are unknown. Google's guidance is
-  // to omit a property when the information is missing rather than invent it.
+  // Fail-safe: never fabricate unknown optional types. datePosted is required,
+  // so it is resolved from date_posted → created_at → posted_date above.
   // No `identifier`: the only ID CareerSasa holds is its internal UUID, which is
   // not the employer's identifier for the job. Google defines identifier as the
   // hiring organization's unique ID, so emitting our UUID would misrepresent it
@@ -88,7 +95,7 @@ export default function JobStructuredData({ job }: JobStructuredDataProps) {
     "@type": "JobPosting",
     "title": job.title,
     "description": job.description || undefined,
-    "datePosted": resolveDatePosted(job),
+    "datePosted": datePosted,
     "validThrough": resolveValidThrough(job),
     "employmentType": employmentType,
     "hiringOrganization": {
@@ -111,12 +118,17 @@ export default function JobStructuredData({ job }: JobStructuredDataProps) {
     "directApply": job.direct_apply === true
   };
 
-  // Remove undefined properties
   const cleanJobData = Object.fromEntries(
     Object.entries(jobData).filter(([_, value]) => value !== undefined)
   );
 
   if (Object.keys(cleanJobData).length <= 2) return null;
+  return cleanJobData;
+}
+
+export default function JobStructuredData({ job }: JobStructuredDataProps) {
+  const cleanJobData = buildJobPostingJsonLd(job);
+  if (!cleanJobData) return null;
 
   // Escape "<" so "</script>" inside job content can never break out of the tag.
   const jsonLd = JSON.stringify(cleanJobData).replace(/</g, "\\u003c");
