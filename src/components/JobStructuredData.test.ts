@@ -101,4 +101,55 @@ assert.equal(
   'does not emit JobPosting when no valid datePosted can be resolved'
 )
 
+const kajiado = liveGscCase.jobLocation as {
+  address: Record<string, string>
+}
+assert.equal(kajiado.address['@type'], 'PostalAddress')
+assert.equal(kajiado.address.addressCountry, 'KE')
+assert.equal(kajiado.address.addressLocality, 'Kajiado')
+assert.equal(kajiado.address.addressRegion, 'Kajiado')
+assert.equal(kajiado.address.streetAddress, 'Kajiado')
+assert.equal(kajiado.address.postalCode, '01100')
+
+const missingDeadline = buildJobPostingJsonLd(
+  job({ valid_through: null, expires_at: null, application_deadline: null })
+)
+assert.equal(
+  missingDeadline?.validThrough,
+  '2026-10-09T08:00:00+00:00',
+  'GSC validThrough: datePosted + 30 days when no employer deadline'
+)
+
+const missingEmployment = buildJobPostingJsonLd(
+  job({ employment_type: null, employment_types: null })
+)
+assert.equal(missingEmployment?.employmentType, 'FULL_TIME')
+
+const salaryRange = liveGscCase.baseSalary as {
+  value: { minValue: number; maxValue: number; value?: number }
+}
+assert.equal(salaryRange.value.minValue, 16000)
+assert.equal(salaryRange.value.maxValue, 30000)
+
+const singleSalary = buildJobPostingJsonLd(
+  job({ salary_min: 80000, salary_max: null })
+)
+const singleValue = singleSalary?.baseSalary as {
+  value: { value: number; maxValue?: number }
+}
+assert.equal(singleValue.value.value, 80000)
+assert.equal(singleValue.value.maxValue, undefined)
+
+const estimatedSalary = buildJobPostingJsonLd(job({ salary_is_estimated: true }))
+assert.equal(
+  estimatedSalary?.baseSalary,
+  undefined,
+  'GSC baseSalary warning is accepted for estimated pay — never emit estimates'
+)
+
+const intern = buildJobPostingJsonLd(
+  job({ title: 'Graduate Intern — Finance', employment_type: null, employment_types: null })
+)
+assert.equal(intern?.employmentType, 'INTERN')
+
 console.log('JobStructuredData.test.ts: all assertions passed')

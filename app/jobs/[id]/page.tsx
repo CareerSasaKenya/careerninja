@@ -30,6 +30,7 @@ import { sanitizeScrapedJobHtmlForDisplay } from "@/lib/jobBoardApply";
 import { sanitizeStockTipsCopy } from "@/lib/sanitizeStockTipsCopy";
 import { resolveJobSalaryDisplay } from "@/lib/kenyanSalaryEstimate";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabaseEnv";
+import { resolveValidThrough } from "@/lib/jobStructuredDataMapping";
 
 function getDisplayLabels(values: string[] | null | undefined, fallback?: string | null): string[] {
   return dedupeStrings(values?.length ? values : fallback ? [fallback] : []);
@@ -65,7 +66,8 @@ async function getJobData(id: string) {
           id,
           name,
           logo,
-          website
+          website,
+          location
         ),
         education_levels (
           id,
@@ -85,7 +87,8 @@ async function getJobData(id: string) {
             id,
             name,
             logo,
-            website
+            website,
+            location
           ),
           education_levels (
             id,
@@ -106,15 +109,19 @@ async function getJobData(id: string) {
   }
 }
 
-function isJobExpired(validThrough?: string | null): boolean {
+function isJobExpiredFromDeadline(validThrough?: string | null): boolean {
   if (!validThrough) return false;
   const deadline = new Date(validThrough);
   if (Number.isNaN(deadline.getTime())) return false;
   return deadline.getTime() < Date.now();
 }
 
-function isJobLive(job: { valid_through?: string | null }): boolean {
-  return !isJobExpired(job.valid_through);
+function isJobLive(job: {
+  valid_through?: string | null
+  date_posted?: string | null
+  created_at?: string | null
+}): boolean {
+  return !isJobExpiredFromDeadline(resolveValidThrough(job));
 }
 
 async function getRelatedJobs(jobId: string, industries?: string[], jobFunctions?: string[]) {
@@ -236,7 +243,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
     job.job_function,
     functionCatalog,
   );
-  const jobExpired = isJobExpired(job.valid_through);
+  const jobExpired = isJobExpiredFromDeadline(resolveValidThrough(job));
   const hasRelatedJobs = relatedJobs && relatedJobs.length > 0;
 
   // Only fix relative MyJobMag /apply-now/ anchors (404 on CareerSasa).
