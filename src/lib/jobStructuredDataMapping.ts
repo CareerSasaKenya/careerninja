@@ -277,29 +277,35 @@ export function resolveApplicantLocationRequirements(job: JobForSchema) {
   }
 }
 
-function parseIsoDate(value?: string | null): string | undefined {
+/**
+ * Google's JobPosting examples use "2017-01-24" or "2017-01-24T19:33:17+00:00".
+ * Normalize to that DateTime form (no milliseconds, explicit UTC offset) so
+ * datePosted is always a parseable ISO 8601 value.
+ */
+export function toGoogleJobPostingDate(value?: string | null): string | undefined {
   if (!value?.trim()) return undefined
   const d = new Date(value)
   if (Number.isNaN(d.getTime())) return undefined
-  return d.toISOString()
+  return d.toISOString().replace(/\.\d{3}Z$/, '+00:00')
 }
 
 /**
  * Google requires JobPosting.datePosted. Prefer the employer/board posting
- * date; fall back to created_at (when CareerSasa published the listing) and
- * then posted_date. Never invent the current time at render.
+ * date; fall back to created_at (when CareerSasa published the listing),
+ * posted_date, then updated_at. Never invent the current time at render.
  */
 export function resolveDatePosted(job: JobForSchema): string | undefined {
   return (
-    parseIsoDate(job.date_posted) ||
-    parseIsoDate(job.created_at) ||
-    parseIsoDate(job.posted_date)
+    toGoogleJobPostingDate(job.date_posted) ||
+    toGoogleJobPostingDate(job.created_at) ||
+    toGoogleJobPostingDate(job.posted_date) ||
+    toGoogleJobPostingDate(job.updated_at)
   )
 }
 
 /** Emit validThrough only when the job has a real deadline. */
 export function resolveValidThrough(job: JobForSchema): string | undefined {
-  return parseIsoDate(job.valid_through) || parseIsoDate(job.expires_at)
+  return toGoogleJobPostingDate(job.valid_through) || toGoogleJobPostingDate(job.expires_at)
 }
 
 /**

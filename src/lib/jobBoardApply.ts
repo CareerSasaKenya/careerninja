@@ -525,6 +525,18 @@ export function rewriteJobBoardDescriptionLinks(
 }
 
 /**
+ * Strip &lt;script&gt; blocks (including JSON-LD) from scraped HTML before it
+ * is rendered. A leftover source-board JobPosting in the body is parsed by
+ * Google as a second item — often without datePosted — which GSC flags as
+ * invalid even when CareerSasa's own JSON-LD is correct.
+ */
+export function stripEmbeddedScripts(html: string): string {
+  return html
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<script\b[^>]*\/?\s*>/gi, '')
+}
+
+/**
  * Display-time fix for scraped job HTML: rewrite relative MyJobMag `/apply-now/`
  * anchors to absolute MyJobMag URLs so they keep the original employer redirect.
  * Does not substitute CareerSasa apply_link / application_url.
@@ -535,12 +547,14 @@ export function sanitizeScrapedJobHtmlForDisplay(
   if (html == null) return ''
   const asString = typeof html === 'string' ? html : String(html)
   if (!asString) return ''
-  if (!/href\s*=/i.test(asString)) return asString
-  if (!/\/apply-now\//i.test(asString) && !/\/(?:jobs-at|job)\//i.test(asString)) {
-    return asString
+  const withoutScripts = stripEmbeddedScripts(asString)
+  if (!withoutScripts) return ''
+  if (!/href\s*=/i.test(withoutScripts)) return withoutScripts
+  if (!/\/apply-now\//i.test(withoutScripts) && !/\/(?:jobs-at|job)\//i.test(withoutScripts)) {
+    return withoutScripts
   }
 
-  return rewriteJobBoardDescriptionLinks(asString, {
+  return rewriteJobBoardDescriptionLinks(withoutScripts, {
     boardOrigin: 'https://www.myjobmag.co.ke',
     boardHosts: ['myjobmag.co.ke'],
   })

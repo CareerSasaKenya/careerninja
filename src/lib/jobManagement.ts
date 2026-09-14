@@ -312,8 +312,12 @@ export async function createJobFromTemplate(templateId: string, overrides?: Part
     tags: template.tags || [],
     custom_fields: template.custom_fields || {},
     status: 'draft',
+    date_posted: new Date().toISOString(),
     ...overrides
   };
+  if (!jobData.date_posted) {
+    jobData.date_posted = new Date().toISOString();
+  }
 
   const { data, error } = await supabase
     .from('jobs')

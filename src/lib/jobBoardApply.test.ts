@@ -266,4 +266,15 @@ assert.ok(
 assert.ok(!/href=["']\/apply-now\//i.test(displaySafe))
 assert.ok(!displaySafe.includes('erecruitment.kra.go.ke/login'))
 
+const embeddedJobPosting = `
+<p>As an Operations Agent you will handle hotel inquiries.</p>
+<script type="application/ld+json">{"@context":"https://schema.org/","@type":"JobPosting","title":"Operation Agent"}</script>
+`
+const stripped = sanitizeScrapedJobHtmlForDisplay(embeddedJobPosting)
+assert.ok(stripped.includes('Operations Agent'))
+assert.ok(
+  !/application\/ld\+json/i.test(stripped) && !/<script/i.test(stripped),
+  'embedded source-board JSON-LD must not reach the page DOM'
+)
+
 console.log('jobBoardApply.test.ts: ok')

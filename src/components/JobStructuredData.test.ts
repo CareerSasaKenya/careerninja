@@ -46,22 +46,54 @@ assert.ok(liveGscCase, 'emits JobPosting when date_posted is null')
 assert.equal(liveGscCase['@type'], 'JobPosting')
 assert.equal(
   liveGscCase.datePosted,
-  '2026-09-09T08:00:00.000Z',
+  '2026-09-09T08:00:00+00:00',
   'datePosted falls back to created_at for the GSC-invalid listing'
 )
 assert.equal(liveGscCase.title, 'Regenerative Market Garden Lead')
+const liveKeys = Object.keys(liveGscCase)
+assert.ok(
+  liveKeys.indexOf('datePosted') < liveKeys.indexOf('description'),
+  'datePosted is emitted before description so it cannot be lost to a partial parse'
+)
 
 const withBoardDate = buildJobPostingJsonLd(
   job({ date_posted: '2026-08-20T10:45:32.000Z' })
 )
 assert.equal(
   withBoardDate?.datePosted,
-  '2026-08-20T10:45:32.000Z',
+  '2026-08-20T10:45:32+00:00',
   'board date_posted is preferred when present'
 )
 
+const operationAgent = buildJobPostingJsonLd(
+  job({
+    title: 'Operation Agent',
+    date_posted: null,
+    created_at: '2026-09-04T19:30:56.328Z',
+  })
+)
+assert.equal(operationAgent?.title, 'Operation Agent')
+assert.equal(
+  operationAgent?.datePosted,
+  '2026-09-04T19:30:56+00:00',
+  'GSC example /jobs/operation-agent always gets datePosted'
+)
+
+const medicalRep = buildJobPostingJsonLd(
+  job({
+    title: 'Medical Representative - Aesthetic & Wellness',
+    date_posted: null,
+    created_at: '2026-09-05T12:01:10.330Z',
+  })
+)
+assert.equal(
+  medicalRep?.datePosted,
+  '2026-09-05T12:01:10+00:00',
+  'GSC example /jobs/medical-representative-aesthetic-wellness always gets datePosted'
+)
+
 const noDates = buildJobPostingJsonLd(
-  job({ date_posted: null, created_at: '', posted_date: null })
+  job({ date_posted: null, created_at: '', posted_date: null, updated_at: '' })
 )
 assert.equal(
   noDates,
