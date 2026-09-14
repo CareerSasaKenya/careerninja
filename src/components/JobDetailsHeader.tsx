@@ -18,6 +18,7 @@ import {
   buildLocationString,
   jobPostedLabel,
 } from "@/lib/textUtils";
+import { resolveEmploymentTypes, resolveValidThrough } from "@/lib/jobStructuredDataMapping";
 
 type JobDetailsHeaderProps = {
   job: {
@@ -25,9 +26,13 @@ type JobDetailsHeaderProps = {
     title: string;
     company: string | null;
     location: string | null;
+    valid_through?: string | null;
+    expires_at?: string | null;
+    application_deadline?: string | null;
     date_posted?: string | null;
     created_at?: string | null;
-    valid_through?: string | null;
+    posted_date?: string | null;
+    updated_at?: string | null;
     is_featured?: boolean | null;
     is_promoted?: boolean | null;
     promotion_tier?: string | null;
@@ -109,16 +114,17 @@ export default function JobDetailsHeader({
   const postedValue =
     postedRel ||
     (postedAt ? formatDeadlineDate(postedAt) : null);
-  const deadlineValue = formatDeadlineDate(job.valid_through);
-  const deadlineDate = job.valid_through ? new Date(job.valid_through) : null;
+  const validThrough = resolveValidThrough(job);
+  const deadlineValue = formatDeadlineDate(validThrough);
+  const deadlineDate = validThrough ? new Date(validThrough) : null;
   const isExpired = deadlineDate ? deadlineDate.getTime() < Date.now() : false;
 
-  const employmentTypes =
-    job.employment_types?.length
-      ? job.employment_types
-      : job.employment_type
-        ? [job.employment_type]
-        : [];
+  const resolvedEmployment = resolveEmploymentTypes(job);
+  const employmentTypes = resolvedEmployment
+    ? Array.isArray(resolvedEmployment)
+      ? resolvedEmployment
+      : [resolvedEmployment]
+    : ["FULL_TIME"];
 
   const locationTypes =
     job.job_location_types?.length
