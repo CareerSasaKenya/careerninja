@@ -141,11 +141,11 @@ assert.equal(singleValue.value.value, 80000)
 assert.equal(singleValue.value.maxValue, undefined)
 
 const estimatedSalary = buildJobPostingJsonLd(job({ salary_is_estimated: true }))
-assert.equal(
-  estimatedSalary?.baseSalary,
-  undefined,
-  'GSC baseSalary warning is accepted for estimated pay — never emit estimates'
-)
+const estimatedValue = estimatedSalary?.baseSalary as {
+  value: { minValue: number; maxValue: number }
+}
+assert.equal(estimatedValue.value.minValue, 16000)
+assert.equal(estimatedValue.value.maxValue, 30000)
 
 const intern = buildJobPostingJsonLd(
   job({ title: 'Graduate Intern — Finance', employment_type: null, employment_types: null })

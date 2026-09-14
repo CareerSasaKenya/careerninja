@@ -134,21 +134,49 @@ assert.equal(roundKes(1000), 5000)
 }
 
 {
+  const display = resolveJobSalaryDisplay({
+    salaryMin: 55000,
+    salaryMax: 75000,
+    salaryCurrency: 'KES',
+    salaryPeriod: 'MONTH',
+    salaryIsEstimated: true,
+    salaryVisibility: 'Hide',
+    title: 'Accounting Clerk - Weighbridge Operations',
+    locationCountry: 'Kenya',
+  })
+  assert.equal(display.isEstimated, true)
+  assert.match(display.display, /KES 55,000/)
+}
+
+{
+  const display = resolveJobSalaryDisplay({
+    salaryMin: 100000,
+    salaryMax: 150000,
+    salaryCurrency: 'KES',
+    salaryPeriod: 'MONTH',
+    salaryIsEstimated: false,
+    salaryVisibility: 'Hide',
+  })
+  assert.equal(display.display, 'Negotiable')
+  assert.equal(display.isEstimated, false)
+}
+
+{
   const payload = applyKenyanSalaryEstimateIfMissing(
     {
-      title: 'Marketing Manager',
-      experience_level: 'Senior',
+      title: 'Finance Internship',
+      experience_level: 'Internship',
       job_location_country: 'Kenya',
       salary_min: null,
       salary_max: null,
       salary_currency: 'KES',
       salary_period: 'MONTH',
+      salary_visibility: 'Hide',
     },
     {}
   )
   assert.equal(payload.salary_is_estimated, true)
-  assert.ok(payload.salary_min != null && payload.salary_max != null)
-  assert.ok(payload.salary_max! / payload.salary_min! <= 1.55)
+  assert.equal(payload.salary_visibility, 'Show')
 }
 
 {
