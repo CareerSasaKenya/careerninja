@@ -85,7 +85,9 @@ export function buildJobPostingJsonLd(
       : undefined;
 
   // Fail-safe: never fabricate unknown optional types. datePosted is required,
-  // so it is resolved from date_posted → created_at → posted_date above.
+  // so it is resolved from date_posted → created_at → posted_date → updated_at.
+  // Emitted before description so a huge/messy HTML body cannot hide the field
+  // from a partial parser (GSC: "Missing field datePosted").
   // No `identifier`: the only ID CareerSasa holds is its internal UUID, which is
   // not the employer's identifier for the job. Google defines identifier as the
   // hiring organization's unique ID, so emitting our UUID would misrepresent it
@@ -94,9 +96,9 @@ export function buildJobPostingJsonLd(
     "@context": "https://schema.org/",
     "@type": "JobPosting",
     "title": job.title,
-    "description": job.description || undefined,
     "datePosted": datePosted,
     "validThrough": resolveValidThrough(job),
+    "description": job.description || undefined,
     "employmentType": employmentType,
     "hiringOrganization": {
       "@type": "Organization",
@@ -123,6 +125,10 @@ export function buildJobPostingJsonLd(
   );
 
   if (Object.keys(cleanJobData).length <= 2) return null;
+  // Belt-and-suspenders: never emit JobPosting without a string datePosted.
+  if (typeof cleanJobData.datePosted !== 'string' || !cleanJobData.datePosted) {
+    return null;
+  }
   return cleanJobData;
 }
 
