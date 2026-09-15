@@ -18,5 +18,10 @@ assert.equal(kenyaPostalCode({ city: 'Naivasha' }), '20117')
 assert.equal(detectKenyaPlaceInText('Westlands, Nairobi, Kenya')?.postalCode, '00800')
 assert.equal(detectKenyaPlaceInText('Kitengela')?.county, 'Kajiado')
 assert.equal(lookupKenyaPlace('Kenya'), null)
+assert.equal(
+  detectKenyaPlaceInText('Baringo County Government')?.county,
+  'Baringo',
+  'county governments name the workplace county'
+)
 
 console.log('kenyaJobLocation.test.ts: all assertions passed')

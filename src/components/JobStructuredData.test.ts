@@ -111,6 +111,25 @@ assert.equal(kajiado.address.addressRegion, 'Kajiado')
 assert.equal(kajiado.address.streetAddress, 'Kajiado')
 assert.equal(kajiado.address.postalCode, '01100')
 
+const kenyaWide = buildJobPostingJsonLd(
+  job({
+    title: 'Credit Controller',
+    company: 'JM Associates',
+    location: 'Kenya',
+    job_location_city: null,
+    job_location_county: null,
+  })
+)
+const kenyaWidePlace = kenyaWide?.jobLocation as {
+  address: Record<string, string | undefined>
+}
+assert.equal(
+  kenyaWidePlace.address.streetAddress,
+  'Kenya',
+  'GSC example Kenya-wide jobs still emit streetAddress'
+)
+assert.equal(kenyaWidePlace.address.addressCountry, 'KE')
+
 const missingDeadline = buildJobPostingJsonLd(
   job({ valid_through: null, expires_at: null, application_deadline: null })
 )

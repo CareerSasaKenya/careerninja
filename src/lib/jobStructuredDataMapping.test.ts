@@ -211,10 +211,55 @@ const kenyaOnly = asPlace(
 ).address
 assert.equal(kenyaOnly.addressCountry, 'KE')
 assert.equal(
+  kenyaOnly.streetAddress,
+  'Kenya',
+  'GSC streetAddress: Kenya-wide listings use the same label shown on the page'
+)
+assert.equal(
   kenyaOnly.addressLocality,
   undefined,
   'does not invent a city when the job is Kenya-wide'
 )
+
+const baringoCountyJob = asPlace(
+  resolveJobAddress(
+    job({
+      title: 'Special Needs Education (SNE) ECDE Teachers',
+      company: 'Baringo County Government',
+      location: 'Kenya',
+      job_location_city: null,
+      job_location_county: null,
+      job_location_country: 'Kenya',
+    })
+  )
+).address
+assert.equal(baringoCountyJob.addressLocality, 'Baringo')
+assert.equal(baringoCountyJob.addressRegion, 'Baringo')
+assert.equal(baringoCountyJob.streetAddress, 'Baringo')
+assert.equal(baringoCountyJob.postalCode, '30400')
+
+const foreignCompanyHq = asPlace(
+  resolveJobAddress(
+    job({
+      title: 'Intern (M) - Business',
+      company: 'Absa Bank Limited',
+      location: 'Kenya',
+      job_location_city: null,
+      job_location_county: null,
+      job_location_country: 'Kenya',
+      companies: {
+        location:
+          '7th Floor, Barclays Towers West 15 Troye Street Johannesburg, Johannesburg 2001 South Africa',
+      } as JobForSchema['companies'],
+    })
+  )
+).address
+assert.equal(
+  foreignCompanyHq.streetAddress,
+  'Kenya',
+  'does not copy a foreign company HQ street onto a Kenyan job'
+)
+assert.equal(foreignCompanyHq.addressLocality, undefined)
 
 const wellness = asPlace(
   resolveJobAddress(

@@ -191,10 +191,15 @@ function buildPostalAddress(args: {
   const streetFromRaw = looksLikeStreet(rawLocation)
     ? parts.filter((p) => looksLikeStreet(p)).join(', ') || rawLocation
     : undefined
+  // GSC "Missing field streetAddress": emit a workplace label that matches the
+  // page. Prefer a real street/town/city/county; Kenya-wide listings show
+  // "Kenya" on the page, so that is the fallback — never a fabricated HQ.
   const streetAddress =
     streetFromRaw ||
     (town && town.toLowerCase() !== locality?.toLowerCase() ? town : undefined) ||
-    locality
+    locality ||
+    region ||
+    (args.country === 'KE' ? 'Kenya' : undefined)
 
   const postalCode = kenyaPostalCode({
     town: town || streetFromRaw,
@@ -211,6 +216,23 @@ function buildPostalAddress(args: {
   if (region) address.addressRegion = region
   if (postalCode) address.postalCode = postalCode
   return address
+}
+
+function kenyanEmployerPlaceText(job: JobForSchema): string {
+  const companyLocation = job.companies?.location?.trim()
+  const companyLocationIsKenyan =
+    Boolean(companyLocation) &&
+    (Boolean(detectKenyaPlaceInText(companyLocation)) ||
+      isKenyaCountryToken(companyLocation))
+
+  return [
+    job.company,
+    job.companies?.name,
+    companyLocationIsKenyan ? companyLocation : undefined,
+    job.title,
+  ]
+    .filter(Boolean)
+    .join(' ')
 }
 
 function additionalLocationsOf(
@@ -249,7 +271,7 @@ export function resolveJobAddress(job: JobForSchema): JobPlace | JobPlace[] | un
     county: job.job_location_county,
     town: job.location_town,
     rawLocation: job.location,
-    extraText: [job.title, job.companies?.location].filter(Boolean).join(' '),
+    extraText: kenyanEmployerPlaceText(job),
   })
 
   const extras = additionalLocationsOf(job)
