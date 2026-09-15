@@ -493,11 +493,7 @@ export function formatKenyanSalaryRange(
   return options?.estimated ? `Est. ${range}` : range
 }
 
-/**
- * Resolve display salary: prefer stated numbers, else Kenyan market estimate
- * for local jobs, else null (caller may fall back to Negotiable for non-local).
- */
-export function resolveJobSalaryDisplay(params: {
+export type JobSalaryParams = {
   salaryMin?: number | null
   salaryMax?: number | null
   salary?: string | null
@@ -508,42 +504,69 @@ export function resolveJobSalaryDisplay(params: {
   title?: string | null
   experienceLevel?: string | null
   locationCountry?: string | null
-}): { display: string; isEstimated: boolean } {
-  // Employers can opt out of showing any salary figure (salary_visibility = 'Hide').
-  // Respect it everywhere this resolver is used so the page never shows a salary
-  // the employer chose to hide (and Google never sees page content that contradicts
-  // the absence of baseSalary in the markup).
-  if (params.salaryVisibility === 'Hide') {
-    return { display: 'Negotiable', isEstimated: false }
+}
+
+export type ResolvedJobSalary = {
+  min: number
+  max: number
+  currency: string
+  period: string
+  isEstimated: boolean
+}
+
+function parseSalaryText(raw?: string | null): { min: number | null; max: number | null } {
+  if (!raw?.trim() || /^negotiable$/i.test(raw.trim())) {
+    return { min: null, max: null }
   }
+  const numbers = raw.replace(/,/g, '').match(/\d+(\.\d+)?k?/gi) || []
+  const parsed = numbers
+    .map((n) => {
+      const val = parseFloat(n.replace(/k$/i, ''))
+      return n.toLowerCase().endsWith('k') ? val * 1000 : val
+    })
+    .filter((n) => Number.isFinite(n) && n > 0)
+  return { min: parsed[0] ?? null, max: parsed[1] ?? parsed[0] ?? null }
+}
 
-  const currency = params.salaryCurrency || 'KES'
-  const period = params.salaryPeriod ? ` / ${params.salaryPeriod.toLowerCase()}` : ''
-
+/**
+ * Numeric salary used on the page and in JobPosting.baseSalary.
+ *
+ * Hide only suppresses *employer-stated* pay the employer chose not to
+ * publish. Scraped jobs set Hide when the source omitted salary, then we
+ * store/compute a Kenyan market estimate — those figures are shown and
+ * emitted so GSC "Missing field baseSalary" can clear, and markup matches
+ * the page.
+ */
+export function resolveJobSalaryValues(params: JobSalaryParams): ResolvedJobSalary | null {
   const hasMin = params.salaryMin != null && Number.isFinite(params.salaryMin)
   const hasMax = params.salaryMax != null && Number.isFinite(params.salaryMax)
+  const employerHiddenPay =
+    params.salaryVisibility === 'Hide' &&
+    !params.salaryIsEstimated &&
+    (hasMin || hasMax)
 
-  if (hasMin && hasMax) {
-    const range = `${currency} ${Number(params.salaryMin).toLocaleString()} – ${Number(params.salaryMax).toLocaleString()}${period}`
-    return {
-      display: params.salaryIsEstimated ? `Est. ${range}` : range,
-      isEstimated: !!params.salaryIsEstimated,
-    }
-  }
+  if (employerHiddenPay) return null
+
+  const currency = params.salaryCurrency || 'KES'
+  const period = (params.salaryPeriod || 'MONTH').toUpperCase()
+
   if (hasMin || hasMax) {
-    const amount = hasMin ? params.salaryMin : params.salaryMax
-    const range = `${currency} ${Number(amount).toLocaleString()}${period}`
+    const min = hasMin ? params.salaryMin! : params.salaryMax!
+    const max = hasMax ? params.salaryMax! : params.salaryMin!
     return {
-      display: params.salaryIsEstimated ? `Est. ${range}` : range,
+      min,
+      max,
+      currency,
+      period,
       isEstimated: !!params.salaryIsEstimated,
     }
   }
 
-  if (params.salary && String(params.salary).trim()) {
-    const text = String(params.salary).trim()
-    if (!/^negotiable$/i.test(text)) {
-      return { display: text, isEstimated: false }
-    }
+  const parsed = parseSalaryText(params.salary)
+  if (parsed.min != null || parsed.max != null) {
+    const min = parsed.min ?? parsed.max!
+    const max = parsed.max ?? parsed.min!
+    return { min, max, currency, period, isEstimated: false }
   }
 
   const estimate = estimateKenyanSalary({
@@ -551,15 +574,38 @@ export function resolveJobSalaryDisplay(params: {
     experienceLevel: params.experienceLevel,
     locationCountry: params.locationCountry,
   })
+  if (!estimate) return null
 
-  if (estimate) {
-    return {
-      display: formatKenyanSalaryRange(estimate, { estimated: true }),
-      isEstimated: true,
-    }
+  return {
+    min: estimate.salary_min,
+    max: estimate.salary_max,
+    currency: estimate.salary_currency,
+    period: estimate.salary_period,
+    isEstimated: true,
   }
+}
 
-  return { display: 'Negotiable', isEstimated: false }
+/**
+ * Resolve display salary: prefer stated numbers, else Kenyan market estimate
+ * for local jobs, else Negotiable.
+ */
+export function resolveJobSalaryDisplay(params: JobSalaryParams): {
+  display: string
+  isEstimated: boolean
+} {
+  const resolved = resolveJobSalaryValues(params)
+  if (!resolved) return { display: 'Negotiable', isEstimated: false }
+
+  const period = resolved.period ? ` / ${resolved.period.toLowerCase()}` : ''
+  const range =
+    resolved.min === resolved.max
+      ? `${resolved.currency} ${Number(resolved.min).toLocaleString()}${period}`
+      : `${resolved.currency} ${Number(resolved.min).toLocaleString()} – ${Number(resolved.max).toLocaleString()}${period}`
+
+  return {
+    display: resolved.isEstimated ? `Est. ${range}` : range,
+    isEstimated: resolved.isEstimated,
+  }
 }
 
 /**
@@ -614,6 +660,10 @@ export function applyKenyanSalaryEstimateIfMissing<T extends Record<string, any>
     salary_currency: estimate.salary_currency,
     salary_period: estimate.salary_period,
     salary_is_estimated: true,
+    // Source boards omit pay → adapters set Hide. Estimates are CareerSasa
+    // figures we publish, so they must be visible (page + JSON-LD) or GSC
+    // reports Missing field baseSalary on every estimated listing.
+    salary_visibility: 'Show',
   }
 }
 

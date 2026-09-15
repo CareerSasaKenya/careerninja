@@ -10,11 +10,13 @@
  * Recommended GSC fields (streetAddress, postalCode, addressLocality,
  * addressRegion, validThrough, employmentType, baseSalary.maxValue) are filled
  * from real job/place data or CareerSasa product defaults (30-day listing
- * window, FULL_TIME). Estimated salaries are never emitted.
+ * window, FULL_TIME). baseSalary uses the same numbers shown on the page
+ * (employer pay or Kenyan market estimate). Employer-hidden stated pay is omitted.
  */
 
 import type { Database } from '@/integrations/supabase/types'
 import { resolveCountyName } from './counties'
+import { resolveJobSalaryValues } from './kenyanSalaryEstimate'
 import {
   detectKenyaPlaceInText,
   isKenyaCountryToken,
@@ -509,63 +511,48 @@ export function resolveSalaryPeriod(value?: string | null): string {
   return 'MONTH'
 }
 
-function parseSalaryText(raw?: string | null): {
-  min: number | null
-  max: number | null
-} {
-  if (!raw?.trim() || /^negotiable$/i.test(raw.trim())) {
-    return { min: null, max: null }
-  }
-  const numbers = raw.replace(/,/g, '').match(/\d+(\.\d+)?k?/gi) || []
-  const parsed = numbers
-    .map((n) => {
-      const val = parseFloat(n.replace(/k$/i, ''))
-      return n.toLowerCase().endsWith('k') ? val * 1000 : val
-    })
-    .filter((n) => Number.isFinite(n) && n > 0)
-  return { min: parsed[0] ?? null, max: parsed[1] ?? null }
-}
-
 /**
- * Employer-provided salary only. Estimated Kenyan market figures stay on the
- * visible page and must not appear as baseSalary (Google: "not an estimate").
+ * Same numbers as the job page. GSC "Missing field baseSalary" (426 items)
+ * were listings with no employer pay: scrapers stored Hide + a market estimate
+ * (or computed one at render). Those figures are now emitted so markup matches
+ * the visible "Estimated Salary Range".
  *
- * GSC "Missing field maxValue": a single bound is emitted as QuantitativeValue.value
- * (Google's single-salary form). Ranges use minValue + maxValue.
+ * Employer-stated pay with salary_visibility = Hide is still omitted.
+ * Ranges use minValue + maxValue; a single bound uses QuantitativeValue.value.
  */
 export function resolveBaseSalary(job: JobForSchema) {
-  if (job.salary_is_estimated) return undefined
-  if (job.salary_visibility === 'Hide') return undefined
+  const resolved = resolveJobSalaryValues({
+    salaryMin: job.salary_min,
+    salaryMax: job.salary_max,
+    salary: job.salary,
+    salaryCurrency: job.salary_currency,
+    salaryPeriod: job.salary_period,
+    salaryIsEstimated: job.salary_is_estimated,
+    salaryVisibility: job.salary_visibility,
+    title: job.title,
+    experienceLevel: job.experience_level,
+    locationCountry: job.job_location_country || 'Kenya',
+  })
+  if (!resolved) return undefined
 
-  let min = job.salary_min != null && Number.isFinite(job.salary_min) ? job.salary_min : null
-  let max = job.salary_max != null && Number.isFinite(job.salary_max) ? job.salary_max : null
-
-  if (min == null && max == null) {
-    const parsed = parseSalaryText(job.salary)
-    min = parsed.min
-    max = parsed.max
-  }
-
-  if (min == null && max == null) return undefined
-
-  const unitText = resolveSalaryPeriod(job.salary_period)
+  const unitText = resolveSalaryPeriod(resolved.period)
   const value =
-    min != null && max != null && min !== max
+    resolved.min !== resolved.max
       ? {
           '@type': 'QuantitativeValue' as const,
-          minValue: min,
-          maxValue: max,
+          minValue: resolved.min,
+          maxValue: resolved.max,
           unitText,
         }
       : {
           '@type': 'QuantitativeValue' as const,
-          value: max ?? min!,
+          value: resolved.min,
           unitText,
         }
 
   return {
     '@type': 'MonetaryAmount' as const,
-    currency: job.salary_currency || 'KES',
+    currency: resolved.currency,
     value,
   }
 }

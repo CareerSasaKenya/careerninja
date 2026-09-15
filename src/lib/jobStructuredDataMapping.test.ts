@@ -313,9 +313,76 @@ const estimated = resolveBaseSalary(
     salary_max: 120000,
     salary_is_estimated: true,
     salary_visibility: 'Show',
+    title: 'Accounting Clerk - Weighbridge Operations',
+    job_location_country: 'Kenya',
   })
 )
-assert.equal(estimated, undefined, 'never emits estimated salaries')
+assert.equal(estimated?.value.minValue, 80000)
+assert.equal(estimated?.value.maxValue, 120000)
+assert.equal(
+  estimated?.currency,
+  'KES',
+  'GSC baseSalary: estimated Kenyan ranges are emitted when shown on the page'
+)
+
+const scraperHiddenEstimate = resolveBaseSalary(
+  job({
+    title: 'Teacher of Music',
+    salary_min: 60000,
+    salary_max: 90000,
+    salary_is_estimated: true,
+    salary_visibility: 'Hide',
+    job_location_country: 'Kenya',
+    experience_level: 'Mid',
+  })
+)
+assert.equal(scraperHiddenEstimate?.value.minValue, 60000)
+assert.equal(scraperHiddenEstimate?.value.maxValue, 90000)
+
+const liveEstimate = resolveBaseSalary(
+  job({
+    title: 'Microbiologist at Biopharma Limited',
+    salary_min: null,
+    salary_max: null,
+    salary: null,
+    salary_is_estimated: false,
+    salary_visibility: 'Show',
+    experience_level: 'Entry',
+    job_location_country: 'Kenya',
+  })
+)
+assert.ok(liveEstimate?.value.minValue, 'GSC example microbiologist gets a market estimate')
+assert.ok(liveEstimate?.value.maxValue)
+
+const hiddenEmployerPay = resolveBaseSalary(
+  job({
+    salary_min: 100000,
+    salary_max: 150000,
+    salary_is_estimated: false,
+    salary_visibility: 'Hide',
+  })
+)
+assert.equal(
+  hiddenEmployerPay,
+  undefined,
+  'employer-stated pay stays out of markup when visibility is Hide'
+)
+
+const financeIntern = resolveBaseSalary(
+  job({
+    title: 'Finance Internship',
+    salary_min: null,
+    salary_max: null,
+    salary: null,
+    salary_is_estimated: false,
+    salary_visibility: 'Hide',
+    experience_level: 'Internship',
+    job_location_country: 'Kenya',
+  })
+)
+assert.ok(financeIntern?.value.minValue)
+assert.ok(financeIntern?.value.maxValue)
+assert.equal(financeIntern?.value.unitText, 'MONTH')
 
 const fromText = resolveBaseSalary(
   job({
