@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { buildLocationString } from '@/lib/textUtils';
 import { buildShareOgImagePath } from '@/lib/ogTemplateCatalog';
 import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabaseEnv';
+import { throwIfSupabaseError } from '@/lib/supabaseRead';
 
 const jobSelect = `
   id,
@@ -37,8 +38,10 @@ export async function generateJobMetadata(id: string): Promise<Metadata> {
         .eq('id', id)
         .maybeSingle());
     }
+
+    throwIfSupabaseError(error, 'Error generating job metadata');
     
-    if (!job || error) {
+    if (!job) {
       return {
         title: 'Job Not Found - CareerSasa',
         description: 'The job you are looking for could not be found.',
@@ -99,9 +102,6 @@ export async function generateJobMetadata(id: string): Promise<Metadata> {
     };
   } catch (error) {
     console.error('Error generating metadata:', error);
-    return {
-      title: 'CareerSasa - Find Your Dream Job',
-      description: 'Discover the latest job opportunities in Kenya.',
-    };
+    throw error;
   }
 }

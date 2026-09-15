@@ -30,6 +30,7 @@ import { sanitizeScrapedJobHtmlForDisplay } from "@/lib/jobBoardApply";
 import { sanitizeStockTipsCopy } from "@/lib/sanitizeStockTipsCopy";
 import { resolveJobSalaryDisplay } from "@/lib/kenyanSalaryEstimate";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabaseEnv";
+import { throwIfSupabaseError } from "@/lib/supabaseRead";
 import { resolveValidThrough } from "@/lib/jobStructuredDataMapping";
 
 function getDisplayLabels(values: string[] | null | undefined, fallback?: string | null): string[] {
@@ -55,10 +56,30 @@ const supabase = createClient(getSupabaseUrl(), getSupabaseAnonKey());
 
 // Server-side data fetching
 async function getJobData(id: string) {
-  try {
-    // Full row is required for the job detail body (HTML, qualifications, etc.).
-    // List/related/homepage queries must keep using queryJobCards() instead.
-    let { data: job, error } = await supabase
+  // Full row is required for the job detail body (HTML, qualifications, etc.).
+  // List/related/homepage queries must keep using queryJobCards() instead.
+  let { data: job, error } = await supabase
+    .from("jobs")
+    .select(`
+      *,
+      companies (
+        id,
+        name,
+        logo,
+        website,
+        location
+      ),
+      education_levels (
+        id,
+        name
+      )
+    `)
+    .eq("job_slug", id)
+    .maybeSingle();
+
+  // If not found by slug, try by ID
+  if (!job && !error) {
+    ({ data: job, error } = await supabase
       .from("jobs")
       .select(`
         *,
@@ -74,39 +95,12 @@ async function getJobData(id: string) {
           name
         )
       `)
-      .eq("job_slug", id)
-      .maybeSingle();
-    
-    // If not found by slug, try by ID
-    if (!job && !error) {
-      ({ data: job, error } = await supabase
-        .from("jobs")
-        .select(`
-          *,
-          companies (
-            id,
-            name,
-            logo,
-            website,
-            location
-          ),
-          education_levels (
-            id,
-            name
-          )
-        `)
-        .eq("id", id)
-        .maybeSingle());
-    }
-    
-    if (error) throw error;
-    if (!job) return null;
-    
-    return job;
-  } catch (error) {
-    console.error("Error fetching job:", error);
-    return null;
+      .eq("id", id)
+      .maybeSingle());
   }
+
+  throwIfSupabaseError(error, "Error fetching job");
+  return job;
 }
 
 function isJobExpiredFromDeadline(validThrough?: string | null): boolean {
@@ -219,7 +213,9 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
   
   // Fetch job data on the server
   const job = await getJobData(id);
-  
+
+  // Only a missing row is a 404. Query/outage errors throw (HTTP 5xx) so
+  // Google retries instead of treating the listing as deleted.
   if (!job) {
     return notFound();
   }

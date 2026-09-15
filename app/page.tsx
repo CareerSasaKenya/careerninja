@@ -1,6 +1,6 @@
 import HomePage from "@/components/HomePage";
 import {
-  getCompanyDirectoryData,
+  getCompanyDirectoryDataOrEmpty,
   getHomepageStats,
 } from "@/lib/companyDirectory";
 import { getActiveJobsByCounty } from "@/lib/jobsByCounty";
@@ -20,7 +20,7 @@ export default async function Page() {
     latestJobs,
     recentPosts,
   ] = await Promise.all([
-    getCompanyDirectoryData({ includeDescriptions: false }),
+    getCompanyDirectoryDataOrEmpty({ includeDescriptions: false }),
     getHomepageStats(),
     getActiveJobsByCounty(),
     getActiveJobsByFunction(),

@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '@/integrations/supabase/types';
 import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabaseEnv';
+import { throwIfSupabaseError } from '@/lib/supabaseRead';
 
 const supabase = createClient<Database>(getSupabaseUrl(), getSupabaseAnonKey());
 
@@ -61,8 +62,8 @@ export async function getJobMetadata(jobId: string): Promise<JobMetadata | null>
         .maybeSingle());
     }
     
-    if (error || !job) {
-      console.error('Error fetching job metadata:', error);
+    throwIfSupabaseError(error, 'Error fetching job metadata');
+    if (!job) {
       return null;
     }
     
@@ -81,6 +82,6 @@ export async function getJobMetadata(jobId: string): Promise<JobMetadata | null>
     };
   } catch (error) {
     console.error('Error in getJobMetadata:', error);
-    return null;
+    throw error;
   }
 }

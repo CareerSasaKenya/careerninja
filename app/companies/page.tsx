@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { IndustryCardsGrid } from "@/components/IndustryCard";
-import { getCompanyDirectoryData } from "@/lib/companyDirectory";
+import { getCompanyDirectoryDataOrEmpty } from "@/lib/companyDirectory";
 import { fetchPageContentMap, fetchPageSeo } from "@/lib/fetchPageContent";
 import { getContentValue } from "@/lib/pageContent";
 
@@ -43,7 +43,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function CompaniesPage() {
   const [{ companies, industryCards }, content] = await Promise.all([
-    getCompanyDirectoryData(),
+    getCompanyDirectoryDataOrEmpty(),
     fetchPageContentMap("companies"),
   ]);
   const totalOpenJobs = companies.reduce((sum, c) => sum + c.openJobs, 0);
