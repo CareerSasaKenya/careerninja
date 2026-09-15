@@ -155,77 +155,90 @@ export type CompanyDirectoryOptions = {
   includeDescriptions?: boolean;
 };
 
+const EMPTY_DIRECTORY: CompanyDirectoryData = {
+  companies: [],
+  industries: [],
+  industryCards: [],
+};
+
 export async function getCompanyDirectoryData(
   options: CompanyDirectoryOptions = {}
 ): Promise<CompanyDirectoryData> {
   const includeDescriptions = options.includeDescriptions !== false;
 
+  const companySelect = includeDescriptions
+    ? "id, name, logo, website, industry, location, description"
+    : "id, name, logo, website, industry, location";
+
+  const [companyRows, openJobsByCompany, industryRows] = await Promise.all([
+    fetchAllRows<CompanyRow>((from, to) =>
+      (supabase as any)
+        .from("companies")
+        .select(companySelect)
+        .order("name")
+        .range(from, to)
+    ),
+    getOpenJobsByCompany(),
+    fetchAllRows<IndustryRow>((from, to) =>
+      supabase.from("industries").select("id, name").order("name").range(from, to)
+    ),
+  ]);
+
+  const industries = industryRows
+    .map((row) => row.name.trim())
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b));
+
+  const rows: CompanyCardData[] = companyRows.map((company) => {
+    const canonicalIndustry = resolveDirectoryCompanyIndustry(
+      company,
+      industries
+    );
+
+    return {
+      id: company.id,
+      name: company.name,
+      logo: company.logo,
+      website: company.website,
+      industry: canonicalIndustry,
+      location: company.location,
+      description: includeDescriptions ? company.description : null,
+      openJobs: openJobsByCompany.get(company.id) || 0,
+    };
+  });
+
+  // Alphabetical company lists within an industry feel browseable;
+  // still surface hiring employers first.
+  rows.sort((a, b) => {
+    if (b.openJobs !== a.openJobs) return b.openJobs - a.openJobs;
+    return a.name.localeCompare(b.name);
+  });
+
+  const industryCards: IndustryCardData[] = industries.map((name) => {
+    const inIndustry = rows.filter((c) => c.industry === name);
+    const openJobs = inIndustry.reduce((sum, c) => sum + c.openJobs, 0);
+    const hiringCount = inIndustry.filter((c) => c.openJobs > 0).length;
+    return {
+      name,
+      slug: industryToSlug(name),
+      companyCount: inIndustry.length,
+      openJobs,
+      hiringCount,
+    };
+  });
+
+  return { companies: rows, industries, industryCards };
+}
+
+/** Homepage / companies hub: degrade to empty lists instead of failing the page. */
+export async function getCompanyDirectoryDataOrEmpty(
+  options: CompanyDirectoryOptions = {}
+): Promise<CompanyDirectoryData> {
   try {
-    const companySelect = includeDescriptions
-      ? "id, name, logo, website, industry, location, description"
-      : "id, name, logo, website, industry, location";
-
-    const [companyRows, openJobsByCompany, industryRows] = await Promise.all([
-      fetchAllRows<CompanyRow>((from, to) =>
-        (supabase as any)
-          .from("companies")
-          .select(companySelect)
-          .order("name")
-          .range(from, to)
-      ),
-      getOpenJobsByCompany(),
-      fetchAllRows<IndustryRow>((from, to) =>
-        supabase.from("industries").select("id, name").order("name").range(from, to)
-      ),
-    ]);
-
-    const industries = industryRows
-      .map((row) => row.name.trim())
-      .filter(Boolean)
-      .sort((a, b) => a.localeCompare(b));
-
-    const rows: CompanyCardData[] = companyRows.map((company) => {
-      const canonicalIndustry = resolveDirectoryCompanyIndustry(
-        company,
-        industries
-      );
-
-      return {
-        id: company.id,
-        name: company.name,
-        logo: company.logo,
-        website: company.website,
-        industry: canonicalIndustry,
-        location: company.location,
-        description: includeDescriptions ? company.description : null,
-        openJobs: openJobsByCompany.get(company.id) || 0,
-      };
-    });
-
-    // Alphabetical company lists within an industry feel browseable;
-    // still surface hiring employers first.
-    rows.sort((a, b) => {
-      if (b.openJobs !== a.openJobs) return b.openJobs - a.openJobs;
-      return a.name.localeCompare(b.name);
-    });
-
-    const industryCards: IndustryCardData[] = industries.map((name) => {
-      const inIndustry = rows.filter((c) => c.industry === name);
-      const openJobs = inIndustry.reduce((sum, c) => sum + c.openJobs, 0);
-      const hiringCount = inIndustry.filter((c) => c.openJobs > 0).length;
-      return {
-        name,
-        slug: industryToSlug(name),
-        companyCount: inIndustry.length,
-        openJobs,
-        hiringCount,
-      };
-    });
-
-    return { companies: rows, industries, industryCards };
+    return await getCompanyDirectoryData(options);
   } catch (error) {
     console.error("Error loading companies directory:", error);
-    return { companies: [], industries: [], industryCards: [] };
+    return EMPTY_DIRECTORY;
   }
 }
 

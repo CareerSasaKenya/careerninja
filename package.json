@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "test:supabase-env": "npx tsx src/lib/supabaseEnv.test.ts && npx tsx scripts/check-supabase-clients.mts",
+    "test:supabase-read": "npx tsx src/lib/supabaseRead.test.ts",
     "test:scrape-discover": "npx tsx src/lib/scrapeDiscover.test.ts",
     "test:scrape-queue-stats": "npx tsx src/lib/scrapeQueueStats.test.ts",
     "test:scrape-queue-failed": "npx tsx src/lib/scrapeQueueFailed.test.ts",

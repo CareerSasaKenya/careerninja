@@ -24,6 +24,7 @@ import {
   getIndustryCardImage,
 } from "@/lib/industryCardImages";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabaseEnv";
+import { throwIfSupabaseError } from "@/lib/supabaseRead";
 import {
   jobCardCompany,
   jobCardDescription,
@@ -62,18 +63,13 @@ function normalizeCompanyJob(row: any): CompanyJob {
 }
 
 async function getCompany(id: string): Promise<CompanyRow | null> {
-  try {
-    const { data, error } = await supabase
-      .from("companies")
-      .select("*")
-      .eq("id", id)
-      .maybeSingle();
-    if (error) throw error;
-    return data as CompanyRow | null;
-  } catch (error) {
-    console.error("Error fetching company:", error);
-    return null;
-  }
+  const { data, error } = await supabase
+    .from("companies")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  throwIfSupabaseError(error, "Error fetching company");
+  return data as CompanyRow | null;
 }
 
 /** PostgREST/Supabase caps each response at max_rows (default 1000). */
@@ -225,6 +221,7 @@ export default async function CompanyProfilePage({
   const company = await getCompany(id);
 
   if (!company) {
+    // Missing company only. Database outages throw above (HTTP 5xx).
     notFound();
   }
 
