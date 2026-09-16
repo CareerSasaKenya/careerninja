@@ -263,7 +263,7 @@ const Jobs = () => {
     queryFn: async () => {
       try {
         let countQuery = applyJobListingFilters(
-          supabase.from("jobs").select("id", { count: "exact", head: true }),
+          supabase.from("jobs").select("id", { count: "exact" }).limit(0),
           debouncedFilters
         );
 
@@ -271,7 +271,7 @@ const Jobs = () => {
         const skipKind = !!(countError && isMissingListingKindColumnError(countError));
         if (skipKind) {
           ;({ count, error: countError } = await applyJobListingFilters(
-            supabase.from("jobs").select("id", { count: "exact", head: true }),
+            supabase.from("jobs").select("id", { count: "exact" }).limit(0),
             debouncedFilters,
             false
           ));

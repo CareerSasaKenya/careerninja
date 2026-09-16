@@ -104,6 +104,20 @@ assert.equal(
   true
 );
 assert.equal(
+  isMissingListingKindColumnError({
+    code: "42703",
+    message: "column jobs.listing_kind does not exist",
+  }),
+  true
+);
+assert.equal(
+  isMissingListingKindColumnError({
+    code: "42703",
+    message: "",
+  }),
+  true
+);
+assert.equal(
   isMissingListingKindColumnError({ message: "duplicate key" }),
   false
 );

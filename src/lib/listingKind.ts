@@ -99,11 +99,16 @@ export function listingPath(
 
 /** PostgREST error when listing_kind / scholarship columns are not migrated yet. */
 export function isMissingListingKindColumnError(error: unknown): boolean {
-  const message = String(
-    error && typeof error === "object" && "message" in error
-      ? (error as { message?: unknown }).message
-      : error || ""
-  ).toLowerCase();
+  if (!error) return false;
+  const err = typeof error === "object" ? (error as {
+    message?: unknown;
+    code?: unknown;
+  }) : { message: error };
+  const message = String(err.message || "").toLowerCase();
+  if (err.code === "42703") {
+    if (!message.trim()) return true;
+    return message.includes("listing_kind") || message.includes("scholarship_");
+  }
   return (
     (message.includes("listing_kind") || message.includes("scholarship_")) &&
     (message.includes("column") ||

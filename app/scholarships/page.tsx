@@ -148,7 +148,7 @@ export default function ScholarshipsPage() {
     queryKey: ["scholarships", debouncedFilters, currentPage],
     queryFn: async () => {
       const countQuery = applyFilters(
-        supabase.from("jobs").select("id", { count: "exact", head: true }),
+        supabase.from("jobs").select("id", { count: "exact" }).limit(0),
         debouncedFilters
       );
       const { count, error: countError } = await countQuery;
