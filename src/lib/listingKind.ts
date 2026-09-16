@@ -12,7 +12,7 @@ const BURSARY_FIELD_RE = /bursary\s+and\s+scholarships?/i;
 
 /** Employment roles that administer scholarships — keep these on the jobs board. */
 const ADMIN_ROLE_RE =
-  /\b(coordinator|officer|manager|administrator|clerk|director|specialist|analyst|assistant director)\b/i;
+  /\b(coordinator|officer|manager|administrator|clerk|director|specialist|analyst|assistant director|digital scholarship assistant)\b/i;
 
 const GRADUATE_ASSISTANT_RE = /\b(graduate assistant|tutorial fellow)\b/i;
 

@@ -56,6 +56,14 @@ assert.equal(
   "job"
 );
 
+assert.equal(
+  classifyListingKind({
+    title: "Digital Scholarship Assistant, Library Department",
+    jobFunctionHint: "Education & Training",
+  }),
+  "job"
+);
+
 assert.equal(isScholarshipListing("scholarship"), true);
 assert.equal(isScholarshipListing("job"), false);
 assert.equal(isScholarshipListing(null), false);
