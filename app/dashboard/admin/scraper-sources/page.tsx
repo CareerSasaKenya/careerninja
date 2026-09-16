@@ -735,9 +735,10 @@ export default function AdminScraperSourcesPage() {
             <code className="text-xs">20260720_seed_brightermonday_scraper_source.sql</code>
             {', '}
             <code className="text-xs">20260722_seed_fuzu_scraper_source.sql</code>
-            {' '}and <code className="text-xs">20260722_seed_myjobmag_scraper_source.sql</code>
+            {' '}and             <code className="text-xs">20260722_seed_myjobmag_scraper_source.sql</code>
             {', '}
             <code className="text-xs">20260728_bump_myjobmag_max_pages.sql</code>
+            {' '}and <code className="text-xs">20260916_seed_scholarship_scraper_sources.sql</code>
           </CardDescription>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
@@ -747,6 +748,7 @@ export default function AdminScraperSourcesPage() {
           <p><strong>Employers:</strong> Inkomoko (Workable), SALIX Data Africa, Digital Divide Data (SmartRecruiters, Kenya filter)</p>
           <p><strong>Batch A (verified):</strong> PowerGen Renewable Energy, iHub (SmartRecruiters). Workable pipeline (paused): Tala, Branch, KCB, Komaza, Sanergy, Copia, Apollo</p>
           <p><strong>Job boards:</strong> BrighterMonday Kenya, Fuzu Kenya, and MyJobMag Kenya (JSON-LD / HTML). Employer apply link/email from the posting is preferred; the board listing URL is only used as a last resort. Fuzu and MyJobMag also copy hiring-company logo, about, website, size, and location from the portal company tab into CareerSasa company pages when those fields are empty. MyJobMag discover also walks <code className="text-xs">/jobs-by-date/today</code> and <code className="text-xs">/yesterday</code> so same-day posts are not missed between main-listing bumps.</p>
+          <p><strong>Scholarships:</strong> Opportunity Desk (Kenya/Africa + award filter, RSS), After School Africa Kenya, Scholars4Dev (Kenya search + Africa category), Opportunities For Africans scholarships, flagship programmes (DAAD, Chevening, Commonwealth Master’s, Fulbright Kenya), and BrighterMonday listings whose slug/title looks like a scholarship or bursary. Published as <code className="text-xs">listing_kind=scholarship</code> with labelled Facts — not Full Time jobs. After School Africa and DAAD HTML may 403 from some IPs; programme sources still publish fallback copy plus the official apply URL.</p>
           <p><strong>Discover tip:</strong> Toast &quot;scanned&quot; is listings seen on the board; only <em>queued</em> rows enable Process. Already-known URLs (in queue or published) are skipped — expected after a backlog drain. If Process stays disabled after a successful queue toast, click Refresh (stats now page past the 1000-row Supabase cap). Cron discover runs every 6 hours — for a large MyJobMag wave, run Discover on <code className="text-xs">myjobmag-kenya</code> manually, then Process / drain the queue.</p>
         </CardContent>
       </Card>

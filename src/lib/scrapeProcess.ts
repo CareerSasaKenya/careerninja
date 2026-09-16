@@ -63,6 +63,12 @@ import {
   normalizeMyJobMagJob,
   resolveMyJobMagCompanyProfile,
 } from '@/lib/myjobmag-adapter'
+import {
+  fetchScholarshipFeedDetails,
+  normalizeScholarshipFeedJob,
+  isAwardListing,
+  type ScholarshipFeedConfig,
+} from '@/lib/scholarshipFeedAdapter'
 import { companyProfileToEnsureInput, type JobBoardCompanyProfile } from '@/lib/jobBoardCompany'
 import { mapEducationLevel } from '@/lib/jobMetadataExtraction'
 import { limitTags } from '@/lib/jobParseNormalization'
@@ -89,6 +95,8 @@ import {
   isMissingListingKindColumnError,
   scholarshipPublishFields,
   withoutScholarshipColumns,
+  classifyListingKind,
+  LISTING_KIND_SCHOLARSHIP,
 } from '@/lib/listingKind'
 import type { WorkableJobDetail } from '@/lib/workable-adapter'
 import {
@@ -426,6 +434,54 @@ export async function runScrapeProcessOne(
       }
     } else if (adapterType === 'brightermonday') {
       const detail = await fetchBrighterMondayJobDetails(queueItem.job_url)
+      const scholarshipOnly = Boolean(
+        (source.selectors as { scholarshipOnly?: boolean }).scholarshipOnly
+      )
+      if (scholarshipOnly) {
+        const awardHint = isAwardListing(
+          detail.title,
+          detail.occupationalCategory || '',
+          detail.descriptionHtml
+        )
+          ? 'Bursary and Scholarships'
+          : detail.occupationalCategory
+        const kind = classifyListingKind({
+          title: detail.title,
+          occupationalCategory: awardHint,
+        })
+        if (kind !== LISTING_KIND_SCHOLARSHIP) {
+          await supabase
+            .from('scrape_queue')
+            .update({
+              status: 'done',
+              processed_at: new Date().toISOString(),
+              error_message: 'Skipped: BrighterMonday listing is not a scholarship/bursary',
+            })
+            .eq('id', queueItem.id)
+          const skipHash = workableHash(detail.title, detail.company, detail.location || '')
+          await supabase.from('scraped_job_sources').upsert(
+            {
+              source_id: source.source_id,
+              job_url: normalizeJobUrl(queueItem.job_url),
+              content_hash: skipHash,
+              job_id: null,
+              status: 'skipped',
+              raw_data: {
+                skip_reason: 'not_a_scholarship',
+                title: detail.title,
+              },
+            },
+            { onConflict: 'job_url' }
+          )
+          return {
+            message: 'Non-scholarship listing skipped',
+            processed: 1,
+            job_url: queueItem.job_url,
+            title: detail.title,
+          }
+        }
+        if (awardHint) detail.occupationalCategory = awardHint
+      }
       normalized = normalizeBrighterMondayJob(detail)
       rawData = detail
 
@@ -477,6 +533,29 @@ export async function runScrapeProcessOne(
         descriptionSection: detail.descriptionHtml,
         requirementsSection: '',
         industryHint: detail.industry,
+        jobFunctionHint: detail.occupationalCategory,
+        tagsHint: normalized.tags,
+        rawContent: detail.descriptionHtml || '',
+      }
+    } else if (adapterType === 'scholarship_feed') {
+      const config = source.selectors as ScholarshipFeedConfig
+      const detail = await fetchScholarshipFeedDetails(
+        queueItem.job_url,
+        config,
+        queueItem.partial_data as Record<string, unknown> | null
+      )
+      normalized = normalizeScholarshipFeedJob(detail)
+      rawData = detail
+
+      parseInput = {
+        title: normalized.title,
+        company: normalized.company,
+        location: normalized.location,
+        employmentType: normalized.employment_type,
+        workplace: normalized.job_location_type,
+        descriptionSection: detail.descriptionHtml,
+        requirementsSection: '',
+        industryHint: 'Education & Training',
         jobFunctionHint: detail.occupationalCategory,
         tagsHint: normalized.tags,
         rawContent: detail.descriptionHtml || '',
@@ -542,7 +621,8 @@ export async function runScrapeProcessOne(
       adapterType === 'psc' ||
       adapterType === 'brightermonday' ||
       adapterType === 'fuzu' ||
-      adapterType === 'myjobmag'
+      adapterType === 'myjobmag' ||
+      adapterType === 'scholarship_feed'
         ? normalized.company
         : hiringCompany
     const contentHash = workableHash(
@@ -864,9 +944,11 @@ export async function runScrapeProcessOne(
       ...scholarshipPublishFields({
         title: normalized.title,
         occupationalCategory:
-          rawData && typeof rawData === 'object' && 'occupationalCategory' in rawData
-            ? (rawData as { occupationalCategory?: string | null }).occupationalCategory
-            : null,
+          adapterType === 'scholarship_feed'
+            ? 'Bursary and Scholarships'
+            : rawData && typeof rawData === 'object' && 'occupationalCategory' in rawData
+              ? (rawData as { occupationalCategory?: string | null }).occupationalCategory
+              : null,
         jobFunctionHint: parseInput.jobFunctionHint,
         tags,
         description: rawDescription,
@@ -1034,6 +1116,7 @@ export async function runScrapeProcessBatch(
     if (
       result.message === 'Duplicate job skipped' ||
       result.message === 'Expired job skipped' ||
+      result.message === 'Non-scholarship listing skipped' ||
       result.success ||
       result.error
     ) {

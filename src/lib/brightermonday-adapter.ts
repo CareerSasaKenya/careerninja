@@ -26,6 +26,12 @@ export interface BrighterMondaySourceConfig {
   category?: string
   maxPages?: number
   baseHost?: string
+  /**
+   * When true, only queue /listings slugs (and titles) that look like
+   * scholarships, bursaries, or fellowships. Use a dedicated source so the
+   * main BrighterMonday jobs crawl stays a jobs board.
+   */
+  scholarshipOnly?: boolean
 }
 
 export interface BrighterMondayJobDetail {
@@ -94,12 +100,56 @@ async function fetchPageHtml(url: string): Promise<string> {
   return response.text()
 }
 
-function listingPageUrls(origin: string, maxPages: number): string[] {
+const SCHOLARSHIP_LISTING_RE =
+  /\b(scholarships?|bursar(?:y|ies)|fellowships?|fully[\s-]?funded)\b/i
+
+/** Path + query from scraper_sources.base_url (`/jobs`, `/jobs?q=bursary`). */
+export function brighterMondayListingLocationFromBaseUrl(baseUrl?: string): {
+  path: string
+  search: string
+} {
+  if (!baseUrl) return { path: LISTING_PATH, search: '' }
+  try {
+    const parsed = new URL(baseUrl)
+    const path = parsed.pathname.replace(/\/+$/, '') || LISTING_PATH
+    return {
+      path: path.startsWith('/') ? path : `/${path}`,
+      search: parsed.search || '',
+    }
+  } catch {
+    return { path: LISTING_PATH, search: '' }
+  }
+}
+
+export function isBrighterMondayScholarshipListing(jobUrl: string, title = ''): boolean {
+  let slugText = jobUrl
+  try {
+    slugText = decodeURIComponent(new URL(jobUrl).pathname)
+  } catch {
+    /* keep raw */
+  }
+  const blob = `${slugText.replace(/[-_/]+/g, ' ')} ${title}`
+  return SCHOLARSHIP_LISTING_RE.test(blob)
+}
+
+function listingPageUrls(
+  origin: string,
+  listingPath: string,
+  search: string,
+  maxPages: number
+): string[] {
   const pages = Math.max(1, Math.min(maxPages, 10))
-  const first = `${origin}${LISTING_PATH}`
-  const urls = [first]
-  for (let page = 2; page <= pages; page++) {
-    urls.push(`${first}?page=${page}`)
+  const urls: string[] = []
+  for (let page = 1; page <= pages; page++) {
+    const pageUrl = new URL(listingPath, `${origin.replace(/\/+$/, '')}/`)
+    if (search) {
+      const params = new URLSearchParams(search.startsWith('?') ? search.slice(1) : search)
+      params.forEach((value, key) => {
+        if (key !== 'page') pageUrl.searchParams.set(key, value)
+      })
+    }
+    if (page > 1) pageUrl.searchParams.set('page', String(page))
+    urls.push(pageUrl.toString())
   }
   return urls
 }
@@ -119,8 +169,9 @@ export async function discoverBrighterMondayJobs(
   baseUrl?: string
 ): Promise<Array<{ job_url: string; partial_data: { title?: string; location?: string } }>> {
   const origin = originFromBaseUrl(baseUrl, config.baseHost)
+  const { path, search } = brighterMondayListingLocationFromBaseUrl(baseUrl)
   const maxPages = typeof config.maxPages === 'number' ? config.maxPages : 5
-  const pageUrls = listingPageUrls(origin, maxPages)
+  const pageUrls = listingPageUrls(origin, path, search, maxPages)
   const seen = new Set<string>()
 
   for (const pageUrl of pageUrls) {
@@ -130,10 +181,13 @@ export async function discoverBrighterMondayJobs(
     }
   }
 
-  return [...seen].map(job_url => ({
+  const discovered = [...seen].map(job_url => ({
     job_url,
-    partial_data: {},
+    partial_data: {} as { title?: string; location?: string },
   }))
+
+  if (!config.scholarshipOnly) return discovered
+  return discovered.filter(item => isBrighterMondayScholarshipListing(item.job_url))
 }
 
 function findById(graph: Array<Record<string, unknown>>, id: unknown): Record<string, unknown> | null {
