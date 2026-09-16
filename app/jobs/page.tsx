@@ -262,7 +262,7 @@ const Jobs = () => {
     queryKey: ["jobs", debouncedFilters, currentPage],
     queryFn: async () => {
       try {
-        let countQuery = applyJobListingFilters(
+        const countQuery = applyJobListingFilters(
           supabase.from("jobs").select("id", { count: "exact" }).limit(0),
           debouncedFilters
         );
