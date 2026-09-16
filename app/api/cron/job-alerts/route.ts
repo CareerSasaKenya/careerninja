@@ -52,6 +52,7 @@ export async function GET(request: NextRequest) {
       .from('jobs')
       .select('id, title, company_id, job_location_city, employment_type, status')
       .eq('status', 'active')
+      .eq('listing_kind', 'job')
       .gte('created_at', sevenDaysAgo.toISOString())
       .limit(200);
 

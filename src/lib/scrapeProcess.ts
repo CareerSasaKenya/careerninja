@@ -85,6 +85,11 @@ import { requireCareerTipsHtml, hasGeneratedCareerTips } from '@/lib/careerTips'
 import { isMissingOrLabelOnlyQualifications } from '@/lib/experienceLevelLabel'
 import { applyKenyanSalaryEstimateIfMissing, isMissingSalaryEstimatedColumnError, withoutSalaryEstimatedFlag } from '@/lib/kenyanSalaryEstimate'
 import { revalidatePublicJobSurfaces } from '@/lib/revalidatePublic'
+import {
+  isMissingListingKindColumnError,
+  scholarshipPublishFields,
+  withoutScholarshipColumns,
+} from '@/lib/listingKind'
 import type { WorkableJobDetail } from '@/lib/workable-adapter'
 import {
   EXHAUSTED_SCRAPE_ATTEMPTS_MESSAGE,
@@ -856,6 +861,23 @@ export async function runScrapeProcessOne(
       salary_max: normalized.salary_max ?? parsed.salary_max ?? null,
       salary_currency: normalized.salary_currency || parsed.salary_currency || 'KES',
       salary_period: normalized.salary_period || parsed.salary_period || 'MONTH',
+      ...scholarshipPublishFields({
+        title: normalized.title,
+        occupationalCategory:
+          rawData && typeof rawData === 'object' && 'occupationalCategory' in rawData
+            ? (rawData as { occupationalCategory?: string | null }).occupationalCategory
+            : null,
+        jobFunctionHint: parseInput.jobFunctionHint,
+        tags,
+        description: rawDescription,
+        html: [
+          rawDescription,
+          parsed.required_qualifications,
+          parsed.responsibilities,
+        ]
+          .filter(Boolean)
+          .join('\n'),
+      }),
     }
 
     const jobPayloadWithSalary = applyKenyanSalaryEstimateIfMissing(jobPayload, {
@@ -874,6 +896,14 @@ export async function runScrapeProcessOne(
       ;({ data: insertedJob, error: jobError } = await supabase
         .from('jobs')
         .insert(withoutSalaryEstimatedFlag(jobPayloadWithSalary))
+        .select('id, job_slug')
+        .single())
+    }
+
+    if (jobError && isMissingListingKindColumnError(jobError)) {
+      ;({ data: insertedJob, error: jobError } = await supabase
+        .from('jobs')
+        .insert(withoutScholarshipColumns(jobPayloadWithSalary as Record<string, unknown>))
         .select('id, job_slug')
         .single())
     }

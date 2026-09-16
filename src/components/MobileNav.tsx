@@ -163,6 +163,12 @@ const MobileNav = () => {
               )}
             </div>
 
+            <Link href="/scholarships" onClick={closeMenu} prefetch={true}>
+              <Button variant="ghost" className="w-full justify-start text-base">
+                Scholarships
+              </Button>
+            </Link>
+
             <Link href="/companies" onClick={closeMenu} prefetch={true}>
               <Button variant="ghost" className="w-full justify-start text-base">
                 Companies

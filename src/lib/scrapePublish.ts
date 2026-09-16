@@ -26,6 +26,11 @@ import { requireCareerTipsHtml, hasGeneratedCareerTips } from './careerTips'
 import { isMissingOrLabelOnlyQualifications } from './experienceLevelLabel'
 import { applyKenyanSalaryEstimateIfMissing, isMissingSalaryEstimatedColumnError, withoutSalaryEstimatedFlag } from './kenyanSalaryEstimate'
 import { revalidatePublicJobSurfaces } from './revalidatePublic'
+import {
+  isMissingListingKindColumnError,
+  scholarshipPublishFields,
+  withoutScholarshipColumns,
+} from './listingKind'
 
 export interface PublishScrapedJobParams {
   supabase: SupabaseClient
@@ -343,6 +348,23 @@ export async function publishScrapedJob(
       salary_max: normalized.salary_max ?? parsed.salary_max ?? null,
       salary_currency: normalized.salary_currency || parsed.salary_currency || 'KES',
       salary_period: normalized.salary_period || parsed.salary_period || 'MONTH',
+      ...scholarshipPublishFields({
+        title: normalized.title,
+        occupationalCategory:
+          rawData && typeof rawData === 'object' && 'occupationalCategory' in rawData
+            ? (rawData as { occupationalCategory?: string | null }).occupationalCategory
+            : null,
+        jobFunctionHint: parseInput.jobFunctionHint,
+        tags: limitTags(parsed.tags || normalized.tags || '', 5),
+        description: parsed.description || normalized.description,
+        html: [
+          parsed.description || normalized.description,
+          parsed.required_qualifications,
+          parsed.responsibilities,
+        ]
+          .filter(Boolean)
+          .join('\n'),
+      }),
     }
 
     const jobPayloadWithSalary = applyKenyanSalaryEstimateIfMissing(jobPayload, {
@@ -361,6 +383,14 @@ export async function publishScrapedJob(
       ;({ data: insertedJob, error: jobError } = await supabase
         .from('jobs')
         .insert(withoutSalaryEstimatedFlag(jobPayloadWithSalary))
+        .select('id, job_slug')
+        .single())
+    }
+
+    if (jobError && isMissingListingKindColumnError(jobError)) {
+      ;({ data: insertedJob, error: jobError } = await supabase
+        .from('jobs')
+        .insert(withoutScholarshipColumns(jobPayloadWithSalary as Record<string, unknown>))
         .select('id, job_slug')
         .single())
     }

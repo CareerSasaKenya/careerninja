@@ -2953,6 +2953,16 @@ export type Database = {
           valid_through: string | null
           views_count: number | null
           work_schedule: string | null
+          listing_kind: string
+          scholarship_level: string | null
+          scholarship_coverage: string | null
+          scholarship_duration: string | null
+          scholarship_nationality: string | null
+          scholarship_age_limit: string | null
+          scholarship_bonding: string | null
+          scholarship_host_institution: string | null
+          scholarship_awards_count: number | null
+          scholarship_programme_start: string | null
         }
         Insert: {
           additional_info?: string | null
@@ -3049,6 +3059,16 @@ export type Database = {
           valid_through?: string | null
           views_count?: number | null
           work_schedule?: string | null
+          listing_kind?: string
+          scholarship_level?: string | null
+          scholarship_coverage?: string | null
+          scholarship_duration?: string | null
+          scholarship_nationality?: string | null
+          scholarship_age_limit?: string | null
+          scholarship_bonding?: string | null
+          scholarship_host_institution?: string | null
+          scholarship_awards_count?: number | null
+          scholarship_programme_start?: string | null
         }
         Update: {
           additional_info?: string | null
@@ -3145,6 +3165,16 @@ export type Database = {
           valid_through?: string | null
           views_count?: number | null
           work_schedule?: string | null
+          listing_kind?: string
+          scholarship_level?: string | null
+          scholarship_coverage?: string | null
+          scholarship_duration?: string | null
+          scholarship_nationality?: string | null
+          scholarship_age_limit?: string | null
+          scholarship_bonding?: string | null
+          scholarship_host_institution?: string | null
+          scholarship_awards_count?: number | null
+          scholarship_programme_start?: string | null
         }
         Relationships: [
           {

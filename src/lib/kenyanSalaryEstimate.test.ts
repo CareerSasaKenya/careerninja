@@ -198,6 +198,25 @@ assert.equal(roundKes(1000), 5000)
 }
 
 {
+  const payload = applyKenyanSalaryEstimateIfMissing(
+    {
+      listing_kind: 'scholarship',
+      title: 'STEM Scholarship',
+      experience_level: 'Entry',
+      job_location_country: 'Kenya',
+      salary_min: null,
+      salary_max: null,
+      salary_currency: 'KES',
+      salary_period: 'MONTH',
+    },
+    {}
+  )
+  assert.equal(payload.salary_is_estimated, false)
+  assert.equal(payload.salary_min, null)
+  assert.equal(payload.salary_max, null)
+}
+
+{
   assert.equal(
     isMissingSalaryEstimatedColumnError({
       message: "Could not find the 'salary_is_estimated' column of 'jobs' in the schema cache",

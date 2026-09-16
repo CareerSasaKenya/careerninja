@@ -123,7 +123,9 @@ export const getJobsForSavedSearch = async (searchParams: Record<string, any>) =
         logo,
         website
       )
-    `);
+    `)
+    .eq("status", "active")
+    .eq("listing_kind", "job");
 
   // Apply search filters
   if (searchParams.searchTerm) {

@@ -43,6 +43,11 @@ export default {
         changefreq: 'daily',
         priority: 0.8,
       },
+      {
+        loc: '/scholarships',
+        changefreq: 'daily',
+        priority: 0.8,
+      },
     ];
     
     // Import Supabase client
@@ -81,16 +86,16 @@ export default {
     try {
       // Fetch all active jobs (paginated — a bare query silently caps at 1000)
       const jobs = await fetchAllPaginated(
-        'id, job_slug, updated_at',
+        'id, job_slug, updated_at, listing_kind',
         'jobs',
         'updated_at',
         ['status', 'active']
       );
       
-      // Add job URLs to sitemap
       jobs.forEach(job => {
+        const isScholarship = job.listing_kind === 'scholarship';
         result.push({
-          loc: `/jobs/${job.job_slug || job.id}`,
+          loc: `/${isScholarship ? 'scholarships' : 'jobs'}/${job.job_slug || job.id}`,
           lastmod: job.updated_at,
           changefreq: 'daily',
           priority: 0.8,

@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from '@supabase/supabase-js';
 import { Flag } from "lucide-react";
@@ -32,6 +32,7 @@ import { resolveJobSalaryDisplay } from "@/lib/kenyanSalaryEstimate";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabaseEnv";
 import { throwIfSupabaseError } from "@/lib/supabaseRead";
 import { resolveValidThrough } from "@/lib/jobStructuredDataMapping";
+import { isScholarshipRow, scholarshipPath } from "@/lib/listingKind";
 
 function getDisplayLabels(values: string[] | null | undefined, fallback?: string | null): string[] {
   return dedupeStrings(values?.length ? values : fallback ? [fallback] : []);
@@ -139,6 +140,7 @@ async function getRelatedJobs(jobId: string, industries?: string[], jobFunctions
             .select(select)
             .neq("id", jobId)
             .eq("status", "active")
+            .eq("listing_kind", "job")
             .overlaps("industries", industries!)
             .order("date_posted", { ascending: false })
             .limit(8)
@@ -156,6 +158,7 @@ async function getRelatedJobs(jobId: string, industries?: string[], jobFunctions
             .select(select)
             .neq("id", jobId)
             .eq("status", "active")
+            .eq("listing_kind", "job")
             .overlaps("job_functions", jobFunctions!)
             .order("date_posted", { ascending: false })
             .limit(8)
@@ -189,6 +192,7 @@ async function getRelatedJobs(jobId: string, industries?: string[], jobFunctions
           .select(select)
           .neq("id", jobId)
           .eq("status", "active")
+          .eq("listing_kind", "job")
           .order("date_posted", { ascending: false })
           .limit(6)
     );
@@ -218,6 +222,10 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
   // Google retries instead of treating the listing as deleted.
   if (!job) {
     return notFound();
+  }
+
+  if (isScholarshipRow(job)) {
+    redirect(scholarshipPath(job.job_slug || job.id));
   }
   
   // Fetch related jobs (use full arrays so extras still power search/overlap)

@@ -621,6 +621,17 @@ export function applyKenyanSalaryEstimateIfMissing<T extends Record<string, any>
   salary_period: string
   salary_is_estimated: boolean
 } {
+  if (jobFields.listing_kind === 'scholarship') {
+    return {
+      ...jobFields,
+      salary_min: jobFields.salary_min ?? null,
+      salary_max: jobFields.salary_max ?? null,
+      salary_currency: jobFields.salary_currency || 'KES',
+      salary_period: jobFields.salary_period || 'MONTH',
+      salary_is_estimated: false,
+    }
+  }
+
   const hasMin = jobFields.salary_min != null && Number.isFinite(jobFields.salary_min)
   const hasMax = jobFields.salary_max != null && Number.isFinite(jobFields.salary_max)
 

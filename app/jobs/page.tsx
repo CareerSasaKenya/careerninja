@@ -17,6 +17,7 @@ import {
   queryJobCards,
   type JobCardRow,
 } from "@/lib/jobCardSelect";
+import { isMissingListingKindColumnError } from "@/lib/listingKind";
 
 interface SearchFilters {
   searchTerm: string;
@@ -137,8 +138,9 @@ const COUNTIES = KENYA_COUNTIES;
 const JOBS_PER_PAGE = 12;
 const SEARCH_DEBOUNCE_MS = 300;
 
-function applyJobListingFilters(query: any, filters: SearchFilters) {
+function applyJobListingFilters(query: any, filters: SearchFilters, withKind = true) {
   query = query.eq("status", "active");
+  if (withKind) query = query.eq("listing_kind", "job");
 
   if (filters.searchTerm) {
     query = query.ilike("title", `%${filters.searchTerm}%`);
@@ -261,11 +263,19 @@ const Jobs = () => {
     queryFn: async () => {
       try {
         const countQuery = applyJobListingFilters(
-          supabase.from("jobs").select("id", { count: "exact", head: true }),
+          supabase.from("jobs").select("id", { count: "exact" }).limit(0),
           debouncedFilters
         );
 
-        const { count, error: countError } = await countQuery;
+        let { count, error: countError } = await countQuery;
+        const skipKind = !!(countError && isMissingListingKindColumnError(countError));
+        if (skipKind) {
+          ;({ count, error: countError } = await applyJobListingFilters(
+            supabase.from("jobs").select("id", { count: "exact" }).limit(0),
+            debouncedFilters,
+            false
+          ));
+        }
 
         if (countError) {
           console.error("Count query error:", countError);
@@ -280,7 +290,8 @@ const Jobs = () => {
             applyJobListingSort(
               applyJobListingFilters(
                 (supabase as any).from("jobs").select(select),
-                debouncedFilters
+                debouncedFilters,
+                !skipKind
               ),
               debouncedFilters.sortBy
             ).range(from, to)

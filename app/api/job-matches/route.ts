@@ -65,6 +65,7 @@ export async function POST(request: NextRequest) {
       .from('jobs')
       .select('id, title, company, location, description, employment_type, experience_level, minimum_experience, salary_min, salary_max, salary_currency, job_function, industry, tags')
       .eq('status', 'active')
+      .eq('listing_kind', 'job')
       .order('created_at', { ascending: false })
       .limit(100);
 

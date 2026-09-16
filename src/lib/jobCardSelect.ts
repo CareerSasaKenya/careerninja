@@ -1,3 +1,5 @@
+import { isMissingListingKindColumnError } from "./listingKind"
+
 /**
  * Card-sized job projections — never SELECT * for lists/related/homepage.
  * Job detail pages keep a full-row select.
@@ -44,6 +46,12 @@ export const JOB_CARD_SELECT = `${JOB_CARD_COLUMNS.join(", ")}, description_exce
 /** Fallback before the description_excerpt migration is applied. */
 export const JOB_CARD_SELECT_FALLBACK = `${JOB_CARD_COLUMNS.join(", ")}, description, ${COMPANY_EMBED}`
 
+export const SCHOLARSHIP_CARD_EXTRA =
+  "listing_kind, scholarship_level, scholarship_coverage, field_of_study, area_of_study"
+
+export const SCHOLARSHIP_CARD_SELECT = `${JOB_CARD_SELECT}, ${SCHOLARSHIP_CARD_EXTRA}`
+export const SCHOLARSHIP_CARD_SELECT_FALLBACK = `${JOB_CARD_SELECT_FALLBACK}, ${SCHOLARSHIP_CARD_EXTRA}`
+
 export type JobCardCompany = {
   id?: string | null
   name?: string | null
@@ -82,6 +90,11 @@ export type JobCardRow = {
   is_featured?: boolean | null
   is_promoted?: boolean | null
   promotion_tier?: string | null
+  listing_kind?: string | null
+  scholarship_level?: string | null
+  scholarship_coverage?: string | null
+  field_of_study?: string | null
+  area_of_study?: string | null
   description_excerpt?: string | null
   description?: string | null
   companies?: JobCardCompany | JobCardCompany[]
@@ -118,6 +131,26 @@ export async function queryJobCards<T>(
   if (!first.error) return first
   if (isMissingExcerptColumn(first.error.message)) {
     return run(JOB_CARD_SELECT_FALLBACK)
+  }
+  return first
+}
+
+/** Card query for /scholarships — extra labelled-fact columns. */
+export async function queryScholarshipCards<T>(
+  run: (select: string) => PromiseLike<QueryResult<T>>
+): Promise<QueryResult<T>> {
+  const first = await run(SCHOLARSHIP_CARD_SELECT)
+  if (!first.error) return first
+  if (isMissingExcerptColumn(first.error.message)) {
+    const fallback = await run(SCHOLARSHIP_CARD_SELECT_FALLBACK)
+    if (!fallback.error) return fallback
+    if (isMissingListingKindColumnError(fallback.error)) {
+      return queryJobCards(run)
+    }
+    return fallback
+  }
+  if (isMissingListingKindColumnError(first.error)) {
+    return queryJobCards(run)
   }
   return first
 }

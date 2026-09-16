@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
       .from('jobs')
       .select('id, title, job_location_city, company_id')
       .eq('status', 'active')
+      .eq('listing_kind', 'job')
       .gte('created_at', weekAgo.toISOString())
       .order('is_featured', { ascending: false })
       .order('created_at', { ascending: false })
