@@ -1,3 +1,5 @@
+import { isMissingListingKindColumnError } from "./listingKind"
+
 /**
  * Card-sized job projections — never SELECT * for lists/related/homepage.
  * Job detail pages keep a full-row select.
@@ -142,6 +144,13 @@ export async function queryScholarshipCards<T>(
   if (isMissingExcerptColumn(first.error.message)) {
     const fallback = await run(SCHOLARSHIP_CARD_SELECT_FALLBACK)
     if (!fallback.error) return fallback
+    if (isMissingListingKindColumnError(fallback.error)) {
+      return queryJobCards(run)
+    }
+    return fallback
+  }
+  if (isMissingListingKindColumnError(first.error)) {
+    return queryJobCards(run)
   }
   return first
 }

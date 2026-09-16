@@ -55,6 +55,33 @@ export function isScholarshipListing(kind?: string | null): boolean {
   return kind === LISTING_KIND_SCHOLARSHIP;
 }
 
+export type ListingKindRow = {
+  listing_kind?: string | null;
+  title?: string | null;
+  job_function?: string | null;
+  tags?: string | null;
+  occupationalCategory?: string | null;
+};
+
+/**
+ * Prefer stored listing_kind after migration. Before the column exists (or is
+ * still null), classify from title / bursary field so awards can live on
+ * /scholarships instead of looking like Full Time jobs.
+ */
+export function isScholarshipRow(row: ListingKindRow | null | undefined): boolean {
+  if (!row) return false;
+  if (row.listing_kind === LISTING_KIND_SCHOLARSHIP) return true;
+  if (row.listing_kind === LISTING_KIND_JOB) return false;
+  return (
+    classifyListingKind({
+      title: row.title,
+      tags: row.tags,
+      jobFunctionHint: row.job_function,
+      occupationalCategory: row.occupationalCategory,
+    }) === LISTING_KIND_SCHOLARSHIP
+  );
+}
+
 export function scholarshipPath(slugOrId: string): string {
   return `/scholarships/${slugOrId}`;
 }

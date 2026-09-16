@@ -32,7 +32,7 @@ import { resolveJobSalaryDisplay } from "@/lib/kenyanSalaryEstimate";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabaseEnv";
 import { throwIfSupabaseError } from "@/lib/supabaseRead";
 import { resolveValidThrough } from "@/lib/jobStructuredDataMapping";
-import { isScholarshipListing, scholarshipPath } from "@/lib/listingKind";
+import { isScholarshipRow, scholarshipPath } from "@/lib/listingKind";
 
 function getDisplayLabels(values: string[] | null | undefined, fallback?: string | null): string[] {
   return dedupeStrings(values?.length ? values : fallback ? [fallback] : []);
@@ -224,7 +224,7 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
     return notFound();
   }
 
-  if (isScholarshipListing(job.listing_kind)) {
+  if (isScholarshipRow(job)) {
     redirect(scholarshipPath(job.job_slug || job.id));
   }
   

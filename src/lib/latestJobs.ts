@@ -2,23 +2,31 @@ import { cache } from "react"
 import { createClient } from "@supabase/supabase-js"
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabaseEnv"
 import { queryJobCards, type JobCardRow } from "@/lib/jobCardSelect"
+import { isMissingListingKindColumnError } from "@/lib/listingKind"
 
 const supabase = createClient(getSupabaseUrl(), getSupabaseAnonKey())
 
 export const getLatestJobCards: (limit?: number) => Promise<JobCardRow[]> = cache(
   async (limit = 6) => {
     try {
-        const { data, error } = await queryJobCards<JobCardRow[]>((select) =>
-        (supabase as any)
-          .from("jobs")
-          .select(select)
-          .eq("status", "active")
-          .eq("listing_kind", "job")
-          .order("is_featured", { ascending: false, nullsFirst: false })
-          .order("is_promoted", { ascending: false, nullsFirst: false })
-          .order("date_posted", { ascending: false })
-          .limit(limit)
-      )
+      const run = (withKind: boolean) =>
+        queryJobCards<JobCardRow[]>((select) => {
+          let q = (supabase as any)
+            .from("jobs")
+            .select(select)
+            .eq("status", "active")
+          if (withKind) q = q.eq("listing_kind", "job")
+          return q
+            .order("is_featured", { ascending: false, nullsFirst: false })
+            .order("is_promoted", { ascending: false, nullsFirst: false })
+            .order("date_posted", { ascending: false })
+            .limit(limit)
+        })
+
+      let { data, error } = await run(true)
+      if (error && isMissingListingKindColumnError(error)) {
+        ;({ data, error } = await run(false))
+      }
       if (error) throw error
       return data || []
     } catch (error) {

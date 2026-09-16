@@ -27,6 +27,7 @@ import { parseTagsInput, MAX_JOB_TAGS } from "@/lib/jobParseNormalization";
 import {
   jobCardCompany,
   jobCardDescription,
+  queryJobCards,
   queryScholarshipCards,
   type JobCardRow,
 } from "@/lib/jobCardSelect";
@@ -34,7 +35,13 @@ import { sanitizeScrapedJobHtmlForDisplay } from "@/lib/jobBoardApply";
 import { sanitizeStockTipsCopy } from "@/lib/sanitizeStockTipsCopy";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabaseEnv";
 import { throwIfSupabaseError } from "@/lib/supabaseRead";
-import { isScholarshipListing, jobPath, scholarshipPath } from "@/lib/listingKind";
+import {
+  isMissingListingKindColumnError,
+  isScholarshipRow,
+  jobPath,
+  scholarshipPath,
+  classifyListingKind,
+} from "@/lib/listingKind";
 import {
   extractScholarshipFacts,
   mergeScholarshipFacts,
@@ -102,7 +109,12 @@ async function getRelatedScholarships(
       else if (level) q = q.eq("scholarship_level", level);
       return q;
     });
-    if (error) throw error;
+    if (error) {
+      if (isMissingListingKindColumnError(error)) {
+        return relatedViaTitleFallback(jobId);
+      }
+      throw error;
+    }
     const rows = data || [];
     if (rows.length > 0) return rows.slice(0, 6);
 
@@ -116,12 +128,39 @@ async function getRelatedScholarships(
         .order("date_posted", { ascending: false })
         .limit(6)
     );
-    if (fallback.error) throw fallback.error;
+    if (fallback.error) {
+      if (isMissingListingKindColumnError(fallback.error)) {
+        return relatedViaTitleFallback(jobId);
+      }
+      throw fallback.error;
+    }
     return fallback.data || [];
   } catch (error) {
     console.error("Error fetching related scholarships:", error);
     return [];
   }
+}
+
+async function relatedViaTitleFallback(jobId: string) {
+  const { data, error } = await queryJobCards<JobCardRow[]>((select) =>
+    (supabase as any)
+      .from("jobs")
+      .select(select)
+      .neq("id", jobId)
+      .eq("status", "active")
+      .or("title.ilike.%scholarship%,title.ilike.%bursary%,title.ilike.%scholars %")
+      .order("date_posted", { ascending: false })
+      .limit(24)
+  );
+  if (error) throw error;
+  return (data || [])
+    .filter((row) =>
+      classifyListingKind({
+        title: row.title,
+        tags: typeof row.job_function === "string" ? row.job_function : null,
+      }) === "scholarship"
+    )
+    .slice(0, 6);
 }
 
 export const revalidate = 600;
@@ -135,7 +174,7 @@ export default async function ScholarshipDetails({
   const job = await getScholarshipData(id);
   if (!job) return notFound();
 
-  if (!isScholarshipListing(job.listing_kind)) {
+  if (!isScholarshipRow(job)) {
     redirect(jobPath(job.job_slug || job.id));
   }
 

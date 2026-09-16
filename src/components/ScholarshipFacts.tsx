@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Award,
   CalendarDays,
@@ -134,7 +135,7 @@ export default function ScholarshipFacts({ job }: { job: ScholarshipFactsJob }) 
       <CardHeader className="pb-3 pt-4 sm:pb-4 sm:pt-5">
         <CardTitle className="flex items-center gap-2 text-lg text-[#0A66C2]">
           <Link2 className="h-5 w-5" />
-          Scholarship details
+          Facts
         </CardTitle>
       </CardHeader>
       <CardContent className="grid grid-cols-1 gap-3 pb-4 pt-0 md:grid-cols-2 sm:gap-4 sm:pb-5">

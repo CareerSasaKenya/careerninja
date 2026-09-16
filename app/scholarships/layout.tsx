@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { SITE_URL } from "@/lib/browseNav";
 import { fetchPageSeo } from "@/lib/fetchPageContent";

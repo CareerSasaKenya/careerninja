@@ -6,6 +6,7 @@ import {
   classifyListingKind,
   isMissingListingKindColumnError,
   isScholarshipListing,
+  isScholarshipRow,
   listingPath,
   withoutScholarshipColumns,
 } from "./listingKind";
@@ -57,6 +58,21 @@ assert.equal(
 
 assert.equal(isScholarshipListing("scholarship"), true);
 assert.equal(isScholarshipListing("job"), false);
+assert.equal(isScholarshipListing(null), false);
+
+assert.equal(
+  isScholarshipRow({ listing_kind: "scholarship", title: "Internal Auditor" }),
+  true
+);
+assert.equal(
+  isScholarshipRow({ listing_kind: "job", title: "Scholarships Programme at KCB Foundation" }),
+  false
+);
+assert.equal(
+  isScholarshipRow({ title: "Scholarships Programme at KCB Foundation" }),
+  true
+);
+assert.equal(isScholarshipRow({ title: "Internal Auditor" }), false);
 assert.equal(
   listingPath("scholarship", "kcb-scholars"),
   "/scholarships/kcb-scholars"

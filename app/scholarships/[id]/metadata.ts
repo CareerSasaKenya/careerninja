@@ -4,7 +4,7 @@ import { buildLocationString } from "@/lib/textUtils";
 import { buildShareOgImagePath } from "@/lib/ogTemplateCatalog";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabaseEnv";
 import { throwIfSupabaseError } from "@/lib/supabaseRead";
-import { isScholarshipListing } from "@/lib/listingKind";
+import { isMissingListingKindColumnError, isScholarshipRow } from "@/lib/listingKind";
 
 const select = `
   id,
@@ -21,26 +21,47 @@ const select = `
   )
 `;
 
-export async function generateScholarshipMetadata(id: string): Promise<Metadata> {
-  const supabase = createClient(getSupabaseUrl(), getSupabaseAnonKey());
+const selectWithoutKind = `
+  id,
+  title,
+  company,
+  location,
+  job_slug,
+  job_location_type,
+  job_location_city,
+  job_location_county,
+  companies (
+    name
+  )
+`;
 
+async function fetchScholarshipForMetadata(id: string, columns: string) {
+  const supabase = createClient(getSupabaseUrl(), getSupabaseAnonKey());
   let { data: job, error } = await supabase
     .from("jobs")
-    .select(select)
+    .select(columns)
     .eq("job_slug", id)
     .maybeSingle();
 
   if (!job && !error) {
     ({ data: job, error } = await supabase
       .from("jobs")
-      .select(select)
+      .select(columns)
       .eq("id", id)
       .maybeSingle());
+  }
+  return { job, error };
+}
+
+export async function generateScholarshipMetadata(id: string): Promise<Metadata> {
+  let { job, error } = await fetchScholarshipForMetadata(id, select);
+  if (error && isMissingListingKindColumnError(error)) {
+    ({ job, error } = await fetchScholarshipForMetadata(id, selectWithoutKind));
   }
 
   throwIfSupabaseError(error, "Error generating scholarship metadata");
 
-  if (!job || !isScholarshipListing((job as { listing_kind?: string }).listing_kind)) {
+  if (!job || !isScholarshipRow(job as { listing_kind?: string; title?: string })) {
     return {
       title: "Scholarship Not Found - CareerSasa",
       description: "The scholarship you are looking for could not be found.",

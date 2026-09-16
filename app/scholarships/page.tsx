@@ -11,11 +11,12 @@ import { usePageContent, getContentValue } from "@/hooks/usePageContent";
 import {
   jobCardCompany,
   jobCardDescription,
+  queryJobCards,
   queryScholarshipCards,
   type JobCardRow,
 } from "@/lib/jobCardSelect";
-import { isMissingListingKindColumnError } from "@/lib/listingKind";
-import { SCHOLARSHIP_LEVELS } from "@/lib/scholarshipFacts";
+import { isMissingListingKindColumnError, classifyListingKind } from "@/lib/listingKind";
+import { SCHOLARSHIP_LEVELS, extractScholarshipFacts } from "@/lib/scholarshipFacts";
 import { Footer } from "@/components/Footer";
 
 const PER_PAGE = 12;
@@ -63,6 +64,59 @@ function applySort(query: any, sortBy: string) {
   return query.order("created_at", { ascending: false });
 }
 
+function applyTitleFallback(query: any) {
+  return query
+    .eq("status", "active")
+    .or("title.ilike.%scholarship%,title.ilike.%bursary%,title.ilike.%scholars %");
+}
+
+async function fetchViaTitleFallback(
+  filters: Filters,
+  page: number
+): Promise<{ data: JobCardRow[]; count: number }> {
+  const { data: rows, error } = await queryJobCards<JobCardRow[]>((select) =>
+    applySort(
+      applyTitleFallback((supabase as any).from("jobs").select(select)),
+      filters.sortBy
+    ).range(0, 199)
+  );
+  if (error) throw new Error(error.message);
+  let classified = (rows || [])
+    .filter(
+      (row) =>
+        classifyListingKind({
+          title: row.title,
+          tags: typeof row.job_function === "string" ? row.job_function : null,
+        }) === "scholarship"
+    )
+    .map((row) => {
+      const facts = extractScholarshipFacts({
+        title: row.title,
+        html: row.description_excerpt || row.description,
+      });
+      return {
+        ...row,
+        scholarship_level: row.scholarship_level || facts.scholarship_level,
+        scholarship_coverage: row.scholarship_coverage || facts.scholarship_coverage,
+      };
+    });
+  if (filters.searchTerm) {
+    const q = filters.searchTerm.toLowerCase();
+    classified = classified.filter((row) => row.title.toLowerCase().includes(q));
+  }
+  if (filters.location) {
+    classified = classified.filter((row) => row.job_location_county === filters.location);
+  }
+  if (filters.fieldOfStudy) {
+    const q = filters.fieldOfStudy.toLowerCase();
+    classified = classified.filter((row) =>
+      (row.field_of_study || "").toLowerCase().includes(q)
+    );
+  }
+  const from = (page - 1) * PER_PAGE;
+  return { data: classified.slice(from, from + PER_PAGE), count: classified.length };
+}
+
 export default function ScholarshipsPage() {
   const [filters, setFilters] = useState<Filters>({
     searchTerm: "",
@@ -100,7 +154,7 @@ export default function ScholarshipsPage() {
       const { count, error: countError } = await countQuery;
       if (countError) {
         if (isMissingListingKindColumnError(countError)) {
-          return { data: [] as JobCardRow[], count: 0 };
+          return fetchViaTitleFallback(debouncedFilters, currentPage);
         }
         throw new Error(countError.message);
       }
@@ -116,7 +170,7 @@ export default function ScholarshipsPage() {
       );
       if (dataError) {
         if (isMissingListingKindColumnError(dataError)) {
-          return { data: [] as JobCardRow[], count: 0 };
+          return fetchViaTitleFallback(debouncedFilters, currentPage);
         }
         throw new Error(dataError.message);
       }
