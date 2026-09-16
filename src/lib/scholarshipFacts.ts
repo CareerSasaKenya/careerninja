@@ -190,7 +190,7 @@ function extractNationality(text: string): string | null {
 
 function extractBonding(text: string): string | null {
   const engaged = text.match(
-    /\bengaged as\s+(graduate assistants?(?:\s+or\s+tutorial fellows?)?|tutorial fellows?|technicians?(?:\s*\/\s*technologists?)?|technologists?)\b/i
+    /\bengaged as\s+(graduate assistants?(?:\s+or\s+tutorial fellows?)?|tutorial fellows?|technicians?(?:\s*(?:\/|and)\s*technologists?)?|technologists?)\b/i
   );
   if (engaged) {
     const role = engaged[1].replace(/\s+/g, " ").trim();
@@ -202,9 +202,9 @@ function extractBonding(text: string): string | null {
 
 function extractHost(text: string): string | null {
   const match = firstMatch(text, [
-    /\btenable at(?:\s+the)?\s+([^.]+?)(?:\.|$)/i,
-    /\bstudies will be tenable at\s+([^.]+?)(?:\.|$)/i,
-    /\bavailable at the\s+([^.,]+)/i,
+    /\btenable at(?:\s+the)?\s+([^.;]+)/i,
+    /\bstudies will be tenable at\s+([^.;]+)/i,
+    /\bavailable at the\s+([^.,;]+)/i,
   ]);
   if (!match?.[1]) return null;
   return match[1].replace(/\s+/g, " ").trim().replace(/[,;]+$/, "");

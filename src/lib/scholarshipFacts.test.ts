@@ -62,6 +62,23 @@ assert.equal(meru.scholarship_awards_count, 3);
 assert.match(meru.scholarship_host_institution || "", /Meru University/);
 assert.equal(meru.scholarship_bonding, "Bonded");
 
+const meruUndergrad = extractScholarshipFacts({
+  title: "Scholarships (Undergraduate Programmes) - Renewable Energy & Smart Grid",
+  html: `<p>The scholarship package will cover tuition fees, Project and Assessments costs for the duration of study.
+  The scholarships are open to all Kenyans under the age of 40 years who will be engaged as Technicians and Technologists.
+  Scholarships are tenable at the Meru University of Science and Technology;
+  Applications will be as per the outlined below online application procedure.</p>`,
+});
+assert.equal(meruUndergrad.scholarship_level, "undergraduate");
+assert.equal(meruUndergrad.scholarship_coverage, "full");
+assert.equal(meruUndergrad.scholarship_nationality, "Kenyan citizens");
+assert.equal(meruUndergrad.scholarship_age_limit, "Under 40");
+assert.equal(meruUndergrad.scholarship_bonding, "Bonded as Technicians and Technologists");
+assert.equal(
+  meruUndergrad.scholarship_host_institution,
+  "Meru University of Science and Technology"
+);
+
 assert.equal(scholarshipLevelLabel("phd"), "PhD");
 assert.equal(scholarshipCoverageLabel("partial"), "Partial");
 assert.equal(formatProgrammeStart("2026-08-01"), "August 2026");
