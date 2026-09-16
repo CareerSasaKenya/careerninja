@@ -62,6 +62,13 @@ export const CMS_PAGES: CmsPage[] = [
     hasSeo: true,
   },
   {
+    slug: "scholarships",
+    label: "Scholarships",
+    defaultUrl: "/scholarships",
+    defaultCanonical: `${SITE_URL}/scholarships`,
+    hasSeo: true,
+  },
+  {
     slug: "companies",
     label: "Companies",
     defaultUrl: "/companies",
@@ -226,6 +233,25 @@ export const DEFAULT_PAGE_CONTENT: Record<string, DefaultSection[]> = {
       content_type: "text",
       content_value:
         "The interactive map belongs here — tap a county or pick from the ranked list to see live jobs nearby.",
+    },
+  ],
+  scholarships: [
+    {
+      section_key: "hero_title",
+      content_type: "text",
+      content_value: "Scholarships in Kenya",
+      seo_title: "Scholarships in Kenya | CareerSasa",
+      seo_meta_description:
+        "Browse bursaries and scholarships in Kenya. Filter by level, field of study, and deadline, then apply on the funder site.",
+      seo_url_slug: "/scholarships",
+      seo_canonical_url: `${SITE_URL}/scholarships`,
+      seo_h1_title: "Scholarships in Kenya",
+    },
+    {
+      section_key: "hero_subtitle",
+      content_type: "text",
+      content_value:
+        "Bursaries and funded study awards from universities, foundations, and government programmes. Filter by level and field, then apply on the funder site.",
     },
   ],
   companies: [

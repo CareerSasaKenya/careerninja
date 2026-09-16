@@ -79,6 +79,7 @@ export const getActiveJobsByIndustry: () => Promise<IndustryJobCount[]> = cache(
           .from("jobs")
           .select("industry")
           .eq("status", "active")
+          .eq("listing_kind", "job")
           .range(from, from + PAGE_SIZE - 1);
 
         if (error) throw error;

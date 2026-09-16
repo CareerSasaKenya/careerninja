@@ -11,8 +11,12 @@ export function middleware(request: NextRequest) {
                            userAgent.includes('FB_IAB') ||
                            userAgent.includes('FB4A');
   
-  // Only process job detail pages
-  if (pathname.startsWith('/jobs/') && pathname !== '/jobs' && pathname !== '/jobs/') {
+  // Process job and scholarship detail pages
+  const isDetailPath =
+    (pathname.startsWith('/jobs/') && pathname !== '/jobs' && pathname !== '/jobs/') ||
+    (pathname.startsWith('/scholarships/') && pathname !== '/scholarships' && pathname !== '/scholarships/');
+
+  if (isDetailPath) {
     const url = request.nextUrl.clone();
     
     // List of tracking parameters to remove
@@ -71,5 +75,6 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/jobs/:path*',
+    '/scholarships/:path*',
   ],
 };

@@ -25,8 +25,8 @@ assert(
   "content editor includes jobs by county"
 );
 assert(
-  CMS_PAGES.some((page) => page.slug === "companies"),
-  "content editor includes Companies"
+  CMS_PAGES.some((page) => page.slug === "scholarships"),
+  "content editor includes Scholarships"
 );
 assert(
   CMS_PAGES.find((page) => page.slug === "about")?.label === "About Us",

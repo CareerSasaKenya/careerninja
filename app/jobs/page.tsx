@@ -139,6 +139,7 @@ const SEARCH_DEBOUNCE_MS = 300;
 
 function applyJobListingFilters(query: any, filters: SearchFilters) {
   query = query.eq("status", "active");
+  query = query.eq("listing_kind", "job");
 
   if (filters.searchTerm) {
     query = query.ilike("title", `%${filters.searchTerm}%`);

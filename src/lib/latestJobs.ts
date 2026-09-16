@@ -8,11 +8,12 @@ const supabase = createClient(getSupabaseUrl(), getSupabaseAnonKey())
 export const getLatestJobCards: (limit?: number) => Promise<JobCardRow[]> = cache(
   async (limit = 6) => {
     try {
-      const { data, error } = await queryJobCards<JobCardRow[]>((select) =>
+        const { data, error } = await queryJobCards<JobCardRow[]>((select) =>
         (supabase as any)
           .from("jobs")
           .select(select)
           .eq("status", "active")
+          .eq("listing_kind", "job")
           .order("is_featured", { ascending: false, nullsFirst: false })
           .order("is_promoted", { ascending: false, nullsFirst: false })
           .order("date_posted", { ascending: false })

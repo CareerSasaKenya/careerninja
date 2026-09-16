@@ -338,6 +338,7 @@ export async function getJobRecommendations(
     .from('jobs')
     .select('*')
     .eq('status', 'active')
+    .eq('listing_kind', 'job')
     .order('created_at', { ascending: false })
     .limit(100); // Get more jobs to filter
 

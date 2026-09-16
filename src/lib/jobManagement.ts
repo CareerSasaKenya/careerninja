@@ -253,6 +253,7 @@ export async function getFeaturedJobs(limit: number = 10) {
     .select('*, companies(*)')
     .eq('is_featured', true)
     .eq('status', 'active')
+    .eq('listing_kind', 'job')
     .gte('featured_until', new Date().toISOString())
     .order('created_at', { ascending: false })
     .limit(limit);

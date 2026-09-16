@@ -68,6 +68,7 @@ export const getActiveJobsByFunction: () => Promise<FunctionJobCount[]> = cache(
           .from("jobs")
           .select("job_function")
           .eq("status", "active")
+          .eq("listing_kind", "job")
           .range(from, from + PAGE_SIZE - 1);
 
         if (error) throw error;

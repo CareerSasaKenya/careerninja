@@ -78,6 +78,7 @@ const nextConfig = {
   async rewrites() {
     return [
       { source: '/og/jobs/:id.png', destination: '/api/og/job/:id' },
+      { source: '/og/scholarships/:id.png', destination: '/api/og/job/:id' },
     ]
   },
   // Add headers to prevent Facebook WebView caching issues
@@ -93,6 +94,19 @@ const nextConfig = {
           {
             key: 'Content-Disposition',
             value: 'inline; filename="job-card.png"',
+          },
+        ],
+      },
+      {
+        source: '/og/scholarships/:path*',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'image/png',
+          },
+          {
+            key: 'Content-Disposition',
+            value: 'inline; filename="scholarship-card.png"',
           },
         ],
       },

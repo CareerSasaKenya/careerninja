@@ -166,6 +166,10 @@ const Navbar = () => {
             </NavigationMenuList>
           </NavigationMenu>
 
+          <Link href="/scholarships" prefetch={true}>
+            <Button variant="ghost">Scholarships</Button>
+          </Link>
+
           <Link href="/companies" prefetch={true}>
             <Button variant="ghost">Companies</Button>
           </Link>

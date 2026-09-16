@@ -2,7 +2,7 @@
  * Run: npx tsx src/lib/jobCardSelect.test.ts
  */
 import assert from "node:assert/strict"
-import { jobCardCompany, jobCardDescription, JOB_CARD_SELECT } from "./jobCardSelect"
+import { jobCardCompany, jobCardDescription, JOB_CARD_SELECT, SCHOLARSHIP_CARD_SELECT } from "./jobCardSelect"
 
 assert.equal(
   jobCardDescription({
@@ -42,5 +42,7 @@ assert.match(JOB_CARD_SELECT, /description_excerpt/)
 assert.doesNotMatch(JOB_CARD_SELECT, /\bdescription\b/)
 assert.doesNotMatch(JOB_CARD_SELECT, /responsibilities/)
 assert.doesNotMatch(JOB_CARD_SELECT, /additional_info/)
+assert.match(SCHOLARSHIP_CARD_SELECT, /scholarship_level/)
+assert.match(SCHOLARSHIP_CARD_SELECT, /listing_kind/)
 
 console.log("jobCardSelect.test.ts: all assertions passed")

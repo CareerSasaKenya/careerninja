@@ -138,6 +138,7 @@ async function getOpenJobsByCompany(): Promise<Map<string, number>> {
       .from("jobs")
       .select("company_id")
       .eq("status", "active")
+      .eq("listing_kind", "job")
       .not("company_id", "is", null)
       .order("company_id")
       .range(from, to)
@@ -252,7 +253,8 @@ export async function getHomepageStats(): Promise<HomepageStats> {
       supabase
         .from("jobs")
         .select("id", { count: "exact", head: true })
-        .eq("status", "active"),
+        .eq("status", "active")
+        .eq("listing_kind", "job"),
       supabase.from("companies").select("id", { count: "exact", head: true }),
     ]);
 

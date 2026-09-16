@@ -4,6 +4,7 @@ import { buildLocationString } from '@/lib/textUtils';
 import { buildShareOgImagePath } from '@/lib/ogTemplateCatalog';
 import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabaseEnv';
 import { throwIfSupabaseError } from '@/lib/supabaseRead';
+import { isScholarshipListing } from '@/lib/listingKind';
 
 const jobSelect = `
   id,
@@ -11,6 +12,7 @@ const jobSelect = `
   company,
   location,
   job_slug,
+  listing_kind,
   job_location_type,
   job_location_city,
   job_location_county,
@@ -58,18 +60,24 @@ export async function generateJobMetadata(id: string): Promise<Metadata> {
     );
 
     // SEO-friendly title: "[Post] at [Company] in [City], [County], Kenya | CareerSasa"
+    const isScholarship = isScholarshipListing(
+      (job as { listing_kind?: string | null }).listing_kind
+    );
+    const kindLabel = isScholarship ? 'Scholarship' : 'Job';
+    const pathPrefix = isScholarship ? 'scholarships' : 'jobs';
+
     const title = isRemote
-      ? `${jobTitle}${companyName ? ` at ${companyName}` : ''} Job — Remote (Kenya) | CareerSasa`
-      : `${jobTitle}${companyName ? ` at ${companyName}` : ''} Job in ${locationPart} | CareerSasa`;
+      ? `${jobTitle}${companyName ? ` at ${companyName}` : ''} ${kindLabel} — Remote (Kenya) | CareerSasa`
+      : `${jobTitle}${companyName ? ` at ${companyName}` : ''} ${kindLabel} in ${locationPart} | CareerSasa`;
 
     const description = isRemote
-      ? `${jobTitle} job${companyName ? ` at ${companyName}` : ''} — Remote (Kenya). Apply now on CareerSasa.`
-      : `${jobTitle} job${companyName ? ` at ${companyName}` : ''} in ${locationPart}. Apply now on CareerSasa.`;
+      ? `${jobTitle}${isScholarship ? ' scholarship' : ' job'}${companyName ? ` at ${companyName}` : ''} — Remote (Kenya). Apply now on CareerSasa.`
+      : `${jobTitle}${isScholarship ? ' scholarship' : ' job'}${companyName ? ` at ${companyName}` : ''} in ${locationPart}. Apply now on CareerSasa.`;
 
     const siteUrl = 'https://www.careersasa.co.ke';
     // Same .png URL Buffer warms before Facebook scrapes the link card.
     const thumbnailUrl = `${siteUrl}${buildShareOgImagePath(id)}`;
-    const url = `${siteUrl}/jobs/${job.job_slug || job.id || id}`;
+    const url = `${siteUrl}/${pathPrefix}/${job.job_slug || job.id || id}`;
     const imageAlt = `${jobTitle}${companyName ? ` at ${companyName}` : ''}`;
     
     return {

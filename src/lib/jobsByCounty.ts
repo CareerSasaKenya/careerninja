@@ -66,6 +66,7 @@ export const getActiveJobsByCounty: () => Promise<CountyJobCount[]> = cache(
           .from("jobs")
           .select("job_location_county")
           .eq("status", "active")
+          .eq("listing_kind", "job")
           .range(from, from + PAGE_SIZE - 1);
 
         if (error) throw error;

@@ -173,6 +173,7 @@ async function loadCandidateJobs(
     .from('jobs')
     .select(CANDIDATE_SELECT)
     .eq('status', 'active')
+    .eq('listing_kind', 'job')
     .or(`date_posted.gte.${cutoff},created_at.gte.${cutoff}`)
     .order('is_featured', { ascending: false, nullsFirst: false })
     .order('date_posted', { ascending: false, nullsFirst: false })
