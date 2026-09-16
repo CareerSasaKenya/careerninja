@@ -6,6 +6,19 @@ import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabaseEnv";
 import { throwIfSupabaseError } from "@/lib/supabaseRead";
 import { isMissingListingKindColumnError, isScholarshipRow } from "@/lib/listingKind";
 
+type ListingMetadataRow = {
+  id: string;
+  title: string | null;
+  company: string | null;
+  location: string | null;
+  job_slug: string | null;
+  listing_kind?: string | null;
+  job_location_type: string | null;
+  job_location_city: string | null;
+  job_location_county: string | null;
+  companies: { name?: string } | { name?: string }[] | null;
+};
+
 const select = `
   id,
   title,
@@ -35,7 +48,16 @@ const selectWithoutKind = `
   )
 `;
 
-async function fetchScholarshipForMetadata(id: string, columns: string) {
+function companyNameFrom(job: ListingMetadataRow): string | null {
+  const rel = job.companies;
+  const relatedName = Array.isArray(rel) ? rel[0]?.name : rel?.name;
+  return relatedName || job.company || null;
+}
+
+async function fetchScholarshipForMetadata(id: string, columns: string): Promise<{
+  job: ListingMetadataRow | null;
+  error: { message?: string } | null;
+}> {
   const supabase = createClient(getSupabaseUrl(), getSupabaseAnonKey());
   let { data: job, error } = await supabase
     .from("jobs")
@@ -50,7 +72,10 @@ async function fetchScholarshipForMetadata(id: string, columns: string) {
       .eq("id", id)
       .maybeSingle());
   }
-  return { job, error };
+  return {
+    job: (job as unknown as ListingMetadataRow | null) ?? null,
+    error,
+  };
 }
 
 export async function generateScholarshipMetadata(id: string): Promise<Metadata> {
@@ -61,14 +86,14 @@ export async function generateScholarshipMetadata(id: string): Promise<Metadata>
 
   throwIfSupabaseError(error, "Error generating scholarship metadata");
 
-  if (!job || !isScholarshipRow(job as { listing_kind?: string; title?: string })) {
+  if (!job || !isScholarshipRow(job)) {
     return {
       title: "Scholarship Not Found - CareerSasa",
       description: "The scholarship you are looking for could not be found.",
     };
   }
 
-  const companyName = (job.companies as { name?: string } | null)?.name || job.company || null;
+  const companyName = companyNameFrom(job);
   const titleText = job.title || "Scholarship";
   const isRemote = job.job_location_type === "REMOTE";
   const locationPart = buildLocationString(

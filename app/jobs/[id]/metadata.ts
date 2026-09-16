@@ -6,6 +6,19 @@ import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabaseEnv';
 import { throwIfSupabaseError } from '@/lib/supabaseRead';
 import { isMissingListingKindColumnError, isScholarshipRow } from '@/lib/listingKind';
 
+type ListingMetadataRow = {
+  id: string;
+  title: string | null;
+  company: string | null;
+  location: string | null;
+  job_slug: string | null;
+  listing_kind?: string | null;
+  job_location_type: string | null;
+  job_location_city: string | null;
+  job_location_county: string | null;
+  companies: { name?: string } | { name?: string }[] | null;
+};
+
 const jobSelect = `
   id,
   title,
@@ -35,7 +48,16 @@ const jobSelectWithoutKind = `
   )
 `;
 
-async function fetchJobForMetadata(id: string, select: string) {
+function companyNameFrom(job: ListingMetadataRow): string | null {
+  const rel = job.companies;
+  const relatedName = Array.isArray(rel) ? rel[0]?.name : rel?.name;
+  return relatedName || job.company || null;
+}
+
+async function fetchJobForMetadata(id: string, select: string): Promise<{
+  job: ListingMetadataRow | null;
+  error: { message?: string } | null;
+}> {
   const supabase = createClient(getSupabaseUrl(), getSupabaseAnonKey());
   let { data: job, error } = await supabase
     .from('jobs')
@@ -50,7 +72,10 @@ async function fetchJobForMetadata(id: string, select: string) {
       .eq('id', id)
       .maybeSingle());
   }
-  return { job, error };
+  return {
+    job: (job as unknown as ListingMetadataRow | null) ?? null,
+    error,
+  };
 }
 
 export async function generateJobMetadata(id: string): Promise<Metadata> {
@@ -69,7 +94,7 @@ export async function generateJobMetadata(id: string): Promise<Metadata> {
       };
     }
     
-    const companyName = (job.companies as { name?: string } | null)?.name || job.company || null;
+    const companyName = companyNameFrom(job);
     const jobTitle = job.title || 'Job Opening';
     const isRemote = job.job_location_type === 'REMOTE';
     const locationPart = buildLocationString(
@@ -79,7 +104,7 @@ export async function generateJobMetadata(id: string): Promise<Metadata> {
     );
 
     // SEO-friendly title: "[Post] at [Company] in [City], [County], Kenya | CareerSasa"
-    const isScholarship = isScholarshipRow(job as { listing_kind?: string | null; title?: string | null });
+    const isScholarship = isScholarshipRow(job);
     const kindLabel = isScholarship ? 'Scholarship' : 'Job';
     const pathPrefix = isScholarship ? 'scholarships' : 'jobs';
 
