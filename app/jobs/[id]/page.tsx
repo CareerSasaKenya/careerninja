@@ -30,7 +30,7 @@ import { sanitizeScrapedJobHtmlForDisplay } from "@/lib/jobBoardApply";
 import { sanitizeStockTipsCopy } from "@/lib/sanitizeStockTipsCopy";
 import { resolveJobSalaryDisplay } from "@/lib/kenyanSalaryEstimate";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabaseEnv";
-import { throwIfSupabaseError } from "@/lib/supabaseRead";
+import { isUuid, throwIfSupabaseError } from "@/lib/supabaseRead";
 import { resolveValidThrough } from "@/lib/jobStructuredDataMapping";
 import { isScholarshipRow, scholarshipPath } from "@/lib/listingKind";
 
@@ -78,8 +78,8 @@ async function getJobData(id: string) {
     .eq("job_slug", id)
     .maybeSingle();
 
-  // If not found by slug, try by ID
-  if (!job && !error) {
+  // If not found by slug, try by ID (uuid column — skip non-UUID paths)
+  if (!job && !error && isUuid(id)) {
     ({ data: job, error } = await supabase
       .from("jobs")
       .select(`

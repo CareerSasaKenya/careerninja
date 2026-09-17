@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { buildLocationString } from "@/lib/textUtils";
 import { buildShareOgImagePath } from "@/lib/ogTemplateCatalog";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabaseEnv";
-import { throwIfSupabaseError } from "@/lib/supabaseRead";
+import { isUuid, throwIfSupabaseError } from "@/lib/supabaseRead";
 import { isMissingListingKindColumnError, isScholarshipRow } from "@/lib/listingKind";
 
 type ListingMetadataRow = {
@@ -65,7 +65,7 @@ async function fetchScholarshipForMetadata(id: string, columns: string): Promise
     .eq("job_slug", id)
     .maybeSingle();
 
-  if (!job && !error) {
+  if (!job && !error && isUuid(id)) {
     ({ data: job, error } = await supabase
       .from("jobs")
       .select(columns)

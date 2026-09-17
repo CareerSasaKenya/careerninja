@@ -3,8 +3,11 @@
  */
 import assert from "node:assert/strict";
 import {
+  SUPABASE_INVALID_TEXT_CODE,
   SUPABASE_NO_ROWS_CODE,
+  isSupabaseInvalidInputError,
   isSupabaseMissingRowError,
+  isUuid,
   throwIfSupabaseError,
 } from "./supabaseRead";
 
@@ -34,11 +37,51 @@ assert.equal(
   "paused/unpaid project messages are outages, not 404s"
 );
 
+assert.equal(isUuid("d765bb09-5e24-40b4-8ffa-c656026f9e48"), true, "company UUID");
+assert.equal(isUuid("D765BB09-5E24-40B4-8FFA-C656026F9E48"), true, "uppercase UUID");
+assert.equal(isUuid("not-a-uuid"), false);
+assert.equal(isUuid("industry"), false);
+assert.equal(isUuid("undefined"), false);
+assert.equal(isUuid("safaricom"), false);
+assert.equal(isUuid(""), false);
+assert.equal(isUuid(null), false);
+
+assert.equal(
+  isSupabaseInvalidInputError({
+    code: SUPABASE_INVALID_TEXT_CODE,
+    message: 'invalid input syntax for type uuid: "industry"',
+  }),
+  true,
+  "Postgres 22P02 is invalid client input, not an outage"
+);
+assert.equal(
+  isSupabaseInvalidInputError({
+    message: 'invalid input syntax for type uuid: "safaricom"',
+  }),
+  true,
+  "invalid uuid messages without a code are still client input"
+);
+assert.equal(
+  isSupabaseInvalidInputError({
+    code: "502",
+    message: "Bad Gateway",
+  }),
+  false,
+  "gateway failures are not invalid input"
+);
+
 throwIfSupabaseError(null, "fetching job");
 throwIfSupabaseError(undefined, "fetching job");
 throwIfSupabaseError(
   { code: SUPABASE_NO_ROWS_CODE, message: "JSON object requested, multiple (or no) rows returned" },
   "fetching job"
+);
+throwIfSupabaseError(
+  {
+    code: SUPABASE_INVALID_TEXT_CODE,
+    message: 'invalid input syntax for type uuid: "industry"',
+  },
+  "fetching company"
 );
 
 assert.throws(
