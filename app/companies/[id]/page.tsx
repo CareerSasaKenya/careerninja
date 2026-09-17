@@ -24,7 +24,7 @@ import {
   getIndustryCardImage,
 } from "@/lib/industryCardImages";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabaseEnv";
-import { throwIfSupabaseError } from "@/lib/supabaseRead";
+import { isUuid, throwIfSupabaseError } from "@/lib/supabaseRead";
 import {
   jobCardCompany,
   jobCardDescription,
@@ -63,6 +63,9 @@ function normalizeCompanyJob(row: any): CompanyJob {
 }
 
 async function getCompany(id: string): Promise<CompanyRow | null> {
+  // companies.id is uuid. Non-UUID paths like /companies/industry or
+  // /companies/safaricom must 404 — querying them throws 22P02 (HTTP 5xx).
+  if (!isUuid(id)) return null;
   const { data, error } = await supabase
     .from("companies")
     .select("*")

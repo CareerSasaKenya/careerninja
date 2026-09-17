@@ -34,7 +34,7 @@ import {
 import { sanitizeScrapedJobHtmlForDisplay } from "@/lib/jobBoardApply";
 import { sanitizeStockTipsCopy } from "@/lib/sanitizeStockTipsCopy";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabaseEnv";
-import { throwIfSupabaseError } from "@/lib/supabaseRead";
+import { isUuid, throwIfSupabaseError } from "@/lib/supabaseRead";
 import {
   isMissingListingKindColumnError,
   isScholarshipRow,
@@ -71,7 +71,7 @@ async function getScholarshipData(id: string) {
     .eq("job_slug", id)
     .maybeSingle();
 
-  if (!job && !error) {
+  if (!job && !error && isUuid(id)) {
     ({ data: job, error } = await supabase
       .from("jobs")
       .select(DETAIL_SELECT)

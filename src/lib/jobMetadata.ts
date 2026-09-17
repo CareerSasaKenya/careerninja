@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '@/integrations/supabase/types';
 import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabaseEnv';
-import { throwIfSupabaseError } from '@/lib/supabaseRead';
+import { isUuid, throwIfSupabaseError } from '@/lib/supabaseRead';
 
 const supabase = createClient<Database>(getSupabaseUrl(), getSupabaseAnonKey());
 
@@ -39,8 +39,8 @@ export async function getJobMetadata(jobId: string): Promise<JobMetadata | null>
       .eq('job_slug', jobId)
       .maybeSingle();
     
-    // If not found by slug, try by ID
-    if (!job && !error) {
+    // If not found by slug, try by ID (uuid column — skip non-UUID paths)
+    if (!job && !error && isUuid(jobId)) {
       ({ data: job, error } = await supabase
         .from('jobs')
         .select(`
