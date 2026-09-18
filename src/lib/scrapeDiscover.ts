@@ -17,6 +17,10 @@ import {
 } from './brightermonday-adapter'
 import { discoverFuzuJobs, FuzuSourceConfig } from './fuzu-adapter'
 import { discoverMyJobMagJobs, MyJobMagSourceConfig } from './myjobmag-adapter'
+import {
+  discoverScholarshipFeed,
+  ScholarshipFeedConfig,
+} from './scholarshipFeedAdapter'
 import { normalizeJobUrl } from './scraperDeadline'
 import { reclaimStuckScrapeQueueItems, STALE_PROCESSING_MS } from './scrapeQueueStats'
 
@@ -80,6 +84,7 @@ const SUPPORTED_TYPES = new Set([
   'brightermonday',
   'fuzu',
   'myjobmag',
+  'scholarship_feed',
   'html',
 ])
 
@@ -298,6 +303,8 @@ export async function runScrapeDiscover(
             stopAfterKnownPages: 2,
           }
         )
+      } else if (adapterType === 'scholarship_feed') {
+        discovered = await discoverScholarshipFeed(source.selectors as ScholarshipFeedConfig)
       } else {
         const html = await fetchHtml(source.base_url)
         discovered = extractJobLinks(html, source.base_url, source.selectors as ScraperSelectors)

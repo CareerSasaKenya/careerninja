@@ -3,6 +3,8 @@ import {
   normalizeBrighterMondayJob,
   parseBrighterMondayJobHtml,
   resolveBrighterMondayLocation,
+  brighterMondayListingLocationFromBaseUrl,
+  isBrighterMondayScholarshipListing,
 } from './brightermonday-adapter'
 
 assert.deepEqual(
@@ -142,5 +144,34 @@ assert.equal(emailed.applyEmail, 'careers@eliteoffset.co.ke')
 assert.equal(emailed.applicationUrl, null)
 assert.equal(emailed.applyLink, null)
 assert.equal(emailed.applicationDeadline, '2026-07-27')
+
+assert.deepEqual(
+  brighterMondayListingLocationFromBaseUrl('https://www.brightermonday.co.ke/jobs'),
+  { path: '/jobs', search: '' }
+)
+assert.deepEqual(
+  brighterMondayListingLocationFromBaseUrl(
+    'https://www.brightermonday.co.ke/jobs?q=bursary&sort=featured'
+  ),
+  { path: '/jobs', search: '?q=bursary&sort=featured' }
+)
+assert.equal(
+  isBrighterMondayScholarshipListing(
+    'https://www.brightermonday.co.ke/listings/kcb-foundation-scholarship-abc123'
+  ),
+  true
+)
+assert.equal(
+  isBrighterMondayScholarshipListing(
+    'https://www.brightermonday.co.ke/listings/county-bursary-fund-9k88d7'
+  ),
+  true
+)
+assert.equal(
+  isBrighterMondayScholarshipListing(
+    'https://www.brightermonday.co.ke/listings/sales-executive-x866zn'
+  ),
+  false
+)
 
 console.log('brightermonday-adapter.test.ts: ok')
